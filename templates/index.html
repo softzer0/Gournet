@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Gournet</title>
+    <link rel="stylesheet" href="https://bootswatch.com/united/bootstrap.min.css">
+    <style>
+    body {
+      padding-top: 80px;
+    }
+
+   .navbar-collapse.collapse {
+        display: block;
+    }
+
+    .navbar-nav>li, .navbar-nav {
+        float: left;
+    }
+
+    /*.navbar-nav.navbar-right:last-child {
+        margin-right: -15px !important;
+    }*/
+
+    .navbar-right {
+        float: right;
+    }
+    </style>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/login_signup.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <header class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gournet</a>
+            <div class="navbar-collapse collapse in" id="navbar-main">
+                <ul class="nav navbar-nav navbar-right"><li><a href="signup.html" class="text-right">New here? Click to sign up!</a></li></ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="jumbotron">
+                    <h2>Welcome to Gournet!</h2>
+                    <p>Gournet is a place where you can find your favourite restaurants, cafes, pubs, and much more! Join our community to explore all the features this platform offers!</p>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="well bs-component">
+                    <form class="form-vertical" action="home.html">
+                        <legend>Login</legend>
+                        <input class="f1 form-control" id="inputEmail" placeholder="Email" type="text">
+                        <input class="f1 form-control" id="inputPass" placeholder="Password" type="text">
+                        <button type="submit" class="f1 btn btn-primary btn-block">Login</button>
+                        <div class="f"><a href="/forgot">Forgot your password?</a></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="navbar navbar-fixed-bottom">
+        <div class="container">
+            <p class="text-muted">Copyright © 2016 by MikiSoft</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign up on Gournet</title>
+    <link rel="stylesheet" href="https://bootswatch.com/united/bootstrap.min.css">
+    <style>
+        .m {
+            padding-bottom: 20px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/login_signup.css">
+</head>
+<body>
+    <header class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gournet</a>
+        </div>
+    </header>
+
+    <div class="container w">
+        <div class="row" style="min-width: 350px;">
+            <div class="m col-xs-10 col-xs-offset-1 col-xs-offset-right-1 col-sm-5 col-sm-offset-1">
+                <div class="well bs-component">
+                    <form class="form-vertical">
+                        <legend>Fill the data:</legend>
+                        <input class="f1 form-control" type="text" name="user" placeholder="Your username">
+                        <input class="f1 form-control" type="text" name="email" placeholder="Your email">
+                        <input class="f1 form-control" type="password" name="password" placeholder="Your password">
+                        <input class="f1 form-control" type="password" name="confirm_password" placeholder="Repeat the password">
+                        <input class="f1 form-control" type="text" name="full_name" placeholder="Your full name">
+                        <input type="radio" id="male" name="gender" value="m"><label class="f1" style="padding-left: 5px;" for="male">I'm Male.</label>
+                        <span style="padding-left: 10px;">
+                            <input type="radio" id="female" name="gender" value="f">
+                            <label class="f1" style="padding-left: 5px;" for="female">I'm Female.</label>
+                        </span>
+                        <input class="f form-control" type="text" name="birth" placeholder="Date of birth">
+                        <input class="f1 form-control" type="text" name="region" placeholder="Region">
+                        <div class="f1"><div style="width: 304px; height: 78px;"><iframe scrolling="no" role="presentation" title="recaptcha widget" src="https://www.google.com/recaptcha/api2/anchor?k=6Ld2sf4SAAAAAKSgzs0Q13IZhY02Pyo31S2jgOB5&amp;co=aHR0cDovL3BhdHJpY2tobGF1a2UuZ2l0aHViLmlvOjgw&amp;hl=en&amp;v=r20160216085053&amp;size=normal&amp;cb=hvljf991yfhv" frameborder="0" height="78" width="304"></iframe></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid #c1c1c1; margin: 10px 25px; padding: 0px; resize: none;  display: none; "></textarea></div>
+                        <input class="f1 btn btn-primary btn-block" type="submit" name="login" value="Sign up!">
+                    </form>
+                </div>
+            </div>
+            <div class="m col-xs-10 col-xs-offset-1 col-xs-offset-right-1 col-sm-5 col-sm-offset-0 col-sm-offset-right-1">
+                <div class="well bs-component">
+                    <legend>Or connect via:</legend>
+                    <button class="f1 btn btn-primary btn-block">Facebook</button>
+                    <button class="f1 btn btn-primary btn-block">Google</button>
+                    <button class="f1 btn btn-primary btn-block">Twitter</button>
+                    <button class="f1 btn btn-primary btn-block">LinkedIn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="navbar navbar-fixed-bottom">
+        <div class="container">
+            <p class="text-muted">Copyright © 2016 by MikiSoft</p>
+        </div>
+    </footer>
+</body>
+</html>

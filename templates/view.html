@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kafana "Stara kuća" - Gournet</title>
+    <link rel="stylesheet" href="https://bootswatch.com/united/bootstrap.min.css">
+    <link rel="stylesheet" href="css/navmenu-push.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/home.css">
+    <style>
+        .margin-center {
+            margin: 0 auto;
+            display: block;
+        }
+        .prof {
+            width: 128px;
+            height: 128px;
+            margin-bottom: 15px;
+        }
+        .br1 {
+            margin-bottom: -5px;
+        }
+        .br2 {
+            margin-bottom: 11px;
+        }
+        .br3 {
+            margin-bottom: 5px;
+        }
+        .ls > li {
+            padding-bottom: 5px;
+        }
+        .remp {
+            padding-bottom: 0 !important;
+        }
+
+        .bs-sidebar.affix {
+            top: 70px;
+        }
+
+        @media (max-width: 991px) {
+        .bs-sidebar.affix {
+            top: 0;
+            width: initial;
+            position: relative;
+          }
+        }
+
+        @media (min-width: 992px) {
+          .bs-sidebar.affix {
+            top: 70px;
+            width: 213px;
+            position: fixed;
+          }
+        }
+
+        @media (min-width: 1200px) {
+          .bs-sidebar.affix {
+            width: 263px;
+          }
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <!--<script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-jquery/dist/angular-jquery.min.js"></script>
+    <script src="js/app.js"></script>-->
+</head>
+<body>
+    <div class="navmenu navmenu-default navmenu-fixed-right offcanvas">
+      <a class="n" href="#"><img class="bor imo img-rounded" src="http://i.imgur.com/mKpzieM.jpg"><span class="navmenu-brand">Mihailo Popović</span></a>
+      <ul class="nav navmenu-nav">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Notifications</a></li>
+        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Favourites <b class="caret"></b></a>
+          <ul class="dropdown-menu navmenu-nav">
+            <li><a href="#">News feed</a></li>
+            <li><a href="#">Manage</a></li>
+            <li class="divider"></li>
+            <li class="dropdown-header">Recent</li>
+            <li><a href="#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">Kafana "Stara kuća"</a></li>
+            <li><a href="#">Каfana "Stara Srbija"</a></li>
+          </ul>
+          </li>
+        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Friends <b class="caret"></b></a>
+          <ul class="dropdown-menu navmenu-nav">
+            <li><a href="#">News feed</a></li>
+            <li><a href="#">Manage</a></li>
+            <li class="divider"></li>
+            <li class="dropdown-header">Recent</li>
+            <li><a href="#">Miloš Simić</a></li>
+            <li><a href="#">Милош Трајковић</a></li>
+          </ul>
+          </li>
+        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
+          <ul class="dropdown-menu navmenu-nav">
+            <li><a href="#">Change password/email</a></li>
+            <li><a href="#">Language preferences</a></li>
+          </ul>
+          </li>
+        <li><a href="#">Logout</a></li>
+      </ul>
+    </div>
+
+    <header class="navbar navbar-default navbar-fixed-top">
+        <a href="/" class="navbar-brand">Gournet</a>
+        <form class="navbar-form navbar-left" role="search">
+            <div class="form-group">
+                <input type="text" class="sr form-control" placeholder="Search">
+            </div>
+        </form>
+        <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+    </header>
+
+    <div class="container w">
+
+        <div class="row">
+
+            <div class="col-md-3">
+                <div class="well bs-sidebar affix">
+                    <p class="lead text-center br2">Kafana "Stara kuća"</p>
+                    <img class="img-thumbnail margin-center prof" src="http://static.panoramio.com/photos/original/32617386.jpg">
+                    <ul class="br1 list-unstyled text-center ls">
+                        <li><a href="#"><i class="fa fa-star"></i> <b>503</b></a> čoveka su favorizovala ovo</li>
+                        <li class="remp"><a href="#"><i class="fa fa-plus-square"></i> I meni je omiljeno</a><hr></li>
+                        <li class="br3">
+                            <ul class="list-unstyled">
+                                <li><b class="text-success">Trenutno otvoreno</b></li>
+                                <li><i class="fa fa-sign-in"></i> Radnim danima od 8h do 20h</li>
+                                <li><i class="fa fa-sign-in"></i> Subotom od 8h do 15h</li>
+                            </ul>
+                        </li>
+                        <li><ul class="list-unstyled">
+                                <li><a href="https://maps.google.com/maps?q=Vojvode Mišića 79, Niš"><i class="fa fa-map"></i> Vojvode Mišića 79, Niš</a></li>
+                                <li><i class="fa fa-phone"></i> +381 18/756-235</li>
+                            </ul>
+                        </li>
+                        <li><ul class="list-unstyled">
+                                <li><a href="https://maps.google.com/maps?q=Kraljevića Marka 34, Vranje"><i class="fa fa-map"></i> Kraljevića Marka 34, Vranje</a></li>
+                                <li><i class="fa fa-phone"></i> +381 64/22-59-137</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="col-md-9">
+
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#events" aria-controls="events" role="tab" data-toggle="tab">Events</a></li>
+                    <li role="presentation"><a href="#menu" aria-controls="menu" role="tab" data-toggle="tab">Menu</a></li>
+                    <li role="presentation"><a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab">Reviews</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane fade in active" id="events">
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+
+                        <div class="well bs-component clearfix">
+                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                            <div class="br">
+                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
+                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane fade" id="menu">
+                        ovde je meni
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane fade" id="reviews">
+                        ovde su recenzije
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="navbar navbar-fixed-bottom">
+        <div class="container">
+            <p class="text-muted">Copyright © 2016 by MikiSoft</p>
+        </div>
+    </footer>
+
+</body>
+</html>
