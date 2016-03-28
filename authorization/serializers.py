@@ -2,6 +2,7 @@ from django.contrib.auth import update_session_auth_hash
 from rest_framework import serializers
 from .models import Users, Location, CHOICE_GENDER
 
+
 class LocationSerializer(serializers.ModelSerializer):
     city = serializers.CharField(max_length=75, default=None)
     country = serializers.CharField(max_length=25, default=None)
@@ -10,22 +11,27 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         fields = ('city', 'country')
 
+
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.CharField(write_only=True, required=False)
+    password = serializers.CharField(write_only=True, default=None)
     first_name = serializers.CharField(default=None)
     last_name = serializers.CharField(default=None)
     gender = serializers.ChoiceField(choices=CHOICE_GENDER, default=None)
     birth = serializers.DateField(default=None)
     location = LocationSerializer(default=None)
-    password = serializers.CharField(write_only=True, default=None)
 
     class Meta:
         model = Users
-        fields = ('username', 'email', 'first_name', 'last_name', 'gender', 'birth', 'location', 'password')
+        fields = ('username', 'email', 'password', 'first_name', 'last_name', 'gender', 'birth', 'location')
 
     def create(self, validated_data):
         loc = Location.objects.create(**validated_data.pop('location'))
-        return  Users.objects.create(location=loc, **validated_data)
+        pss = validated_data.pop('password')
+        usr = Users(location=loc, **validated_data)
+        usr.set_password(pss)
+        usr.save()
+        return usr
 
     def update(self, instance, validated_data):
         instance.username = validated_data['username']
