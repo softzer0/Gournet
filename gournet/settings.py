@@ -38,13 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_framework_jwt',
-    'authorization'
+#    'rest_framework_jwt',
+    'authorization',
+    'gournet_app'
 ]
 
-JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=14)
-}
+# JWT_AUTH = {
+#    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=14)
+# }
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -65,7 +66,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+#        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
 }
 

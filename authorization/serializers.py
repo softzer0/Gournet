@@ -31,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
         usr = Users(location=loc, **validated_data)
         usr.set_password(pss)
         usr.save()
+
         return usr
 
     def update(self, instance, validated_data):
@@ -47,5 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
         loc.save()
         instance.set_password(validated_data['password'])
         instance.save()
+
+        update_session_auth_hash(self.context.get('request'), instance)
 
         return instance
