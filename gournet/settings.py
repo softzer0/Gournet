@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'stronghold',
 #    'rest_framework_jwt',
     'authorization',
     'gournet_app'
@@ -56,6 +57,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'stronghold.middleware.LoginRequiredMiddleware'
 ]
 
 REST_FRAMEWORK = {
@@ -71,8 +73,14 @@ REST_FRAMEWORK = {
 }
 
 AUTH_USER_MODEL = 'auth.User'
-
+LOGIN_URL = '/api-auth/login/'
 ROOT_URLCONF = 'gournet.urls'
+
+STRONGHOLD_DEFAULTS = True
+STRONGHOLD_PUBLIC_URLS = (
+    r'/admin/',
+    r'/api-auth/',
+)
 
 TEMPLATES = [
     {

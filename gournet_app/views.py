@@ -1,8 +1,6 @@
-from django.shortcuts import render
+from django.views.generic import TemplateView
+from stronghold.views import StrongholdPublicMixin
 
 
-def pagetest(request):
-    if request.user.is_authenticated():
-        return render(request, 'hidden.html')
-    else:
-        return render(request, 'error.html')
+class IndexPageView(TemplateView):
+    template_name = 'home.html'
