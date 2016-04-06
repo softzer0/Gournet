@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home - Gournet</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/navmenu-push.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="navmenu navmenu-default navmenu-fixed-right offcanvas">
+      <a class="n" href="#"><img class="bor imo img-rounded" src="http://i.imgur.com/mKpzieM.jpg"><span class="navmenu-brand">Mihailo Popović</span></a>
+      <ul class="nav navmenu-nav">
+        <li><a href="#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">Home</a></li>
+        <li><a href="#">Notifications</a></li>
+        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Favourites <b class="caret"></b></a>
+          <ul class="dropdown-menu navmenu-nav">
+            <li><a href="#">News feed</a></li>
+            <li><a href="#">Manage</a></li>
+            <li class="divider"></li>
+            <li class="dropdown-header">Recent</li>
+            <li><a href="#">Kafana "Stara kuća"</a></li>
+            <li><a href="#">Каfana "Stara Srbija"</a></li>
+          </ul>
+          </li>
+        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Friends <b class="caret"></b></a>
+          <ul class="dropdown-menu navmenu-nav">
+            <li><a href="#">News feed</a></li>
+            <li><a href="#">Manage</a></li>
+            <li class="divider"></li>
+            <li class="dropdown-header">Recent</li>
+            <li><a href="#">Miloš Simić</a></li>
+            <li><a href="#">Милош Трајковић</a></li>
+          </ul>
+          </li>
+        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
+          <ul class="dropdown-menu navmenu-nav">
+            <li><a href="#">Change password/email</a></li>
+            <li><a href="#">Language & currency preferences</a></li>
+          </ul>
+          </li>
+        <li><a href="{% url 'logout' %}">Logout</a></li>
+      </ul>
+    </div>
+
+    <header class="navbar navbar-default navbar-fixed-top">
+        <a href="/" class="navbar-brand">Gournet</a>
+        <form class="navbar-form navbar-left" role="search">
+            <div class="form-group">
+                <input type="text" class="sr form-control" placeholder="Search">
+            </div>
+        </form>
+        <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+    </header>
+
+    <div class="container">
+        <div id="map" class="bor col-lg-12" style="height: 250px; margin-bottom: 40px;"></div>
+        <script>
+        function initMap() {
+        var myLatLng = {lat: 43.3161595, lng: 21.8233196};
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 9,
+            streetViewControl: false,
+            center: myLatLng
+        });
+
+        google.maps.event.addDomListener(window, "resize", function() {
+            var center = map.getCenter();
+            google.maps.event.trigger(map, "resize");
+            map.setCenter(center);
+        });
+
+        var marker = new google.maps.Marker({
+            position: myLatLng,
+            map: map,
+            draggable: true,
+            title: 'Hello World!'
+        });
+        }
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+
+        <div class="row">
+
+            <div class="col-lg-12">
+                <div class="well bs-component clearfix">
+                    <legend>Kafana "Stara kuća"</legend>
+                    <img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
+                    <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
+                    <div class="br">
+                    <a href="#"><i class="fa fa-plus-square"></i> 10</a>
+                    <a href="#"><i class="fa fa-minus-square"></i> 0</a>
+                    <a href="#"><i class="fa fa-comment"></i> Komentari</a>
+                    <a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+                    <a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-lg-12">
+                <div class="well bs-component clearfix">
+                    <legend>Kafana "Stara Srbija"</legend>
+                    <div class="row">
+                        <div class="col-md-2 av mb"><img class="bor media-object im" src="http://doceknovagodina.com/img/objekat/restoran-stara-srbija-maksima-gorkog-51,-vracar_2.jpg"></div>
+                        <div class="col-md-5 mb"><img class="img-thumbnail img-responsive" src="http://www.mojakafana.com/uploads/Galerija/112/i/21/kafana_Stara_Srbija_9.JPG"></div>
+                        <div class="col-md-5 mb"><img class="img-thumbnail img-responsive" src="http://www.mojakafana.com/uploads/Galerija/112/i/19/kafana_Stara_Srbija_7.JPG"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="navbar navbar-fixed-bottom">
+        <div class="container">
+            <p class="text-muted">Copyright © 2016 by MikiSoft</p>
+        </div>
+    </footer>
+</body>
+</html>

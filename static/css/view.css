@@ -1,0 +1,73 @@
+.wp {
+	padding-bottom: 15px;
+}
+
+.margin-center {
+	margin: 0 auto;
+	display: block;
+}
+.prof {
+	width: 128px;
+	height: 128px;
+	margin-bottom: 12px;
+}
+.br1 {
+	margin-bottom: -5px;
+}
+.br2 {
+	margin-bottom: 11px;
+}
+.ls > li {
+	padding-bottom: 5px;
+}
+
+.remm {
+	display: block;
+	margin-top: 15px;
+	margin-bottom: 0 !important;
+}
+
+.tb > tbody > tr > td {
+	padding-top: 15px !important;
+}
+
+.tb > tbody > tr > td > img {
+	margin-top: -5px;
+	margin-right: 7px;
+}
+
+.an {
+	margin-top: 14px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.rw {
+	margin-bottom: -5px;
+}
+
+.bs-sidebar.affix {
+	top: 70px;
+}
+
+@media (max-width: 991px) {
+.bs-sidebar.affix {
+	top: 0;
+	width: initial;
+	position: relative;
+  }
+}
+
+@media (min-width: 992px) {
+  .bs-sidebar.affix {
+	top: 70px;
+	width: 213px;
+	position: fixed;
+  }
+}
+
+@media (min-width: 1200px) {
+  .bs-sidebar.affix {
+	width: 263px;
+  }
+}
