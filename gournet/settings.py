@@ -38,9 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'stronghold',
 #    'rest_framework_jwt',
-    'authorization',
+    'bootstrap3',
+    'stronghold',
     'gournet_app'
 ]
 
@@ -72,8 +72,9 @@ REST_FRAMEWORK = {
     ),
 }
 
-AUTH_USER_MODEL = 'auth.User'
-LOGIN_URL = '/api-auth/login/'
+AUTH_USER_MODEL = 'gournet_app.User'
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/'
 ROOT_URLCONF = 'gournet.urls'
 
 STRONGHOLD_DEFAULTS = True
@@ -150,3 +151,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))+'/static/',
+)
