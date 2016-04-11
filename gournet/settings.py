@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
-import os, datetime
+import os #, datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,13 +36,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'rest_framework.authtoken',
 #    'rest_framework_jwt',
+#    'decorator_include',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    #'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.linkedin_oauth2',
+    'allauth.socialaccount.providers.paypal',
     'bootstrap3',
     'stronghold',
-    'gournet_app'
+    'main'
 ]
+
+SITE_ID = 1
 
 # JWT_AUTH = {
 #    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=14)
@@ -68,19 +79,30 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-#        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+       # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
 }
 
-AUTH_USER_MODEL = 'gournet_app.User'
+ROOT_URLCONF = 'gournet.urls'
+AUTH_USER_MODEL = 'main.User'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/'
-ROOT_URLCONF = 'gournet.urls'
+
+ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+# EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+# ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+ACCOUNT_SIGNUP_FORM_CLASS = 'main.forms.RegistrationForm'
+ACCOUNT_ADAPTER = "main.adapter.AccountAdapter"
+# ACCOUNT_PASSWORD_MIN_LENGTH = 8
 
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = (
     r'/admin/',
-    r'/api-auth/',
+   # r'/api-auth/',
 )
 
 TEMPLATES = [
@@ -95,10 +117,18 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request'
             ],
         },
     },
 ]
+
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 WSGI_APPLICATION = 'gournet.wsgi.application'
 

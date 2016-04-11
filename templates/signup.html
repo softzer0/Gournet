@@ -27,7 +27,10 @@
         <div class="row" style="min-width: 350px;">
             <div class="m col-xs-10 col-xs-offset-1 col-xs-offset-right-1 col-sm-5 col-sm-offset-1">
                 <div class="well bs-component">
-                    <form method="post" class="form-vertical">
+                    <form method="post" class="form-vertical" action="{% url 'account_signup' %}">
+                        {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
                         {% csrf_token %}{% load bootstrap3 %}
                         <legend>Fill the data:</legend>
                         {% if reg_form.non_field_errors %}
@@ -35,9 +38,8 @@
                         <div class="text-danger">{{ error }}</div>
                         {% endfor %}
                         {% endif %}
-                        {% bootstrap_form reg_form %}
-                        {% bootstrap_form loc_form %}
-                        <input class="f1 btn btn-primary btn-block" type="submit" name="login" value="Sign up!">
+                        {% bootstrap_form form %}
+                        <input class="f1 btn btn-primary btn-block" type="submit" name="signup" value="Sign up!">
                     </form>
                 </div>
             </div>

@@ -5,16 +5,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 
-
 CHOICE_GENDER = ((1, 'Male'), (2, 'Female'))
-
-
-class Location(models.Model):
-    city = models.CharField(max_length=75)
-    country = models.CharField(max_length=25)
-
-    def __str_(self):
-        return ', '.join([self.city, self.state])
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -26,12 +17,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         'username',
         max_length=30,
         unique=True,
-        help_text='Required. 30 characters or fewer. Letters, digits and @/./+/-/_ only.',
+        help_text='Required. 30 characters or fewer. Letters, digits and ./-/_ only.',
         validators=[
             validators.RegexValidator(
-                r'^[\w.@+-]+$',
+                r'^[\w.-]+$',
                 ('Enter a valid username. This value may contain only '
-                  'letters, numbers ' 'and @/./+/-/_ characters.')
+                  'letters, numbers ' 'and ./-/_ characters.')
             ),
         ],
         error_messages={
@@ -46,7 +37,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     gender = models.IntegerField(choices=CHOICE_GENDER, default=1)
     birth_date = models.DateField()
-    location = models.ForeignKey(Location)
+    city = models.CharField(max_length=75)
+    country = models.CharField(max_length=25)
 
     # Added custom fields [END]
 
@@ -56,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text='Designates whether the user can log into this admin site.',
     )
     is_active = models.BooleanField(
-        ('active'),
+        'active',
         default=True,
         help_text=(
             'Designates whether this user should be treated as active. '
@@ -68,7 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birth', 'location'] # Added fields after "email"
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birth', 'city', 'country'] # Added fields after "email"
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'
