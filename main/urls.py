@@ -1,6 +1,6 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 # from django.views.generic.edit import CreateView
-# from decorator_include import decorator_include
+#from decorator_include import decorator_include
 from . import views as main_views
 from stronghold.decorators import public
 from allauth.account import views
@@ -18,7 +18,7 @@ urlpatterns = [
 
     # E-mail
     url(r"^email/$", views.email, name="account_email"),
-    url(r"^confirm-email/$", views.email_verification_sent,
+    url(r"^confirm-email/$", public(views.email_verification_sent),
         name="account_email_verification_sent"),
     url(r"^confirm-email/(?P<key>[-:\w]+)/$", views.confirm_email,
         name="account_confirm_email"),
@@ -34,3 +34,6 @@ urlpatterns = [
     url(r"^password/reset/key/done/$", public(views.password_reset_from_key_done),
         name="account_reset_password_from_key_done"),
 ]
+
+urlpatterns += [url('^social/', include('main.socialaccount_urls'))]
+

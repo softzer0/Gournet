@@ -98,10 +98,12 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_SIGNUP_FORM_CLASS = 'main.forms.RegistrationForm'
 ACCOUNT_ADAPTER = "main.adapter.AccountAdapter"
 # ACCOUNT_PASSWORD_MIN_LENGTH = 8
+ACCOUNT_LOGOUT_ON_GET = True
 
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = (
     r'/admin/',
+    r'/social/',
    # r'/api-auth/',
 )
 

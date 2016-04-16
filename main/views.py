@@ -26,6 +26,3 @@ class HomePageView(TemplateView):
 class IndexPageView(LoginView):
     template_name = 'index.html'
 
-
-class SignupPageView(SignupView):
-    template_name = 'signup.html'

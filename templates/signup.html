@@ -33,23 +33,18 @@
                         {% endif %}
                         {% csrf_token %}{% load bootstrap3 %}
                         <legend>Fill the data:</legend>
-                        {% if reg_form.non_field_errors %}
-                        {% for error in reg_form.non_field_errors %}
-                        <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                        {% endif %}
                         {% bootstrap_form form %}
-                        <input class="f1 btn btn-primary btn-block" type="submit" name="signup" value="Sign up!">
+                        <input class="f1 btn btn-primary btn-block" type="submit" value="Sign up!">
                     </form>
                 </div>
             </div>
             <div class="m col-xs-10 col-xs-offset-1 col-xs-offset-right-1 col-sm-5 col-sm-offset-0 col-sm-offset-right-1">
                 <div class="well bs-component">
                     <legend>Or connect via:</legend>
-                    <button class="f1 btn btn-primary btn-block">Facebook</button>
-                    <button class="f1 btn btn-primary btn-block">Google</button>
-                    <button class="f1 btn btn-primary btn-block">Twitter</button>
-                    <button class="f1 btn btn-primary btn-block">LinkedIn</button>
+                    {% load account socialaccount %}{% get_providers as socialaccount_providers %}
+                      <ul class="socialaccount_provider list-unstyled">
+                        {% include "socialaccount/snippets/provider_list.html" with process="signup" %}
+                      </ul>
                 </div>
             </div>
         </div>

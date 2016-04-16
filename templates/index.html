@@ -19,10 +19,6 @@
         float: left;
     }
 
-    #err {
-        margin: 10px 3px;
-    }
-
     /*.navbar-nav.navbar-right:last-child {
         margin-right: -15px !important;
     }*/
@@ -63,12 +59,7 @@
                         {% endif %}
                         <legend>Login</legend>
                         {% bootstrap_form form %}
-                        <button type="submit" class="f1 btn btn-primary btn-block" name="login">Login</button>
-                        {% if form.non_field_errors %}
-                        {% for error in form.non_field_errors %}
-                        <div id="err" class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                        {% endif %}
+                        <button type="submit" class="f1 btn btn-primary btn-block">Login</button>
                         <div class="f" id="f"><a href="{% url 'account_reset_password' %}">Forgot your password?</a></div>
                     </form>
                 </div>
@@ -82,15 +73,14 @@
         </div>
     </footer>
 
-    <!--<script type="text/javascript">
+    <script type="text/javascript">
         $(document).ready(function() {
             window.onload = function() {
-                if ($(".text-danger")[0]) {
+                if ($(".alert-danger")[0]) {
                     $('html, body').scrollTop($("#f").offset().top);
-                    if ($("#passerr")) { $("[name='password']").focus(); } else { $("[name='username']").focus(); }
                 }
             };
         });
-    </script>-->
+    </script>
 </body>
 </html>
