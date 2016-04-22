@@ -5,10 +5,9 @@ from django.contrib.auth.views import login
 from . import forms
 from .decorators import ifauth_redir
 # from .models import User, Location
-#from decorator_include import decorator_include
+# from decorator_include import decorator_include
 from stronghold.views import StrongholdPublicMixin
 from stronghold.decorators import public
-from allauth.account.views import SignupView
 from allauth.account.views import LoginView
 
 @public

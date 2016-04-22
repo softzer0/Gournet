@@ -10,6 +10,9 @@
         .m {
             padding-bottom: 20px;
         }
+        .cul {
+            margin-bottom: 0px;
+        }
     </style>
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/login_signup.css' %}">
@@ -42,7 +45,7 @@
                 <div class="well bs-component">
                     <legend>Or connect via:</legend>
                     {% load account socialaccount %}{% get_providers as socialaccount_providers %}
-                      <ul class="socialaccount_provider list-unstyled">
+                      <ul class="socialaccount_provider list-unstyled cul">
                         {% include "socialaccount/snippets/provider_list.html" with process="signup" %}
                       </ul>
                 </div>

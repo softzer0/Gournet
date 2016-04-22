@@ -6,7 +6,7 @@ from stronghold.decorators import public
 from allauth.account import views
 
 urlpatterns = [
-    url(r"^signup/$", public(views.SignupView.as_view(template_name='signup.html')), name="account_signup"),
+    url(r"^signup/$", public(views.signup), name="account_signup"),
     url(r"^$", main_views.home_index, name="account_login"),
     url(r"^logout/$", views.logout, name="account_logout"),
 

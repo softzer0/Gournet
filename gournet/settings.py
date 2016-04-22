@@ -44,10 +44,10 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    #'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.linkedin_oauth2',
-    'allauth.socialaccount.providers.paypal',
+ #   'allauth.socialaccount.providers.linkedin_oauth2',
+ #   'allauth.socialaccount.providers.paypal',
     'bootstrap3',
     'stronghold',
     'main'
@@ -96,9 +96,25 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 # EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 # ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_SIGNUP_FORM_CLASS = 'main.forms.RegistrationForm'
-ACCOUNT_ADAPTER = "main.adapter.AccountAdapter"
+ACCOUNT_ADAPTER = "main.adapters.AccountAdapter"
+SOCIALACCOUNT_ADAPTER = "main.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_AUTO_SIGNUP = False
 # ACCOUNT_PASSWORD_MIN_LENGTH = 8
 ACCOUNT_LOGOUT_ON_GET = True
+
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook': {
+        'SCOPE': ['email', 'user_birthday', 'user_location'],
+        'AUTH_PARAMS': {'auth_type': 'https'},
+        'METHOD': 'oauth2',
+        'VERIFIED_EMAIL': True
+    },
+    'google': {
+        #'SCOPE': ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email',],
+        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/plus.me'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
 
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = (
