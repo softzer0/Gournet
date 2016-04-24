@@ -1,9 +1,11 @@
 from django.conf.urls import url, include
 # from django.views.generic.edit import CreateView
-#from decorator_include import decorator_include
+from decorator_include import decorator_include
 from . import views as main_views
 from stronghold.decorators import public
 from allauth.account import views
+from .decorators import login_forbidden
+
 
 urlpatterns = [
     url(r"^signup/$", public(views.signup), name="account_signup"),
@@ -20,7 +22,7 @@ urlpatterns = [
     url(r"^email/$", views.email, name="account_email"),
     url(r"^confirm-email/$", public(views.email_verification_sent),
         name="account_email_verification_sent"),
-    url(r"^confirm-email/(?P<key>[-:\w]+)/$", views.confirm_email,
+    url(r"^confirm-email/(?P<key>[-:\w]+)/$", public(views.confirm_email),
         name="account_confirm_email"),
 
     # password reset
@@ -35,5 +37,5 @@ urlpatterns = [
         name="account_reset_password_from_key_done"),
 ]
 
-urlpatterns += [url('^social/', include('main.socialaccount_urls'))]
+urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.socialaccount_urls'))]
 

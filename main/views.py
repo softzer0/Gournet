@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth import authenticate, login as loginuser
 from django.contrib.auth.views import login
 from . import forms
-from .decorators import ifauth_redir
+from .decorators import login_forbidden
 # from .models import User, Location
 # from decorator_include import decorator_include
 from stronghold.views import StrongholdPublicMixin

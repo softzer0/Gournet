@@ -1,7 +1,9 @@
 from functools import wraps
 from django.utils.decorators import available_attrs
 from django.shortcuts import redirect
+from django.conf import settings
 
+REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 
 def user_passes_test_cust(test_func):
     """
@@ -15,9 +17,9 @@ def user_passes_test_cust(test_func):
         def _wrapped_view(request, *args, **kwargs):
             if test_func(request.user):
                 return view_func(request, *args, **kwargs)
-            return redirect('/')
+            return redirect(REDIRECT_URL)
         return _wrapped_view
     return decorator
 
 
-ifauth_redir = user_passes_test_cust(lambda u: u.is_anonymous())
+login_forbidden = user_passes_test_cust(lambda u: u.is_anonymous())

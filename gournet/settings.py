@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
 #    'rest_framework_jwt',
-#    'decorator_include',
+    'decorator_include',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -111,7 +111,7 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'google': {
         #'SCOPE': ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email',],
-        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/plus.me'],
+        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.me'],
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }

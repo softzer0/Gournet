@@ -36,7 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Added custom fields [BEGIN]
 
     gender = models.IntegerField(choices=CHOICE_GENDER, default=1)
-    birth_date = models.DateField()
+    birthdate = models.DateField()
     city = models.CharField(max_length=75)
     country = models.CharField(max_length=25)
 
