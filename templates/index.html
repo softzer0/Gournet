@@ -1,48 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Gournet</title>
-    {% load staticfiles %}
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block style %}<link rel="stylesheet" href="{% static 'css/login_signup.css' %}">
     <style>
-    body {
-      padding-top: 80px;
-    }
+        body {
+            padding-top: 80px;
+        }
 
-   .navbar-collapse.collapse {
-        display: block;
-    }
+        .navbar-collapse.collapse {
+            display: block;
+        }
 
-    .navbar-nav>li, .navbar-nav {
-        float: left;
-    }
+        .navbar-nav>li, .navbar-nav {
+            float: left;
+        }
 
-    /*.navbar-nav.navbar-right:last-child {
-        margin-right: -15px !important;
-    }*/
+        /*.navbar-nav.navbar-right:last-child {
+            margin-right: -15px !important;
+        }*/
 
-    .navbar-right {
-        float: right;
-    }
-    </style>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/login_signup.css' %}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-</head>
-<body>
-    <header class="navbar navbar-default navbar-fixed-top">
-        <div class="container">
-            <a href="/" class="navbar-brand">Gournet</a>
-            <div class="navbar-collapse collapse in" id="navbar-main">
+        .navbar-right {
+            float: right;
+        }
+    </style>{% endblock %}
+
+{% block navbar %}<div class="navbar-collapse collapse in" id="navbar-main">
                 <ul class="nav navbar-nav navbar-right"><li><a href="{% url 'account_signup' %}" class="text-right">New here? Click to sign up!</a></li></ul>
-            </div>
-        </div>
-    </header>
+            </div>{% endblock %}
 
-    <div class="container">
+{% block container %}
         <div class="row">
             <div class="col-sm-8">
                 <div class="jumbotron">
@@ -57,7 +44,7 @@
                         {% if redirect_field_value %}
                         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                         {% endif %}
-                        <legend>Login</legend>
+                        <legend>{% trans "Login" %}</legend>
                         {% bootstrap_form form %}
                         <button type="submit" class="f1 btn btn-primary btn-block">Login</button>
                         <div class="f" id="f"><a href="{% url 'account_reset_password' %}">Forgot your password?</a></div>
@@ -65,14 +52,9 @@
                 </div>
             </div>
         </div>
-    </div>
+{% endblock %}
 
-    <footer class="navbar navbar-fixed-bottom">
-        <div class="container">
-            <p class="text-muted">Copyright © 2016 by MikiSoft</p>
-        </div>
-    </footer>
-
+{% block end %}
     <script type="text/javascript">
         $(document).ready(function() {
             window.onload = function() {
@@ -82,5 +64,4 @@
             };
         });
     </script>
-</body>
-</html>
+{% endblock %}

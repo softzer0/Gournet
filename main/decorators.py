@@ -5,6 +5,7 @@ from django.conf import settings
 
 REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 
+
 def user_passes_test_cust(test_func):
     """
     Decorator for views that checks that the user passes the given test,

@@ -17,7 +17,7 @@
 </head>
 <body>
     <div class="navmenu navmenu-default navmenu-fixed-right offcanvas">
-      <a class="n" href="#"><img class="bor imo img-rounded" src="http://i.imgur.com/mKpzieM.jpg"><span class="navmenu-brand">Mihailo Popović</span></a>
+      <a class="n" href="#"><img class="bor imo img-rounded" src="http://i.imgur.com/mKpzieM.jpg"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
       <ul class="nav navmenu-nav">
         <li><a href="#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">Home</a></li>
         <li><a href="#">Notifications</a></li>

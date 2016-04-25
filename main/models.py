@@ -35,10 +35,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # Added custom fields [BEGIN]
 
-    gender = models.IntegerField(choices=CHOICE_GENDER, default=1)
-    birthdate = models.DateField()
-    city = models.CharField(max_length=75)
-    country = models.CharField(max_length=25)
+    gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
+    birthdate = models.DateField('birthdate')
+    city = models.CharField('city', max_length=75)
+    country = models.CharField('country', max_length=25)
 
     # Added custom fields [END]
 

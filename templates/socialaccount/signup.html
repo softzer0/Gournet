@@ -1,0 +1,22 @@
+{% extends 'signup_base.html' %}
+{% load i18n %}
+
+{% block container %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="well bs-component" style="max-width: 500px;">
+                    <form method="post" class="form-vertical" action="{% url 'socialaccount_signup' %}">
+                        {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                        {% csrf_token %}{% load bootstrap3 %}
+                        <legend>{% trans "Fill the data" %}</legend>
+                        <p>{% blocktrans with provider_name=account.get_provider.name site_name=site.name %}You are
+about to use your {{provider_name}} account data to signup to {{site_name}}. As a final step, please complete the following form:{% endblocktrans %}</p>
+                        {% bootstrap_form form %}
+                        <input class="f1 btn btn-primary btn-block" type="submit" value="Sign up!">
+                    </form>
+                </div>
+            </div>
+        </div>
+{% endblock %}
