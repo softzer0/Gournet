@@ -50,6 +50,7 @@ INSTALLED_APPS = [
  #   'allauth.socialaccount.providers.paypal',
     'bootstrap3',
     'stronghold',
+    'captcha',
     'main'
 ]
 
@@ -95,12 +96,16 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 # EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 # ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
-ACCOUNT_SIGNUP_FORM_CLASS = 'main.forms.RegistrationForm'
+ACCOUNT_SIGNUP_FORM_CLASS = 'main.forms.SignupForm'
 ACCOUNT_ADAPTER = "main.adapters.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "main.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = False
 # ACCOUNT_PASSWORD_MIN_LENGTH = 8
 ACCOUNT_LOGOUT_ON_GET = True
+
+RECAPTCHA_PUBLIC_KEY = "***REMOVED***"
+RECAPTCHA_PRIVATE_KEY = "***REMOVED***"
+NOCAPTCHA = True
 
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {

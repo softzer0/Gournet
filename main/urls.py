@@ -1,5 +1,6 @@
-from django.conf.urls import url, include
+from django.conf.urls import url #, include
 # from django.views.generic.edit import CreateView
+# from django.views.generic import TemplateView
 from decorator_include import decorator_include
 from . import views as main_views
 from stronghold.decorators import public
@@ -8,6 +9,12 @@ from .decorators import login_forbidden
 
 
 urlpatterns = [
+    # Custom
+
+    url(r"^user/(?P<name>[\w.-]+)$", main_views.user, name="user_profile"),
+
+    # Allauth related below
+
     url(r"^signup/$", public(views.signup), name="account_signup"),
     url(r"^$", main_views.home_index, name="account_login"),
     url(r"^logout/$", views.logout, name="account_logout"),

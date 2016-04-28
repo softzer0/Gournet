@@ -1,8 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'base/base.html' %}
 {% load staticfiles %}
 {% load i18n %}
 
-{% block style %}<link rel="stylesheet" href="{% static 'css/login_signup.css' %}">
+{% block title %}Welcome to Gournet{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/login_signup.css' %}">
     <style>
         body {
             padding-top: 80px;

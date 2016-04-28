@@ -7,6 +7,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 
 CHOICE_GENDER = ((1, 'Male'), (2, 'Female'))
 
+def upload_to(instance, filename):
+    return 'images/%s/%s' % (instance.user.username, filename)
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
@@ -15,9 +17,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     username = models.CharField(
         'username',
-        max_length=30,
+        max_length=15,
         unique=True,
-        help_text='Required. 30 characters or fewer. Letters, digits and ./-/_ only.',
+        help_text='Required. 15 characters or fewer. Letters, digits and ./-/_ only.',
         validators=[
             validators.RegexValidator(
                 r'^[\w.-]+$',
@@ -35,6 +37,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # Added custom fields [BEGIN]
 
+    picture = models.ImageField(upload_to=upload_to, blank=True)
+    friends = models.ManyToManyField('self', blank=True, symmetrical=False) #, through='Relationship')
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
     birthdate = models.DateField('birthdate')
     city = models.CharField('city', max_length=75)
@@ -85,3 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+#class Relationship(models.Model):
+#    person1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person1")
+#    person2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person2")
+#    created = models.DateTimeField(auto_now_add=True)

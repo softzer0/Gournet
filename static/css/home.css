@@ -61,6 +61,18 @@ legend {
 }
 
 @media (max-width: 768px) {
+    .modal-dialog {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+    }
+    .modal-content {
+        min-height: 100%;
+        height: auto;
+        border-radius: 0;
+    }
+
     .navbar-header {
         float: left;
     }

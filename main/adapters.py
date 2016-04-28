@@ -30,7 +30,6 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                       sociallogin,
                       data):
         user = super(SocialAccountAdapter, self).populate_user(request, sociallogin, data)
-        print(sociallogin.account.extra_data)
         if 'gender' in sociallogin.account.extra_data:
             if sociallogin.account.extra_data['gender'] == 'male':
                 user.gender = 1
@@ -38,6 +37,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 user.gender = 2
         if 'birthday' in sociallogin.account.extra_data:
             user.birthdate = datetime.datetime.strptime(sociallogin.account.extra_data['birthday'], "%m/%d/%Y")
+        #print(sociallogin.account.extra_data)
         #google: {'locale': 'sr', 'email': 'mihailosoft@gmail.com', 'name': 'Miki Pop', 'id': '115870460243092480285', 'family_name': 'Pop', 'link': 'https://plus.google.com/115870460243092480285', 'given_name': 'Miki', 'gender': 'male', 'verified_email': True, 'picture': 'https://lh6.googleusercontent.com/-5jq6sO3I4nc/AAAAAAAAAAI/AAAAAAAAAG4/DdyjqIcm3C0/photo.jpg'}
         #fb: {'verified': True, 'id': '1150617648323168', 'timezone': 2, 'updated_time': '2016-04-11T19:33:12+0000', 'first_name': 'Mihailo', 'name': 'Mihailo Popovic', 'last_name': 'Popovic', 'email': 'mikisoft0@gmail.com', 'gender': 'male', 'locale': 'sr_RS', 'link': 'https://www.facebook.com/app_scoped_user_id/1150617648323168/'}
         return user
