@@ -4,11 +4,10 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
+#from django_thumbs.db.models import ImageWithThumbsField
+
 
 CHOICE_GENDER = ((1, 'Male'), (2, 'Female'))
-
-def upload_to(instance, filename):
-    return 'images/%s/%s' % (instance.user.username, filename)
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
@@ -17,9 +16,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     username = models.CharField(
         'username',
-        max_length=15,
+        max_length=30,
         unique=True,
-        help_text='Required. 15 characters or fewer. Letters, digits and ./-/_ only.',
+        help_text='Maximum 30 characters. Letters, digits and ./-/_ only.',
         validators=[
             validators.RegexValidator(
                 r'^[\w.-]+$',
@@ -37,12 +36,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # Added custom fields [BEGIN]
 
-    picture = models.ImageField(upload_to=upload_to, blank=True)
+    #avatar = ImageWithThumbsField(upload_to=upload_to, blank=True, sizes=((48,48),(64,64)))
     friends = models.ManyToManyField('self', blank=True, symmetrical=False) #, through='Relationship')
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
     birthdate = models.DateField('birthdate')
-    city = models.CharField('city', max_length=75)
     country = models.CharField('country', max_length=25)
+    city = models.CharField('city', max_length=75)
 
     # Added custom fields [END]
 
@@ -64,7 +63,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birth', 'city', 'country'] # Added fields after "email"
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birth', 'country', 'city'] # Added fields after "email"
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'

@@ -1,87 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mihailo Popović - Gournet</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/navmenu-push.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/home.css">
-    <link rel="stylesheet" href="css/view.css">
+{% extends 'base/view.html' %}
+
+{% block title %}{{ user.first_name }} {{ user.last_name }} - Gournet{% endblock %}
+{% block head %}{{ block.super }}
     <style>
 		.ac {
 			margin: -8px 0 5px;
 		}
-    </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <!--<script src="bower_components/angular/angular.js"></script>
-    <script src="bower_components/angular-jquery/dist/angular-jquery.min.js"></script>
-    <script src="js/app.js"></script>-->
-    <script src="tmp/holder.js"></script>
-</head>
-<body>
-    <div class="navmenu navmenu-default navmenu-fixed-right offcanvas">
-      <a class="n" href="#"><img class="bor imo img-rounded" src="http://i.imgur.com/mKpzieM.jpg"><span class="navmenu-brand">Mihailo Popović</span></a>
-      <ul class="nav navmenu-nav">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Notifications</a></li>
-        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Favourites <b class="caret"></b></a>
-          <ul class="dropdown-menu navmenu-nav">
-            <li><a href="#">News feed</a></li>
-            <li><a href="#">Manage</a></li>
-            <li class="divider"></li>
-            <li class="dropdown-header">Recent</li>
-            <li><a href="#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">Kafana "Stara kuća"</a></li>
-            <li><a href="#">Каfana "Stara Srbija"</a></li>
-          </ul>
-          </li>
-        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Friends <b class="caret"></b></a>
-          <ul class="dropdown-menu navmenu-nav">
-            <li><a href="#">News feed</a></li>
-            <li><a href="#">Manage</a></li>
-            <li class="divider"></li>
-            <li class="dropdown-header">Recent</li>
-            <li><a href="#">Miloš Simić</a></li>
-            <li><a href="#">Милош Трајковић</a></li>
-          </ul>
-          </li>
-        <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
-          <ul class="dropdown-menu navmenu-nav">
-            <li><a href="#">Change password/email</a></li>
-            <li><a href="#">Language & currency preferences</a></li>
-          </ul>
-          </li>
-        <li><a href="#">Logout</a></li>
-      </ul>
-    </div>
-
-    <header class="navbar navbar-default navbar-fixed-top">
-        <a href="/" class="navbar-brand">Gournet</a>
-        <form class="navbar-form navbar-left" role="search">
-            <div class="form-group">
-                <input type="text" class="sr form-control" placeholder="Search">
-            </div>
-        </form>
-        <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
-    </header>
-
-    <div class="container">
-
-        <div class="row">
+    </style>{% endblock %}
+{% block container %}
+    <div class="row">
 
             <div class="col-md-3">
                 <div class="well bs-sidebar affix">
-                    <p class="lead text-center br2">Mihailo Popović</p>
-                    <img class="img-thumbnail margin-center prof" src="http://i.imgur.com/mKpzieM.jpg">
+                    <p class="lead text-center br2">{{ user.first_name }} {{ user.last_name }}</p>
+                    <img class="img-thumbnail margin-center prof" src="/images/{{ user.username }}/avatar">
                     <ul class="br1 list-unstyled text-center ls">
 						<li><a href="https://maps.google.com/maps?q=Vranje"><i class="fa fa-map-marker"></i> Vranje</a></li>
                         <li><a href="#"><i class="fa fa-users"></i> <b>38</b></a> čoveka su mu prijatelji</li>
@@ -374,13 +306,4 @@
             </div>
 
         </div>
-    </div>
-
-    <footer class="navbar navbar-fixed-bottom">
-        <div class="container">
-            <p class="text-muted">Copyright © 2016 by MikiSoft</p>
-        </div>
-    </footer>
-
-</body>
-</html>
+{% endblock %}

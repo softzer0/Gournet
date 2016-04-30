@@ -1,7 +1,10 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.account.adapter import get_adapter
 import datetime
-
+import requests
+from django.core.files.base import ContentFile
+from .thumbs import saveimgwiththumbs
 
 class AccountAdapter(DefaultAccountAdapter):
     def save_user(self, request, user, form, commit=True):
@@ -40,4 +43,22 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         #print(sociallogin.account.extra_data)
         #google: {'locale': 'sr', 'email': 'mihailosoft@gmail.com', 'name': 'Miki Pop', 'id': '115870460243092480285', 'family_name': 'Pop', 'link': 'https://plus.google.com/115870460243092480285', 'given_name': 'Miki', 'gender': 'male', 'verified_email': True, 'picture': 'https://lh6.googleusercontent.com/-5jq6sO3I4nc/AAAAAAAAAAI/AAAAAAAAAG4/DdyjqIcm3C0/photo.jpg'}
         #fb: {'verified': True, 'id': '1150617648323168', 'timezone': 2, 'updated_time': '2016-04-11T19:33:12+0000', 'first_name': 'Mihailo', 'name': 'Mihailo Popovic', 'last_name': 'Popovic', 'email': 'mikisoft0@gmail.com', 'gender': 'male', 'locale': 'sr_RS', 'link': 'https://www.facebook.com/app_scoped_user_id/1150617648323168/'}
+        return user
+
+    def save_user(self, request, sociallogin, form=None):
+        user = super(SocialAccountAdapter, self).save_user(request, sociallogin, form)
+        response = None
+        if sociallogin.account.provider == 'facebook':
+            response = requests.get('https://graph.facebook.com/v2.6/'+sociallogin.account.extra_data['id']+'/picture?width=128&height=128')
+        elif sociallogin.account.provider == 'google':
+            response = requests.get(sociallogin.account.extra_data['picture']+'?sz=128')
+        if response and response.status_code == 200:
+            t = response.headers['content-type']
+            if t in ('image/jpeg', 'image/png', 'image/gif'):
+                t = t[6:]
+                if t == 'jpeg':
+                    t = 'jpg'
+                elif t == 'gif':
+                    t = 'png'
+                saveimgwiththumbs(username=user.username, imgname='avatar.'+t, content=ContentFile(response.content), sizes=((48,48),(64,64)))
         return user

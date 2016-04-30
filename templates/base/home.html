@@ -1,4 +1,4 @@
-{% extends 'base/base.html' %}
+{% extends 'base/main.html' %}
 {% load staticfiles %}
 
 {% block head %}<link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">{% endblock %}
 
 {% block begin %}<div class="navmenu navmenu-default navmenu-fixed-right offcanvas">
-        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/user/{{ request.user.username }}{% endif %}"><img class="bor imo img-rounded" src="{{ "/images/"|add:request.user.username|add:"/avatar" }}"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
+        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/user/{{ request.user.username }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username}}/avatar/48"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
         <ul class="nav navmenu-nav">
             <li><a href="{% if request.path == "/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/{% endif %}">Home</a></li>
             <li><a href="{% if request.path == "/notifications/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/notifications{% endif %}">Notifications</a></li>

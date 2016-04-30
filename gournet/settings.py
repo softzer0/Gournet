@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
 #    'rest_framework_jwt',
+#    'django_thumbs',
     'decorator_include',
     'allauth',
     'allauth.account',
@@ -48,6 +49,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
  #   'allauth.socialaccount.providers.linkedin_oauth2',
  #   'allauth.socialaccount.providers.paypal',
+ #   'allauth.socialaccount.providers.twitter',
+    'djangular',
     'bootstrap3',
     'stronghold',
     'captcha',
@@ -84,6 +87,7 @@ REST_FRAMEWORK = {
     ),
 }
 
+ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 ROOT_URLCONF = 'gournet.urls'
 AUTH_USER_MODEL = 'main.User'
 LOGIN_URL = '/'
@@ -96,7 +100,6 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 # EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 # ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
-ACCOUNT_SIGNUP_FORM_CLASS = 'main.forms.SignupForm'
 ACCOUNT_ADAPTER = "main.adapters.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "main.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = False
@@ -116,10 +119,13 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'google': {
         #'SCOPE': ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email',],
-        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.me'],
+        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/plus.me'],
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
+
+SOCIALACCOUNT_FORMS = {'signup': 'main.allauth_forms.SocialSignupForm'}
+ACCOUNT_FORMS = {'signup': 'main.allauth_forms.SignupForm'}
 
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = (
@@ -203,8 +209,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
+IMAGES_PATH = ROOT_PATH+'/images/'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))+'/static/',
+    ROOT_PATH+'/static/',
 )

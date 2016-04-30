@@ -11,7 +11,8 @@ from .decorators import login_forbidden
 urlpatterns = [
     # Custom
 
-    url(r"^user/(?P<name>[\w.-]+)$", main_views.user, name="user_profile"),
+    url(r"^user/(?P<username>[\w.-]+)/$", main_views.show_profile, name="user_profile"),
+    url(r"^images/(?P<username>[\w.-]+)/avatar/((?P<size>(48|64))/)?$", main_views.return_avatar, name="avatar"),
 
     # Allauth related below
 
@@ -46,3 +47,8 @@ urlpatterns = [
 
 urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.socialaccount_urls'))]
 
+
+#from django.conf import settings
+#if settings.DEBUG:
+#    from django.conf.urls.static import static
+#    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

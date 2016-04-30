@@ -44,7 +44,7 @@ legend {
 .br > a, .b {
     margin-right: 10px;
 }
-.n:active, .n:hover {
+.n:link, .n:visited, .n:active, .n:hover {
     text-decoration: none;
 }
 
