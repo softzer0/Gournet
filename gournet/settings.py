@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
 #    'rest_framework_jwt',
 #    'django_thumbs',
+    'messages_extends',
     'decorator_include',
     'allauth',
     'allauth.account',
@@ -50,7 +51,7 @@ INSTALLED_APPS = [
  #   'allauth.socialaccount.providers.linkedin_oauth2',
  #   'allauth.socialaccount.providers.paypal',
  #   'allauth.socialaccount.providers.twitter',
-    'djangular',
+    'djng',
     'bootstrap3',
     'stronghold',
     'captcha',
@@ -86,6 +87,12 @@ REST_FRAMEWORK = {
        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
 }
+
+MESSAGES_STORAGES = ('messages_extends.storages.StickyStorage',
+     'messages_extends.storages.PersistentStorage',
+     'messages_extends.storages.FallbackStorage',
+     'django.contrib.messages.storage.cookie.CookieStorage',
+     'django.contrib.messages.storage.session.SessionStorage')
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 ROOT_URLCONF = 'gournet.urls'

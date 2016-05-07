@@ -1,4 +1,4 @@
-from django.conf.urls import url #, include
+from django.conf.urls import url, include
 # from django.views.generic.edit import CreateView
 # from django.views.generic import TemplateView
 from decorator_include import decorator_include
@@ -45,7 +45,8 @@ urlpatterns = [
         name="account_reset_password_from_key_done"),
 ]
 
-urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.socialaccount_urls'))]
+urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.socialaccount_urls')), #]
+                url('^notifications/', include('messages_extends.urls'))]
 
 
 #from django.conf import settings

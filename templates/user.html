@@ -15,9 +15,9 @@
                     <p class="lead text-center br2">{{ user.first_name }} {{ user.last_name }}</p>
                     <img class="img-thumbnail margin-center prof" src="/images/{{ user.username }}/avatar">
                     <ul class="br1 list-unstyled text-center ls">
-						<li><a href="https://maps.google.com/maps?q=Vranje"><i class="fa fa-map-marker"></i> Vranje</a></li>
-                        <li><a href="#"><i class="fa fa-users"></i> <b>38</b></a> čoveka su mu prijatelji</li>
-                        <li><a href="#"><i class="fa fa-user-plus"></i> I meni je prijatelj</a></li>
+						<li><a href="https://maps.google.com/maps?q={{ user.city }},+{{ user.country }}"><i class="fa fa-map-marker"></i> {{ user.city }}, {{ user.country }}</a></li>
+                        <li><a href="#"><i class="fa fa-users"></i> <b>38</b></a> čoveka su {% if request.user != user %}mu{% else %}ti{% endif %} prijatelji</li>
+                        {% if request.user != user %}<li><a href="#"><i class="fa fa-user-plus"></i> I meni je prijatelj</a></li>{% endif %}
                     </ul>
                 </div>
 

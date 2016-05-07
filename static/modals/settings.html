@@ -1,0 +1,39 @@
+<div class="modal-body">
+    <div class="row">
+        <div class="col-sm-12 col-md-3">
+            <h3>Settings</h3>
+            <ul class="nav nav-pills nav-justified-inverse">
+                <li class="{{ id == 1 ? 'active' : '' }}"><a data-toggle="pill" href="#emailpw">Password and email(s)</a></li>
+                <li class="{{ id == 2 ? 'active' : '' }}"><a data-toggle="pill" href="#intern">Internationalization</a></li>
+            </ul>
+        </div>
+
+        <div class="tab-content col-sm-12 col-md-9" style="margin-top: 30px;">
+            <div role="tabpanel" class="tab-pane fade{{ id == 1 ? ' in active' : '' }}" id="emailpw">
+                <p class="br3">Enter new password if you want to change it:</p>
+                <input class="form-control br3" type="password" placeholder="New password">
+                <p class="br3">Repeat new password:</p>
+                <input class="form-control br3" type="password" placeholder="New password (again)">
+                <p class="br3">Enter your current password before saving:</p>
+                <input class="form-control br3" type="password" placeholder="Current password">
+                <button class="btn btn-success">Save</button>
+                <hr class="hor">
+                <p class="br3">You have currently 1 email address associated with your account:</p>
+                <input type="radio" checked id="email_1" name="gender" value="f">
+                <label class="br3" for="email_1">mihailosoft@gmail.com</label> <span class="label label-success btl">Verified</span> <span class="label label-info btl">Primary</span>
+                <div><button class="btn btn-info br3">Make Primary</button> <button class="btn btn-default btl br3">Re-send Verification</button> <button class="btn btn-danger btl br3">Remove</button></div>
+                <input class="form-control br3" type="text" name="email" placeholder="Email">
+                <button class="btn btn-warning">Add Email Address</button>
+            </div>
+            <div role="tabpanel" class="tab-pane fade{{ id == 2 ? ' in active' : '' }}" id="intern">
+                <p class="br3">Language:</p>
+                <input class="form-control br3" type="text" placeholder="Language">
+                <p class="br3">Currency:</p>
+                <input class="form-control br3" type="text" placeholder="Currency">
+                <p class="br3">Time zone:</p>
+                <input class="form-control br3" type="text" placeholder="Time zone">
+                <button class="btn btn-success">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

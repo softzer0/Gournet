@@ -1,21 +1,29 @@
 {% extends 'base/main.html' %}
 {% load staticfiles %}
 
+{% block htmlatt %} ng-app="mainApp"{% endblock %}
+{% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 {% block head %}<link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sett.css' %}">
     <link rel="stylesheet" href="{% static 'css/navmenu-push.css' %}">
     <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">{% endblock %}
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-resource.min.js"></script>
+    {% comment %}<script src="{% static 'js/angular-css.min.js' %}"></script>{% endcomment %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.2/ui-bootstrap-tpls.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <script src="{% static 'js/home.js' %}"></script>{% endblock %}
 
-{% block begin %}<div class="navmenu navmenu-default navmenu-fixed-right offcanvas">
-        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/user/{{ request.user.username }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username}}/avatar/48"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
+{% block begin %}<div class="navmenu navmenu-default navmenu-fixed-right offcanvas">{% with current='#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body' %}
+        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username}}/avatar/48"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
         <ul class="nav navmenu-nav">
-            <li><a href="{% if request.path == "/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/{% endif %}">Home</a></li>
-            <li><a href="{% if request.path == "/notifications/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/notifications{% endif %}">Notifications</a></li>
+            <li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>
+            <li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>
             <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Favourites <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav">
-                    <li><a href="{% if request.path == "/favourites/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/favourites{% endif %}">News feed</a></li>
-                    <li><a href="{% if request.path == "/favourites/manage/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/favourites/manage{% endif %}">Manage</a></li>
+                    <li><a href="{% if request.path == "/favourites/" %}{{ current }}{% else %}/favourites{% endif %}">News feed</a></li>
+                    <li><a href="{% if request.path == "/favourites/manage/" %}{{ current }}{% else %}/favourites/manage{% endif %}">Manage</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
                     <li><a href="#">Kafana "Stara kuća"</a></li>
@@ -24,23 +32,23 @@
             </li>
             <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Friends <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav">
-                    <li><a href="{% if request.path == "/friends/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/friends{% endif %}">News feed</a></li>
-                    <li><a href="{% if request.path == "/friends/manage/" %}#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body{% else %}/friends/manage{% endif %}">Manage</a></li>
+                    <li><a href="{% if request.path == "/friends/" %}{{ current }}{% else %}/friends{% endif %}">News feed</a></li>
+                    <li><a href="{% if request.path == "/friends/manage/" %}{{ current }}{% else %}/friends/manage{% endif %}">Manage</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
                     <li><a href="#">Miloš Simić</a></li>
                     <li><a href="#">Милош Трајковић</a></li>
                 </ul>
             </li>
-            <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
-                <ul class="dropdown-menu navmenu-nav">
-                    <li><a href="#">Change password/email</a></li>
-                    <li><a href="#">Internationalization</a></li>
-                </ul>
-            </li>
+            <!--<li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
+                <ul class="dropdown-menu navmenu-nav">-->
+                    <li><a href="#" ng-click="showSettModal(1)">Change password/email(s)</a></li>
+                    <li><a href="#" ng-click="showSettModal(2)">Internationalization</a></li>
+                <!--</ul>
+            </li>-->
             <li><a href="{% url 'account_logout' %}">Logout</a></li>
         </ul>
-    </div>{% endblock %}
+    </div>{% endwith %}{% endblock %}
 
 {% block navbar_root %}<header class="navbar navbar-default navbar-fixed-top">
             <a href="/" class="navbar-brand">Gournet</a>

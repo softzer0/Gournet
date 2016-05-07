@@ -63,11 +63,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birth', 'country', 'city'] # Added fields after "email"
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birthdate', 'country', 'city'] # Added fields after "email"
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'
-        ordering = ('username',)
+        ordering = ('username', 'first_name', 'last_name')
         verbose_name = 'user'
         verbose_name_plural = 'users'
 
