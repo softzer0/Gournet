@@ -1,8 +1,25 @@
-.form-control.br3 {
+.modal-header {
+    padding-bottom: 5px;
+}
+
+.modal-header h3 {
+    margin: 0 0 0;
+    display: inline;
+}
+
+.modal-body .form-control {
     width: 250px;
 }
 
-.br3 {
+.modal-body p:not(.def) {
+    margin-bottom: 4px;
+}
+
+.modal-body .alert {
+    margin-top: 7px;
+}
+
+.modal-body .form-control, .modal-body .br3, .modal-body .alert {
     margin-bottom: 7px;
 }
 
@@ -19,6 +36,10 @@
 }
 
 @media (max-width: 992px) {
+    .fm2 {
+        margin-top: 20px;
+    }
+
     .nav-justified-inverse > li {
         display: inline-block;
         width: 49%;

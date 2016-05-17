@@ -2,7 +2,6 @@
 {% load staticfiles %}
 
 {% block htmlatt %} ng-app="mainApp"{% endblock %}
-{% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 {% block head %}<link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/sett.css' %}">
     <link rel="stylesheet" href="{% static 'css/navmenu-push.css' %}">
@@ -16,8 +15,8 @@
     <script src="{% static 'js/home.js' %}"></script>{% endblock %}
 
 {% block begin %}<div class="navmenu navmenu-default navmenu-fixed-right offcanvas">{% with current='#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body' %}
-        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username}}/avatar/48"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
-        <ul class="nav navmenu-nav">
+        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username}}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
+        <ul class="nav navmenu-nav" ng-controller="SettCtrl">
             <li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>
             <li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>
             <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Favourites <b class="caret"></b></a>
@@ -42,8 +41,8 @@
             </li>
             <!--<li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav">-->
-                    <li><a href="#" ng-click="showSettModal(1)">Change password/email(s)</a></li>
-                    <li><a href="#" ng-click="showSettModal(2)">Internationalization</a></li>
+            <li><a href="#" ng-click="showSettModal(1)">Change password/email(s)</a></li>
+            <li><a href="#" ng-click="showSettModal(2)">Internationalization</a></li>
                 <!--</ul>
             </li>-->
             <li><a href="{% url 'account_logout' %}">Logout</a></li>

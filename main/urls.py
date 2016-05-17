@@ -7,12 +7,13 @@ from stronghold.decorators import public
 from allauth.account import views
 from .decorators import login_forbidden
 
-
 urlpatterns = [
     # Custom
 
     url(r"^user/(?P<username>[\w.-]+)/$", main_views.show_profile, name="user_profile"),
     url(r"^images/(?P<username>[\w.-]+)/avatar/((?P<size>(48|64))/)?$", main_views.return_avatar, name="avatar"),
+    url(r'^api/email/$', public(main_views.EmailAPIView.as_view())),
+#    url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
 
     # Allauth related below
 
@@ -20,14 +21,13 @@ urlpatterns = [
     url(r"^$", main_views.home_index, name="account_login"),
     url(r"^logout/$", views.logout, name="account_logout"),
 
-    url(r"^password/change/$", views.password_change,
-        name="account_change_password"),
+    url(r"^password/change/$", main_views.PasswordChangeView.as_view(), name="account_change_password"),
     url(r"^password/set/$", views.password_set, name="account_set_password"),
 
-    url(r"^inactive/$", views.account_inactive, name="account_inactive"),
+    #url(r"^inactive/$", views.account_inactive, name="account_inactive"),
 
     # E-mail
-    url(r"^email/$", views.email, name="account_email"),
+    url(r"^email/$", main_views.EmailView.as_view(), name="account_email"),
     url(r"^confirm-email/$", public(views.email_verification_sent),
         name="account_email_verification_sent"),
     url(r"^confirm-email/(?P<key>[-:\w]+)/$", public(views.confirm_email),
