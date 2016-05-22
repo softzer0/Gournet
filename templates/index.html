@@ -9,25 +9,21 @@
             padding-top: 80px;
         }
 
-        .navbar-collapse.collapse {
+        .jumbotron {
+            margin-bottom: 0;
+        }
+
+        /*.navbar-collapse.collapse {
             display: block;
         }
 
-        .navbar-nav>li, .navbar-nav {
-            float: left;
-        }
-
-        /*.navbar-nav.navbar-right:last-child {
+        .navbar-nav.navbar-right:last-child {
             margin-right: -15px !important;
         }*/
-
-        .navbar-right {
-            float: right;
-        }
     </style>{% endblock %}
 
 {% block navbar %}<div class="navbar-collapse collapse in" id="navbar-main">
-                <ul class="nav navbar-nav navbar-right"><li><a href="{% url 'account_signup' %}" class="text-right">New here? Click to sign up!</a></li></ul>
+                <ul class="nav navbar-nav navbar-header pull-right"><li><a href="{% url 'account_signup' %}" class="text-right">New here? Click to sign up!</a></li></ul>
             </div>{% endblock %}
 
 {% block container %}
@@ -48,7 +44,7 @@
                         <legend>{% trans "Login" %}</legend>
                         {% bootstrap_form form %}
                         <button type="submit" class="f1 btn btn-primary btn-block">Login</button>
-                        <div class="f" id="f"><a href="{% url 'account_reset_password' %}">Forgot your password?</a></div>
+                        <div class="f"><a href="{% url 'account_reset_password' %}">Forgot your password?</a></div>
                     </form>
                 </div>
             </div>
@@ -60,7 +56,7 @@
         $(document).ready(function() {
             window.onload = function() {
                 if ($(".alert-danger")[0]) {
-                    $('html, body').scrollTop($("#f").offset().top);
+                    $('html, body').scrollTop($(".alert-danger")[0].offset().top);
                 }
             };
         });

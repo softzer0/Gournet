@@ -11,7 +11,11 @@ urlpatterns = [
     # Custom
 
     url(r"^user/(?P<username>[\w.-]+)/$", main_views.show_profile, name="user_profile"),
-    url(r"^images/(?P<username>[\w.-]+)/avatar/((?P<size>(48|64))/)?$", main_views.return_avatar, name="avatar"),
+    url(r"^images/(?P<username>[\w.-]+)/avatar/(?:(?P<size>(48|64))/)?$", main_views.return_avatar, name="avatar"),
+
+    # API
+
+    url(r'^api/friends/(?:(?P<pk>\d+)/)?$', public(main_views.RelationshipAPIView.as_view())),
     url(r'^api/email/$', public(main_views.EmailAPIView.as_view())),
 #    url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
 

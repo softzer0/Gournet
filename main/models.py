@@ -37,7 +37,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Added custom fields [BEGIN]
 
     #avatar = ImageWithThumbsField(upload_to=upload_to, blank=True, sizes=((48,48),(64,64)))
-    friends = models.ManyToManyField('self', blank=True, symmetrical=False) #, through='Relationship')
+    friends = models.ManyToManyField('self', blank=True, symmetrical=False, through='Relationship')
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
     birthdate = models.DateField('birthdate')
     country = models.CharField('country', max_length=25)
@@ -88,7 +88,32 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
-#class Relationship(models.Model):
-#    person1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person1")
-#    person2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person2")
-#    created = models.DateTimeField(auto_now_add=True)
+class Relationship(models.Model):
+    person1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person1")
+    person2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person2")
+
+    class Meta:
+        unique_together = (('person1', 'person2'),)
+
+    def save(self, *args, **kwargs):
+        #if self.person1 == self.person2:
+        #    return
+        #else:
+        super().save(*args, **kwargs)
+        # ...
+
+    def __str__(self):
+        return self.person1.get_username()+' with '+self.person2.get_username()
+
+
+"""TESTING:
+from main.models import User
+a = User.objects.create(username='mikisoft1',email='lololoasadasdd@sdaaadsa.ss',first_name='Miki',last_name='Pop',birthdate='***REMOVED***',country='Sdweads',city='Dsadtfrwea')
+a.set_password('12345678')
+a.save()
+# try to login to site
+from allauth.account.models import EmailAddress
+a = EmailAddress.objects.get(pk=2)
+a.verified = True
+a.save()
+"""

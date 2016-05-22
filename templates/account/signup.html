@@ -2,8 +2,8 @@
 {% load i18n %}
 
 {% block container %}
-        <div class="row" style="min-width: 350px;">
-            <div class="col-xs-10 col-xs-offset-1 col-xs-offset-right-1 col-sm-5 col-sm-offset-1" style="padding-bottom: 20px;">
+        <div class="row" style="min-width: 320px;">
+            <div class="col-xs-12 col-sm-5 col-sm-offset-1">
                 <div class="well bs-component">
                     <form method="post" class="form-vertical" action="{% url 'account_signup' %}">
                         {% if redirect_field_value %}
@@ -16,7 +16,7 @@
                     </form>
                 </div>
             </div>
-            <div class="m col-xs-10 col-xs-offset-1 col-xs-offset-right-1 col-sm-5 col-sm-offset-0 col-sm-offset-right-1">
+            <div class="col-xs-12 col-sm-5 col-sm-offset-0 col-sm-offset-right-1">
                 <div class="well bs-component">
                     <legend>{% trans "Or connect via" %}</legend>
                     {% load account socialaccount %}{% get_providers as socialaccount_providers %}

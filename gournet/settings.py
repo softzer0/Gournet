@@ -77,6 +77,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_METADATA_CLASS': 'main.metadata.Metadata',
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
@@ -216,7 +217,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-IMAGES_PATH = ROOT_PATH+'/images/'
+IMAGES_PATH = 'images/'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (

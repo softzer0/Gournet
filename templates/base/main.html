@@ -14,12 +14,12 @@
 <body{% block bodyatt %}{% endblock %}>
     {% block begin %}{% endblock %}
 
-    {% block navbar_root %}<header class="navbar navbar-default navbar-fixed-top">
-        <div class="container">
+    <header class="navbar navbar-default navbar-fixed-top">
+        {% block navbar_container %}<div class="container">{% endblock %}
             <a href="/" class="navbar-brand">Gournet</a>
             {% block navbar %}{% endblock %}
-        </div>
-    </header>{% endblock %}
+        {% block navbar_container_end %}</div>{% endblock %}
+    </header>
 
     <div class="container w">{% block container %}{% endblock %}</div>
 

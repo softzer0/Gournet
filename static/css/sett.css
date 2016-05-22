@@ -19,12 +19,15 @@
     margin-top: 7px;
 }
 
-.modal-body .form-control, .modal-body .br3, .modal-body .alert {
+.modal-body .form-control, .bt3, .modal-body .alert {
     margin-bottom: 7px;
 }
+.bt3 .btn {
+    margin-top: 5px;
+}
 
-.btl {
-    margin-left: 3px;
+.btr {
+    margin-right: 3px;
 }
 
 .hor {

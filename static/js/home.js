@@ -1,4 +1,4 @@
-angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
+var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'oc.lazyLoad', 'angularCSS'*/
     .config(['$httpProvider', function($httpProvider) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
@@ -26,8 +26,8 @@ angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
             restrict: 'A',
             scope: {
                 ngDialogMessage: '@',
-                /*ngDialogYn: '=',
-                ngDialogOkOnly: '=',*/
+                ngDialogYn: '=',
+                ngDialogOkOnly: '=',
                 ngDialogClick: '&'
             },
             link: function(scope, element, attrs) {
@@ -37,7 +37,7 @@ angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
                     var OkOnly = attrs.ngDialogOkOnly || false;
 
                     var modalHtml = '<div class="modal-body">' + message + '</div>';
-                    modalHtml += '<div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+/*(YesNo ? */'Yes'/* : 'OK')*/+'</button>'+/*(!OkOnly ? */'<button class="btn btn-warning" ng-click="cancel()">'+/*(YesNo ? */'No'/* : 'Cancel')*/+'</button></div>'/*:'')*/;
+                    modalHtml += '<div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(YesNo ? 'Yes' : 'OK')+'</button>'+(!OkOnly ? '<button class="btn btn-warning" ng-click="cancel()">'+(YesNo ? 'No' : 'Cancel')+'</button></div>':'');
 
                     var modalInstance = $uibModal.open({
                         windowTopClass: 'modal-confirm',
@@ -63,7 +63,7 @@ angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
                 size: 'lg',
                 templateUrl: '/static/modals/settings.html',
                 scope: $scope,
-                controller: 'ModalInstanceCtrl'
+                controller: 'SettModalCtrl'
             });
         };
     })
@@ -88,7 +88,6 @@ angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
                     }).$promise;
             },
             add: function(email) {
-                for (var e in emails) if (emails[e].email == email) return false;
                 return _sendreq('add', email).then(function (){ emails.push({email: email, primary: false, verified: false}) });
             },
             remove: function() {
@@ -110,7 +109,7 @@ angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
 
     })
 
-    .controller('ModalInstanceCtrl', function($rootScope, $scope, $uibModalInstance, emailService) {
+    .controller('SettModalCtrl', function($rootScope, $scope, $uibModalInstance, emailService) {
         $scope.cancel = function() {
             $uibModalInstance.dismiss('cancel');
         };
@@ -127,10 +126,11 @@ angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
             $scope.emails = emailService.emails;
             //if ($scope.emails.length == 0) {
                 //load = true;
-            emailService.load().then(function (){ $scope.loaded = true; /*load = false*/ });
+            emailService.load().then(function (){ $scope.loaded = true/*; load = false*/ });
             //} else { $scope.loaded = true }
             $scope.addEmail = function (email) {
                 if (!$scope.addemail.$valid) return;
+                for (var e in $scope.emails) if ($scope.emails[e].email == email) return;
                 emailService.add(email).then(function (){
                     $scope.sent.push($scope.email);
                     $scope.email = ''
@@ -196,18 +196,18 @@ angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'angularCSS'*/
                 return;
             }
             $scope.dismissError();
-            $rootScope.sendreq('password/change/', 'oldpassword='+$scope.pass[0]+'&password1='+$scope.pass[1]+'&password2='+$scope.pass[2]).then(function (data){
+            $rootScope.sendreq('password/change/', 'oldpassword='+$scope.pass[0]+'&password1='+$scope.pass[1]+'&password2='+$scope.pass[2]).then(function (){
                 $scope.pass_err = 0;
                 for(var i=0; i<3; i++) $scope.pass[i] = '';
-            }, function (data){
-                if (data.data.form_errors !== undefined) {
+            }, function (response){
+                if (response.data.form_errors !== undefined) {
                     var err = 0;
-                    for (var e in data.data.form_errors) {
+                    for (var e in response.data.form_errors) {
                         //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
                         if (e == 'oldpassword') err += 1; else err += 2;
-                        for (var i = 0; i < data.data.form_errors[e].length; i++) {
+                        for (var i = 0; i < response.data.form_errors[e].length; i++) {
                             if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
-                            $scope.pass_err_txt += data.data.form_errors[e][i];
+                            $scope.pass_err_txt += response.data.form_errors[e][i];
                         }
                     }
                     $scope.pass_err = err;

@@ -1,6 +1,6 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.account.adapter import get_adapter
+# from allauth.account.adapter import get_adapter
 import datetime
 import requests
 from django.core.files.base import ContentFile

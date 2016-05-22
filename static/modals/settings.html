@@ -1,6 +1,6 @@
 <div class="modal-header">
     <h3>Settings</h3>
-    <button type="button" class="close" ng-click="cancel()" aria-hidden="true">&times;</button>
+    <button type="button" class="close" ng-click="cancel()" aria-hidden="true" style="font-size: 30px; margin-top: -5px;">&times;</button>
 </div>
 
 <div class="modal-body">
@@ -14,17 +14,17 @@
 
         <div class="fm2 tab-content col-sm-12 col-md-9">
             <div role="tabpanel" class="tab-pane fade" ng-class="{'in active': id == 1}" id="emailpw">
-                <form name="changepw" autocomplete="on">
+                <form name="changepw" autocomplete="on" ng-init="pattern = '.{8,}'; title = 'Password must contain at least 8 characters'">
                     <div ng-show="pass_err !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
                         <button class="close" type="button" ng-click="dismissError()" aria-hidden="true">&times;</button>
                         <p class="def">{{ pass_err == 0 ? 'Your password has been changed.' : pass_err_txt }}</p>
                     </div>
                     <p>Enter your current password before changing:</p>
-                    <div ng-class="{'has-error': pass_err == 1 || pass_err == 3}"><input class="form-control" type="password" ng-model="pass[0]" placeholder="Current password" required></div>
+                    <div ng-class="{'has-error': pass_err == 1 || pass_err == 3}"><input class="form-control" type="password" ng-model="pass[0]" placeholder="Current password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
                     <p>Enter new password:</p>
-                    <div ng-class="{'has-error': pass_err == 2 || pass_err == 3}"><input class="form-control" type="password" ng-model="pass[1]" placeholder="New password" required></div>
+                    <div ng-class="{'has-error': pass_err == 2 || pass_err == 3}"><input class="form-control" type="password" ng-model="pass[1]" placeholder="New password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
                     <p>Repeat new password:</p>
-                    <div ng-class="{'has-error': pass_err == 4}"><input class="form-control" type="password" ng-model="pass[2]" placeholder="New password (again)" required></div>
+                    <div ng-class="{'has-error': pass_err == 4}"><input class="form-control" type="password" ng-model="pass[2]" placeholder="New password (again)" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
                     <input type="submit" ng-click="changePassword()" class="btn btn-success" value="Save">
                 </form>
                 <hr class="hor">
@@ -35,14 +35,14 @@
                         <button class="close" type="button" ng-click="sent.length = 0" aria-hidden="true">&times;</button>
                         <p class="def">Confirmation e-mail has been sent to <span ng-repeat="e in sent">{{ $index > 0 ? ', ' : '' }}<strong>{{ e }}</strong></span>.</p>
                     </div>
-                    <div ng-repeat="e in emails">
+                    <div ng-repeat="e in emails" style="white-space: nowrap;">
                         <input type="radio" ng-model="$parent.selected" ng-value="$index" ng-change="EmailSelected()" id="email_{{ $index }}" name="email">
-                        <label for="email_{{ $index }}" ng-bind="e.email"></label> <span ng-show="e.verified" class="label label-success btl">Verified</span> <span ng-show="e.primary" class="label label-info btl">Primary</span>
+                        <label for="email_{{ $index }}" class="btr" ng-bind="e.email"></label> <span ng-show="e.verified" class="label label-success btr">Verified</span> <span ng-show="e.primary" class="label label-info btr">Primary</span>
                     </div>
-                    <div class="br3" style="margin-top: 7px;">
-                        <button ng-disabled="emails[selected].primary || !emails[selected].verified" class="btn btn-info" ng-click="makePrimaryEmail()">Make Primary</button>
-                        <button ng-disabled="emails[selected].verified" class="btn btn-default btl" ng-click="resendConfirmationEmail()">Re-send Verification</button>
-                        <button ng-disabled="emails[selected].primary" class="btn btn-danger btl" ng-dialog-click="removeEmail()" ng-dialog-message="Are you sure that you want to remove email <strong>{{ emails[selected].email }}</strong>?">Remove</button>
+                    <div class="bt3">
+                        <button ng-disabled="emails[selected].primary || !emails[selected].verified" class="btn btn-info btr" ng-click="makePrimaryEmail()">Make Primary</button>
+                        <button ng-disabled="emails[selected].verified" class="btn btn-default btr" ng-click="resendConfirmationEmail()">Re-send Verification</button>
+                        <button ng-disabled="emails[selected].primary" class="btn btn-danger" ng-dialog-click="removeEmail()" ng-dialog-message="Are you sure that you want to remove email <strong>{{ emails[selected].email }}</strong>?">Remove</button>
                     </div>
                 </div>
                 <form name="addemail">

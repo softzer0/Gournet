@@ -4,21 +4,21 @@
 {% block htmlatt %} ng-app="mainApp"{% endblock %}
 {% block head %}<link rel="stylesheet" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" href="{% static 'css/sett.css' %}">
-    <link rel="stylesheet" href="{% static 'css/navmenu-push.css' %}">
     <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-resource.min.js"></script>
-    {% comment %}<script src="{% static 'js/angular-css.min.js' %}"></script>{% endcomment %}
+    {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
+    <script src="{% static 'js/angular-css.min.js' %}"></script>{% endcomment %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.2/ui-bootstrap-tpls.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <script src="{% static 'js/home.js' %}"></script>{% endblock %}
 
 {% block begin %}<div class="navmenu navmenu-default navmenu-fixed-right offcanvas">{% with current='#" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body' %}
-        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username}}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
+        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="{% static '/images/'|add:request.user.username|add:'/avatar/48/' %}"><span class="navmenu-brand">{{ request.user.first_name }} {{ request.user.last_name }}</span></a>
         <ul class="nav navmenu-nav" ng-controller="SettCtrl">
             <li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>
-            <li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>
+            {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
             <li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Favourites <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav">
                     <li><a href="{% if request.path == "/favourites/" %}{{ current }}{% else %}/favourites{% endif %}">News feed</a></li>
@@ -49,16 +49,17 @@
         </ul>
     </div>{% endwith %}{% endblock %}
 
-{% block navbar_root %}<header class="navbar navbar-default navbar-fixed-top">
-            <a href="/" class="navbar-brand">Gournet</a>
-            {% block navbar %}<form class="navbar-form navbar-left" role="search">
+{% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}
+{% block navbar %}<form class="navbar-form navbar-left" role="search">
                 <div class="form-group">
-                    <input type="text" class="sr form-control" placeholder="Search">
+                    <input type="text" class="form-control" id="sr" placeholder="Search">
                 </div>
             </form>
-            <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>{% endblock %}
-    </header>{% endblock %}
+            <div class="navbar-header pull-right" style="width: 105px;">
+                <i id="nf" class="fa fa-bell-o"></i>
+                <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>{% endblock %}
