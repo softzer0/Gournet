@@ -15,6 +15,8 @@ urlpatterns = [
 
     # API
 
+    url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', public(main_views.NotificationAPIView.as_view())),
+    url(r'^api/notifications/read/(?P<page_number>(\d+|last))/$', main_views.notifs_set_all_read),
     url(r'^api/friends/(?:(?P<pk>\d+)/)?$', public(main_views.RelationshipAPIView.as_view())),
     url(r'^api/email/$', public(main_views.EmailAPIView.as_view())),
 #    url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
@@ -49,8 +51,7 @@ urlpatterns = [
         name="account_reset_password_from_key_done"),
 ]
 
-urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.socialaccount_urls')), #]
-                url('^notifications/', include('messages_extends.urls'))]
+urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.socialaccount_urls'))]
 
 
 #from django.conf import settings

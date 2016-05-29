@@ -8,6 +8,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-resource.min.js"></script>
+    <script src="{% static 'js/angular-timeago.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'js/angular-css.min.js' %}"></script>{% endcomment %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.2/ui-bootstrap-tpls.min.js"></script>
@@ -55,8 +56,8 @@
                     <input type="text" class="form-control" id="sr" placeholder="Search">
                 </div>
             </form>
-            <div class="navbar-header pull-right" style="width: 105px;">
-                <i id="nf" class="fa fa-bell-o"></i>
+            <div ng-controller="NotificationCtrl" class="navbar-header pull-right" style="width: 105px;">
+                <a id="notif" style="cursor: pointer;" popover-placement="bottom-right" uib-popover-template="'{% static 'modals/notifications.html' %}'" popover-trigger="outsideClick" popover-is-open="opened"><i id="nf" class="fa" ng-class="unread ? 'fa-bell' : 'fa-bell-o'"></i></a>
                 <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu" data-canvas="body">
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>

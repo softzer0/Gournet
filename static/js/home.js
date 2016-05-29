@@ -1,14 +1,17 @@
-var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'oc.lazyLoad', 'angularCSS'*/
-    .config(['$httpProvider', function($httpProvider) {
+var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angular-timeago']) /*, 'oc.lazyLoad', 'angularCSS'*/
+    .config(function($httpProvider) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-    }])
+    })
+
+    .filter('unsafe', function($sce) { return $sce.trustAsHtml; })
 
     .run(function($rootScope, $http) {
         $rootScope.sendreq = function(url, data) {
+            if (data) method = 'POST'; else method = 'GET';
             return $http({
-                method: 'POST',
+                method: method,
                 url: '/'+url,
                 data: data,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -126,7 +129,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'oc.lazy
             $scope.emails = emailService.emails;
             //if ($scope.emails.length == 0) {
                 //load = true;
-            emailService.load().then(function (){ $scope.loaded = true/*; load = false*/ });
+            emailService.load().then(function (){ $scope.loaded = true; /*load = false*/ });
             //} else { $scope.loaded = true }
             $scope.addEmail = function (email) {
                 if (!$scope.addemail.$valid) return;
@@ -214,5 +217,87 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource']) /*, 'oc.lazy
                     if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
                 }
             });
+        }
+    })
+
+    .factory('Notifs', function($resource) {
+        return $resource('/api/notifications/:id/?format=json', null,
+            {
+                //'update': {method: 'PUT'},
+                'query': {method:'GET'}
+            });
+    })
+
+    .controller('NotificationCtrl', function ($rootScope, $scope, $timeout, Notifs) {
+        $scope.notifs = [];
+        $scope.next_page = 2;
+        $scope.loading = false;
+        ($scope.getNotifs = function (notick) {
+            var page_num;
+            if (notick) {
+                $scope.loading = true;
+                page_num = $scope.next_page;
+                $scope.next_page++;
+            } else page_num = 1;
+            Notifs.query({page: page_num},
+                function success(result) {
+                    $scope.page_count = result.page_count;
+                    var i;
+                    if (result.results.length) {
+                        if ($scope.notifs.length && page_num == 1) {
+                            if (result.results[0].id != $scope.notifs[0].id) {
+                                if (result.results[0].id > $scope.notifs[0].id) {
+                                    i = 0;
+                                    var id;
+                                    if ($scope.notifs.length) id = $scope.notifs[0].id;
+                                    while (result.results[0].unread && result.results[0].id != id) {
+                                        $scope.notifs.unshift(result.results[0]);
+                                        result.results.splice(0, 1);
+                                        if (!result.results.length) break;
+                                        if (i + 1 < $scope.notifs.length) id = $scope.notifs[i++].id;
+                                    }
+                                    $scope.unread = true;
+                                    if ($scope.opened) markAllAsRead(1);
+                                    enableScroll();
+                                } else {
+                                    while (result.results[0].id != $scope.notifs[0].id) {
+                                        $scope.notifs.splice(0, 1);
+                                        if (!$scope.notifs.length) break;
+                                    }
+                                    if ($scope.notifs.length) $scope.unread = $scope.notifs[0].unread; else $scope.unread = false;
+                                }
+                            }
+                        } else {
+                            $scope.notifs.push.apply($scope.notifs, result.results);
+                            if (!$scope.unread) $scope.unread = result.results[0].unread;
+                            if (page_num > 1) {
+                                if (result.results[0].unread) markAllAsRead(page_num);
+                                $timeout(function() { $scope.loading = false });
+                            }
+                            enableScroll();
+                        }
+                    } else if ($scope.notifs.length) {
+                        $scope.notifs.length = 0;
+                        $scope.unread = false;
+                    }
+                });
+            if (page_num == 1) $timeout($scope.getNotifs, 10000);
+        })();
+        $scope.$watch('opened', function() {
+            if ($scope.opened === undefined) return;
+            if ($scope.opened && $scope.unread) markAllAsRead(1);
+            if (!$scope.opened) {
+                if ($scope.next_page > 2) {
+                    $scope.notifs.splice(5, 5*($scope.next_page-2));
+                    $scope.next_page = 2;
+                }
+                for (var i = 0; i < $scope.notifs.length; i++) if ($scope.notifs[i].unread) $scope.notifs[i].unread = false; else break;
+            }
+            $scope.unread = false;
+        });
+        function markAllAsRead(page_num){ $rootScope.sendreq('api/notifications/read/'+page_num) }
+        function enableScroll(){
+            var e = angular.element('#notif').next().find('.popover-content');
+            $timeout(function() { if (e.height() < e.children('.dt').height()) e.css('overflow-y', 'scroll') });
         }
     });

@@ -15,7 +15,7 @@
         <div class="fm2 tab-content col-sm-12 col-md-9">
             <div role="tabpanel" class="tab-pane fade" ng-class="{'in active': id == 1}" id="emailpw">
                 <form name="changepw" autocomplete="on" ng-init="pattern = '.{8,}'; title = 'Password must contain at least 8 characters'">
-                    <div ng-show="pass_err !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
+                    <div ng-if="pass_err !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
                         <button class="close" type="button" ng-click="dismissError()" aria-hidden="true">&times;</button>
                         <p class="def">{{ pass_err == 0 ? 'Your password has been changed.' : pass_err_txt }}</p>
                     </div>
@@ -28,21 +28,21 @@
                     <input type="submit" ng-click="changePassword()" class="btn btn-success" value="Save">
                 </form>
                 <hr class="hor">
-                <p ng-show="!loaded">Loading...</p>
-                <div ng-show="loaded">
+                <p ng-if="!loaded">Loading...</p>
+                <div ng-if="loaded">
                     <p>You have currently {{ emails.length }} email {{ emails.length > 1 ? 'addresses' : 'address' }} associated with your account:</p>
-                    <div ng-show="sent.length" class="alert alert-success alert-dismissable">
+                    <div ng-if="sent.length" class="alert alert-success alert-dismissable">
                         <button class="close" type="button" ng-click="sent.length = 0" aria-hidden="true">&times;</button>
                         <p class="def">Confirmation e-mail has been sent to <span ng-repeat="e in sent">{{ $index > 0 ? ', ' : '' }}<strong>{{ e }}</strong></span>.</p>
                     </div>
                     <div ng-repeat="e in emails" style="white-space: nowrap;">
                         <input type="radio" ng-model="$parent.selected" ng-value="$index" ng-change="EmailSelected()" id="email_{{ $index }}" name="email">
-                        <label for="email_{{ $index }}" class="btr" ng-bind="e.email"></label> <span ng-show="e.verified" class="label label-success btr">Verified</span> <span ng-show="e.primary" class="label label-info btr">Primary</span>
+                        <label for="email_{{ $index }}" class="btr" ng-bind="e.email"></label> <span ng-if="e.verified" class="label label-success btr">Verified</span> <span ng-if="e.primary" class="label label-info btr">Primary</span>
                     </div>
                     <div class="bt3">
                         <button ng-disabled="emails[selected].primary || !emails[selected].verified" class="btn btn-info btr" ng-click="makePrimaryEmail()">Make Primary</button>
                         <button ng-disabled="emails[selected].verified" class="btn btn-default btr" ng-click="resendConfirmationEmail()">Re-send Verification</button>
-                        <button ng-disabled="emails[selected].primary" class="btn btn-danger" ng-dialog-click="removeEmail()" ng-dialog-message="Are you sure that you want to remove email <strong>{{ emails[selected].email }}</strong>?">Remove</button>
+                        <button ng-disabled="emails[selected].primary" class="btn btn-danger" ng-dialog-click="removeEmail()" ng-dialog-message="Are you sure that you want to remove email <strong>{{ emails[selected].email }}</strong>?" ng-dialog-yn="true">Remove</button>
                     </div>
                 </div>
                 <form name="addemail">

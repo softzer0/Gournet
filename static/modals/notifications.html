@@ -1,0 +1,29 @@
+<div class="dt" ng-if="notifs.length">
+    <div ng-repeat="e in notifs">
+        <div ng-if="$index > 0"><hr></div>
+        <a ng-class="{'text-info': e.unread}" href="/{{ e.link }}/"><p ng-bind-html="e.text | unsafe"></p>
+        <p class="text-muted small text-left">{{ e.created | timeAgo }}</p></a>
+    </div>
+    <div ng-show="next_page <= page_count">
+        <hr>
+        <a ng-show="!loading" href="#" class="lm" ng-click="getNotifs(true)">Load more</a>
+        <div style="overflow: hidden;" ng-if="loading"><i class="fa fa-spinner lm"></i></div>
+    </div>
+</div>
+<div class="dt" ng-if="!notifs.length">You don't have any notifications yet.</div>
+
+<script>
+    $(function() {
+        var e = $('#notif').next();
+        var func = setInterval(function() {
+            if (e.offset().left != -9999) {
+                clearInterval(func);
+                //console.log($(window).width()+' '+(e.width()+66));
+                if ($(window).width() <= e.width()+66) {
+                    e.addClass('notif');
+                    e.children('.arrow').css('left', $("#nf").offset().left+6);
+                } else e.removeClass('notif');
+            }
+        }, 0);
+    });
+</script>

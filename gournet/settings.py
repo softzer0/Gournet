@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
 #    'rest_framework_jwt',
 #    'django_thumbs',
-    'messages_extends',
+#    'messages_extends',
     'decorator_include',
     'allauth',
     'allauth.account',
@@ -77,6 +77,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'main.pagination.PageNumberPagination',
     'DEFAULT_METADATA_CLASS': 'main.metadata.Metadata',
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -89,11 +90,11 @@ REST_FRAMEWORK = {
     ),
 }
 
-MESSAGES_STORAGES = ('messages_extends.storages.StickyStorage',
+"""MESSAGES_STORAGES = ('messages_extends.storages.StickyStorage',
      'messages_extends.storages.PersistentStorage',
      'messages_extends.storages.FallbackStorage',
      'django.contrib.messages.storage.cookie.CookieStorage',
-     'django.contrib.messages.storage.session.SessionStorage')
+     'django.contrib.messages.storage.session.SessionStorage')"""
 
 ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 ROOT_URLCONF = 'gournet.urls'
@@ -117,6 +118,8 @@ ACCOUNT_LOGOUT_ON_GET = True
 RECAPTCHA_PUBLIC_KEY = "***REMOVED***"
 RECAPTCHA_PRIVATE_KEY = "***REMOVED***"
 NOCAPTCHA = True
+
+NOTIFICATION_PAGE_SIZE = 5 # Custom
 
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {

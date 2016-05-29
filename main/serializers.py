@@ -1,12 +1,14 @@
 #from django.contrib.auth import update_session_auth_hash
 from rest_framework import serializers
 from allauth.account.models import EmailAddress
-from .models import Relationship
-"""from django.contrib.auth import get_user_model
+from .models import Relationship, Notification
+from django.contrib.auth import get_user_model
 
-UserModel = get_user_model()"""
+User = get_user_model()
 
 class RelationshipSerializer(serializers.ModelSerializer):
+    notification = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Relationship
         exclude = ('person2',)
@@ -30,9 +32,19 @@ class RelationshipSerializer(serializers.ModelSerializer):
     friends = RelationshipSerializer(many=True)
 
     class Meta:
-        model = get_user_model()"""
+        model = User"""
 
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailAddress
         exclude = ('id', 'user',)
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    link = serializers.CharField(max_length=50, read_only=True)
+    text = serializers.CharField(max_length=50, read_only=True)
+    created = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = Notification
+        exclude = ('user',)
