@@ -1,4 +1,4 @@
-var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angular-timeago']) /*, 'oc.lazyLoad', 'angularCSS'*/
+var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angular-timeago', 'ngFitText']) /*, 'oc.lazyLoad', 'angularCSS'*/
     .config(function($httpProvider) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
@@ -57,6 +57,19 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angul
         }
     })
 
+
+    .controller('MainCtrl', function($scope, $uibModal) {
+        $scope.showFriendsModal = function (){
+            $uibModal.open({
+                size: 'lg',
+                templateUrl: '/static/modals/friends.html',
+                scope: $scope,
+                controller: 'FriendsModalCtrl' /*,
+                appendTo: angular.element('#uctrl')*/
+            });
+        };
+    })
+
     .controller('SettCtrl', function($rootScope, $scope, $uibModal) { /*, $css*/
         /*$css.add('/static/css/sett.css');*/
         $scope.showSettModal = function (id) {
@@ -112,7 +125,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angul
 
     })
 
-    .controller('SettModalCtrl', function($rootScope, $scope, $uibModalInstance, emailService) {
+    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, emailService) {
         $scope.cancel = function() {
             $uibModalInstance.dismiss('cancel');
         };
@@ -129,7 +142,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angul
             $scope.emails = emailService.emails;
             //if ($scope.emails.length == 0) {
                 //load = true;
-            emailService.load().then(function (){ $scope.loaded = true; /*load = false*/ });
+            emailService.load().then(function (){ $timeout(function() { $scope.loaded = true; /*load = false*/ }) });
             //} else { $scope.loaded = true }
             $scope.addEmail = function (email) {
                 if (!$scope.addemail.$valid) return;
@@ -175,7 +188,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angul
         // Password
 
         $scope.dismissError = function (){
-            $scope.pass_err = undefined;
+            delete $scope.pass_err;
             $scope.pass_err_txt = '';
         };
         $scope.changePassword = function () {
@@ -220,7 +233,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angul
         }
     })
 
-    .factory('Notifs', function($resource) {
+    .factory('notifService', function($resource) {
         return $resource('/api/notifications/:id/?format=json', null,
             {
                 //'update': {method: 'PUT'},
@@ -228,58 +241,57 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angul
             });
     })
 
-    .controller('NotificationCtrl', function ($rootScope, $scope, $timeout, Notifs) {
+    .controller('NotificationCtrl', function ($rootScope, $scope, $timeout, notifService) {
+        const NOTIF_PAGE_SIZE = 5;
+
         $scope.notifs = [];
-        $scope.next_page = 2;
         $scope.loading = false;
         ($scope.getNotifs = function (notick) {
             var page_num;
             if (notick) {
                 $scope.loading = true;
-                page_num = $scope.next_page;
-                $scope.next_page++;
+                page_num = Math.floor($scope.notifs.length / NOTIF_PAGE_SIZE) + 1;
             } else page_num = 1;
-            Notifs.query({page: page_num},
+            notifService.query({page: page_num},
                 function success(result) {
-                    $scope.page_count = result.page_count;
-                    var i;
+                    if ($scope.has_next_page === undefined || page_num > 1) $scope.has_next_page = result.page_count > page_num;
                     if (result.results.length) {
                         if ($scope.notifs.length && page_num == 1) {
                             if (result.results[0].id != $scope.notifs[0].id) {
                                 if (result.results[0].id > $scope.notifs[0].id) {
-                                    i = 0;
-                                    var id;
+                                    var id, i = 0;
                                     if ($scope.notifs.length) id = $scope.notifs[0].id;
                                     while (result.results[0].unread && result.results[0].id != id) {
                                         $scope.notifs.unshift(result.results[0]);
                                         result.results.splice(0, 1);
+                                        if (!$scope.unread) $scope.unread = $scope.notifs[0].unread;
                                         if (!result.results.length) break;
                                         if (i + 1 < $scope.notifs.length) id = $scope.notifs[i++].id;
                                     }
-                                    $scope.unread = true;
-                                    if ($scope.opened) markAllAsRead(1);
-                                    enableScroll();
+                                    if ($scope.unread && $scope.opened) markAllAsRead(1);
                                 } else {
                                     while (result.results[0].id != $scope.notifs[0].id) {
                                         $scope.notifs.splice(0, 1);
                                         if (!$scope.notifs.length) break;
+                                        if (!$scope.unread) $scope.unread = $scope.notifs[0].unread;
                                     }
-                                    if ($scope.notifs.length) $scope.unread = $scope.notifs[0].unread; else $scope.unread = false;
+                                    if (!$scope.notifs.length && $scope.unread) $scope.unread = false;
                                 }
-                            }
+                            } else return;
                         } else {
+                            if (page_num > 1) result.results.splice(0, $scope.notifs.length % NOTIF_PAGE_SIZE);
                             $scope.notifs.push.apply($scope.notifs, result.results);
-                            if (!$scope.unread) $scope.unread = result.results[0].unread;
+                            if (!$scope.unread) $scope.unread = result.results.some(function (e) { return e.unread });
                             if (page_num > 1) {
-                                if (result.results[0].unread) markAllAsRead(page_num);
+                                if ($scope.unread) markAllAsRead(page_num);
                                 $timeout(function() { $scope.loading = false });
                             }
-                            enableScroll();
                         }
                     } else if ($scope.notifs.length) {
                         $scope.notifs.length = 0;
                         $scope.unread = false;
-                    }
+                    } else return;
+                    enableScroll();
                 });
             if (page_num == 1) $timeout($scope.getNotifs, 10000);
         })();
@@ -287,17 +299,46 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'yaru22.angul
             if ($scope.opened === undefined) return;
             if ($scope.opened && $scope.unread) markAllAsRead(1);
             if (!$scope.opened) {
-                if ($scope.next_page > 2) {
-                    $scope.notifs.splice(5, 5*($scope.next_page-2));
-                    $scope.next_page = 2;
+                if ($scope.notifs.length > NOTIF_PAGE_SIZE) {
+                    $scope.notifs.splice(NOTIF_PAGE_SIZE, $scope.notifs.length - NOTIF_PAGE_SIZE);
+                    $scope.has_next_page = true;
                 }
                 for (var i = 0; i < $scope.notifs.length; i++) if ($scope.notifs[i].unread) $scope.notifs[i].unread = false; else break;
             }
             $scope.unread = false;
         });
-        function markAllAsRead(page_num){ $rootScope.sendreq('api/notifications/read/'+page_num) }
         function enableScroll(){
+            if (!$scope.opened) return;
             var e = angular.element('#notif').next().find('.popover-content');
-            $timeout(function() { if (e.height() < e.children('.dt').height()) e.css('overflow-y', 'scroll') });
+            $timeout(function() { if (e.height() < e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden') });
         }
+        function markAllAsRead(page_num){ $rootScope.sendreq('api/notifications/read/'+page_num) }
+    })
+
+    .factory('friendService', function($resource) {
+        return $resource('/api/friends/:id/?format=json', null,
+            {
+                'query': {method: 'GET'},
+                'save': {method: 'POST'},
+                'delete': {method:'DELETE'}
+            });
+    })
+
+    .controller('FriendsModalCtrl', function ($scope, $timeout, $uibModalInstance, friendService) {
+        $scope.cancel = function() {
+            $uibModalInstance.dismiss('cancel');
+        };
+
+        $scope.friends = [];
+        ($scope.load_page = function() {
+            $scope.loaded = false;
+            friendService.query({id: $scope.user_id, page: $scope.next_page},
+                function success(result) {
+                    $scope.friends.push.apply($scope.friends, result.results);
+                    var pg;
+                    if ($scope.next_page === undefined) pg = 1; else pg = $scope.next_page+1;
+                    if (result.page_count == pg) delete $scope.next_page; else $scope.next_page = pg;
+                    $timeout(function() { $scope.loaded = true });
+                })
+        })();
     });

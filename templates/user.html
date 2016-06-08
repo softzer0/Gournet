@@ -7,9 +7,11 @@
 			margin: -8px 0 5px;
 		}
     </style>
-    {% load staticfiles %}<script src="{% static 'js/user.js' %}"></script>{% endblock %}
+    {% load staticfiles %}<script src="{% static 'js/custom/user.js' %}"></script>{% endblock %}
+
+{% block bodyatt %}{{ block.super }} ng-init="rel_state = {{ rel_state }}; user_id = {{ user.pk }}"{% endblock %}
 {% block container %}
-    <div class="row" ng-controller="UserCtrl" ng-init="rel_state = {{ rel_state }}; user_id = {{ user.pk }}; friends_count = {{ friends_count }}">
+    <div class="row" id="uctrl" ng-controller="UserCtrl" ng-init="friends_count = {{ friends_count }}">
 
             <div class="col-md-3">
                 <div class="well bs-sidebar affix">
@@ -17,7 +19,7 @@
                     <img class="img-thumbnail margin-center prof" src="{% static '/images/'|add:user.username|add:'/avatar/' %}">
                     <ul class="br1 list-unstyled text-center ls">
 						<li><a href="https://maps.google.com/maps?q={{ user.city }},+{{ user.country }}"><i class="fa fa-map-marker"></i> {{ user.city }}, {{ user.country }}</a></li>
-                        {% verbatim %}<li><a href="#" ng-show="friends_count > 0"><i class="fa fa-users"></i> <b>{{ friends_count }}</b></a><i class="fa fa-users" ng-show="friends_count == 0"></i> <span ng-show="friends_count > 1">osobe su {{ rel_state > -1 ? 'mu' : 'ti' }} prijatelji</span><span ng-show="friends_count == 1">osoba {{ rel_state > -1 ? 'mu' : 'ti' }} je prijatelj</span><span ng-show="friends_count == 0">{{ rel_state > -1 ? 'Nema' : 'Nemaš' }} prijatelja</span></li>
+                        {% verbatim %}<li><a href="#" ng-click="showFriendsModal()" ng-show="friends_count > 0"><i class="fa fa-users"></i> <b>{{ friends_count }}</b></a><i class="fa fa-users" ng-show="friends_count == 0"></i> <span ng-show="friends_count > 1">osobe su {{ rel_state > -1 ? 'mu' : 'ti' }} prijatelji</span><span ng-show="friends_count == 1">osoba {{ rel_state > -1 ? 'mu' : 'ti' }} je prijatelj</span><span ng-show="friends_count == 0">{{ rel_state > -1 ? 'Nema' : 'Nemaš' }} prijatelja</span></li>
                         <li ng-show="rel_state > -1"><a href="#" ng-dialog-message="{{ rel_state_msg }}" ng-dialog-yn="true" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-show="rel_state == 0">{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}</span><span ng-show="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-show="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-show="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endverbatim %}
                     </ul>
                 </div>

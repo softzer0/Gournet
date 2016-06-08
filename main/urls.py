@@ -17,7 +17,7 @@ urlpatterns = [
 
     url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', public(main_views.NotificationAPIView.as_view())),
     url(r'^api/notifications/read/(?P<page_number>(\d+|last))/$', main_views.notifs_set_all_read),
-    url(r'^api/friends/(?:(?P<pk>\d+)/)?$', public(main_views.RelationshipAPIView.as_view())),
+    url(r'^api/friends/(?:(?P<pk>\d+)/)?$', public(main_views.FriendsAPIView.as_view())),
     url(r'^api/email/$', public(main_views.EmailAPIView.as_view())),
 #    url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
 
@@ -54,7 +54,7 @@ urlpatterns = [
 urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.socialaccount_urls'))]
 
 
-#from django.conf import settings
-#if settings.DEBUG:
-#    from django.conf.urls.static import static
-#    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+"""from django.conf import settings
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)"""

@@ -28,8 +28,8 @@
                     <input type="submit" ng-click="changePassword()" class="btn btn-success" value="Save">
                 </form>
                 <hr class="hor">
-                <p ng-if="!loaded">Loading...</p>
-                <div ng-if="loaded">
+                <div class="loa" ng-if="!loaded"><i class="fa fa-spinner"></i></div>
+                <div ng-show="loaded">
                     <p>You have currently {{ emails.length }} email {{ emails.length > 1 ? 'addresses' : 'address' }} associated with your account:</p>
                     <div ng-if="sent.length" class="alert alert-success alert-dismissable">
                         <button class="close" type="button" ng-click="sent.length = 0" aria-hidden="true">&times;</button>

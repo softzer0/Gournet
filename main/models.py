@@ -90,30 +90,30 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 class Relationship(models.Model):
-    person1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person1")
-    person2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="person2")
+    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="from_person")
+    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="to_person")
     notification = models.OneToOneField('Notification', null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
-        unique_together = (('person1', 'person2'),)
+        unique_together = (('from_person', 'to_person'),)
 
     """def save(self, *args, **kwargs):
-        if self.person1 == self.person2:
+        if self.from_person == self.to_person:
             return
         else:
             super().save(*args, **kwargs)"""
 
     def __str__(self):
-        return '%s with %s' % (self.person1.get_username(), self.person2.get_username())
+        return '%s with %s' % (self.from_person.get_username(), self.to_person.get_username())
 
 @receiver(pre_save, sender=Relationship, dispatch_uid='relationship_save_notification')
 def relationship_save_notification(sender, instance, *args, **kwargs):
     if instance.notification:
         return
     #instance.full_clean()
-    text = '<strong>'+instance.person1.first_name+' '+instance.person1.last_name+'</strong> '
+    text = '<strong>'+instance.from_person.first_name+' '+instance.from_person.last_name+'</strong> '
     try:
-        rel = Relationship.objects.get(person1=instance.person2, person2=instance.person1)
+        rel = Relationship.objects.get(from_person=instance.to_person, to_person=instance.from_person)
     except:
         text += "wants to be your friend"
     else:
@@ -121,7 +121,7 @@ def relationship_save_notification(sender, instance, *args, **kwargs):
         if rel.notification.unread:
             rel.notification.unread = False
             rel.notification.save()
-    instance.notification = instance.person2.notification_set.create(text=text+'.', link='user/'+instance.person1.username)
+    instance.notification = instance.to_person.notification_set.create(text=text+'.', link='user/'+instance.from_person.username)
 
 @receiver(post_delete, sender=Relationship, dispatch_uid='relationship_delete_notification')
 def relationship_delete_notification(sender, instance, *args, **kwargs):

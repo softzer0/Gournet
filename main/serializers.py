@@ -7,32 +7,31 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class RelationshipSerializer(serializers.ModelSerializer):
-    notification = serializers.PrimaryKeyRelatedField(read_only=True)
+    #notification = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Relationship
-        exclude = ('person2',)
+        exclude = ('from_person', 'notification',)
 
     def create(self, validated_data):
-        validated_data['person2'] = validated_data['person1']
-        validated_data['person1'] = self.context['request'].user
+        validated_data['from_person'] = self.context['request'].user
         return super().create(validated_data)
 
     def validate(self, attrs):
         user = self.context['request'].user
-        person = attrs.get('person1')
+        person = attrs.get('to_person')
         if user == person:
             raise serializers.ValidationError("You can't make a relationship with yourself.")
-        if Relationship.objects.filter(person1=user, person2=person).exists():
+        if Relationship.objects.filter(from_person=user, to_person=person).exists():
             raise serializers.ValidationError("Relationship with "+person.username+" already exists.")
         return attrs
 
 
-"""class UserSerializer(serializers.ModelSerializer):
-    friends = RelationshipSerializer(many=True)
-
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User"""
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name',)
+
 
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:

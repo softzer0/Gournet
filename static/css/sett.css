@@ -3,7 +3,7 @@
 }
 
 .modal-header h3 {
-    margin: 0 0 0;
+    margin: 0;
     display: inline;
 }
 
@@ -11,7 +11,7 @@
     width: 250px;
 }
 
-.modal-body p:not(.def) {
+.modal-body p:not(.def), .loa {
     margin-bottom: 4px;
 }
 

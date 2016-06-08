@@ -72,7 +72,7 @@ legend {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
     .modal:not(modal-confirm) .modal-dialog {
         width: 100%;
         height: 100%;
@@ -109,8 +109,12 @@ body {
     }
 }
 
+.clickable {
+    cursor: pointer;
+}
+
 #notif > .fa-bell {
-    color: #efed41;
+    color: #ffc200;
 }
 
 #notif + .popover {
@@ -141,29 +145,53 @@ body {
     margin-bottom: 5px;
 }
 
-#notif + .popover p:last-of-type, .lm {
+#notif + .popover p:last-of-type, .lm, .br3 {
     margin: 0;
 }
 
-.lm {
-    text-align: center;
-    display: inline-block;
-    width: 100%;
+.br3 {
+	font-size: 20px;
+}
+
+@media (max-width: 768px) {
+  .br3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .br3 {
+    font-size: 16px;
+  }
 }
 
 #notif + .popover hr {
     margin: 10px 0;
 }
 
-#notif + .popover a:not(.text-info):not(.lm) {
+#notif + .popover a:not(.text-info):not(.lm), .well.n {
     color: inherit;
 }
 
+.loa {
+    padding: 0 2px 1px;
+}
+
+.oh {
+    overflow: hidden;
+}
+
+.loa-c {
+    display: table;
+    margin: 0 auto;
+}
+
 .fa-spinner {
-  -webkit-animation: spin 1s infinite linear;
-  -moz-animation: spin 1s infinite linear;
-  -o-animation: spin 1s infinite linear;
-  animation: spin 1s infinite linear;
+    margin-bottom: 3px;
+    -webkit-animation: spin 1s infinite linear;
+    -moz-animation: spin 1s infinite linear;
+    -o-animation: spin 1s infinite linear;
+    animation: spin 1s infinite linear;
      -webkit-transform-origin: 50% 58%;
          transform-origin:50% 58%;
          -ms-transform-origin:50% 58%; /* IE 9 */
@@ -194,4 +222,23 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+.prof {
+    width: 128px;
+    margin-bottom: 12px !important;
+}
+
+.fri > div {
+    min-width: 135px;
+    max-width: 175px;
+}
+
+.fri > div > a, .fri .fa-ellipsis-v, .lm {
+    display: block !important;
+}
+
+.fri .fa-ellipsis-v {
+    margin: 12px 0;
+    color: #e1e1e1;
 }

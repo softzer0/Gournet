@@ -51,7 +51,7 @@ INSTALLED_APPS = [
  #   'allauth.socialaccount.providers.linkedin_oauth2',
  #   'allauth.socialaccount.providers.paypal',
  #   'allauth.socialaccount.providers.twitter',
-    'djng',
+ #   'djng',
     'bootstrap3',
     'stronghold',
     'captcha',
