@@ -53,12 +53,10 @@
 
 {% block end %}
     <script type="text/javascript">
-        $(document).ready(function() {
-            window.onload = function() {
-                if ($(".alert-danger")[0]) {
-                    $('html, body').scrollTop($(".alert-danger")[0].offset().top);
-                }
-            };
-        });
+        window.onload = function() {
+            if ($(".alert-danger")[0]) {
+                $('html, body').scrollTop($(".alert-danger")[0].offset().top);
+            }
+        }
     </script>
 {% endblock %}

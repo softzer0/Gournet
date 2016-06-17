@@ -42,6 +42,7 @@
 }
 
 .bs-sidebar.affix {
+	/*right: auto !important;*/
 	top: 70px;
 }
 

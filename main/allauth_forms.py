@@ -6,6 +6,7 @@ from django.forms import extras
 from django.contrib.auth import get_user_model
 from captcha.fields import ReCaptchaField
 from django.utils.translation import get_language
+from .models import SUPPORTED_PLACES
 
 BIRTHDATE_YEARS = ('2015','2014','2013','2012','2011','2010','2009','2008','2007','2006','2005','2004','2003','2002',
                     '2001','2000','1999','1998','1997','1996','1995','1994','1993','1992','1991','1990','1989','1988',
@@ -16,12 +17,13 @@ BIRTHDATE_YEARS = ('2015','2014','2013','2012','2011','2010','2009','2008','2007
                     '1931','1930','1929','1928','1927')
 
 class BaseSignupForm(UserCreationForm):
+    location = forms.ChoiceField(choices=SUPPORTED_PLACES, initial=0)
     birthdate = forms.DateField(widget=extras.SelectDateWidget(years=BIRTHDATE_YEARS))
     captcha = ReCaptchaField(attrs={'lang': get_language()})
 
     class Meta:
         model = get_user_model()
-        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'country', 'city', 'captcha')
+        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'location', 'captcha')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

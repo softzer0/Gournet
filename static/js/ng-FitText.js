@@ -22,7 +22,7 @@
       'loadDelay'   : 10,
       'compressor'  : 1.1,
       'min'         : 0,
-      'max'         : Number.POSITIVE_INFINITY
+      'max'         : 20
     })
 
     .directive('fittext', [

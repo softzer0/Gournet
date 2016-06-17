@@ -1,19 +1,19 @@
 <div class="modal-header">
     <h3>Settings</h3>
-    <button type="button" class="close" ng-click="cancel()" aria-hidden="true" style="font-size: 30px; margin-top: -5px;">&times;</button>
+    <button type="button" class="close" ng-click="cancel($event)" aria-hidden="true" style="font-size: 30px; margin-top: -5px;">&times;</button>
 </div>
 
 <div class="modal-body">
     <div class="row">
         <div class="col-sm-12 col-md-3">
             <ul class="nav nav-pills nav-justified-inverse">
-                <li ng-class="{'active': id == 1}"><a data-toggle="pill" href="#emailpw" ng-click="$root.showed = true">Password and email(s)</a></li>
-                <li ng-class="{'active': id == 2}"><a data-toggle="pill" href="#intern">Internationalization</a></li>
+                <li ng-class="{'active': id == 0}"><a ng-click="id = 0" data-toggle="pill" href="#emailpw">Password and email(s)</a></li>
+                <li ng-class="{'active': id == 1}"><a ng-click="id = 1" data-toggle="pill" href="#intern">Internationalization</a></li>
             </ul>
         </div>
 
         <div class="fm2 tab-content col-sm-12 col-md-9">
-            <div role="tabpanel" class="tab-pane fade" ng-class="{'in active': id == 1}" id="emailpw">
+            <div role="tabpanel" class="tab-pane fade" ng-class="{'in active': id == 0}" id="emailpw">
                 <form name="changepw" autocomplete="on" ng-init="pattern = '.{8,}'; title = 'Password must contain at least 8 characters'">
                     <div ng-if="pass_err !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
                         <button class="close" type="button" ng-click="dismissError()" aria-hidden="true">&times;</button>
@@ -28,7 +28,7 @@
                     <input type="submit" ng-click="changePassword()" class="btn btn-success" value="Save">
                 </form>
                 <hr class="hor">
-                <div class="loa" ng-if="!loaded"><i class="fa fa-spinner"></i></div>
+                <div class="loa" ng-if="!loaded && id == 0"><i class="fa fa-spinner"></i></div>
                 <div ng-show="loaded">
                     <p>You have currently {{ emails.length }} email {{ emails.length > 1 ? 'addresses' : 'address' }} associated with your account:</p>
                     <div ng-if="sent.length" class="alert alert-success alert-dismissable">
@@ -50,7 +50,7 @@
                     <input type="submit" class="btn btn-warning" ng-click="addEmail(email)" value="Add Email Address">
                 </form>
             </div>
-            <div role="tabpanel" class="tab-pane fade" ng-class="{'in active': id == 2}" id="intern">
+            <div role="tabpanel" class="tab-pane fade" ng-class="{'in active': id == 1}" id="intern">
                 <p>Language:</p>
                 <input class="form-control" type="text" placeholder="Language">
                 <p>Currency:</p>

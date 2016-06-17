@@ -1,7 +1,7 @@
 #from django.contrib.auth import update_session_auth_hash
 from rest_framework import serializers
 from allauth.account.models import EmailAddress
-from .models import Relationship, Notification
+from .models import Relationship, Notification, Business
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -11,7 +11,7 @@ class RelationshipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Relationship
-        exclude = ('from_person', 'notification',)
+        exclude = ('from_person', 'notification')
 
     def create(self, validated_data):
         validated_data['from_person'] = self.context['request'].user
@@ -30,13 +30,13 @@ class RelationshipSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name',)
+        fields = ('id', 'username', 'first_name', 'last_name')
 
 
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailAddress
-        exclude = ('id', 'user',)
+        exclude = ('id', 'user')
 
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -47,3 +47,16 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         exclude = ('user',)
+
+
+class FavouritesSerializer(serializers.ModelSerializer):
+    business = serializers.PrimaryKeyRelatedField(queryset=Business.objects.all(), write_only=True)
+    #type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = Business
+        fields = ('business', 'id', 'shortname', 'name') #, 'type_display'
+        extra_kwargs = {
+            'shortname': {'read_only': True},
+            'name': {'read_only': True},
+        }

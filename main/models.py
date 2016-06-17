@@ -6,9 +6,13 @@ from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch.dispatcher import receiver
+from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
+from phonenumber_field.modelfields import PhoneNumberField
+import datetime
 
 CHOICE_GENDER = ((1, 'Male'), (2, 'Female'))
+SUPPORTED_PLACES = ((0, "Serbia, Vranje"),)
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
@@ -39,10 +43,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     #avatar = ImageWithThumbsField(upload_to=upload_to, blank=True, sizes=((48,48),(64,64)))
     friends = models.ManyToManyField('self', blank=True, symmetrical=False, through='Relationship')
+    favourites = models.ManyToManyField('Business', blank=True, related_name='favoured_by')
+    likes = models.ManyToManyField('Event', blank=True, related_name='liked_by')
+    #comments = models.ManyToManyField('Event', blank=True, through='Comment', related_name='commented_by')
+
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
     birthdate = models.DateField('birthdate')
-    country = models.CharField('country', max_length=25)
-    city = models.CharField('city', max_length=75)
+    location = models.IntegerField(choices=SUPPORTED_PLACES)
 
     # Added custom fields [END]
 
@@ -128,16 +135,75 @@ def relationship_delete_notification(sender, instance, *args, **kwargs):
     if instance.notification:
         instance.notification.delete()
 
+
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.CharField(max_length=50)
-    link = models.CharField(max_length=50)
+    text = models.TextField()
+    link = models.CharField(max_length=150)
     unread = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
 
+
+def not_forbidden(value):
+    if value in {'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images'}:
+        raise ValidationError('%s is not permitted as a shortname.' % value)
+
+BUSINESS_TYPE = ((0, 'Restaurant'), (1, 'Tavern'), (2, 'Cafe'), (3, 'Fast food'))
+
+class Business(models.Model):
+    shortname = models.CharField(
+        'shortname',
+        max_length=30,
+        unique=True,
+        help_text='Maximum 30 characters. Letters, digits and ./-/_ only.',
+        validators=[
+            validators.RegexValidator(
+                r'^[\w.-]+$',
+                ('Enter a valid shortname. This value may contain only '
+                  'letters, numbers and ./-/_ characters.')
+            ),
+            not_forbidden,
+        ],
+        error_messages={
+            'unique': "A business with that shortname already exists.",
+        },
+    )
+    manager = models.ForeignKey(User, on_delete=models.CASCADE)
+    type = models.IntegerField(choices=BUSINESS_TYPE)
+    name = models.CharField(max_length=60)
+    phone = PhoneNumberField(blank=True)
+    opened = models.TimeField(default=datetime.time(8, 0))
+    opened_sat = models.TimeField(null=True, blank=True)
+    opened_sun = models.TimeField(null=True, blank=True)
+    closed = models.TimeField(default=datetime.time(0, 0))
+    closed_sat = models.TimeField(null=True, blank=True)
+    closed_sun = models.TimeField(null=True, blank=True)
+    # geoloc = ...
+    # ...
+
+    def __str__(self):
+        return '%s "%s"' % (self.get_type_display(), self.name)
+
+class Event(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE)
+    text = models.TextField()
+
+class Reminder(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    #text = models.TextFeild(blank=True)
+    #link = models.CharField(max_length=150, blank=True)
+    when = models.DateTimeField()
+
+class Comment(models.Model):
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    text = models.TextField()
+
+
 """TESTING:
 from main.models import User
-a = User(username='mikisoft', email='mihailosoft@gmail.com', gender=1, birthdate='***REMOVED***', country='Serbia', city='Vranje')
+a = User(username='mikisoft', email='mihailosoft@gmail.com', first_name='Mihailo', last_name='Popović', gender=1, birthdate='***REMOVED***', location=0)
 a.set_password('PASSWORD')
 a.is_staff = True
 a.is_superuser = True
@@ -145,6 +211,7 @@ a.save()
 # try to login to site
 from allauth.account.models import EmailAddress
 a = EmailAddress.objects.get(pk=1)
+a.primary = True
 a.verified = True
 a.save()
 
@@ -152,12 +219,13 @@ from main.models import User
 a = User.objects.get(pk=1)
 a.set_password('123456')
 a.save()
-a = User.objects.create(username='mikisoft1',email='lololoasadasdd@sdaaadsa.ss',first_name='Miki',last_name='Pop',birthdate='***REMOVED***',country='Sdweads',city='Dsadtfrwea')
+a = User.objects.create(username='mikisoft1',email='lololoasadasdd@sdaaadsa.ss',first_name='Miki',last_name='Pop',birthdate='***REMOVED***',location=0)
 a.set_password('123456')
 a.save()
 # try to login to site
 from allauth.account.models import EmailAddress
 a = EmailAddress.objects.get(pk=2)
+a.primary = True
 a.verified = True
 a.save()
 """

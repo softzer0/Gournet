@@ -1,22 +1,26 @@
 app
-
-    .controller('UserCtrl', function($scope, friendService) {
+    .controller('UserCtrl', function($scope, $timeout, frifavService) {
         $scope.name = angular.element('.lead.text-center.br2').text();
+        var friendService = frifavService.init(), loading;
         $scope.doFriendRequestAction = function () {
+            if (loading) return;
+            loading = true;
             switch($scope.$parent.rel_state) {
                 case 0:
                 case 2:
-                    friendService.save({to_person: $scope.$parent.user_id},
-                        function success() {
+                    friendService.save({to_person: $scope.$parent.id},
+                        function (){
                             $scope.$parent.rel_state++;
                             if ($scope.$parent.rel_state == 3) $scope.friends_count++;
+                            $timeout(function() { loading = false });
                         });
                     break;
                 default:
-                    friendService.delete({id: $scope.$parent.user_id},
-                        function success() {
+                    friendService.delete({id: $scope.$parent.id},
+                        function (){
                             if ($scope.$parent.rel_state == 3) $scope.friends_count--;
                             $scope.$parent.rel_state = 0;
+                            $timeout(function() { loading = false });
                         });
             }
         };

@@ -11,12 +11,13 @@ from PIL import Image, ImageOps
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.contrib.staticfiles.templatetags.staticfiles import static
 #from django_thumbs.settings import THUMBS_GENERATE_THUMBNAILS
 
 THUMB_SUFFIX = '%s.%sx%s.%s'
 
 def generate_path(username, filename):
-    return settings.IMAGES_PATH+'%s/%s' % (username, filename)
+    return settings.ROOT_PATH+str(static(settings.IMAGES_PATH))+'/user/%s/%s' % (username, filename)
 
 
 def save_img(original, preserve_ratio, image_format='JPEG', size=None):

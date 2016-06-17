@@ -1,15 +1,15 @@
 <div class="modal-header">
-    <h3>Friends</h3>
-    <button type="button" class="close" ng-click="cancel()" aria-hidden="true" style="font-size: 30px; margin-top: -5px;">&times;</button>
+    <h3>{{ title }}</h3>
+    <button type="button" class="close" ng-click="cancel($event)" aria-hidden="true" style="font-size: 30px; margin-top: -5px;">&times;</button>
 </div>
 
 <div class="modal-body">
-	<div class="container-fluid">
+	<div class="container-fluid" ng-if="elems.length">
 		<div class="row fri">
-			<div class="col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in friends">
-				<a class="oh well n" ng-href="/user/{{ e.username }}/">
-					<img class="img-thumbnail margin-center prof" ng-src="/images/{{ e.username }}/avatar/">
-					<p class="text-center br3 def" data-fittext>{{ e.first_name }} {{ e.last_name }}</p>
+			<div ng-class="favs ? 'col-xs-5 col-sm-4 col-lg-3' : 'col-xs-4 col-sm-3 col-lg-2'" ng-repeat="e in elems">
+				<a class="oh well n" ng-href="/{{ favs ? e.shortname : 'user/'+e.username }}/">
+					<img class="img-thumbnail margin-center prof" ng-src="/images/{{ favs ? e.id : e.username }}/avatar/{{ favs ? '?business=1' : '' }}">
+					<p class="text-center br3 def" data-fittext>{{ favs ? e.name : e.first_name+' '+e.last_name }}</p>
 				</a>
 			</div>
 			<div class="col-xs-4 col-sm-3 col-lg-2" ng-show="next_page && loaded">
@@ -21,4 +21,5 @@
 		</div>
 	</div>
     <div class="loa loa-c" ng-if="!loaded"><i class="fa fa-spinner fa-2x"></i></div>
+    <span ng-if="!elems.length && loaded">No {{ favs ? 'favourites' : 'friends' }}.</span>
 </div>
