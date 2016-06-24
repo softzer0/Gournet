@@ -1,7 +1,14 @@
 app
-    .controller('FavouriteCtrl', function($scope, $timeout, frifavService) {
-        $scope.name = angular.element('.lead.text-center.br2').text();
-        var favouriteService = frifavService.init(1), loading;
+    /*.filter('newlines', function () {
+        return function(text) {
+            return text.replace(/\n/g, '<br/>');
+        }
+    })*/
+
+    .controller('BusinessCtrl', function($scope, $timeout, multiService) {
+        //$scope.name = angular.element('.lead.text-center.br2').text();
+        var favouriteService = multiService.init(1), loading;
+
         $scope.doFavouriteAction = function () {
             if (loading) return;
             loading = true;

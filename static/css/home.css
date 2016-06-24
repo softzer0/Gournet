@@ -47,8 +47,11 @@ legend {
     padding-top: 7px;
     margin-bottom: -5px;
 }
-.br > a, .b {
-    margin-right: 10px;
+.op > a, .op > span {
+    margin-right: 12px;
+}
+.badge.label-primary {
+    background-color: #dd4814;
 }
 .n:link, .n:visited, .n:active, .n:hover {
     text-decoration: none;
@@ -67,6 +70,12 @@ legend {
 }
 
 @media (max-width: 387px) {
+    #sr {
+        width: 105px;
+    }
+}
+
+@media (max-width: 360px) {
     #sr {
         width: 85px;
     }
@@ -228,12 +237,12 @@ body {
     margin-bottom: 12px !important;
 }
 
-.fri > div {
+.fri .us {
     min-width: 135px;
     max-width: 175px;
 }
 
-.fri > div > a, .fri .fa-ellipsis-v, .lm {
+.fri .us a, .fri .fa-ellipsis-v, .lm {
     display: block !important;
 }
 
@@ -241,6 +250,11 @@ body {
     margin: 12px 0;
     color: #e1e1e1;
 }
+
+.fri .tab-content {
+    margin-top: 20px;
+}
+
 .navmenu {
   width: 300px;
   height: auto;

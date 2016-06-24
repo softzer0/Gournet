@@ -38,6 +38,8 @@ urlpatterns = [
         name="account_reset_password_from_key_done"),
 
     # API
+    url(r'^api/likes/(?P<pk>\d+)/$', public(main_views.LikeAPIView.as_view())),
+    url(r'^api/events/(?:(?P<pk>\d+)/)?$', public(main_views.EventAPIView.as_view())),
     url(r'^api/favourites/(?:(?P<pk>\d+)/)?$', public(main_views.FavouritesAPIView.as_view())),
     url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', public(main_views.NotificationAPIView.as_view())),
     url(r'^api/notifications/read/$', public(main_views.notifs_set_all_read)),
@@ -48,7 +50,7 @@ urlpatterns = [
     # Custom
 
     url(r"^user/(?P<username>[\w.-]+)/$", main_views.show_profile, name="user_profile"),
-    url(r"^images/(?P<name>[\w.-]+)/avatar/(?:(?P<size>(32|48|64))/)?$", main_views.return_avatar, name="avatar"),
+    url(r"^images/(?P<username_id>[\w.-]+)/avatar/(?:(?P<size>(32|48|64))/)?$", main_views.return_avatar, name="avatar"),
     url(r"^(?P<shortname>[\w.-]+)/$", main_views.show_business, name="business_profile"),
 ]
 

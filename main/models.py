@@ -9,6 +9,7 @@ from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
 from phonenumber_field.modelfields import PhoneNumberField
+from django.core.validators import MinLengthValidator
 import datetime
 
 CHOICE_GENDER = ((1, 'Male'), (2, 'Female'))
@@ -44,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     #avatar = ImageWithThumbsField(upload_to=upload_to, blank=True, sizes=((48,48),(64,64)))
     friends = models.ManyToManyField('self', blank=True, symmetrical=False, through='Relationship')
     favourites = models.ManyToManyField('Business', blank=True, related_name='favoured_by')
-    likes = models.ManyToManyField('Event', blank=True, related_name='liked_by')
+    likes_dislikes = models.ManyToManyField('Event', blank=True, through='Like')
     #comments = models.ManyToManyField('Event', blank=True, through='Comment', related_name='commented_by')
 
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
@@ -145,7 +146,7 @@ class Notification(models.Model):
 
 
 def not_forbidden(value):
-    if value in {'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images'}:
+    if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images']:
         raise ValidationError('%s is not permitted as a shortname.' % value)
 
 BUSINESS_TYPE = ((0, 'Restaurant'), (1, 'Tavern'), (2, 'Cafe'), (3, 'Fast food'))
@@ -184,9 +185,13 @@ class Business(models.Model):
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
+
+MIN_CHAR = 15
+
 class Event(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    text = models.TextField()
+    text = models.TextField(validators=[MinLengthValidator(MIN_CHAR)])
+    when = models.DateTimeField(null=True, blank=True)
 
 class Reminder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -199,6 +204,14 @@ class Comment(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     text = models.TextField()
+
+class Like(models.Model):
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    is_dislike = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = (('person', 'event'),)
 
 
 """TESTING:

@@ -1,0 +1,36 @@
+<div class="modal-header">
+    <h3>{{ title }}</h3>
+    <button type="button" class="close" ng-click="cancel($event)" aria-hidden="true" style="font-size: 30px; margin-top: -5px;">&times;</button>
+</div>
+
+<div class="modal-body">
+	<div class="container-fluid" ng-if="elems.length">
+		<div class="row fri">
+            <uib-tabset active="active">
+                <uib-tab index="0" heading="Liked by" ng-if="check(false)">
+                    <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in elems | filter:{is_dislike: false}">
+                        <a class="oh well n" ng-href="/user/{{ e.person.username }}/">
+                            <img class="img-thumbnail margin-center prof" ng-src="/images/{{ e.person.username }}/avatar/">
+                            <p class="text-center br3 def" data-fittext>{{ e.person.first_name }} {{ e.person.last_name }}</p>
+                        </a>
+                    </div>
+                </uib-tab>
+                <uib-tab index="1" heading="Disliked by" ng-if="check(true)">
+                    <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in elems | filter:{is_dislike: true}">
+                        <a class="oh well n" ng-href="/user/{{ e.person.username }}/">
+                            <img class="img-thumbnail margin-center prof" ng-src="/images/{{ e.person.username }}/avatar/">
+                            <p class="text-center br3 def" data-fittext>{{ e.person.first_name }} {{ e.person.last_name }}</p>
+                        </a>
+                    </div>
+                </uib-tab>
+            </uib-tabset>
+            <div class="us col-xs-4 col-sm-3 col-lg-2" ng-show="next_page[active] && loaded">
+                <a href="#" ng-click="load_page(active)" class="well n">
+                    <i class="text-center fa fa-ellipsis-v fa-4x"></i>
+                    <p class="text-center br3 def">Load more</p>
+                </a>
+            </div>
+		</div>
+	</div>
+    <div class="loa loa-c" ng-if="!loaded"><i class="fa fa-spinner fa-2x"></i></div>
+</div>

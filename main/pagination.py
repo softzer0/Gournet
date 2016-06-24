@@ -1,5 +1,7 @@
+from django.conf import settings
 from rest_framework import pagination
 from rest_framework.response import Response
+
 
 class PageNumberPagination(pagination.PageNumberPagination):
     page_size = 50
@@ -15,3 +17,10 @@ class PageNumberPagination(pagination.PageNumberPagination):
             'page_count': self.page.paginator.num_pages,
             'results': data
         })
+
+
+class NotificationPagination(PageNumberPagination):
+    page_size = settings.NOTIFICATION_PAGE_SIZE
+
+class EventPagination(PageNumberPagination):
+    page_size = settings.EVENTS_PAGE_SIZE

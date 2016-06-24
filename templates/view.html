@@ -3,29 +3,29 @@
 {% block title %}{{ business.get_type_display }} "{{ business.name }}" - Gournet{% endblock %}
 
 {% block head %}{{ block.super }}
-{% comment %}    <style>
-		.remp {
-			padding-bottom: 0;
-		}
-		.hrm {
-		    margin: 13px;
-		}
-    </style>
-    {% endcomment %}{% load staticfiles %}<script src="{% static 'js/custom/view.js' %}"></script>{% endblock %}
+    {% comment %}<style>
+        .remp {
+            padding-bottom: 0;
+        }
+        .hrm {
+            margin: 13px;
+        }</style>{% endcomment %}{% load staticfiles %}<script src="{% static 'js/custom/view.js' %}"></script>
+    {% if fav_state == -1 %}<script src="{% static 'js/angular-datetime.js' %}"></script>
+    <script src="{% static 'js/datetime-picker.min.js' %}"></script>
+    <script src="{% static 'js/custom/manager.js' %}"></script>
+    {% endif %}<link rel="stylesheet" href="{% static 'css/dtpicker.css' %}">{% endblock %}
 
 {% block htmlatt %}{{ block.super }} ng-init="id = {{ business.id }}"{% endblock %}
 
-{% block container %}
-        <div class="row" ng-controller="FavouriteCtrl" ng-init="favoured_count = {{ business.favoured_by.count }}; fav_state = {{ fav_state }}">
+{% block rowatt %}ng-controller="BusinessCtrl" ng-init="favoured_count = {{ business.favoured_by.count }}; fav_state = {{ fav_state }}{% if fav_state == -1 %}; minchar = {{ minchar }}{% endif %}"{% endblock %}
 
-            <div class="col-md-3">
-                <div class="well bs-sidebar affix">
-                    <p class="lead text-center br2">{{ business.get_type_display }} "{{ business.name }}"</p>
-                    <img class="img-thumbnail margin-center prof" src="http://static.panoramio.com/photos/original/32617386.jpg">
-                    <ul class="br1 list-unstyled text-center ls" ng-cloak>
-						<li><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-o"></i> | 4.0</li>
-                        <li><span ng-if="favoured_count > 0"><a href="#" ng-click="showFavouritesModal(1)"><i class="fa fa-heart"></i> <b>{% verbatim %}{{ favoured_count }}{% endverbatim %}</b></a> {% verbatim %}{{ favoured_count > 1 ? 'čoveka su favorizovala' : 'čovek je favorizovao' }}{% endverbatim %} ovo</span><span ng-if="favoured_count == 0"><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span></li>
-                        {% if fav_state > -1 %}<li><a href="#" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" ng-dialog-yn="true" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"><span ng-if="fav_state == 0"><i class="fa fa-plus-square"></i> {% verbatim %}{{ favoured_count > 0 ? 'I meni je omiljeno' : 'Meni je omiljeno' }}{% endverbatim %}</span><span ng-if="fav_state == 1"><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span></a></li>{% endif %}
+{% block name %}{{ business.get_type_display }} "{{ business.name }}"{% endblock %}
+
+{% block img %}{% static '/images/'|add:business.pk|add:'/avatar/?business=1' %}{% endblock %}
+
+{% block other %}<li><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-o"></i> | 4.0</li>
+                        <li><span ng-if="favoured_count > 0"><a href="#" ng-click="showFavouritesModal(1)"><i class="fa fa-heart"></i> <b>{% verbatim %}{{ favoured_count }}{% endverbatim %}</b></a> {% verbatim %}{{ favoured_count > 1 ? 'osobe su favorizovale' : 'osoba je favorizovala' }}{% endverbatim %} ovo</span><span ng-if="favoured_count == 0"><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span></li>
+                        {% if fav_state > -1 %}<li><a href="#" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"><span ng-if="fav_state == 0"><i class="fa fa-plus-square"></i> {% verbatim %}{{ favoured_count > 0 ? 'I meni je omiljeno' : 'Meni je omiljeno' }}{% endverbatim %}</span><span ng-if="fav_state == 1"><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span></a></li>{% endif %}
                         <li style="padding-bottom: 0;"><a href="#"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>
                         <li>
                             <hr style="margin: 13px;">
@@ -44,29 +44,34 @@
                                 <li><a href="https://maps.google.com/maps?q=Kraljevića Marka 34, Vranje"><i class="fa fa-map-marker"></i> Kraljevića Marka 34, Vranje</a></li>
                                 <li><i class="fa fa-phone"></i> +381 64/22-59-137</li>
                             </ul>
-                        </li>
-                    </ul>
-                </div>
+                        </li>{% endblock %}
 
-            </div>
-
-            <div class="col-md-9">
-
-                <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation"><a href="#events" aria-controls="events" role="tab" data-toggle="tab">Events</a></li>
+{% block tabs %}<li role="presentation" class="active"><a href="#events" aria-controls="events" role="tab" data-toggle="tab">Events</a></li>
                     <li role="presentation"><a href="#menu" aria-controls="menu" role="tab" data-toggle="tab">Menu</a></li>
-                    <li role="presentation" class="active"><a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab">Reviews</a></li>
-                </ul>
+                    <li role="presentation"><a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab">Reviews</a></li>{% endblock %}
 
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane fade" id="events">
-                        <div class="well bs-component clearfix">
-                            <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-                            <div class="br">
-                            <a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
-                            <a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
-                            <a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
-                            <a href="#" class="b"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+{% block content %}<div role="tabpanel" class="tab-pane fade in active" id="events">
+{% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="EventCtrl">
+							<form id="eventform" name="eventform" ng-submit="submitEvent()" class="form-vertical">
+                                <uib-alert type="danger" close="dismissAlert()" ng-if="eventform_showalert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
+                                <div class="form-group" ng-class="{'has-error': eventform.$invalid}">
+								    <textarea name="text" class="form-control br2" rows="3" required></textarea>
+                                </div>
+                                <p class="input-group" style="max-width: 250px;">
+                                    <input type="hidden" name="when" class="form-control" datetime-picker="dd.MM.yyyy HH:mm" datepicker-options="picker.options" ng-model="picker.date" is-open="picker.open" />
+                                    <input type="text" class="form-control" datetime="dd.MM.yyyy HH:mm" ng-model="picker.date">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" ng-click="picker.open = true"><i class="fa fa-calendar"></i></button>
+                                    </span>
+                                </p>
+								<input type="submit" class="btn btn-primary" value="Submit">
+							</form>
+						</div>
+{% endif %}
+                        <div class="well bs-component clearfix angular-animate" ng-repeat="e in $parent.events">
+                            <p ng-bind="e.text"></p>
+                            <div class="op br">
+                                <span ng-if="e.curruser_status > -1"><a href="#" ng-class="{'text-warning': e.curruser_status == 1}" ng-click="$parent.giveDisLike($index, false)"><i class="fa fa-plus-square"></i> {% verbatim %}{{ e.like_count }}{% endverbatim %}</a></span><span ng-if="e.curruser_status == -1"><i class="fa fa-plus-square"></i> {% verbatim %}{{ e.like_count }}{% endverbatim %}</span><span ng-if="e.like_count-e.dislike_count != 0"><a href="#" ng-click="$parent.showDisLikes($index)" class="badge label-primary">{% verbatim %}{{ e.like_count-e.dislike_count }}{% endverbatim %}</a></span><span ng-if="e.like_count-e.dislike_count == 0" class="badge">0</span><span ng-if="e.curruser_status > -1"><a href="#" ng-class="{'text-warning': e.curruser_status == 2}" ng-click="$parent.giveDisLike($index, true)"><i class="fa fa-minus-square"></i> {% verbatim %}{{ e.dislike_count }}{% endverbatim %}</a></span><span ng-if="e.curruser_status == -1"><i class="fa fa-minus-square"></i> {% verbatim %}{{ e.dislike_count }}{% endverbatim %}</span><a href="#"><i class="fa fa-comment"></i> Komentari ({% verbatim %}{{ e.comment_count }}{% endverbatim %})</a><a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a><a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a><span ng-if="e.curruser_status == -1"><a href="#" ng-dialog-message="Are you sure that you want to delete this event?" ng-dialog-click="$parent.deleteEvent($index)"><i class="fa fa-times"></i> Obriši</a></span>
                             </div>
                         </div>
 
@@ -274,7 +279,7 @@
 						</div>
 					</div>
 
-                    <div role="tabpanel" class="tab-pane fade in active" id="reviews">
+                    <div role="tabpanel" class="tab-pane fade" id="reviews">
 						<div class="well bs-component clearfix wp">
 							<form class="form-vertical">
 								<textarea class="form-control br2" rows="3" id="comment"></textarea>
@@ -314,9 +319,4 @@
 								</ul>
 							</div>
 						</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-{% endblock %}
+                    </div>{% endblock %}

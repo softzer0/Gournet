@@ -1,7 +1,7 @@
 app
-    .controller('UserCtrl', function($scope, $timeout, frifavService) {
+    .controller('UserCtrl', function($scope, $timeout, multiService) {
         $scope.name = angular.element('.lead.text-center.br2').text();
-        var friendService = frifavService.init(), loading;
+        var friendService = multiService.init(), loading;
         $scope.doFriendRequestAction = function () {
             if (loading) return;
             loading = true;

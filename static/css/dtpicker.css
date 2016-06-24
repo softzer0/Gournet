@@ -1,0 +1,74 @@
+.datetime-picker-dropdown .btn-default {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+}
+.datetime-picker-dropdown .btn-default:focus,
+.datetime-picker-dropdown .btn-default.focus {
+  color: #333;
+  background-color: #e6e6e6;
+  border-color: #8c8c8c;
+}
+.datetime-picker-dropdown .btn-default:hover {
+  color: #333;
+  background-color: #e6e6e6;
+  border-color: #adadad;
+}
+.datetime-picker-dropdown .btn-default:active,
+.datetime-picker-dropdown .btn-default.active {
+  color: #333;
+  background-color: #e6e6e6;
+  border-color: #adadad;
+}
+.datetime-picker-dropdown .btn-default:active:hover,
+.datetime-picker-dropdown .btn-default.active:hover,
+.datetime-picker-dropdown .btn-default:active:focus,
+.datetime-picker-dropdown .btn-default.active:focus,
+.datetime-picker-dropdown .btn-default:active.focus,
+.datetime-picker-dropdown .btn-default.active.focus {
+  color: #333;
+  background-color: #d4d4d4;
+  border-color: #8c8c8c;
+}
+.datetime-picker-dropdown .btn-default:active,
+.datetime-picker-dropdown .btn-default.active {
+  background-image: none;
+}
+.datetime-picker-dropdown .btn-default.disabled:hover,
+.datetime-picker-dropdown .btn-default[disabled]:hover,
+.datetime-picker-dropdown .btn-default.disabled:focus,
+.datetime-picker-dropdown .btn-default[disabled]:focus,
+.datetime-picker-dropdown .btn-default.disabled.focus,
+.datetime-picker-dropdown .btn-default[disabled].focus {
+  background-color: #fff;
+  border-color: #ccc;
+}
+.datetime-picker-dropdown .btn-default .badge {
+  color: #fff;
+  background-color: #333;
+}
+.glyphicon {
+    display: inline-block;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.glyphicon-chevron-left:before {
+    content: "\f053";
+}
+.glyphicon-chevron-right:before {
+    content: "\f054";
+}
+.glyphicon-chevron-up:before {
+    content: "\f0d8";
+}
+.glyphicon-chevron-down:before {
+    content: "\f0d7";
+}
+
+#eventform > .alert {
+    margin-bottom: 10px;
+}

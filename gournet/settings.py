@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 #   'allauth.socialaccount.providers.twitter',
 #   'djng',
 #   'autoslug',
+#   'cities_light',
     'phonenumber_field',
     'bootstrap3',
     'stronghold',
@@ -121,7 +122,12 @@ RECAPTCHA_PUBLIC_KEY = "***REMOVED***"
 RECAPTCHA_PRIVATE_KEY = "***REMOVED***"
 NOCAPTCHA = True
 
-NOTIFICATION_PAGE_SIZE = 5 # Custom
+# Begin custom
+
+EVENTS_PAGE_SIZE = 15
+NOTIFICATION_PAGE_SIZE = 5
+
+# End custom
 
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
@@ -210,7 +216,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Belgrade'
 
 USE_I18N = True
 

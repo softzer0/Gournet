@@ -11,32 +11,21 @@
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ user.pk }}; rel_state = {{ rel_state }}"{% endblock %}
 
-{% block container %}
-    <div class="row" ng-controller="UserCtrl" ng-init="friends_count = {{ friends_count }}">
+{% block rowatt %}ng-controller="UserCtrl" ng-init="friends_count = {{ friends_count }}"{% endblock %}
 
-            <div class="col-md-3">
-                <div class="well bs-sidebar affix">
-                    <p class="lead text-center br2">{{ user.first_name }} {{ user.last_name }}</p>
-                    <img class="img-thumbnail margin-center prof" src="{% static '/images/'|add:user.username|add:'/avatar/' %}">
-                    <ul class="br1 list-unstyled text-center ls" ng-cloak>
-						<li><a href="https://maps.google.com/maps?q={{ user.get_location_display }}"><i class="fa fa-map-marker"></i> {{ user.get_location_display }}</a></li>
+{% block name %}{{ user.first_name }} {{ user.last_name }}{% endblock %}
+
+{% block img %}{% static '/images/'|add:user.username|add:'/avatar/' %}{% endblock %}
+
+{% block other %}<li><a href="https://maps.google.com/maps?q={{ user.get_location_display }}"><i class="fa fa-map-marker"></i> {{ user.get_location_display }}</a></li>
                         <li><a href="#" ng-click="showFriendsModal()" ng-if="friends_count > 0"><i class="fa fa-users"></i> <b>{% verbatim %}{{ friends_count }}{% endverbatim %}</b></a><i class="fa fa-users" ng-if="friends_count == 0"></i> <span ng-if="friends_count > 1">osobe su {% if rel_state > -1 %}mu{% else %}ti{% endif %} prijatelji</span><span ng-if="friends_count == 1">osoba {% if rel_state > -1 %}mu{% else %}ti{% endif %} je prijatelj</span><span ng-if="friends_count == 0">{% if rel_state > -1 %}Nema{% else %}Nemaš{% endif %} prijatelja</span></li>
-                        {% if rel_state > -1 %}<li><a href="#" ng-dialog-message="{% verbatim %}{{ rel_state_msg }}{% endverbatim %}" ng-dialog-yn="true" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-show="rel_state == 0">{% verbatim %}{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}{% endverbatim %}</span><span ng-show="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-show="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-show="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endif %}
-                    </ul>
-                </div>
+                        {% if rel_state > -1 %}<li><a href="#" ng-dialog-message="{% verbatim %}{{ rel_state_msg }}{% endverbatim %}" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-show="rel_state == 0">{% verbatim %}{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}{% endverbatim %}</span><span ng-show="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-show="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-show="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endif %}{% endblock %}
 
-            </div>
-
-            <div class="col-md-9">
-
-                <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation" class="active"><a href="#events" aria-controls="events" role="tab" data-toggle="tab">Events</a></li>
+{% block tabs %}<li role="presentation" class="active"><a href="#events" aria-controls="events" role="tab" data-toggle="tab">Events</a></li>
                     <li role="presentation"><a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab">Reviews</a></li>
-                    <li role="presentation"><a href="#reminders" aria-controls="reminders" role="tab" data-toggle="tab">Reminders</a></li>
-                </ul>
+                    <li role="presentation"><a href="#reminders" aria-controls="reminders" role="tab" data-toggle="tab">Reminders</a></li>{% endblock %}
 
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane fade in active" id="events">
+{% block content %}<div role="tabpanel" class="tab-pane fade in active" id="events">
 						<h5 class="ac f">Mihailo gave + to this:</h5>
 						<div class="well bs-component clearfix">
 							<legend>Kafana "Stara kuća"</legend>
@@ -305,9 +294,4 @@
 							</div>
 						</div>
 						
-                    </div>
-                </div>
-            </div>
-
-        </div>
-{% endblock %}
+                    </div>{% endblock %}

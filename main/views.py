@@ -3,6 +3,7 @@ from itertools import chain
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.utils import timezone
@@ -10,22 +11,19 @@ from django.db.models import Case, When, Value, IntegerField
 # from django.conf.urls.static import static
 # from django.shortcuts import get_object_or_404
 # from django.utils import six
-# from django.db.models import Q
+from django.db.models import Q
 # from django.views.decorators.csrf import csrf_protect
 # from django.core.paginator import Paginator, InvalidPage
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, NotAuthenticated
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
 from allauth.account import views
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
-from rest_framework.serializers import ModelSerializer
 from allauth.account.models import EmailAddress
-from .pagination import PageNumberPagination
-from . import serializers
-from .models import Relationship, Notification, Business
+from . import permissions, pagination, serializers
+from .models import Relationship, Notification, Business, Like, Event, MIN_CHAR
 # from . import permissions
 # from . import forms
 # from .decorators import login_forbidden
@@ -40,8 +38,8 @@ def sort_related(query, first=None, others=None):
     @type query: django.db.models.QuerySet
     @type others: django.db.models.QuerySet, chain
     """
-    if not others:
-        others = first.friends
+    if others is None:
+        others = query.filter(user__in=first.friends.all())
     if first:
         cases = [When(pk=first.pk, then=Value(0))]
         s = 1
@@ -59,6 +57,11 @@ def get_object(pk, cl=User):
         return cl.objects.get(pk=pk)
     except:
         raise NotFound(detail=cl.__name__+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
+
+def get_param_bool(param):
+    if param and param in ['1', 'true', 'True', 'TRUE']:
+        return True
+    return False
 
 @public
 def home_index(request):
@@ -83,9 +86,13 @@ def show_business(request, shortname):
             fav_state = 1
         else:
             fav_state = 0
+        data = {}
     else:
         fav_state = -1
-    return render(request, "view.html", {'business': business, 'fav_state': fav_state})
+        data = {'minchar': MIN_CHAR}
+    data['business'] = business
+    data['fav_state'] = fav_state
+    return render(request, "view.html", data)
 
 
 def show_profile(request, username):
@@ -105,22 +112,22 @@ def show_profile(request, username):
     return render(request, "user.html", {'user': user, 'friends_count': friends_count, 'rel_state': rel_state})
 
 
-def return_avatar(request, name, size):
-    if request.GET.get('business', None):
+def return_avatar(request, username_id, size):
+    if get_param_bool(request.GET.get('business', None)):
         t = 'business'
     else:
         t = 'user'
-    fullpath = settings.ROOT_PATH+str(static(settings.IMAGES_PATH))+t+'/'+name+'/avatar'
+    fullpath = settings.ROOT_PATH+str(static(settings.IMAGES_PATH))+t+'/'+username_id+'/avatar'
     s = '.'
     status = None
     if size:
         s += size+'x'+size+'.'
-    mimeext = 'jpeg'
+    mimeext = 'png'
     if os.path.isfile(fullpath+s+'jpg'):
         fullpath += s+'jpg'
+        mimeext = 'jpeg'
     elif os.path.isfile(fullpath+s+'png'):
         fullpath += s+'png'
-        mimeext = 'png'
     else:
         fullpath = settings.ROOT_PATH+str(static(settings.IMAGES_PATH))+t+'/avatar'+s+'png'
         status = 404
@@ -131,7 +138,6 @@ class PasswordChangeView(views.PasswordChangeView):
     def get(self, *args, **kwargs):
         return redirect("/")
 
-
 class EmailView(views.EmailView):
     def get(self, *args, **kwargs):
         return redirect("/")
@@ -139,14 +145,12 @@ class EmailView(views.EmailView):
 class EmailAPIView(generics.ListAPIView):
     serializer_class = serializers.EmailSerializer
     pagination_class = None
-    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return EmailAddress.objects.filter(user=self.request.user).order_by('-primary', '-verified')
 
 
 class FriendsAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
-    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.request.method != 'GET':
@@ -181,13 +185,9 @@ class FriendsAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class NotificationPagination(PageNumberPagination):
-    page_size = settings.NOTIFICATION_PAGE_SIZE
-
-class NotificationAPIView(generics.ListAPIView, generics.RetrieveUpdateDestroyAPIView):
+class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, generics.DestroyAPIView
     serializer_class = serializers.NotificationSerializer
-    pagination_class = NotificationPagination
-    permission_classes = (IsAuthenticated,)
+    pagination_class = pagination.NotificationPagination
 
     def paginate_queryset(self, queryset):
         if self.request.query_params.get('page', None):
@@ -227,7 +227,7 @@ def notifs_set_all_read(request):
                     notif.unread = False
                     notif.save()
             status = 200
-            if request.GET.get('notxt', None):
+            if get_param_bool(request.GET.get('notxt', None)):
                 text = None
             else:
                 text = str(notifs.count())+" notifications have been marked as read."
@@ -243,22 +243,21 @@ def notifs_set_all_read(request):
 
 
 class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-
     def get_serializer_class(self):
-        if self.request.method == 'GET' and self.kwargs['pk'] and not self.request.query_params.get('user', None):
+        if self.request.method == 'GET' and self.kwargs['pk'] and not get_param_bool(self.request.query_params.get('user', None)):
             return serializers.UserSerializer
-        return serializers.FavouritesSerializer
+        return serializers.BusinessSerializer
 
     def get_queryset(self):
         pk = self.kwargs['pk']
-        if self.request.query_params.get('user', None) and pk and pk != self.request.user.pk:
+        is_user = get_param_bool(self.request.query_params.get('user', None))
+        if is_user and pk and pk != self.request.user.pk:
             person = get_object(pk)
             businesses = Business.objects.filter(manager=self.request.user)
-            if businesses.count() > 0:
-                return sort_related(person.favourites, businesses[0], chain(businesses[1:], self.request.user.favourites.all()))
-            return sort_related(person.favourites, others=self.request.user.favourites)
-        if not self.request.query_params.get('user', None) and pk and self.request.method == 'GET':
+            if businesses.count() > 1:
+                return sort_related(person.favourites, others=chain(businesses, person.favourites.filter(business=self.request.user.favourites.all())))
+            return sort_related(person.favourites, businesses.first(), person.favourites.filter(business=self.request.user.favourites.all()))
+        if not is_user and pk:
             business = get_object(pk, Business)
             return sort_related(business.favoured_by, self.request.user)
         return self.request.user.favourites.all()
@@ -273,3 +272,46 @@ class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         request.user.favourites.remove(kwargs['pk'])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = serializers.EventSerializer
+    pagination_class = pagination.EventPagination
+
+    def __init__(self):
+        super().__init__()
+        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
+
+    def get_queryset(self):
+        if get_param_bool(self.request.query_params.get('user', None)):
+            if self.kwargs['pk']:
+                user = get_object(self.kwargs['pk'], User)
+            else:
+                user = self.request.user
+            qs = Event.objects.filter(Q(business__manager=user) | Q(like__person=user))
+        else:
+            if self.kwargs['pk']:
+                business = get_object(self.kwargs['pk'], Business)
+                qs = business.event_set
+            else:
+                qs = Event.objects.all()
+        return qs.order_by('-when', '-id')
+
+
+class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
+    queryset = Like.objects.all()
+    serializer_class = serializers.LikeSerializer
+
+    def __init__(self):
+        super().__init__()
+        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
+
+    def get_queryset(self):
+        event = get_object(self.kwargs['pk'], Event)
+        qs = Like.objects.filter(event=event)
+        if self.request.query_params.get('is_dislike', None):
+            qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
+        return sort_related(qs, self.request.user, qs.filter(person__in=self.request.user.friends.all()))
+
+    def get_object(self):
+        return get_object_or_404(Like, event__pk=self.kwargs['pk'], person=self.request.user)
