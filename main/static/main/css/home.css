@@ -4,10 +4,24 @@
     font-size: 2.8em;
 }
 
+.mb3 {
+    margin-bottom: 3px;
+}
+.mn1 {
+	padding-top: 5px;
+}
 .well {
     background-color: #fffdfd;
-	/*padding-bottom: 15px;*/
 }
+
+/*.pb18 {
+    padding-bottom: 18px;
+}*/
+
+.pb8 {
+    padding-bottom: 8px;
+}
+
 legend {
     font-size: 20px;
     margin: -5px 0 15px 0;
@@ -16,8 +30,8 @@ legend {
 .media-object {
     float: left;
     margin: -10px 15px -5px 0;
-    width: 64px;
-    height: 64px;
+    width: 64px; /* remove */
+    height: 64px; /* remove */
 }
 .imo {
     width: 48px;
@@ -189,6 +203,18 @@ body {
     overflow: hidden;
 }
 
+.um {
+    margin-bottom: -10px;
+}
+
+/*.modal-body > div > .container-fluid {
+    padding: 0;
+}*/
+
+.ls > li {
+	padding-bottom: 5px;
+}
+
 .loa-c {
     display: table;
     margin: 0 auto;
@@ -271,7 +297,7 @@ body {
     left: auto;
     border: none;
 }
-.navmenu-nav {
+.navmenu-nav { /*, .mpd*/
   margin-bottom: 10px;
 }
 .navmenu-nav.dropdown-menu {
@@ -344,4 +370,27 @@ body {
 }
 #offcanvas {
     display: none;
+}
+
+.tab-content {
+	position: relative;
+}
+
+.tab-content > .tab-pane {
+	transition: 0.1s linear opacity;
+}
+
+.tab-content > .tab-pane.active-remove {
+	position: absolute;
+	top: 0;
+	width: 100%;
+	display: block;
+}
+
+.tab-content > .tab-pane.active-remove-active {
+	opacity: 0;
+}
+
+.tab-content > .tab-pane.active-add {
+	opacity: 0;
 }

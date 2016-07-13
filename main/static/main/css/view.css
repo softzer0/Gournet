@@ -12,14 +12,18 @@
 .br2 {
 	margin-bottom: 11px;
 }
-.ls > li {
-	padding-bottom: 5px;
-}
 
 .remm {
 	display: block;
-	margin-top: 15px;
 	margin-bottom: 0 !important;
+}
+
+.mn {
+	padding-top: 15px;
+}
+
+.remm:not(:first-child) {
+	margin-top: 15px;
 }
 
 .tb > tbody > tr > td {
@@ -79,16 +83,13 @@
     -o-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;*/
     transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
     position: relative;
+    opacity: 0;
+    top: -50px;
 }
 
 .ng-enter.ng-enter-active {
     opacity: 1;
     top: 0;
-}
-
-.ng-enter {
-    opacity: 0;
-    top: -50px;
 }
 
 .ng-leave {

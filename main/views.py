@@ -1,11 +1,9 @@
-import os.path
 from itertools import chain
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.conf import settings
-from django.contrib.staticfiles.templatetags.staticfiles import static
+# from django.conf import settings
 from django.utils import timezone
 from django.db.models import Case, When, Value, IntegerField
 # from django.conf.urls.static import static
@@ -24,6 +22,7 @@ from rest_framework.renderers import JSONRenderer
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
 from .models import Relationship, Notification, Business, Like, Event, MIN_CHAR
+from .templatetags import rawinclude
 # from . import permissions
 # from . import forms
 # from .decorators import login_forbidden
@@ -62,6 +61,7 @@ def get_param_bool(param):
     if param and param in ['1', 'true', 'True', 'TRUE']:
         return True
     return False
+
 
 @public
 def home_index(request):
@@ -117,21 +117,21 @@ def return_avatar(request, username_id, size):
         t = 'business'
     else:
         t = 'user'
-    fullpath = settings.ROOT_PATH+str(static(settings.IMAGES_PATH))+t+'/'+username_id+'/avatar'
+    path = 'main/images/'+t+'/'+username_id+'/avatar'
     s = '.'
     status = None
     if size:
         s += size+'x'+size+'.'
     mimeext = 'png'
-    if os.path.isfile(fullpath+s+'jpg'):
-        fullpath += s+'jpg'
+    if rawinclude.checkstatic(path+s+'jpg'):
+        path += s+'jpg'
         mimeext = 'jpeg'
-    elif os.path.isfile(fullpath+s+'png'):
-        fullpath += s+'png'
+    elif rawinclude.checkstatic(path+s+'png'):
+        path += s+'png'
     else:
-        fullpath = settings.ROOT_PATH+str(static(settings.IMAGES_PATH))+t+'/avatar'+s+'png'
+        path = 'main/images/'+t+'/avatar'+s+'png'
         status = 404
-    return HttpResponse(open(fullpath, 'rb').read(), content_type='image/'+mimeext, status=status)
+    return HttpResponse(rawinclude.loadstatic(path, 'rb'), content_type='image/'+mimeext, status=status)
 
 
 class PasswordChangeView(views.PasswordChangeView):
@@ -151,7 +151,6 @@ class EmailAPIView(generics.ListAPIView):
 
 
 class FriendsAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
-
     def get_serializer_class(self):
         if self.request.method != 'GET':
             return serializers.RelationshipSerializer
@@ -207,7 +206,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                     text = "You have "+rems.count()+" reminders."
                 else:
                     text = "You have one reminder."
-                self.request.user.notification_set.add(Notification(text=text, link='#'+pks+rems[-1].pk), bulk=False)
+                self.request.user.notification_set.add(Notification(text=text, link='#/show='+pks+rems[-1].pk), bulk=False)
                 rems._raw_delete(rems.db)
             last = self.request.query_params.get('last', None)
             if last:
@@ -217,7 +216,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
 def notifs_set_all_read(request):
     if request.user.is_authenticated():
         try:
-            notifs = Notification.objects.filter(pk__in=request.GET['ids'].split(','))
+            notifs = Notification.objects.filter(pk__in=[n for n in request.GET['ids'].split(',') if n.isdigit()])
         except:
             status = 400
             text = "Invalid parameter provided."
@@ -246,7 +245,14 @@ class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     def get_serializer_class(self):
         if self.request.method == 'GET' and self.kwargs['pk'] and not get_param_bool(self.request.query_params.get('user', None)):
             return serializers.UserSerializer
+        self.kwargs['notype'] = None
         return serializers.BusinessSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if 'notype' in self.kwargs:
+            context['notype'] = None
+        return context
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -254,9 +260,7 @@ class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         if is_user and pk and pk != self.request.user.pk:
             person = get_object(pk)
             businesses = Business.objects.filter(manager=self.request.user)
-            if businesses.count() > 1:
-                return sort_related(person.favourites, others=chain(businesses, person.favourites.filter(business=self.request.user.favourites.all())))
-            return sort_related(person.favourites, businesses.first(), person.favourites.filter(business=self.request.user.favourites.all()))
+            return sort_related(person.favourites, others=person.favourites.filter(pk__in=(businesses | self.request.user.favourites.all()).values_list('pk')))
         if not is_user and pk:
             business = get_object(pk, Business)
             return sort_related(business.favoured_by, self.request.user)
@@ -283,19 +287,31 @@ class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
     def get_queryset(self):
-        if get_param_bool(self.request.query_params.get('user', None)):
-            if self.kwargs['pk']:
-                user = get_object(self.kwargs['pk'], User)
-            else:
-                user = self.request.user
-            qs = Event.objects.filter(Q(business__manager=user) | Q(like__person=user))
+        if self.request.query_params.get('ids', None):
+            qs = Event.objects.filter(pk__in=[n for n in self.request.query_params.get('ids').split(',') if n.isdigit()])
         else:
-            if self.kwargs['pk']:
-                business = get_object(self.kwargs['pk'], Business)
-                qs = business.event_set
+            if get_param_bool(self.request.query_params.get('user', None)):
+                if self.kwargs['pk']:
+                    person = get_object(self.kwargs['pk'], User)
+                    #if person != self.request.user:
+                    self.kwargs['person_business'] = person
+                else:
+                    person = self.request.user
+                qs = Event.objects.filter(Q(business__manager=person) | Q(like__person=person))
             else:
-                qs = Event.objects.all()
+                if self.request.method == 'GET' and self.kwargs['pk']:
+                    business = get_object(self.kwargs['pk'], Business)
+                    qs = business.event_set
+                    self.kwargs['person_business'] = True
+                else:
+                    qs = Event.objects.all()
         return qs.order_by('-when', '-id')
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if 'person_business' in self.kwargs:
+            context['person_business'] = self.kwargs['person_business']
+        return context
 
 
 class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):

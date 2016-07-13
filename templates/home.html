@@ -2,61 +2,31 @@
 
 {% block title %}Home - Gournet{% endblock %}
 {% block container %}
-        <div id="map" class="bor col-lg-12" style="height: 250px; margin-bottom: 40px;"></div>
+        <div id="map" class="bor" style="height: 250px; margin-bottom: 40px;"></div>
         <script>
         function initMap() {
-        var myLatLng = {lat: 43.3161595, lng: 21.8233196};
+            var myLatLng = {lat: 42.5567616, lng: 21.8621273};
 
-        var map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 9,
-            streetViewControl: false,
-            center: myLatLng
-        });
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 9,
+                streetViewControl: false,
+                center: myLatLng
+            });
 
-        google.maps.event.addDomListener(window, "resize", function() {
-            var center = map.getCenter();
-            google.maps.event.trigger(map, "resize");
-            map.setCenter(center);
-        });
+            google.maps.event.addDomListener(window, "resize", function() {
+                var center = map.getCenter();
+                google.maps.event.trigger(map, "resize");
+                map.setCenter(center);
+            });
 
-        var marker = new google.maps.Marker({
-            position: myLatLng,
-            map: map,
-            draggable: true,
-            title: 'Hello World!'
-        });
+            var marker = new google.maps.Marker({
+                position: myLatLng,
+                map: map/*,
+                draggable: true*/
+            });
         }
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
 
-        <div class="row">
-
-            <div class="col-lg-12">
-                <div class="well bs-component clearfix">
-                    <legend>Kafana "Stara kuća"</legend>
-                    <img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-                    <p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-                    <div class="br">
-                    <a href="#"><i class="fa fa-plus-square"></i> 10</a>
-                    <a href="#"><i class="fa fa-minus-square"></i> 0</a>
-                    <a href="#"><i class="fa fa-comment"></i> Komentari</a>
-                    <a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-                    <a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="col-lg-12">
-                <div class="well bs-component clearfix">
-                    <legend>Kafana "Stara Srbija"</legend>
-                    <div class="row">
-                        <div class="col-md-2 av mb"><img class="bor media-object im" src="http://doceknovagodina.com/img/objekat/restoran-stara-srbija-maksima-gorkog-51,-vracar_2.jpg"></div>
-                        <div class="col-md-5 mb"><img class="img-thumbnail img-responsive" src="http://www.mojakafana.com/uploads/Galerija/112/i/21/kafana_Stara_Srbija_9.JPG"></div>
-                        <div class="col-md-5 mb"><img class="img-thumbnail img-responsive" src="http://www.mojakafana.com/uploads/Galerija/112/i/19/kafana_Stara_Srbija_7.JPG"></div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+{% load rawinclude %}{% raw_include 'main/events.html' %}
 {% endblock %}

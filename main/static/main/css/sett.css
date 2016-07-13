@@ -1,0 +1,69 @@
+.modal-header {
+    padding-bottom: 5px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    display: inline;
+}
+
+.modal-header .close {  font-size: 30px; margin-top: -5px;"
+}
+
+.modal-body .form-control {
+    width: 250px;
+}
+
+.modal-body p:not(.def), .loa {
+    margin-bottom: 4px;
+}
+
+.modal-body .alert {
+    margin-top: 7px;
+}
+
+.modal-body .form-control, .bt3, .modal-body .alert {
+    margin-bottom: 7px;
+}
+.bt3 .btn {
+    margin-top: 5px;
+}
+
+.btr {
+    margin-right: 3px;
+}
+
+.hor {
+    margin-bottom: 13px;
+}
+
+.nji {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.nji > .tab-content {
+    margin-top: 20px;
+}
+
+@media (min-width: 993px) {
+    .nji > ul {
+        width: 25%;
+    }
+
+    .nji > .tab-content {
+        margin-top: 0;
+        width: 75%;
+        padding-left: 15px;
+    }
+
+    .nji > ul, .nji > .tab-content {
+        float: left;
+        position: relative;
+        min-height: 1px;
+    }
+
+    .nji > ul > li {
+        float: none;
+    }
+}

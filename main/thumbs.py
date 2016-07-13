@@ -11,13 +11,13 @@ from PIL import Image, ImageOps
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.contrib.staticfiles.storage import staticfiles_storage
 #from django_thumbs.settings import THUMBS_GENERATE_THUMBNAILS
 
 THUMB_SUFFIX = '%s.%sx%s.%s'
 
 def generate_path(username, filename):
-    return settings.ROOT_PATH+str(static(settings.IMAGES_PATH))+'/user/%s/%s' % (username, filename)
+    return 'main/images/user/%s/%s' % (username, filename)
 
 
 def save_img(original, preserve_ratio, image_format='JPEG', size=None):
@@ -56,7 +56,7 @@ def generate_thumb(username, imgname, image, size, preserve_ratio):
     base, extension = imgname.rsplit('.', 1)
     thumb_name = THUMB_SUFFIX % (base, size[0], size[1], extension)
     thumbnail = save_img(image, preserve_ratio, extension, size)
-    default_storage.save(generate_path(username, thumb_name), thumbnail)
+    staticfiles_storage.save(generate_path(username, thumb_name), thumbnail)
 
 
 def delete(username, imgname, sizes):
@@ -65,7 +65,7 @@ def delete(username, imgname, sizes):
             base, extension = imgname.rsplit('.', 1)
             thumb_name = THUMB_SUFFIX % (base, size[0], size[1], extension)
             try:
-                default_storage.delete(generate_path(username, thumb_name))
+                staticfiles_storage.delete(generate_path(username, thumb_name))
             except Exception:
                 if settings.DEBUG:
                     raise
@@ -73,7 +73,7 @@ def delete(username, imgname, sizes):
 
 def saveimgwiththumbs(username, imgname, content, sizes, preserve_ratio=True):
     image = save_img(content, preserve_ratio, imgname.split(".")[-1])
-    default_storage.save(generate_path(username, imgname), image)
+    staticfiles_storage.save(generate_path(username, imgname), image)
     if sizes:
         for size in sizes:
             try:

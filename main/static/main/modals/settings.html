@@ -1,0 +1,48 @@
+<uib-tabset active="obj.active" type="pills" class="nji row">
+    <uib-tab index="0" heading="Password and email(s)">
+        <form autocomplete="on" ng-init="pattern = '.{8,}'; title = 'Password must contain at least 8 characters'">
+            <div ng-if="pass_err !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
+                <button class="close" type="button" ng-click="dismissError()">&times;</button>
+                <p class="def">{{ pass_err == 0 ? 'Your password has been changed.' : pass_err_txt }}</p>
+            </div>
+            <p>Enter your current password before changing:</p>
+            <div ng-class="{'has-error': pass_err == 1 || pass_err == 3}"><input class="form-control" type="password" ng-model="obj.pass[0]" placeholder="Current password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
+            <p>Enter new password:</p>
+            <div ng-class="{'has-error': pass_err == 2 || pass_err == 3}"><input class="form-control" type="password" ng-model="obj.pass[1]" placeholder="New password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
+            <p>Repeat new password:</p>
+            <div ng-class="{'has-error': pass_err == 4}"><input class="form-control" type="password" ng-model="obj.pass[2]" placeholder="New password (again)" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
+            <input type="submit" ng-click="changePassword()" class="btn btn-success" value="Save">
+        </form>
+        <hr class="hor">
+        <div class="loa" ng-if="!loaded && obj.active == 0"><i class="fa fa-spinner"></i></div>
+        <div ng-show="loaded">
+            <p>You have currently {{ emails.length }} email {{ emails.length > 1 ? 'addresses' : 'address' }} associated with your account:</p>
+            <div ng-if="sent.length" class="alert alert-success alert-dismissable">
+                <button class="close" type="button" ng-click="sent.length = 0">&times;</button>
+                <p class="def">Confirmation e-mail has been sent to <span ng-repeat="e in sent">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>.</p>
+            </div>
+            <div ng-repeat="e in emails" style="white-space: nowrap;">
+                <input type="radio" ng-model="obj.selected" ng-value="$index" ng-change="EmailSelected()" id="email_{{ $index }}" name="email">
+                <label for="email_{{ $index }}" class="btr" ng-bind="e.email"></label> <span ng-if="e.verified" class="label label-success btr">Verified</span> <span ng-if="e.primary" class="label label-info btr">Primary</span>
+            </div>
+            <div class="bt3">
+                <button ng-disabled="emails[obj.selected].primary || !emails[obj.selected].verified" class="btn btn-info btr" ng-click="makePrimaryEmail()">Make Primary</button>
+                <button ng-disabled="emails[obj.selected].verified" class="btn btn-default btr" ng-click="resendConfirmationEmail()">Re-send Verification</button>
+                <button ng-disabled="emails[obj.selected].primary" class="btn btn-danger" ng-dialog-click="removeEmail()" ng-dialog-message="Are you sure that you want to remove email <strong>{{ emails[obj.selected].email }}</strong>?" ng-dialog-yn="true">Remove</button>
+            </div>
+        </div>
+        <form>
+            <input class="form-control" type="email" ng-model="obj.email" placeholder="Email" required>
+            <input type="submit" class="btn btn-warning" ng-click="addEmail()" value="Add Email Address">
+        </form>
+    </uib-tab>
+    <uib-tab index="1" heading="Internationalization">
+        <p>Language:</p>
+        <input class="form-control" type="text" placeholder="Language">
+        <p>Currency:</p>
+        <input class="form-control" type="text" placeholder="Currency">
+        <p>Time zone:</p>
+        <input class="form-control" type="text" placeholder="Time zone">
+        <button class="btn btn-success">Save</button>
+    </uib-tab>
+</uib-tabset>

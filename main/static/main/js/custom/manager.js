@@ -2,10 +2,9 @@ app.requires.push('ui.bootstrap.datetimepicker', 'datetime');
 app
     .controller('EventCtrl', function($scope, $timeout, eventService) {
         //$scope.name = angular.element('.lead.text-center.br2').text();
-        var dt = new Date();
         $scope.picker = {
-            date: dt,
-            options: {minDate: dt}
+            date: $scope.$parent.currTime,
+            options: {minDate: $scope.$parent.currTime}
         };
         $scope.dismissAlert = function () {
             $scope.eventform_showalert = false;

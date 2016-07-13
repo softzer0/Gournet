@@ -2,270 +2,27 @@
 
 {% block title %}{{ user.first_name }} {{ user.last_name }} - Gournet{% endblock %}
 {% block head %}{{ block.super }}
-    <style>
-		.ac {
-			margin: -8px 0 5px;
-		}
-    </style>
-    {% load staticfiles %}<script src="{% static 'js/custom/user.js' %}"></script>{% endblock %}
+    {% load staticfiles %}<script src="{% static 'main/js/custom/user.js' %}"></script>{% endblock %}
 
-{% block bodyatt %}{{ block.super }} ng-init="id = {{ user.pk }}; rel_state = {{ rel_state }}"{% endblock %}
+{% block bodyatt %}{{ block.super }} ng-init="id = {{ user.pk }}; first_name = '{{ user.first_name }}'; rel_state = {{ rel_state }}"{% endblock %}
 
 {% block rowatt %}ng-controller="UserCtrl" ng-init="friends_count = {{ friends_count }}"{% endblock %}
 
 {% block name %}{{ user.first_name }} {{ user.last_name }}{% endblock %}
 
-{% block img %}{% static '/images/'|add:user.username|add:'/avatar/' %}{% endblock %}
+{% block img %}{{ user.username }}/avatar/{% endblock %}
 
 {% block other %}<li><a href="https://maps.google.com/maps?q={{ user.get_location_display }}"><i class="fa fa-map-marker"></i> {{ user.get_location_display }}</a></li>
                         <li><a href="#" ng-click="showFriendsModal()" ng-if="friends_count > 0"><i class="fa fa-users"></i> <b>{% verbatim %}{{ friends_count }}{% endverbatim %}</b></a><i class="fa fa-users" ng-if="friends_count == 0"></i> <span ng-if="friends_count > 1">osobe su {% if rel_state > -1 %}mu{% else %}ti{% endif %} prijatelji</span><span ng-if="friends_count == 1">osoba {% if rel_state > -1 %}mu{% else %}ti{% endif %} je prijatelj</span><span ng-if="friends_count == 0">{% if rel_state > -1 %}Nema{% else %}Nemaš{% endif %} prijatelja</span></li>
-                        {% if rel_state > -1 %}<li><a href="#" ng-dialog-message="{% verbatim %}{{ rel_state_msg }}{% endverbatim %}" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-show="rel_state == 0">{% verbatim %}{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}{% endverbatim %}</span><span ng-show="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-show="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-show="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endif %}{% endblock %}
+                        {% if rel_state > -1 %}<li><a href="#" ng-dialog-message="{% verbatim %}{{ rel_state_msg }}{% endverbatim %}" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-if="rel_state == 0">{% verbatim %}{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}{% endverbatim %}</span><span ng-if="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-if="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-if="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endif %}{% endblock %}
 
-{% block tabs %}<li role="presentation" class="active"><a href="#events" aria-controls="events" role="tab" data-toggle="tab">Events</a></li>
-                    <li role="presentation"><a href="#reviews" aria-controls="reviews" role="tab" data-toggle="tab">Reviews</a></li>
-                    <li role="presentation"><a href="#reminders" aria-controls="reminders" role="tab" data-toggle="tab">Reminders</a></li>{% endblock %}
+{% block content %}<uib-tab index="0" heading="Events">
+						<div class="mn1">
+{% load rawinclude %}{% raw_include 'main/events.html' %}
+                        </div>
+                    </uib-tab>
 
-{% block content %}<div role="tabpanel" class="tab-pane fade in active" id="events">
-						<h5 class="ac f">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-						
-						<hr>
-						
-						<h5 class="ac">Mihailo gave + to this:</h5>
-						<div class="well bs-component clearfix">
-							<legend>Kafana "Stara kuća"</legend>
-							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
-							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
-							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
-							</div>
-						</div>
-                    </div>
-
-                    <div role="tabpanel" class="tab-pane fade" id="reviews">
+                    <uib-tab index="1" heading="Reviews">
 						<div class="well bs-component clearfix">
 							<legend>Kafana "Stara kuća"</legend>
 							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
@@ -277,10 +34,9 @@
 								<a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
 							</div>
 						</div>
-						
-                    </div>
-                    
-                    <div role="tabpanel" class="tab-pane fade" id="reminders">
+                    </uib-tab>
+
+                    <uib-tab index="2" heading="Reminders">
 						<div class="well bs-component clearfix">
 							<legend>Kafana "Stara kuća"</legend>
 							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
@@ -293,5 +49,4 @@
 							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
 							</div>
 						</div>
-						
-                    </div>{% endblock %}
+                    </uib-tab>{% endblock %}

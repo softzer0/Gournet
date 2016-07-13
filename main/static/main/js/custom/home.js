@@ -1,16 +1,66 @@
-var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate']) /*, 'ngRoute', 'oc.lazyLoad', 'angularCSS'*/
-    .config(function($httpProvider, $animateProvider) {
+var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal']) /*, 'oc.lazyLoad', 'angularCSS'*/
+    .config(function($httpProvider, $animateProvider, $stateProvider) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+        $animateProvider.classNameFilter(/(angular-animate|tab-pane)/);
 
-        $animateProvider.classNameFilter(/angular-animate/);
+        $stateProvider.state('showEvents', {
+            url: '/show=:ids',
+            modal: true,
+            templateUrl: '/static/main/modals/base.html',
+            size: 'lg',
+            controller: function ($scope, $uibModalInstance, $state, $stateParams, $animate, $timeout, eventService, eventActionsService) {
+                $scope.title = "Events";
+                $scope.file = 'events';
+                $scope.events = eventService.events(true);
+                $scope.p = $scope;
+                $scope.a = eventActionsService;
+                eventActionsService.setSec();
+                $scope.cancel = function($event) {
+                    $uibModalInstance.close();
+                    $event.stopPropagation();
+                };
+                $scope.set_modal_loaded = function (){
+                    var unregister = $scope.$watch(function() { return angular.element('.loa-ok').length }, function() {
+                        $scope.modal_loaded = true;
+                        unregister();
+                    });
+                };
+                $scope.set_loaded = function (){ $scope.loaded = true };
+
+                $animate.enabled(false);
+                eventService.load(1, $stateParams.ids.split(',')).then(
+                    function () {
+                        $timeout(function () {
+                            $animate.enabled(true);
+                            if ($scope.events.length == 0) $scope.loaded = true;
+                        });
+                    });
+            }
+        });
+    })
+
+    .factory('eventActionsService', function ($timeout, usersModalService, eventService) {
+        var loading, r = false;
+
+        return {
+            setSec: function () { r = true; },
+            giveDisLike: function(index, dislike) {
+                if (loading) return;
+                loading = true;
+                eventService.setLikeStatus(index, dislike, r).then(function (){ $timeout(function () { loading = false }) });
+            },
+            deleteEvent: function (index){ eventService.del(index, r) },
+            showDisLikes: function (id) { usersModalService.setAndOpen(eventService.events(r, true)[id].id, 3) }
+        }
     })
 
     .filter('unsafe', function($sce) { return $sce.trustAsHtml; })
 
     .run(function($rootScope, $http) {
         $rootScope.sendreq = function(url, data) {
+            var method;
             if (data) method = 'POST'; else method = 'GET';
             return $http({
                 method: method,
@@ -64,13 +114,6 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
         }
     })
 
-    /*.config(function($routeProvider, $locationProvider) {
-        $routeProvider.when('?show=:ids', {
-            // ...
-        });
-        $locationProvider.html5mode = true;
-    })*/
-    
     .factory('usersModalService', function($uibModal) {
         var params = {};
         
@@ -83,8 +126,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                 if (type != 3) n = 'friends'; else n = 'likes';
                 $uibModal.open({
                     size: 'lg',
-                    templateUrl: '/static/modals/'+n+'.html',
-                    controller: 'UsersModalCtrl'
+                    templateUrl: '/static/main/modals/base.html',
+                    controller: 'UsersModalCtrl',
+                    resolve: { file: function () { return n } }
                 });
             }
         }
@@ -118,64 +162,103 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                     'query': {method: 'GET', isArray: true},
                     'save': {method: 'POST'},
                     'update': {method: 'PUT'},
-                    'delete': {method:'DELETE'}
+                    'delete': {method: 'DELETE'}
                 });
             }
         }
     })
 
-    .factory('eventService', function (multiService){
-        var events = [], id = null, s = multiService.init(2), likeService = multiService.init(3);
+    .factory('eventService', function ($q, multiService){
+        var events = [[],[]], id = null, s = multiService.init(2), likeService = multiService.init(3), u = false;
 
         return {
-            events: events,
-            load: function (page, b){
-                if (b !== undefined) id = b;
-                return s.get({id: id, page: page},
+            events: function (t, n) {
+                var e;
+                if (t) e = events[1]; else e = events[0];
+                if (n === undefined) e.length = 0;
+                return e;
+            },
+            load: function (page, b, rel_state){
+                var ids = null, d;
+                if (b !== undefined) if (angular.isArray(b)) {
+                    var p;
+                    ids = '';
+                    for (var i = 0; i < b.length; i++) {
+                        if (/^\d+$/.test(b[i])) {
+                            p = false;
+                            for (d in events[0]) if (events[0][d].id == b[i]) {
+                                events[1].push(events[0][d]);
+                                p = true;
+                                break;
+                            }
+                            if (!p) ids += ','+b[i];
+                        }
+                    }
+                    ids = ids.substr(1);
+                } else id = b;
+                d = {page: page, ids: ids};
+                if (ids == '') return $q.when(); else if (ids == null) d.id = id;
+                if (rel_state !== undefined) {
+                    u = rel_state == -1;
+                    d.user = 1;
+                }
+                return s.get(d,
                     function (result){
-                        events.push.apply(events, result.results);
+                        var e;
+                        if (ids === null) e = events[0]; else e = events[1];
+                        e.push.apply(e, result.results);
                     }).$promise
             },
             new: function(txt, when) {
                 return s.save({business: id, text: txt, when: when},
                     function (result){
-                        events.unshift(result);
+                        events[0].unshift(result);
                     }).$promise
             },
-            del: function (index) {
-                 return s.delete({id: events[index].id},
-                     function (){
-                         events.splice(index, 1);
-                     }).$promise
+            del: function (index, r) {
+                var e;
+                if (r) e = events[1]; else e = events[0];
+                return s.delete({id: e[index].id},
+                    function (){
+                        e.splice(index, 1);
+                    }).$promise
             },
-            setLikeStatus: function (index, dislike) {
-                var old_status = events[index].curruser_status, status, r;
+            setLikeStatus: function (index, dislike, r) {
+                var e;
+                if (r) e = events[1]; else e = events[0];
+                var old_status = e[index].curruser_status, status, s;
                 if (old_status == 1 && !dislike || old_status == 2 && dislike) {
-                    r = likeService.delete({id: events[index].id});
+                    s = likeService.delete({id: e[index].id});
+                    if (!r && u) e.splice(index, 1);
                     status = 0;
                 } else {
-                    var d = {event: events[index].id, is_dislike: dislike};
-                    if (old_status > 0) r = likeService.update(d); else r = likeService.save(d);
+                    var d = {event: e[index].id, is_dislike: dislike};
+                    if (old_status > 0) s = likeService.update(d); else s = likeService.save(d);
                     status = dislike ? 2 : 1;
                 }
-                return r.$promise.then(
+                return s.$promise.then(
                     function (){
                         if (status > 0) {
                             if (status == 1) {
-                                events[index].like_count++;
-                                if (old_status == 2) events[index].dislike_count--;
+                                e[index].like_count++;
+                                if (old_status == 2) e[index].dislike_count--;
                             } else {
-                                events[index].dislike_count++;
-                                if (old_status == 1) events[index].like_count--;
+                                e[index].dislike_count++;
+                                if (old_status == 1) e[index].like_count--;
                             }
-                        } else if (old_status == 1) events[index].like_count--; else if (old_status == 2) events[index].dislike_count--;
-                        events[index].curruser_status = status;
+                            if (!r && u) e[index].person_status = status;
+                        } else {
+                            if (!r && u) return;
+                            if (old_status == 1) e[index].like_count--; else if (old_status == 2) e[index].dislike_count--;
+                        }
+                        e[index].curruser_status = status;
                     });
             }
         }
     })
 
-    .controller('MainCtrl', function($scope, $uibModal, $aside, $timeout, $animate, usersModalService, eventService) {
+    .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, $animate, usersModalService, eventService, eventActionsService) { //, $interval
+        $rootScope.title = $window.document.title;
         var ochtml = angular.element("#offcanvas").html();
         $timeout(function() { angular.element("#offcanvas").remove() });
         $scope.showOffcanvas = function (){
@@ -186,14 +269,14 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                 windowClass: 'oc',
                 placement: 'right',
                 controller: function ($scope, $uibModal, $uibModalInstance) { /*, $css*/
-                    /*$css.add('/static/css/sett.css');*/
-                    $scope.showSettModal = function (id) {
-                        $scope.id = id;
+                    /*$css.add('/static/main/css/sett.css');*/
+                    $scope.showSettModal = function (index) {
+                        if (index === undefined) index = 0;
                         $uibModal.open({
                             size: 'lg',
-                            templateUrl: '/static/modals/settings.html',
-                            scope: $scope,
-                            controller: 'SettModalCtrl'
+                            templateUrl: '/static/main/modals/base.html',
+                            controller: 'SettModalCtrl',
+                            resolve: { index: function (){ return index; } }
                         });
                     };
                     $scope.cancel = function($event) {
@@ -213,22 +296,19 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
             if (me) id = null; else id = $scope.id;
             usersModalService.setAndOpen(id, t);
         };
-        $scope.showDisLikes = function (id) {
-            usersModalService.setAndOpen($scope.events[id].id, 3);
-        };
 
-        $scope.events = eventService.events;
-        $animate.enabled(false);
-        eventService.load(1, $scope.id).then(function () { $timeout(function () { $animate.enabled(true) }) });
-        var loading;
-        $scope.giveDisLike = function(index, dislike) {
-            if (loading) return;
-            loading = true;
-            eventService.setLikeStatus(index, dislike).then(function (){ $timeout(function () { loading = false }) });
-        };
-        $scope.deleteEvent = function (index){
-            eventService.del(index);
-        };
+        $scope.$watch('id', function() {
+            $scope.currTime = new Date();
+            $scope.p = $scope;
+            $scope.a = eventActionsService;
+            $scope.events = eventService.events();
+            $animate.enabled(false);
+            eventService.load(1, $scope.id, $scope.rel_state).then(
+                function () {
+                    //if ($scope.events.length > 0) $interval(function () { $scope.currTime = new Date() }, 1000);
+                    $timeout(function () { $animate.enabled(true); });
+                });
+        });
     })
 
     .factory('emailService', function($rootScope, $resource, multiService) {
@@ -260,7 +340,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                 return _sendreq('send', emails[selected].email);
             },
             primary: function() {
-                /*return*/ _sendreq('primary', emails[selected].email).then(function (){
+                return _sendreq('primary', emails[selected].email).then(function (){
                     var t = emails[0];
                     t.primary = false;
                     emails[selected].primary = true;
@@ -272,70 +352,70 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
 
     })
 
-    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, emailService) {
+    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, emailService) {
         $scope.cancel = function($event) {
             $uibModalInstance.dismiss('cancel');
             $event.stopPropagation();
         };
+        $scope.set_modal_loaded = function (){ $timeout(function() { $scope.modal_loaded = true }) };
+        $scope.title = "Settings";
+        $scope.file = 'settings';
+        $scope.obj = {active: index, pass: null, email: null, selected: 0};
 
         // Email
 
         //var load;
         $scope.sent = [];
-        $scope.$watch('id', function () {
-            if ($scope.id == 1 || $scope.emails !== undefined) return;
-            $scope.selected = 0;
+        $scope.$watch('obj.active', function () {
+            if ($scope.obj.active == 1 || $scope.emails !== undefined) return;
+            //$scope.obj.selected = 0;
             $scope.emails = emailService.emails;
             //if ($scope.emails.length == 0) {
                 //load = true;
             emailService.load().then(function (){ $timeout(function() { $scope.loaded = true; /*load = false*/ }) });
             //} else { $scope.loaded = true }
-            $scope.addEmail = function (email) {
-                if (!$scope.addemail.$valid) return;
-                for (var e in $scope.emails) if ($scope.emails[e].email == email) return;
-                emailService.add(email).then(function (){
-                    $scope.sent.push($scope.email);
-                    $scope.email = ''
-                });
-            };
-            $scope.removeEmail = function () {
-                emailService.remove().then(function (e) {
-                    for (var i = 0; i < $scope.sent.length; i++) {
-                        if ($scope.sent[i]==e) {
-                            $scope.sent.splice(i, 1);
-                            break
-                        }
-                    }
-                })
-            };
-            var loading;
-            $scope.resendConfirmationEmail = function () {
-                if (loading) return;
-                loading = true;
-                emailService.resend().then(function (){
-                    var t = $scope.emails[$scope.selected].email;
-                    for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) return;
-                    $scope.sent.push(t);
-                    $timeout(function() { loading = false });
-                });
-            };
-            $scope.makePrimaryEmail = function () {
-                if (loading) return;
-                loading = true;
-                emailService.primary().then(function (){
-                    /*$scope.selected = 0;
-                    $scope.EmailSelected();*/
-                    $timeout(function() { loading = false });
-                });
-            };
         });
         $scope.$watch('emails.length', function () {
-            //if (load) return;
-            $scope.selected = $scope.emails.length-1;
-            $scope.EmailSelected();
+            if ($scope.emails === undefined) return; //load
+            $scope.obj.selected = $scope.emails.length-1;
+            $scope.emailselected();
         });
-        $scope.EmailSelected = function () {
-            emailService.setCurrent($scope.selected);
+        $scope.addEmail = function () {
+            for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
+            emailService.add($scope.obj.email).then(function (){
+                $scope.sent.push($scope.obj.email);
+                $scope.obj.email = '';
+            });
+        };
+        $scope.removeEmail = function () {
+            emailService.remove().then(function (e) {
+                for (var i = 0; i < $scope.sent.length; i++) {
+                    if ($scope.sent[i]==e) {
+                        $scope.sent.splice(i, 1);
+                        break
+                    }
+                }
+            })
+        };
+        $scope.resendConfirmationEmail = function () {
+            var t = $scope.emails[$scope.obj.selected].email;
+            emailService.resend().then(function (){
+                for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) t = null;
+                if (t != null) $scope.sent.push(t);
+            });
+        };
+        var loading;
+        $scope.makePrimaryEmail = function () {
+            if (loading) return;
+            loading = true;
+            emailService.primary().then(function (){
+                /*$scope.obj.selected = 0;
+                $scope.emailselected();*/
+                $timeout(function() { loading = false });
+            });
+        };
+        $scope.emailselected = function () {
+            emailService.setCurrent($scope.obj.selected);
         };
 
         // Password
@@ -345,9 +425,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
             delete $scope.pass_err_txt;
         };
         $scope.changePassword = function () {
-            if (!$scope.changepw.$valid) return;
+            //if (!$scope.changepw.$valid) return;
             var pw_fields = angular.element('input[type="password"]');
-            if ($scope.pass[1] != $scope.pass[2]) {
+            if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
                 //if ($scope.pass_err != 4) {
                 $scope.pass_err_txt = "New password fields don't match.";
                 $scope.pass_err = 4;
@@ -355,7 +435,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                 //}
                 return;
             }
-            if ($scope.pass[0] == $scope.pass[1]) {
+            if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
                 /*var t = "Your new password matches the current password, enter a different one.";
                 if ($scope.pass_err_txt != t) {*/
                 $scope.pass_err_txt = "Your new password matches the current password, enter a different one."; //t
@@ -365,16 +445,18 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                 return;
             }
             $scope.dismissError();
-            $rootScope.sendreq('password/', 'oldpassword='+$scope.pass[0]+'&password1='+$scope.pass[1]+'&password2='+$scope.pass[2]).then(function (){
+            var i = 0;
+            $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
                 $scope.pass_err = 0;
-                for(var i=0; i<3; i++) $scope.pass[i] = '';
+                for (; i < 3; i++) $scope.obj.pass[i] = '';
             }, function (response){
-                if (response.data.form_errors !== undefined) {
+                if (response.data.hasOwnProperty('form_errors')) {
                     var err = 0;
+                    $scope.pass_err_txt = '';
                     for (var e in response.data.form_errors) {
                         //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
                         if (e == 'oldpassword') err += 1; else err += 2;
-                        for (var i = 0; i < response.data.form_errors[e].length; i++) {
+                        for (; i < response.data.form_errors[e].length; i++) {
                             if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
                             $scope.pass_err_txt += response.data.form_errors[e][i];
                         }
@@ -418,10 +500,12 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                     $scope.notifs.push.apply($scope.notifs, res);
                     if (page_num === undefined) {
                         for (var i = 0; i < res.length - 1; i++) ids += res[i].id+',';
-                        if (res.length == 1) ids += res[0].id+','; else ids += res[i].id;
+                        if (res.length == 1 && ids != '') ids += res[0].id+','; else ids += res[i].id;
                         if (!$scope.opened) {
                             u += i+1;
                             $scope.unread = true;
+                            if (u > 0) i = $rootScope.title.indexOf(' ')+1; else i = 1;
+                            $rootScope.title = '('+u+') '+$rootScope.title.substr(i);
                         } else markAllAsRead();
                     }
                     $scope.enableScroll();
@@ -439,6 +523,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
             if ($scope.opened && $scope.unread) {
                 markAllAsRead();
                 u = 0;
+                $rootScope.title = $rootScope.title.substr($rootScope.title.indexOf(' ')+1);
             }
             if (!$scope.opened) {
                 if ($scope.notifs.length > NOTIF_PAGE_SIZE) {
@@ -460,11 +545,18 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
         }
     })
 
-    .controller('UsersModalCtrl', function ($scope, $timeout, $uibModalInstance, $resource, usersModalService, multiService) {
+    .controller('UsersModalCtrl', function ($scope, $timeout, $resource, $uibModalInstance, file, usersModalService, multiService) {
         $scope.cancel = function($event) {
             $uibModalInstance.dismiss('cancel');
             $event.stopPropagation();
         };
+        $scope.set_modal_loaded = function (){
+            var unregister = $scope.$watch(function() { return angular.element('.loa-ok').length }, function() {
+                $scope.modal_loaded = true;
+                unregister();
+            });
+        };
+        $scope.file = file;
 
         var d = {id: usersModalService.params.id}, t = usersModalService.params.type, o;
         switch (t){
@@ -489,7 +581,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
         }
         $scope.elems = [];
         $scope.next_page = [null, null];
-        ($scope.load_page = function (t) {
+        $scope.load_page = function (t, l) {
             $scope.loaded = false;
             if (t !== undefined) d.is_dislike = t; else t = 0;
             d.page = $scope.next_page[t];
@@ -497,13 +589,17 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'ngResource', 'ngAside', 'y
                 function (result){
                     $scope.elems.push.apply($scope.elems, result.results);
                     var pg;
-                    if ($scope.next_page[t] === undefined) pg = 1; else pg = $scope.next_page[t]+1;
+                    if ($scope.next_page[t] == null) pg = 1; else pg = $scope.next_page[t]+1;
                     if (result.page_count == pg) delete $scope.next_page[t]; else $scope.next_page[t] = pg;
-                    $timeout(function() { $scope.loaded = true });
+                    if (l === undefined) $timeout(function() { $scope.loaded = true });
                 })
-        })();
+        };
+        if (t == 3) {
+            $scope.load_page(0, true);
+            $scope.load_page(1);
+        } else $scope.load_page();
 
         $scope.check = function (is_dislike) {
             return $scope.elems.some(function(el) { return el.is_dislike == is_dislike });
-        }
+        };
     });

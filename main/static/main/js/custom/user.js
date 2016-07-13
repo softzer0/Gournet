@@ -1,5 +1,6 @@
 app
     .controller('UserCtrl', function($scope, $timeout, multiService) {
+        $scope.p = $scope.$parent;
         $scope.name = angular.element('.lead.text-center.br2').text();
         var friendService = multiService.init(), loading;
         $scope.doFriendRequestAction = function () {

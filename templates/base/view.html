@@ -2,14 +2,14 @@
 {% load staticfiles %}
 
 {% block head %}{{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/view.css' %}">{% endblock %}
+    <link rel="stylesheet" href="{% static 'main/css/view.css' %}">{% endblock %}
 
 {% block container %}
         <div class="row" {% block rowatt %}{% endblock %}>
             <div class="col-md-3">
                 <div class="well bs-sidebar affix">
                     <p class="lead text-center br2">{% block name %}{% endblock %}</p>
-                    <img class="img-thumbnail margin-center prof" src="{% block img %}{% endblock %}">
+                    <img class="img-thumbnail margin-center prof" src="/images/{% block img %}{% endblock %}">
                     <ul class="br1 list-unstyled text-center ls" ng-cloak>
                         {% block other %}{% endblock %}
                     </ul>
@@ -18,12 +18,9 @@
             </div>
 
             <div class="col-md-9">
-                <ul class="nav nav-tabs" role="tablist">
-                    {% block tabs %}{% endblock %}
-                </ul>
-                <div class="tab-content">
+                <uib-tabset active="active" ng-cloak>
                     {% block content %}{% endblock %}
-                </div>
+                </uib-tabset>
             </div>
         </div>
 {% endblock %}

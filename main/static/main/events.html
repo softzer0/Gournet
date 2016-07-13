@@ -1,0 +1,16 @@
+<div class="angular-animate" ng-repeat="e in p.events" ng-cloak>
+    <div class="mb3" ng-if="first_name !== undefined">
+        <hr class="mpd" ng-if="!$first">
+        <span class="ac fp">{{ first_name }} <span ng-if="e.person_status != -1">gave {{ e.person_status == 1 ? 'like' : 'dislike' }} to</span><span ng-if="e.person_status == -1">posted</span>:</span>
+    </div>
+    <div class="well bs-component clearfix">
+        <a ng-if="first_name !== undefined || id === undefined" ng-href="/{{ e.business.shortname }}/">
+            <legend>{{ e.business.type_display }} "{{ e.business.name }}"</legend>
+            <div class="pb8 pull-left"><img class="bor media-object" ng-src="/images/{{ e.business.id }}/avatar/64/?business=1"></div>
+        </a>
+        <p ng-bind="e.text"></p>
+        <div class="op br">
+            <span ng-if="e.curruser_status > -1"><a href="#" ng-class="{'text-warning': e.curruser_status == 1}" ng-click="p.a.giveDisLike($index, false)"><i class="fa fa-plus-square"></i> {{ e.like_count }}</a></span><span ng-if="e.curruser_status == -1"><i class="fa fa-plus-square"></i> {{ e.like_count }}</span><span ng-if="e.like_count-e.dislike_count != 0"><a href="#" ng-click="p.a.showDisLikes($index)" class="badge label-primary">{{ e.like_count-e.dislike_count }}</a></span><span ng-if="e.like_count-e.dislike_count == 0" class="badge">0</span><span ng-if="e.curruser_status > -1"><a href="#" ng-class="{'text-warning': e.curruser_status == 2}" ng-click="p.a.giveDisLike($index, true)"><i class="fa fa-minus-square"></i> {{ e.dislike_count }}</a></span><span ng-if="e.curruser_status == -1"><i class="fa fa-minus-square"></i> {{ e.dislike_count }}</span><a href="#"><i class="fa fa-comment"></i> Komentari ({{ e.comment_count }})</a><a ng-if="e.when > (p.currTime | date)" href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a><a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a><span ng-if="e.curruser_status == -1"><a href="#" ng-dialog-message="Are you sure that you want to delete this event?" ng-dialog-click="p.a.deleteEvent($index)"><i class="fa fa-times"></i> Obriši</a></span>
+        </div>
+    </div>
+</div>

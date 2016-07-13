@@ -2,26 +2,30 @@
 {% load staticfiles %}
 
 {% block htmlatt %} ng-app="mainApp"{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'css/home.css' %}">
-    <link rel="stylesheet" href="{% static 'css/sett.css' %}">
-    <link rel="stylesheet" href="{% static 'css/angular-aside.min.css' %}">
+
+{% block titleatt %} ng-bind="title"{% endblock %}
+
+{% block head %}<link rel="stylesheet" href="{% static 'main/css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/sett.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/angular-aside.min.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-resource.min.js"></script>
-    {% comment %}<script src="https://code.angularjs.org/1.5.6/angular-route.min.js"></script>{% endcomment %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.3.1/angular-ui-router.min.js"></script>
+    <script src="{% static 'main/js/angular-ui-router-uib-modal.js' %}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
-    <script src="{% static 'js/angular-timeago.min.js' %}"></script>
-    <script src="{% static 'js/ng-FitText.js' %}"></script>
-    <script src="{% static 'js/angular-aside.min.js' %}"></script>
+    <script src="{% static 'main/js/angular-timeago.min.js' %}"></script>
+    <script src="{% static 'main/js/ng-FitText.js' %}"></script>
+    <script src="{% static 'main/js/angular-aside.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
-    <script src="{% static 'js/angular-css.min.js' %}"></script>{% endcomment %}
+    <script src="{% static 'main/js/angular-css.min.js' %}"></script>{% endcomment %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.2/ui-bootstrap-tpls.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <script src="{% static 'js/custom/home.js' %}"></script>{% endblock %}
+    <script src="{% static 'main/js/custom/home.js' %}"></script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
 {% block begin %}<div id="offcanvas" ng-non-bindable><div class="navmenu navmenu-default navmenu-fixed-right">{% with current='#" ng-click="cancel($event)' %}
-        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="{% static '/images/'|add:request.user.username|add:'/avatar/48/' %}"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
         <ul class="nav navmenu-nav">
             <li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>
             {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
@@ -47,7 +51,7 @@
             </li>
             {% comment %}<li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav">{% endcomment %}
-            <li><a href="#" ng-click="showSettModal(0)">Change password/email(s)</a></li>
+            <li><a href="#" ng-click="showSettModal()">Change password/email(s)</a></li>
             <li><a href="#" ng-click="showSettModal(1)">Internationalization</a></li>
             {% comment %}    </ul>
             </li>{% endcomment %}
@@ -62,7 +66,7 @@
                 </div>
             </form>
             <div ng-controller="NotificationCtrl" id="nct" class="navbar-header pull-right" style="width: 105px;">
-                <a id="notif" class="clickable" popover-placement="bottom-right" uib-popover-template="'{% static 'modals/notifications.html' %}'" popover-trigger="outsideClick" popover-is-open="opened"><i id="nf" class="fa" ng-class="unread ? 'fa-bell' : 'fa-bell-o'"></i></a>
+                <a id="notif" class="clickable" popover-placement="bottom-right" uib-popover-template="'{% static 'main/modals/notifications.html' %}'" popover-trigger="outsideClick" popover-is-open="opened"><i id="nf" class="fa" ng-class="unread ? 'fa-bell' : 'fa-bell-o'"></i></a>
                 <button type="button" class="navbar-toggle" ng-click="showOffcanvas()">
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>

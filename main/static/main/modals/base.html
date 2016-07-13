@@ -1,0 +1,9 @@
+<div class="modal-header">
+    <h3>{{ title }}</h3>
+    <button class="close" ng-click="cancel($event)">&times;</button>
+</div>
+
+<div class="modal-body">
+    <div ng-include="'/static/main/modals/'+file+'.html'" onload="set_modal_loaded()"></div>
+    <div class="loa loa-c" ng-if="modal_loaded != true"><i class="fa fa-spinner fa-2x"></i></div>
+</div>

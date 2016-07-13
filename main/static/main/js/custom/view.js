@@ -7,6 +7,7 @@ app
 
     .controller('BusinessCtrl', function($scope, $timeout, multiService) {
         //$scope.name = angular.element('.lead.text-center.br2').text();
+        $scope.p = $scope.$parent;
         var favouriteService = multiService.init(1), loading;
 
         $scope.doFavouriteAction = function () {
