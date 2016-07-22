@@ -72,3 +72,11 @@
 #eventform > .alert {
     margin-bottom: 10px;
 }
+
+.datetime-picker-dropdown {
+    min-width: 290px;
+}
+
+#rmn + .popover .datetime-picker-dropdown {
+    left: -60px !important;
+}

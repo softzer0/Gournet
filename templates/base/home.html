@@ -5,17 +5,22 @@
 
 {% block titleatt %} ng-bind="title"{% endblock %}
 
-{% block head %}<link rel="stylesheet" href="{% static 'main/css/home.css' %}">
+{% block head %}<link rel="stylesheet" href="{% static 'main/css/angular-aside.min.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/nya-bs-select.min.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/home.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/sett.css' %}">
-    <link rel="stylesheet" href="{% static 'main/css/angular-aside.min.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/dtpicker.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-resource.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.3.1/angular-ui-router.min.js"></script>
+    <script src="{% static 'main/js/nya-bs-select.min.js' %}"></script>
     <script src="{% static 'main/js/angular-ui-router-uib-modal.js' %}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
     <script src="{% static 'main/js/angular-timeago.min.js' %}"></script>
     <script src="{% static 'main/js/ng-FitText.js' %}"></script>
     <script src="{% static 'main/js/angular-aside.min.js' %}"></script>
+    <script src="{% static 'main/js/angular-datetime.js' %}"></script>
+    <script src="{% static 'main/js/datetime-picker.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'main/js/angular-css.min.js' %}"></script>{% endcomment %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.2/ui-bootstrap-tpls.min.js"></script>
@@ -24,7 +29,7 @@
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
-{% block begin %}<div id="offcanvas" ng-non-bindable><div class="navmenu navmenu-default navmenu-fixed-right">{% with current='#" ng-click="cancel($event)' %}
+{% block begin %}<div id="offcanvas" ng-non-bindable><div class="navmenu navmenu-default navmenu-fixed-right">{% with current='#" ng-click="close()' %}
         <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
         <ul class="nav navmenu-nav">
             <li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>

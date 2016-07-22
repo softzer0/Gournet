@@ -1,8 +1,10 @@
 #from django.contrib.auth import update_session_auth_hash
+from django.utils import timezone
+from datetime import timedelta
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from allauth.account.models import EmailAddress
-from .models import Relationship, Notification, Business, Event, Comment, Like
+from .models import Relationship, Notification, Business, Event, Comment, Like, Reminder
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -119,6 +121,11 @@ class BusinessesOfCurrentUserField(PrimaryKeyInObjectOutRelatedField):
             qs = qs.filter(manager=self.context['request'].user)
         return qs
 
+def chktime(attrs, td=timedelta()):
+    if attrs['when'] < timezone.now()+td:
+        attrs['when'] = timezone.now()+td
+    return attrs
+
 class EventSerializer(serializers.ModelSerializer):
     business = BusinessesOfCurrentUserField()
     like_count = serializers.SerializerMethodField()
@@ -131,17 +138,15 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
 
     def __init__(self, *args, **kwargs):
-        # Don't pass the 'fields' arg up to the superclass
         kwargs.pop('fields', None)
-
-        # Instantiate the superclass normally
         super().__init__(*args, **kwargs)
-
         if not 'person_business' in self.context:
             self.fields.pop('person_status')
         elif self.context['person_business'] == True:
             self.fields.pop('business')
 
+    def validate(self, attrs):
+        return chktime(attrs)
 
     def p_status(self, obj, t=None):
         if t:
@@ -192,6 +197,22 @@ class LikeSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=Like.objects.all(),
                 fields=('person', 'event'),
-                message="You already gave (dis)like."
+                message="You already gave (dis)like. Use PUT/PATCH."
             )
         ]
+
+class ReminderSerializer(serializers.ModelSerializer):
+    person = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Reminder
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Reminder.objects.all(),
+                fields=('person', 'event', 'when'),
+                message="You already set such reminder with the same date."
+            )
+        ]
+
+    def validate(self, attrs):
+        return chktime(attrs, timedelta(minutes=1))

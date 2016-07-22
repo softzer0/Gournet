@@ -1,7 +1,7 @@
 <div class="dt" ng-if="notifs.length">
     <div ng-repeat="e in notifs">
-        <div ng-if="$index > 0"><hr></div>
-        <a ng-class="{'text-info': e.unread}" href="/{{ e.link }}/"><p ng-bind-html="e.text | unsafe"></p>
+        <hr ng-if="!$first">
+        <a ng-class="{'text-info': e.unread}" href="{{ e.link }}"><p ng-bind-html="e.text | unsafe"></p>
         <p class="text-muted small text-left">{{ e.created | timeAgo }}</p></a>
     </div>
     <div ng-show="has_next_page">

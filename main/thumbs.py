@@ -10,7 +10,6 @@ import io
 from PIL import Image, ImageOps
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.contrib.staticfiles.storage import staticfiles_storage
 #from django_thumbs.settings import THUMBS_GENERATE_THUMBNAILS
 

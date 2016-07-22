@@ -1,0 +1,12 @@
+<center><ul class="nya-bs-select" ng-model="cmb.selected">
+    <li nya-bs-option="choice in cmb.choices"><a>{{ choice }}</a></li>
+</ul>
+<p class="mb4">before, or:</p>
+<div class="input-group" style="width: 175px;">
+    <input type="hidden" name="when" class="form-control" datetime-picker="dd.MM.yyyy HH:mm" datepicker-options="picker.options" ng-model="picker.date" is-open="picker.open" />
+    <input type="text" class="form-control" datetime="dd.MM.yyyy HH:mm" ng-model="picker.date" min="{{ picker.options.minDate.toUTCString() }}" max="{{ picker.options.maxDate.toUTCString() }}">
+    <span class="input-group-btn">
+        <button type="button" class="btn btn-default" ng-click="picker.open = true"><i class="fa fa-calendar"></i></button>
+    </span>
+</div>
+<button ng-if="!working" type="button" class="btn btn-primary" ng-click="setReminder($event)">Set</button><b ng-if="working">Working...</b></center>

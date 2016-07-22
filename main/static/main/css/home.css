@@ -59,9 +59,11 @@ legend {
 }
 .br {
     padding-top: 7px;
-    margin-bottom: -5px;
 }
-.op > a, .op > span {
+.pb18 {
+    padding-bottom: 18px;
+}
+.op > a, .op > span, .op > span > *:first-child:not(:only-child) {
     margin-right: 12px;
 }
 .badge.label-primary {
@@ -98,7 +100,7 @@ legend {
 @media (max-width: 480px) {
     .modal:not(.modal-confirm):not(.oc) .modal-dialog {
         width: 100%;
-        height: 100%;
+        /*height: 100%;*/
         padding: 0;
         margin: 0;
     }
@@ -297,7 +299,7 @@ body {
     left: auto;
     border: none;
 }
-.navmenu-nav { /*, .mpd*/
+.navmenu-nav, .mpd {
   margin-bottom: 10px;
 }
 .navmenu-nav.dropdown-menu {
@@ -393,4 +395,21 @@ body {
 
 .tab-content > .tab-pane.active-add {
 	opacity: 0;
+}
+
+.bc {
+    background-color: #eeeeee;
+}
+
+.ns {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#rmn + .popover ul {
+    margin-bottom: 3px;
 }

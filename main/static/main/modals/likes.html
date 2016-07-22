@@ -1,4 +1,4 @@
-<div class="container-fluid" ng-class="{'um': loaded}" ng-if="elems.length">
+<div class="loaded container-fluid" ng-class="{'um': loaded}" ng-if="elems.length">
     <div class="row fri">
         <uib-tabset active="active">
             <uib-tab index="0" heading="Liked by" ng-if="check(false)">
@@ -26,4 +26,4 @@
         </div>
     </div>
 </div>
-<div class="loa loa-ok loa-c" ng-if="!loaded"><i class="fa fa-spinner fa-2x"></i></div>
+<div class="loaded loa loa-c" ng-if="!loaded"><i class="fa fa-spinner fa-2x"></i></div>

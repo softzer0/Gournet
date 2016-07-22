@@ -7,22 +7,24 @@
     display: inline;
 }
 
-.modal-header .close {  font-size: 30px; margin-top: -5px;"
+.modal-header .close {
+    font-size: 30px;
+    margin-top: -5px;
 }
 
-.modal-body .form-control {
+.sett .form-control {
     width: 250px;
 }
 
-.modal-body p:not(.def), .loa {
+.sett p:not(.def), .loa, .mb4 {
     margin-bottom: 4px;
 }
 
-.modal-body .alert {
+.sett .alert {
     margin-top: 7px;
 }
 
-.modal-body .form-control, .bt3, .modal-body .alert {
+.sett .form-control, .bt3, .sett .alert, #rmn + .popover .input-group {
     margin-bottom: 7px;
 }
 .bt3 .btn {
@@ -66,4 +68,8 @@
     .nji > ul > li {
         float: none;
     }
+}
+
+#rmn + .popover ul {
+    width: initial !important;
 }

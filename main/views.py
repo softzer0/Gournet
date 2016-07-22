@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
-from .models import Relationship, Notification, Business, Like, Event, MIN_CHAR
+from .models import Relationship, Notification, Business, Like, Reminder, Event, EVENT_MIN_CHAR
 from .templatetags import rawinclude
 # from . import permissions
 # from . import forms
@@ -89,7 +89,7 @@ def show_business(request, shortname):
         data = {}
     else:
         fav_state = -1
-        data = {'minchar': MIN_CHAR}
+        data = {'minchar': EVENT_MIN_CHAR}
     data['business'] = business
     data['fav_state'] = fav_state
     return render(request, "view.html", data)
@@ -113,7 +113,7 @@ def show_profile(request, username):
 
 
 def return_avatar(request, username_id, size):
-    if get_param_bool(request.GET.get('business', None)):
+    if get_param_bool(request.GET.get('business', False)):
         t = 'business'
     else:
         t = 'user'
@@ -189,28 +189,27 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
     pagination_class = pagination.NotificationPagination
 
     def paginate_queryset(self, queryset):
-        if self.request.query_params.get('page', None):
+        if self.request.query_params.get('page', False):
             return super().paginate_queryset(queryset)
         return None
 
     def get_queryset(self):
-        if self.request.query_params.get('page', None):
+        if self.request.query_params.get('page', False):
             return self.request.user.notification_set.filter(unread=False).order_by('-created')
         else:
             rems = self.request.user.reminder_set.filter(when__lte=timezone.now())
             if rems.count() > 0:
                 pks = ''
                 if rems.count() > 1:
-                    for rem in rems[:-1]:
-                        pks = rem.event.pk+','
-                    text = "You have "+rems.count()+" reminders."
+                    for i in range(len(rems) - 1):
+                        pks = str(rems[i].event.pk)+','
+                    text = "You have "+str(rems.count())+" reminders."
                 else:
                     text = "You have one reminder."
-                self.request.user.notification_set.add(Notification(text=text, link='#/show='+pks+rems[-1].pk), bulk=False)
+                self.request.user.notification_set.add(Notification(text=text, link='#/show=%s%s' % (pks, rems.last().event.pk)), bulk=False)
                 rems._raw_delete(rems.db)
-            last = self.request.query_params.get('last', None)
-            if last:
-                return self.request.user.notification_set.filter(pk__gt=last, unread=True).order_by('-created')
+            if self.request.query_params.get('last', False):
+                return self.request.user.notification_set.filter(pk__gt=self.request.query_params.get('last'), unread=True).order_by('-created')
             return self.request.user.notification_set.filter(unread=True).order_by('-created')
 
 def notifs_set_all_read(request):
@@ -226,7 +225,7 @@ def notifs_set_all_read(request):
                     notif.unread = False
                     notif.save()
             status = 200
-            if get_param_bool(request.GET.get('notxt', None)):
+            if get_param_bool(request.GET.get('notxt', False)):
                 text = None
             else:
                 text = str(notifs.count())+" notifications have been marked as read."
@@ -237,13 +236,51 @@ def notifs_set_all_read(request):
     if text:
         res = JSONRenderer().render({'detail': text})
     else:
-        res = None
+        res = ''
+    return HttpResponse(res, status=status)
+
+def send_notifications(request, pk):
+    if request.user.is_authenticated():
+        try:
+            ids = [n for n in request.GET['to'].split(',') if n.isdigit()]
+        except:
+            status = 400
+            text = "Invalid parameter provided."
+        else:
+            try:
+                event = Event.objects.get(pk=pk)
+            except:
+                status = 400
+                text = "Event not found."
+            else:
+                persons = User.objects.filter(pk__in=ids)
+                cnt = 0
+                if persons.count() > 0:
+                    notif = Notification(text="<a href='/user/"+request.user.username+"/'><i>"+request.user.first_name+"</i></a> notifies you about the event posted by <strong>"+event.business.name+"</strong>.", link="#/show="+str(event.pk))
+                    for person in persons:
+                        if not person.notification_set.filter(unread=True, text=notif.text).exists():
+                            person.notification_set.add(notif, bulk=False)
+                            cnt += 1
+
+                status = 200
+                if get_param_bool(request.GET.get('notxt', False)):
+                    text = None
+                else:
+                    text = str(cnt)+" persons have been notified."
+    else:
+        status = 403
+        text = "Authentication credentials were not provided."
+
+    if text:
+        res = JSONRenderer().render({'detail': text})
+    else:
+        res = ''
     return HttpResponse(res, status=status)
 
 
 class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     def get_serializer_class(self):
-        if self.request.method == 'GET' and self.kwargs['pk'] and not get_param_bool(self.request.query_params.get('user', None)):
+        if self.request.method == 'GET' and self.kwargs['pk'] and not get_param_bool(self.request.query_params.get('user', False)):
             return serializers.UserSerializer
         self.kwargs['notype'] = None
         return serializers.BusinessSerializer
@@ -256,7 +293,7 @@ class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def get_queryset(self):
         pk = self.kwargs['pk']
-        is_user = get_param_bool(self.request.query_params.get('user', None))
+        is_user = get_param_bool(self.request.query_params.get('user', False))
         if is_user and pk and pk != self.request.user.pk:
             person = get_object(pk)
             businesses = Business.objects.filter(manager=self.request.user)
@@ -287,10 +324,10 @@ class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
     def get_queryset(self):
-        if self.request.query_params.get('ids', None):
+        if self.request.query_params.get('ids', False):
             qs = Event.objects.filter(pk__in=[n for n in self.request.query_params.get('ids').split(',') if n.isdigit()])
         else:
-            if get_param_bool(self.request.query_params.get('user', None)):
+            if get_param_bool(self.request.query_params.get('user', False)):
                 if self.kwargs['pk']:
                     person = get_object(self.kwargs['pk'], User)
                     #if person != self.request.user:
@@ -302,9 +339,9 @@ class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
                 if self.request.method == 'GET' and self.kwargs['pk']:
                     business = get_object(self.kwargs['pk'], Business)
                     qs = business.event_set
-                    self.kwargs['person_business'] = True
+                    #self.kwargs['person_business'] = True
                 else:
-                    qs = Event.objects.all()
+                    qs = Event.objects.all().order_by('-when', '-id') # change from all to filter current surrounding events
         return qs.order_by('-when', '-id')
 
     def get_serializer_context(self):
@@ -315,7 +352,6 @@ class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
 
 class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
-    queryset = Like.objects.all()
     serializer_class = serializers.LikeSerializer
 
     def __init__(self):
@@ -325,9 +361,24 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
     def get_queryset(self):
         event = get_object(self.kwargs['pk'], Event)
         qs = Like.objects.filter(event=event)
-        if self.request.query_params.get('is_dislike', None):
+        if self.request.query_params.get('is_dislike', False):
             qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
         return sort_related(qs, self.request.user, qs.filter(person__in=self.request.user.friends.all()))
 
     def get_object(self):
         return get_object_or_404(Like, event__pk=self.kwargs['pk'], person=self.request.user)
+
+
+class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = serializers.ReminderSerializer
+
+    def __init__(self):
+        super().__init__()
+        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
+
+    def get_queryset(self):
+        if self.kwargs['pk']:
+            person = get_object(self.kwargs['pk'], User)
+        else:
+            person = self.request.user
+        return Reminder.objects.filter(person=person)

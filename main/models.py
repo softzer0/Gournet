@@ -129,7 +129,7 @@ def relationship_save_notification(sender, instance, *args, **kwargs):
         if rel.notification.unread:
             rel.notification.unread = False
             rel.notification.save()
-    instance.notification = instance.to_person.notification_set.create(text=text+'.', link='user/'+instance.from_person.username)
+    instance.notification = instance.to_person.notification_set.create(text=text+'.', link='/user/'+instance.from_person.username+'/')
 
 @receiver(post_delete, sender=Relationship, dispatch_uid='relationship_delete_notification')
 def relationship_delete_notification(sender, instance, *args, **kwargs):
@@ -146,7 +146,7 @@ class Notification(models.Model):
 
 
 def not_forbidden(value):
-    if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images']:
+    if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static']:
         raise ValidationError('%s is not permitted as a shortname.' % value)
 
 BUSINESS_TYPE = ((0, 'Restaurant'), (1, 'Tavern'), (2, 'Cafe'), (3, 'Fast food'))
@@ -186,19 +186,22 @@ class Business(models.Model):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
 
-MIN_CHAR = 15
+EVENT_MIN_CHAR = 15
 
 class Event(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    text = models.TextField(validators=[MinLengthValidator(MIN_CHAR)])
+    text = models.TextField(validators=[MinLengthValidator(EVENT_MIN_CHAR)])
     when = models.DateTimeField(null=True, blank=True)
 
 class Reminder(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     #text = models.TextFeild(blank=True)
     #link = models.CharField(max_length=150, blank=True)
     when = models.DateTimeField()
+
+    class Meta:
+        unique_together = (('person', 'event', 'when'),)
 
 class Comment(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)

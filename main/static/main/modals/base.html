@@ -1,9 +1,13 @@
 <div class="modal-header">
     <h3>{{ title }}</h3>
-    <button class="close" ng-click="cancel($event)">&times;</button>
+    <button class="close" ng-click="close()">&times;</button>
 </div>
 
 <div class="modal-body">
     <div ng-include="'/static/main/modals/'+file+'.html'" onload="set_modal_loaded()"></div>
     <div class="loa loa-c" ng-if="modal_loaded != true"><i class="fa fa-spinner fa-2x"></i></div>
+</div>
+
+<div class="modal-footer" ng-if="event !== undefined">
+    <button ng-if="!working" class="btn btn-primary" ng-click="sendNotify()" ng-disabled="sel_cnt == 0">Notify ({{ sel_cnt }})</button><b ng-if="working">Working...</b>
 </div>

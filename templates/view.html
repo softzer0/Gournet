@@ -10,10 +10,7 @@
         .hrm {
             margin: 13px;
         }</style>{% endcomment %}{% load staticfiles %}<script src="{% static 'main/js/custom/view.js' %}"></script>
-    {% if fav_state == -1 %}<script src="{% static 'main/js/angular-datetime.js' %}"></script>
-    <script src="{% static 'main/js/datetime-picker.min.js' %}"></script>
-    <script src="{% static 'main/js/custom/manager.js' %}"></script>
-    {% endif %}<link rel="stylesheet" href="{% static 'main/css/dtpicker.css' %}">{% endblock %}
+    {% if fav_state == -1 %}<script src="{% static 'main/js/custom/manager.js' %}"></script>{% endif %}{% endblock %}
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ business.id }}"{% endblock %}
 
@@ -24,11 +21,11 @@
 {% block img %}{{ business.pk }}/avatar/?business=1{% endblock %}
 
 {% block other %}<li><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-o"></i> | 4.0</li>
-                        <li><span ng-if="favoured_count > 0"><a href="#" ng-click="showFavouritesModal(1)"><i class="fa fa-heart"></i> <b>{% verbatim %}{{ favoured_count }}{% endverbatim %}</b></a> {% verbatim %}{{ favoured_count > 1 ? 'osobe su favorizovale' : 'osoba je favorizovala' }}{% endverbatim %} ovo</span><span ng-if="favoured_count == 0"><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span></li>
-                        {% if fav_state > -1 %}<li><a href="#" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"><span ng-if="fav_state == 0"><i class="fa fa-plus-square"></i> {% verbatim %}{{ favoured_count > 0 ? 'I meni je omiljeno' : 'Meni je omiljeno' }}{% endverbatim %}</span><span ng-if="fav_state == 1"><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span></a></li>{% endif %}
-                        <li style="padding-bottom: 0;"><a href="#"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>
-                        <li>
-                            <hr style="margin: 13px;">
+                        <li><span ng-if="favoured_count > 0"><a href="#" ng-click="showFavouritesModal(1)"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ favoured_count }}{% endverbatim %}</strong></a> {% verbatim %}{{ favoured_count > 1 ? 'osobe su favorizovale' : 'osoba je favorizovala' }}{% endverbatim %} ovo</span><span ng-if="favoured_count == 0"><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span></li>
+                        {% if fav_state > -1 %}<li><a href="#" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"><span ng-if="fav_state == 0"><i class="fa fa-plus-square"></i> {% verbatim %}{{ favoured_count > 0 ? 'I meni je omiljeno' : 'Meni je omiljeno' }}{% endverbatim %}</span><span ng-if="fav_state == 1"><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span></a></li>
+                        {% comment %}<li><a href="#"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>{% endcomment %}
+                        {% endif %}<li>
+                            <hr style="margin: 8px 13px 13px;">
                             <ul class="list-unstyled">
                                 <li><b class="text-success">Trenutno otvoreno</b></li>
                                 <li><i class="fa fa-sign-in"></i> Radnim danima od 8h do 20h</li>
@@ -49,13 +46,13 @@
 {% block content %}<uib-tab index="0" heading="Events">
 {% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="EventCtrl">
 							<form name="eventform" ng-submit="submitEvent()" class="form-vertical">
-                                <uib-alert type="danger" close="dismissAlert()" ng-if="eventform_showalert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
+                                <uib-alert class="mpd" type="danger" close="dismissAlert()" ng-if="eventform_showalert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
                                 <div class="form-group" ng-class="{'has-error': eventform.$invalid}">
 								    <textarea name="text" class="form-control br2" rows="3" required></textarea>
                                 </div>
-                                <p class="input-group" style="max-width: 250px;">
+                                <p class="input-group" style="width: 250px;">
                                     <input type="hidden" name="when" class="form-control" datetime-picker="dd.MM.yyyy HH:mm" datepicker-options="picker.options" ng-model="picker.date" is-open="picker.open" />
-                                    <input type="text" class="form-control" datetime="dd.MM.yyyy HH:mm" ng-model="picker.date">
+                                    <input type="text" class="form-control" datetime="dd.MM.yyyy HH:mm" ng-model="picker.date" min="{% verbatim %}{{ picker.options.minDate.toUTCString() }}{% endverbatim %}">
                                     <span class="input-group-btn">
                                         <button type="button" class="btn btn-default" ng-click="picker.open = true"><i class="fa fa-calendar"></i></button>
                                     </span>
