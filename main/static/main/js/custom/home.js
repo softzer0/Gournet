@@ -1,3 +1,5 @@
+const COMM_PAGE_SIZE = 4;
+
 var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime']) /*, 'oc.lazyLoad', 'angularCSS'*/
     .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -45,17 +47,17 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         var loading, currTime;
 
         return {
-            setCurrTime: function(t) { currTime = t.toISOString() },
+            setCurrTime: function(t) { currTime = (new Date(t)).valueOf() },
             giveDisLike: function(index, dislike, r) {
                 if (loading) return;
                 loading = true;
                 function l(){ $timeout(function () { loading = false }) }
                 eventService.setLikeStatus(index, dislike, r).then(l, l);
             },
-            deleteEvent: function (index, r){ eventService.del(index, r) },
+            delete: function (index, r, par_ind, p){ eventService.del(index, r, par_ind, p) },
             showDisLikes: function (index, r) { usersModalService.setAndOpen(eventService.events(r, true)[index].id, 3) },
             notifySelect: function (index, r){ usersModalService.setAndOpen(null, 0, eventService.events(r, true)[index].id) },
-            compareDate: function (index, r) { return eventService.events(r, true)[index].when > currTime },
+            isFuture: function (index, r) { return (new Date(eventService.events(r, true)[index].when)).valueOf() > currTime },
             toggleHr: function (f, lr) { if (f) if (lr) return angular.element('.events_false .ng-leave').length; else return true; else return false }
         }
     })
@@ -76,95 +78,97 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             r.setSeconds(0, 0);
             return r;
         }
-        var event = {};
-        $scope.cmb = {choices: ["(Custom)"], opened: false};
+        var when, index;
+        $scope.cmb = {choices: ["(Custom)"]};
         $scope.picker = {options: {minDate: subTime($rootScope.currTime, 0, -1)}};
-        var md = $scope.picker.options.minDate.valueOf();
-        $scope.initRmn = function (index){
-            if (event !== undefined) if ($scope.events[index].id == event.id) return;
-            event.id = $scope.events[index].id;
-            event.when = new Date($scope.events[index].when);
-            $scope.picker.options.maxDate = event.when;
+        $scope.initRmn = function (ind){
+            if (index !== undefined) if ($scope.events[ind].id == $scope.events[index].id) return;
+            index = ind;
+            when = new Date($scope.events[index].when);
+            $scope.picker.options.maxDate = when;
             $scope.cmb.choices.length = 1;
-            if (subTime(event.when, 0, 15).valueOf() > md) $scope.cmb.choices.push("15 minutes");
-            if (subTime(event.when, 0, 30).valueOf() > md) $scope.cmb.choices.push("Half an hour");
+            var md = $scope.picker.options.minDate.valueOf();
+            if (subTime(when, 0, 15).valueOf() > md) $scope.cmb.choices.push("15 minutes");
+            if (subTime(when, 0, 30).valueOf() > md) $scope.cmb.choices.push("Half an hour");
             for (var i = 2; i >= 0; i--) if ($scope.cmb.choices.length >= i+1) {
-                $scope.cmb.selected = $scope.cmb.choices[i];
+                if ($scope.cmb.selected != $scope.cmb.choices[i]) $scope.cmb.selected = $scope.cmb.choices[i]; else checkSel();
                 break;
             }
-            if (subTime(event.when, 0, 45).valueOf() > md) $scope.cmb.choices.push("45 minutes");
-            if (subTime(event.when, 1, 0).valueOf() > md) $scope.cmb.choices.push("An hour");
-            if (subTime(event.when, 2, 0).valueOf() > md) $scope.cmb.choices.push("2 hours");
-            if (subTime(event.when, 3, 0).valueOf() > md) $scope.cmb.choices.push("3 hours");
-            if (subTime(event.when, 4, 0).valueOf() > md) $scope.cmb.choices.push("4 hours");
-            if (subTime(event.when, 5, 0).valueOf() > md) $scope.cmb.choices.push("5 hours");
-            if (subTime(event.when, 6, 0).valueOf() > md) $scope.cmb.choices.push("Half a day");
-            if (subTime(event.when, 24, 0).valueOf() > md) $scope.cmb.choices.push("A day");
-            if (subTime(event.when, 48, 0).valueOf() > md) $scope.cmb.choices.push("2 days");
-            if (subTime(event.when, 72, 0).valueOf() > md) $scope.cmb.choices.push("3 days");
-            if (subTime(event.when, 96, 0).valueOf() > md) $scope.cmb.choices.push("4 days");
-            if (subTime(event.when, 120, 0).valueOf() > md) $scope.cmb.choices.push("5 days");
-            if (subTime(event.when, 144, 0).valueOf() > md) $scope.cmb.choices.push("6 days");
-            if (subTime(event.when, 168, 0).valueOf() > md) $scope.cmb.choices.push("A week");
+            if (subTime(when, 0, 45).valueOf() > md) $scope.cmb.choices.push("45 minutes");
+            if (subTime(when, 1, 0).valueOf() > md) $scope.cmb.choices.push("An hour");
+            if (subTime(when, 2, 0).valueOf() > md) $scope.cmb.choices.push("2 hours");
+            if (subTime(when, 3, 0).valueOf() > md) $scope.cmb.choices.push("3 hours");
+            if (subTime(when, 4, 0).valueOf() > md) $scope.cmb.choices.push("4 hours");
+            if (subTime(when, 5, 0).valueOf() > md) $scope.cmb.choices.push("5 hours");
+            if (subTime(when, 6, 0).valueOf() > md) $scope.cmb.choices.push("Half a day");
+            if (subTime(when, 24, 0).valueOf() > md) $scope.cmb.choices.push("A day");
+            if (subTime(when, 48, 0).valueOf() > md) $scope.cmb.choices.push("2 days");
+            if (subTime(when, 72, 0).valueOf() > md) $scope.cmb.choices.push("3 days");
+            if (subTime(when, 96, 0).valueOf() > md) $scope.cmb.choices.push("4 days");
+            if (subTime(when, 120, 0).valueOf() > md) $scope.cmb.choices.push("5 days");
+            if (subTime(when, 144, 0).valueOf() > md) $scope.cmb.choices.push("6 days");
+            if (subTime(when, 168, 0).valueOf() > md) $scope.cmb.choices.push("A week");
         };
 
+        $scope.$watch('cmb.selected', function() { if ($scope.cmb.selected !== undefined) checkSel() });
+
         var sel;
-        $scope.$watch('cmb.selected', function() {
-            if ($scope.cmb.selected === undefined) return;
+        function checkSel() {
             sel = true;
             switch($scope.cmb.selected) {
                 case $scope.cmb.choices[0]:
                     if ($scope.picker.date === undefined) $scope.picker.date = $scope.picker.options.minDate; else sel = false;
                     break;
                 case $scope.cmb.choices[1]:
-                    $scope.picker.date = subTime(event.when, 0, 15);
+                    $scope.picker.date = subTime(when, 0, 15);
                     break;
                 case $scope.cmb.choices[2]:
-                    $scope.picker.date = subTime(event.when, 0, 30);
+                    $scope.picker.date = subTime(when, 0, 30);
                     break;
                 case $scope.cmb.choices[3]:
-                    $scope.picker.date = subTime(event.when, 0, 45);
+                    $scope.picker.date = subTime(when, 0, 45);
                     break;
                 case $scope.cmb.choices[4]:
-                    $scope.picker.date = subTime(event.when, 1, 0);
+                    $scope.picker.date = subTime(when, 1, 0);
                     break;
                 case $scope.cmb.choices[5]:
-                    $scope.picker.date = subTime(event.when, 2, 0);
+                    $scope.picker.date = subTime(when, 2, 0);
                     break;
                 case $scope.cmb.choices[6]:
-                    $scope.picker.date = subTime(event.when, 3, 0);
+                    $scope.picker.date = subTime(when, 3, 0);
                     break;
                 case $scope.cmb.choices[7]:
-                    $scope.picker.date = subTime(event.when, 4, 0);
+                    $scope.picker.date = subTime(when, 4, 0);
                     break;
                 case $scope.cmb.choices[8]:
-                    $scope.picker.date = subTime(event.when, 5, 0);
+                    $scope.picker.date = subTime(when, 5, 0);
                     break;
                 case $scope.cmb.choices[9]:
-                    $scope.picker.date = subTime(event.when, 6, 0);
+                    $scope.picker.date = subTime(when, 6, 0);
                     break;
                 case $scope.cmb.choices[10]:
-                    $scope.picker.date = subTime(event.when, 24, 0);
+                    $scope.picker.date = subTime(when, 24, 0);
                     break;
                 case $scope.cmb.choices[11]:
-                    $scope.picker.date = subTime(event.when, 48, 0);
+                    $scope.picker.date = subTime(when, 48, 0);
                     break;
                 case $scope.cmb.choices[12]:
-                    $scope.picker.date = subTime(event.when, 72, 0);
+                    $scope.picker.date = subTime(when, 72, 0);
                     break;
                 case $scope.cmb.choices[13]:
-                    $scope.picker.date = subTime(event.when, 96, 0);
+                    $scope.picker.date = subTime(when, 96, 0);
                     break;
                 case $scope.cmb.choices[14]:
-                    $scope.picker.date = subTime(event.when, 120, 0);
+                    $scope.picker.date = subTime(when, 120, 0);
                     break;
                 case $scope.cmb.choices[15]:
-                    $scope.picker.date = subTime(event.when, 144, 0);
+                    $scope.picker.date = subTime(when, 144, 0);
                     break;
                 case $scope.cmb.choices[16]:
-                    $scope.picker.date = subTime(event.when, 168, 0);
+                    $scope.picker.date = subTime(when, 168, 0);
             }
-        });
+        }
+
         $scope.$watch('picker.date', function() {
             if ($scope.picker.date === undefined) return;
             if (sel) {
@@ -172,9 +176,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 return;
             }
             $scope.picker.date.setSeconds(0, 0);
-            var i = 0, j;
+            var i = 0, j, d = $scope.picker.date.valueOf();
             function chk(h, m) {
-                if ($scope.cmb.choices.length >= i++) if (md == subTime(event.when, h, m).valueOf()) j = i; else if ($scope.cmb.choices.length != i) return; else j = 0; else j = 0;
+                if ($scope.cmb.choices.length >= i++) if (d == subTime(when, h, m).valueOf()) j = i; else if ($scope.cmb.choices.length != i) return; else j = 0; else j = 0;
                 $scope.cmb.selected = $scope.cmb.choices[j];
                 return true;
             }
@@ -196,6 +200,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             chk(168, 0);
         });
 
+        var reminderService = multiService.init(6);
         $scope.setReminder = function ($event){
             $event.stopPropagation();
             $scope.working = true;
@@ -203,12 +208,42 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             var curr = subTime($rootScope.currTime, 0, -1);
             if ($scope.picker.date === undefined || $scope.picker.date < curr) $scope.picker.date = curr;
             $scope.picker.options.minDate = curr;
-            multiService.init(6).save({event: event.id, when: $scope.picker.date},
+            reminderService.save({event: $scope.events[index].id, when: $scope.picker.date},
                 function (){
-                    $scope.cmb.opened = false;
+                    $scope.cmb.opened[index] = false;
                     $timeout(function () { $scope.working = false });
                 },
                 function () { $scope.working = false });
+        };
+
+        $scope.showcomm = {'false': {}, 'true': {}};
+        $scope.showComments = function(index) {
+            if (!$scope.showcomm[$scope.r].hasOwnProperty(index)) {
+                $scope.showcomm[$scope.r][index] = [false, true, null];
+                load_comments(index);
+            } else $scope.showcomm[$scope.r][index][1] = !$scope.showcomm[$scope.r][index][1];
+        };
+
+        $scope.show_next_page = function (index){
+            if (!$scope.events[index].hasOwnProperty('comments')) return false;
+            if ($scope.showcomm[$scope.r][index][0]) {
+                if ($scope.events[index].hasOwnProperty('user_comments')) if ($scope.events[index].comment_count == $scope.events[index].comments.length + $scope.events[index].user_comments.length) return false;
+                return $scope.events[index].comment_count > $scope.events[index].comments.length;
+            } else return false;
+        };
+
+        $scope.load_page = function (index){
+            $scope.showcomm[$scope.r][index][0] = false;
+            load_comments(index);
+        };
+
+        function load_comments(index){
+            function l() { $timeout(function (){ $scope.showcomm[$scope.r][index][0] = true }) }
+            eventService.loadComments(index, $scope.events[index].comments !== undefined ? Math.floor($scope.events[index].comments.length / COMM_PAGE_SIZE) + 1 : 1, $scope.r).then(l, l);
+        }
+
+        $scope.submitComment = function (index, r) {
+            eventService.submitComment(index, $scope.showcomm[$scope.r][index][2], $scope.r).then(function () { $scope.showcomm[$scope.r][index][2] = null })
         }
     })
 
@@ -216,10 +251,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
     .run(function($rootScope, $http) {
         $rootScope.sendreq = function(url, data) {
-            var m;
-            if (data !== undefined) m = 'POST'; else m = 'GET';
             return $http({
-                method: m,
+                method: data !== undefined ? 'POST' : 'GET',
                 url: '/'+url,
                 data: data,
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -234,8 +267,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     windowTopClass: 'modal-confirm',
                     template: '<div class="modal-body">' + message + '</div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(!OkCancel ? 'Yes' : 'OK')+'</button>'+(!OkOnly ? '<button class="btn btn-warning" ng-click="cancel()">'+(!OkCancel ? 'No' : 'Cancel')+'</button></div>':''),
                     controller: function($scope, $uibModalInstance) {
-                        $scope.ok = function() { $uibModalInstance.close(); };
-                        $scope.cancel = function() { $uibModalInstance.dismiss('cancel'); };
+                        $scope.ok = function() { $uibModalInstance.close() };
+                        $scope.cancel = function() { $uibModalInstance.dismiss('cancel') };
                     }
                 }).result;
             }
@@ -306,9 +339,12 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     case 6:
                         n = 'reminders';
                         break;
+                    case 7:
+                        n = 'comments';
+                        break;
                     default: n = 'friends'
                 }
-                return $resource('/api/'+n+'/:id/?format=json', {id: '@e'},
+                return $resource('/api/'+n+'/:id/?format=json', {id: "@event"},
                 {
                     'get': {method: 'GET'},
                     'query': {method: 'GET', isArray: true},
@@ -321,7 +357,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     })
 
     .factory('eventService', function ($q, multiService){
-        var events = [[],[]], id = null, s = multiService.init(2), likeService = multiService.init(3), u = false, remids = [];
+        var events = [[],[]], id = null, s = multiService.init(2), likeService = multiService.init(3), commentService = multiService.init(7), u = false, remids = [];
 
         function dynamicSort(property) {
             var sortOrder;
@@ -352,7 +388,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             }
         }
 
-        function remove(e, index, r, n) {
+        function remove(e, index, r) {
             if (r) for (var i = 0; i < events[0].length; i++) if (events[0][i].id == e[index].id) {
                 events[0].splice(i, 1);
                 break;
@@ -363,7 +399,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         return {
             events: function (t, n) {
                 var e;
-                if (t) e = events[1]; else e = events[0];
+                e = t ? events[1] : events[0];
                 if (n === undefined) e.length = 0;
                 return e;
             },
@@ -376,7 +412,10 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         //if (/^\d+$/.test(b[i])) {
                         p = false;
                         for (d in events[0]) if (events[0][d].id == b[i]) {
-                            events[1].push(events[0][d]);
+                            var ev = jQuery.extend(true, {}, events[0][d]);
+                            delete ev.comments;
+                            delete ev.user_comments;
+                            events[1].push(ev);
                             p = true;
                             break;
                         }
@@ -394,28 +433,32 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 return s.get(d,
                     function (result){
                         var e;
-                        if (ids === null) e = events[0]; else e = events[1];
+                        e = ids == null ? events[0] : events[1];
                         e.push.apply(e, result.results);
                     }).$promise
             },
             new: function(txt, when) {
                 return s.save({business: id, text: txt, when: when}, function (result){ events[0].unshift(result) }).$promise
             },
-            del: function (index, r) {
-                var e, id;
-                if (r) e = events[1]; else e = events[0];
-                return s.delete({id: e[index].id}, function (){ remove(e, index, r) }).$promise
+            del: function (index, r, par_ind, p) {
+                var e;
+                e = r ? events[1] : events[0];
+                p = p ? e[par_ind].comments : e[par_ind].user_comments;
+                if (par_ind !== undefined) return commentService.delete({id: p[index].id}, function (){
+                    p.splice(index, 1);
+                    e[par_ind].comment_count--;
+                }).$promise; else return s.delete({id: e[index].id}, function (){ remove(e, index, r) }).$promise
             },
             setLikeStatus: function (index, dislike, r) {
                 var e;
-                if (r) e = events[1]; else e = events[0];
+                e = r ? events[1] : events[0];
                 var old_status = e[index].curruser_status, status, s;
                 if (old_status == 1 && !dislike || old_status == 2 && dislike) {
                     s = likeService.delete({id: e[index].id});
                     if (u) remove(e, index, r);
                     status = 0;
                 } else {
-                    var d = {e: e[index].id, is_dislike: dislike};
+                    var d = {event: e[index].id, is_dislike: dislike};
                     if (old_status > 0) s = likeService.update(d); else s = likeService.save(d);
                     status = dislike ? 2 : 1;
                 }
@@ -441,6 +484,28 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             events[0].sort(dynamicSortMultiple('-when', '-id'));
                         }
                     });
+            },
+            loadComments: function (index, pg, r){
+                var e;
+                e = r ? events[1] : events[0];
+                return commentService.get({id: e[index].id, page: pg},
+                    function (result){
+                        if (!e[index].hasOwnProperty('comments')) e[index].comments = [];
+                        result.results.splice(0, e[index].comments.length % COMM_PAGE_SIZE);
+                        e[index].comments.push.apply(e[index].comments, result.results);
+                        if (e[index].hasOwnProperty('user_comments')) for (var i = 0; i < result.results.length; i++) for (var j = 0; j < e[index].user_comments.length; j++) if (result.results[i].id == e[index].user_comments[j].id) e[index].user_comments.splice(j, 1);
+                        e[index].comment_count = result.comment_count;
+                    }).$promise;
+            },
+            submitComment: function (index, txt, r){
+                var e;
+                e = r ? events[1] : events[0];
+                return commentService.save({event: e[index].id, text: txt},
+                    function (result){
+                        if (!e[index].hasOwnProperty('user_comments')) e[index].user_comments = [];
+                        e[index].user_comments.push(result);
+                        e[index].comment_count++;
+                    }).$promise;
             }
         }
     })
@@ -665,7 +730,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     $scope.has_next_page = result.page_count > page_num;
                 } else res = result;
                 if (res.length) {
-                    if (page_num !== undefined) if (frse && $scope.notifs.length - u >= NOTIF_PAGE_SIZE) res.splice(0, ($scope.notifs.length - u) % NOTIF_PAGE_SIZE); else if (frse == false) {
+                    if (page_num !== undefined) if (frse && $scope.notifs.length - u > NOTIF_PAGE_SIZE) res.splice(0, ($scope.notifs.length - u) % NOTIF_PAGE_SIZE); else if (frse == false) {
                         res.splice(0, u);
                         frse = true;
                     }
@@ -789,6 +854,6 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             $scope.working = true;
             var to = '';
             for (var i = 0; i < $scope.elems.length; i++) if ($scope.elems[i].selected) to += ',' + $scope.elems[i].id;
-            $rootScope.sendreq('api/notify/'+$scope.event+'/?notxt=1&to='+to.substr(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
+            $rootScope.sendreq('api/events/'+$scope.event+'/notify/?notxt=1&to='+to.substr(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
         }
     });

@@ -24,7 +24,7 @@
     margin-top: 7px;
 }
 
-.sett .form-control, .bt3, .sett .alert, #rmn + .popover .input-group {
+.sett .form-control, .bt3, .sett .alert, .rmn + .popover .input-group {
     margin-bottom: 7px;
 }
 .bt3 .btn {
@@ -70,6 +70,6 @@
     }
 }
 
-#rmn + .popover ul {
+.rmn + .popover ul {
     width: initial !important;
 }

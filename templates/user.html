@@ -13,8 +13,8 @@
 {% block img %}{{ user.username }}/avatar/{% endblock %}
 
 {% block other %}<li><a href="https://maps.google.com/maps?q={{ user.get_location_display }}"><i class="fa fa-map-marker"></i> {{ user.get_location_display }}</a></li>
-                        <li><a href="#" ng-click="showFriendsModal()" ng-if="friends_count > 0"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ friends_count }}{% endverbatim %}</strong></a><i class="fa fa-users" ng-if="friends_count == 0"></i> <span ng-if="friends_count > 1">osobe su {% if rel_state > -1 %}mu{% else %}ti{% endif %} prijatelji</span><span ng-if="friends_count == 1">osoba {% if rel_state > -1 %}mu{% else %}ti{% endif %} je prijatelj</span><span ng-if="friends_count == 0">{% if rel_state > -1 %}Nema{% else %}Nemaš{% endif %} prijatelja</span></li>
-                        {% if rel_state > -1 %}<li><a href="#" ng-dialog-message="{% verbatim %}{{ rel_state_msg }}{% endverbatim %}" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-if="rel_state == 0">{% verbatim %}{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}{% endverbatim %}</span><span ng-if="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-if="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-if="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endif %}{% endblock %}
+                        <li><a href="javascript:" ng-click="showFriendsModal()" ng-if="friends_count > 0"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ friends_count }}{% endverbatim %}</strong></a><i class="fa fa-users" ng-if="friends_count == 0"></i> <span ng-if="friends_count > 1">osobe su {% if rel_state > -1 %}mu{% else %}ti{% endif %} prijatelji</span><span ng-if="friends_count == 1">osoba {% if rel_state > -1 %}mu{% else %}ti{% endif %} je prijatelj</span><span ng-if="friends_count == 0">{% if rel_state > -1 %}Nema{% else %}Nemaš{% endif %} prijatelja</span></li>
+                        {% if rel_state > -1 %}<li><a href="javascript:" ng-dialog-message="{% verbatim %}{{ rel_state_msg }}{% endverbatim %}" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-if="rel_state == 0">{% verbatim %}{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}{% endverbatim %}</span><span ng-if="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-if="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-if="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endif %}{% endblock %}
 
 {% block content %}<uib-tab index="0" heading="Events">
 						<div class="mn1">
@@ -29,9 +29,9 @@
 							<p>Jako pristojno osoblje, jela i roštilj su za desetku! Zato dajem svih 5 zvzedica :)</p>
 							<div class="br">
 								<span class="b"><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> | 5.0</span>
-								<a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
-								<a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
-								<a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+								<a href="javascript:" class="b"><i class="fa fa-plus-square"></i> 10</a>
+								<a href="javascript:" class="b"><i class="fa fa-minus-square"></i> 0</a>
+								<a href="javascript:" class="b"><i class="fa fa-comment"></i> Komentari</a>
 							</div>
 						</div>
                     </uib-tab>
@@ -42,11 +42,11 @@
 							<img class="bor media-object" src="http://static.panoramio.com/photos/original/32617386.jpg">
 							<p>U petak od 19h ekskluzivno vam predstavljamo novi specijalitet - Karađorđevu šniclu, po veoma povoljnoj ceni od 1000din!</p>
 							<div class="br">
-							<a href="#"><i class="fa fa-plus-square"></i> 10</a>
-							<a href="#"><i class="fa fa-minus-square"></i> 0</a>
-							<a href="#"><i class="fa fa-comment"></i> Komentari</a>
-							<a href="#"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
-							<a href="#"><i class="fa fa-users"></i> Obavesti prijatelje</a>
+							<a href="javascript:"><i class="fa fa-plus-square"></i> 10</a>
+							<a href="javascript:"><i class="fa fa-minus-square"></i> 0</a>
+							<a href="javascript:"><i class="fa fa-comment"></i> Komentari</a>
+							<a href="javascript:"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a>
+							<a href="javascript:"><i class="fa fa-users"></i> Obavesti prijatelje</a>
 							</div>
 						</div>
                     </uib-tab>{% endblock %}

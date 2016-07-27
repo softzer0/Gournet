@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import pagination
 from rest_framework.response import Response
-
+from .models import Comment
 
 class PageNumberPagination(pagination.PageNumberPagination):
     page_size = 25
@@ -24,3 +24,12 @@ class NotificationPagination(PageNumberPagination):
 
 class EventPagination(PageNumberPagination):
     page_size = settings.EVENTS_PAGE_SIZE
+
+class CommentPagination(PageNumberPagination):
+    page_size = settings.COMMENTS_PAGE_SIZE
+
+    def get_paginated_response(self, data):
+        return Response({
+            'comment_count': self.page.paginator.count,
+            'results': data
+        })

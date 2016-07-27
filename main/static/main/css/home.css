@@ -30,8 +30,6 @@ legend {
 .media-object {
     float: left;
     margin: -10px 15px -5px 0;
-    width: 64px; /* remove */
-    height: 64px; /* remove */
 }
 .imo {
     width: 48px;
@@ -58,7 +56,8 @@ legend {
     }
 }
 .br {
-    padding-top: 7px;
+    padding-top: 9px;
+    margin-bottom: -1px;
 }
 .pb18 {
     padding-bottom: 18px;
@@ -66,6 +65,36 @@ legend {
 .op > a, .op > span, .op > span > *:first-child:not(:only-child) {
     margin-right: 12px;
 }
+
+[class*=event] p {
+    word-wrap: break-word;
+}
+
+.cmn {
+    margin-top: 13px !important;
+}
+
+.mb13 {
+    margin-bottom: 13px !important;
+}
+
+.cmn .pull-left {
+    margin-top: 14px;
+    width: 45px;
+}
+
+.mb7 {
+    margin-bottom: 7px !important;
+}
+
+.ml5 {
+    margin-left: 5px;
+}
+
+.pb7 {
+    padding-bottom: 7px;
+}
+
 .badge.label-primary {
     background-color: #dd4814;
 }
@@ -193,8 +222,8 @@ body {
     margin: 10px 0;
 }
 
-#notif + .popover a:not(.text-info):not(.lm), .well.n {
-    color: inherit;
+#notif + .popover a:not(.text-info):not(.lm), .well.n, .cmn .prf {
+    color: initial;
 }
 
 .loa {
@@ -223,7 +252,7 @@ body {
 }
 
 .fa-spinner {
-    margin-bottom: 3px;
+    margin-bottom: 4px;
     -webkit-animation: spin 1s infinite linear;
     -moz-animation: spin 1s infinite linear;
     -o-animation: spin 1s infinite linear;
@@ -410,6 +439,39 @@ body {
     user-select: none;
 }
 
-#rmn + .popover ul {
-    margin-bottom: 3px;
+.rmn + .popover ul {
+    margin-bottom: 4px;
+}
+
+[class*=event] > .ng-enter {
+    top: -50px;
+}
+
+.cmn .ng-enter {
+    right: -50px;
+}
+
+[class*=event] .ng-enter {
+    /*-webkit-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    -moz-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    ms-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
+    -o-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;*/
+    transition: 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) all;
+    position: relative;
+    opacity: 0;
+}
+
+[class*=event] .ng-enter.ng-enter-active {
+    opacity: 1;
+    top: 0;
+    right: 0;
+}
+
+[class*=event] .ng-leave {
+  transition: 0.5s linear all;
+  opacity: 1;
+}
+
+[class*=event] .ng-leave.ng-leave-active {
+  opacity: 0;
 }

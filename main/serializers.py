@@ -146,7 +146,7 @@ class EventSerializer(serializers.ModelSerializer):
             self.fields.pop('business')
 
     def validate(self, attrs):
-        return chktime(attrs)
+        return chktime(attrs) #, timedelta(minutes=1)
 
     def p_status(self, obj, t=None):
         if t:
@@ -216,3 +216,18 @@ class ReminderSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         return chktime(attrs, timedelta(minutes=1))
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    person = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    is_curruser = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        extra_kwargs = {
+            'event': {'write_only': True},
+            'created': {'read_only': True}
+        }
+
+    def get_is_curruser(self, obj):
+        return obj.person == self.context['request'].user

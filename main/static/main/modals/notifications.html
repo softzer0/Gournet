@@ -6,28 +6,27 @@
     </div>
     <div ng-show="has_next_page">
         <hr>
-        <a ng-show="!loading" href="#" class="lm text-center" ng-click="getNotifs(true)">Load more</a>
+        <a ng-show="!loading" href="javascript:" class="lm text-center" ng-click="getNotifs(true)">Load more</a>
         <div class="loa loa-c" ng-if="loading"><i class="fa fa-spinner"></i></div>
     </div>
 </div>
 <div class="dt" ng-if="!notifs.length">You don't have any notifications yet.</div>
 
 <script>
-    angular.element(document).ready(function () {
-        var e = angular.element('#notif').next();
-        var func = setInterval(function () {
-            //console.log(angular.element(window).width() - (e.offset().left + e.outerWidth()));
-            if (e.offset().left == 0 || angular.element(window).width() - (e.offset().left + e.outerWidth()) == 66) {
-                clearInterval(func);
-                //console.log(angular.element(window).width()+' '+(e.width()+66));
-                if (angular.element(window).width() <= e.width() + 66) {
+    $(document).ready(function () {
+        var e = $('#notif').next();
+        var func = setTimeout(function () {
+            //console.log($(window).width() - (e.offset().left + e.outerWidth()));
+            if (e.offset().left == 0 || $(window).width() - (e.offset().left + e.outerWidth()) == 66) {
+                //console.log($(window).width()+' '+(e.width()+66));
+                if ($(window).width() <= e.width() + 66) {
                     e.addClass('notif');
-                    e.children('.arrow').css('left', angular.element("#nf").offset().left + 6);
+                    e.children('.arrow').css('left', $("#nf").offset().left + 6);
                     //e.children('.popover-content').css('white-space', 'normal');
-                    angular.element('#nct').scope().enableScroll(); // e = e.find('.popover-content');
-                    // angular.element('#nct').scope().$apply(); // if (e.height() < 18+e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden');
+                    $('#nct').scope().enableScroll(); // e = e.find('.popover-content');
+                    // $('#nct').scope().$apply(); // if (e.height() < 18+e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden');
                 }
-            }
-        }, 0);
+            } else setTimeout(func, 1000);
+        }, 1000);
     });
 </script>

@@ -34,30 +34,30 @@
         <ul class="nav navmenu-nav">
             <li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>
             {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
-            <li uib-dropdown><a href="#" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>Favourites <b class="caret"></b></a>
+            <li uib-dropdown><a href="javascript:" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>Favourites <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="favourites">
                     <li><a href="{% if request.path == "/favourites/" %}{{ current }}{% else %}/favourites{% endif %}">News feed</a></li>
-                    <li><a href="#" ng-click="showFavouritesModal(1, true)">Show list</a></li>
+                    <li><a href="javascript:" ng-click="showFavouritesModal(1, true)">Show list</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
-                    <li><a href="#">Kafana "Stara kuća"</a></li>
-                    <li><a href="#">Каfana "Stara Srbija"</a></li>
+                    <li><a href="javascript:">Kafana "Stara kuća"</a></li>
+                    <li><a href="javascript:">Каfana "Stara Srbija"</a></li>
                 </ul>
             </li>
-            <li uib-dropdown><a href="#" id="friends" class="dropdown-toggle" uib-dropdown-toggle>Friends <b class="caret"></b></a>
+            <li uib-dropdown><a href="javascript:" id="friends" class="dropdown-toggle" uib-dropdown-toggle>Friends <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="friends">
                     <li><a href="{% if request.path == "/friends/" %}{{ current }}{% else %}/friends{% endif %}">News feed</a></li>
-                    <li><a href="#" ng-click="showFriendsModal(true)">Show list</a></li>
+                    <li><a href="javascript:" ng-click="showFriendsModal(true)">Show list</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
-                    <li><a href="#">Miloš Simić</a></li>
-                    <li><a href="#">Милош Трајковић</a></li>
+                    <li><a href="javascript:">Miloš Simić</a></li>
+                    <li><a href="javascript:">Милош Трајковић</a></li>
                 </ul>
             </li>
-            {% comment %}<li><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
+            {% comment %}<li><a href="javascript:" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav">{% endcomment %}
-            <li><a href="#" ng-click="showSettModal()">Change password/email(s)</a></li>
-            <li><a href="#" ng-click="showSettModal(1)">Internationalization</a></li>
+            <li><a href="javascript:" ng-click="showSettModal()">Change password/email(s)</a></li>
+            <li><a href="javascript:" ng-click="showSettModal(1)">Internationalization</a></li>
             {% comment %}    </ul>
             </li>{% endcomment %}
             <li><a href="{% url 'account_logout' %}">Logout</a></li>

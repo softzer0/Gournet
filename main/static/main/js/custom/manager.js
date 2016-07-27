@@ -18,6 +18,7 @@ app
                 return;
             } else $scope.eventform_showalert = false;
             $rootScope.currTime = new Date();
+            $rootScope.currTime.setMinutes($rootScope.currTime.getMinutes()+1);
             if ($scope.picker.date === undefined || $scope.picker.date < $rootScope.currTime) $scope.picker.date = $rootScope.currTime;
             $scope.picker.options.minDate = $rootScope.currTime;
             eventService.new(el.val(), $scope.picker.date).then(function () { el.val('') });

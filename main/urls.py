@@ -38,10 +38,11 @@ urlpatterns = [
         name="account_reset_password_from_key_done"),
 
     # API
-    url(r'^api/notify/(?P<pk>\d+)/$', public(main_views.send_notifications)),
+    url(r'^api/comments/(?P<pk>\d+)/$', public(main_views.CommentAPIView.as_view())),
     url(r'^api/reminders/(?:(?P<pk>\d+)/)?$', public(main_views.ReminderAPIView.as_view())),
     url(r'^api/likes/(?P<pk>\d+)/$', public(main_views.LikeAPIView.as_view())),
     url(r'^api/events/(?:(?P<pk>\d+)/)?$', public(main_views.EventAPIView.as_view())),
+    url(r'^api/events/(?P<pk>\d+)/notify/$', public(main_views.send_notifications)),
     url(r'^api/favourites/(?:(?P<pk>\d+)/)?$', public(main_views.FavouritesAPIView.as_view())),
     url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', public(main_views.NotificationAPIView.as_view())),
     url(r'^api/notifications/read/$', public(main_views.notifs_set_all_read)),

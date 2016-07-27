@@ -21,9 +21,9 @@
 {% block img %}{{ business.pk }}/avatar/?business=1{% endblock %}
 
 {% block other %}<li><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-o"></i> | 4.0</li>
-                        <li><span ng-if="favoured_count > 0"><a href="#" ng-click="showFavouritesModal(1)"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ favoured_count }}{% endverbatim %}</strong></a> {% verbatim %}{{ favoured_count > 1 ? 'osobe su favorizovale' : 'osoba je favorizovala' }}{% endverbatim %} ovo</span><span ng-if="favoured_count == 0"><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span></li>
-                        {% if fav_state > -1 %}<li><a href="#" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"><span ng-if="fav_state == 0"><i class="fa fa-plus-square"></i> {% verbatim %}{{ favoured_count > 0 ? 'I meni je omiljeno' : 'Meni je omiljeno' }}{% endverbatim %}</span><span ng-if="fav_state == 1"><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span></a></li>
-                        {% comment %}<li><a href="#"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>{% endcomment %}
+                        <li><span ng-if="favoured_count > 0"><a href="javascript:" ng-click="showFavouritesModal(1)"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ favoured_count }}{% endverbatim %}</strong></a> {% verbatim %}{{ favoured_count > 1 ? 'osobe su favorizovale' : 'osoba je favorizovala' }}{% endverbatim %} ovo</span><span ng-if="favoured_count == 0"><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span></li>
+                        {% if fav_state > -1 %}<li><a href="javascript:" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"><span ng-if="fav_state == 0"><i class="fa fa-plus-square"></i> {% verbatim %}{{ favoured_count > 0 ? 'I meni je omiljeno' : 'Meni je omiljeno' }}{% endverbatim %}</span><span ng-if="fav_state == 1"><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span></a></li>
+                        {% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>{% endcomment %}
                         {% endif %}<li>
                             <hr style="margin: 8px 13px 13px;">
                             <ul class="list-unstyled">
@@ -142,9 +142,9 @@
 							<p>Jako pristojno osoblje, jela i roštilj su za desetku! Zato dajem svih 5 zvzedica :)</p>
 							<div class="br">
 								<span class="b"><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> | 5.0</span>
-								<a href="#" class="b"><i class="fa fa-plus-square"></i> 10</a>
-								<a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
-								<a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+								<a href="javascript:" class="b"><i class="fa fa-plus-square"></i> 10</a>
+								<a href="javascript:" class="b"><i class="fa fa-minus-square"></i> 0</a>
+								<a href="javascript:" class="b"><i class="fa fa-comment"></i> Komentari</a>
 							</div>
 						</div>
 
@@ -154,17 +154,17 @@
 							<p>Hrana dobra, samo jedna sitna zamerka... Ne vidim čačkalice na stolu.</p>
 							<div class="br">
 								<span class="b"><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-half-o"></i> <i class="fa fa-star-o"></i> | 3.5</span>
-								<a href="#" class="b"><i class="fa fa-plus-square"></i> 4</a>
-								<a href="#" class="b"><i class="fa fa-minus-square"></i> 5</a>
-								<a href="#" class="b"><i class="fa fa-comment"></i> Komentari</a>
+								<a href="javascript:" class="b"><i class="fa fa-plus-square"></i> 4</a>
+								<a href="javascript:" class="b"><i class="fa fa-minus-square"></i> 5</a>
+								<a href="javascript:" class="b"><i class="fa fa-comment"></i> Komentari</a>
 							</div>
 							<div class="well bs-component clearfix br an">
 								<ul class="list-unstyled ls rw">
 									<li><b class="text-uppercase text-success"> <i class="fa fa-check-square-o"></i> Started</b></li>
 									<li>Hvala Vam na sugestiji, poradićemo na tome. :)</li>
 									<li>
-										<a href="#" class="b"><i class="fa fa-plus-square"></i> 30</a>
-										<a href="#" class="b"><i class="fa fa-minus-square"></i> 0</a>
+										<a href="javascript:" class="b"><i class="fa fa-plus-square"></i> 30</a>
+										<a href="javascript:" class="b"><i class="fa fa-minus-square"></i> 0</a>
 									</li>
 								</ul>
 							</div>

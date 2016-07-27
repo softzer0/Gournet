@@ -12,7 +12,7 @@ from django.db.models import Case, When, Value, IntegerField
 from django.db.models import Q
 # from django.views.decorators.csrf import csrf_protect
 # from django.core.paginator import Paginator, InvalidPage
-from rest_framework.exceptions import NotFound, NotAuthenticated
+from rest_framework.exceptions import NotFound
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
 from allauth.account import views
@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
-from .models import Relationship, Notification, Business, Like, Reminder, Event, EVENT_MIN_CHAR
+from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Reminder, Event, EVENT_MIN_CHAR
 from .templatetags import rawinclude
 # from . import permissions
 # from . import forms
@@ -192,10 +192,13 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
         if self.request.query_params.get('page', False):
             return super().paginate_queryset(queryset)
         return None
+    
+    def add_event_notif(self, curr):
+        self.request.user.notification_set.add(Notification(text="<a href='/user/%s/'><i>%s %s</i></a> notifies you about %s." % (curr['person'].username, curr['person'].first_name, curr['person'].last_name, "one event" if curr['cnt'] == 1 else str(curr['cnt'])+" events"), link="#/show="+curr['pks'][1:]), bulk=False) #posted by %s (...) "the event" (...) curr['business'].name
 
     def get_queryset(self):
         if self.request.query_params.get('page', False):
-            return self.request.user.notification_set.filter(unread=False).order_by('-created')
+            return self.request.user.notification_set.filter(unread=False)
         else:
             rems = self.request.user.reminder_set.filter(when__lte=timezone.now())
             if rems.count() > 0:
@@ -208,9 +211,26 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                     text = "You have one reminder."
                 self.request.user.notification_set.add(Notification(text=text, link='#/show=%s%s' % (pks, rems.last().event.pk)), bulk=False)
                 rems._raw_delete(rems.db)
-            if self.request.query_params.get('last', False):
-                return self.request.user.notification_set.filter(pk__gt=self.request.query_params.get('last'), unread=True).order_by('-created')
-            return self.request.user.notification_set.filter(unread=True).order_by('-created')
+            event_notifies = EventNotification.objects.filter(to_person=self.request.user)
+            if event_notifies.count() > 0:
+                curr = {'person': False}
+                for notif in event_notifies:
+                    if curr['person'] != notif.from_person: #or curr['business'] is not notif.event.business
+                        if curr['person']:
+                            self.add_event_notif(curr)
+                        curr['person'] = notif.from_person
+                        #curr['business'] = notif.event.business
+                        curr['pks'] = ''
+                        curr['cnt'] = 0
+                    curr['pks'] += ','+str(notif.event.pk)
+                    curr['cnt'] += 1
+                self.add_event_notif(curr)
+                event_notifies._raw_delete(event_notifies.db)
+
+            last = self.request.query_params.get('last', False)
+            if last and last.isdigit():
+                return self.request.user.notification_set.filter(pk__gt=last, unread=True)
+            return self.request.user.notification_set.filter(unread=True)
 
 def notifs_set_all_read(request):
     if request.user.is_authenticated():
@@ -255,12 +275,10 @@ def send_notifications(request, pk):
             else:
                 persons = User.objects.filter(pk__in=ids)
                 cnt = 0
-                if persons.count() > 0:
-                    notif = Notification(text="<a href='/user/"+request.user.username+"/'><i>"+request.user.first_name+"</i></a> notifies you about the event posted by <strong>"+event.business.name+"</strong>.", link="#/show="+str(event.pk))
-                    for person in persons:
-                        if not person.notification_set.filter(unread=True, text=notif.text).exists():
-                            person.notification_set.add(notif, bulk=False)
-                            cnt += 1
+                for person in persons:
+                    if not EventNotification.objects.filter(from_person=request.user, to_person=person, event=event).exists():
+                        EventNotification.objects.create(from_person=request.user, to_person=person, event=event)
+                        cnt += 1
 
                 status = 200
                 if get_param_bool(request.GET.get('notxt', False)):
@@ -341,8 +359,8 @@ class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
                     qs = business.event_set
                     #self.kwargs['person_business'] = True
                 else:
-                    qs = Event.objects.all().order_by('-when', '-id') # change from all to filter current surrounding events
-        return qs.order_by('-when', '-id')
+                    qs = Event.objects.all() # change from all to filter current surrounding events
+        return qs.order_by('-when', '-pk')
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -382,3 +400,28 @@ class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         else:
             person = self.request.user
         return Reminder.objects.filter(person=person)
+
+
+class CommentAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = serializers.CommentSerializer
+    pagination_class = pagination.CommentPagination
+
+    def __init__(self):
+        super().__init__()
+        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
+
+    def get_queryset(self):
+        #if self.kwargs['pk']:
+        event = get_object(self.kwargs['pk'], Event)
+        qs = Comment.objects.filter(event=event)
+        self.paginator.count = qs.count()
+        #if self.request.query_params.get('exclude', False):
+        #    qs = qs.exclude(pk__in=[n for n in self.request.query_params.get('exclude').split(',') if n.isdigit()])
+        return qs
+        #else:
+        #    return Comment.objects.filter(person=self.request.user)
+
+    def delete(self, request, pk, format=None):
+        comment = get_object(pk, Comment)
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

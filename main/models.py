@@ -46,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     friends = models.ManyToManyField('self', blank=True, symmetrical=False, through='Relationship')
     favourites = models.ManyToManyField('Business', blank=True, related_name='favoured_by')
     likes_dislikes = models.ManyToManyField('Event', blank=True, through='Like')
-    #comments = models.ManyToManyField('Event', blank=True, through='Comment', related_name='commented_by')
+    #comments = models.ManyToManyField('Event', blank=True, symmetrical=False, through='Comment', related_name='commented_by')
 
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
     birthdate = models.DateField('birthdate')
@@ -144,6 +144,9 @@ class Notification(models.Model):
     unread = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created']
+
 
 def not_forbidden(value):
     if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static']:
@@ -203,10 +206,20 @@ class Reminder(models.Model):
     class Meta:
         unique_together = (('person', 'event', 'when'),)
 
+class EventNotification(models.Model):
+    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person")
+    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_to_person")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('from_person', 'to_person', 'event'),)
+        ordering = ['from_person', 'event', 'pk']
+
 class Comment(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     text = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
 
 class Like(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
