@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from .models import Event
+from .models import Event, Comment, Item
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -14,9 +14,11 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         # Write permissions are only allowed to the owner of the snippet
 
-        if isinstance(obj, Event):
+        if isinstance(obj, Event) or isinstance(obj, Item):
             user = obj.business.manager
         else:
             user = obj.person
 
+        if isinstance(obj, Comment) and user != request.user:
+            return obj.event.business.manager == request.user
         return user == request.user

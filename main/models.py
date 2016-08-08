@@ -1,5 +1,5 @@
 from django.db import models
-from django.core import validators
+from django.core.validators import RegexValidator, MinLengthValidator
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
@@ -9,10 +9,10 @@ from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
 from phonenumber_field.modelfields import PhoneNumberField
-from django.core.validators import MinLengthValidator
+from django.core.exceptions import FieldError
 import datetime
 
-CHOICE_GENDER = ((1, 'Male'), (2, 'Female'))
+CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
 SUPPORTED_PLACES = ((0, "Serbia, Vranje"),)
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -26,7 +26,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True,
         help_text='Maximum 30 characters. Letters, digits and ./-/_ only.',
         validators=[
-            validators.RegexValidator(
+            RegexValidator(
                 r'^[\w.-]+$',
                 ('Enter a valid username. This value may contain only '
                   'letters, numbers and ./-/_ characters.')
@@ -48,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     likes_dislikes = models.ManyToManyField('Event', blank=True, through='Like')
     #comments = models.ManyToManyField('Event', blank=True, symmetrical=False, through='Comment', related_name='commented_by')
 
-    gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=1)
+    gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=0)
     birthdate = models.DateField('birthdate')
     location = models.IntegerField(choices=SUPPORTED_PLACES)
 
@@ -97,25 +97,32 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    link = models.CharField(max_length=150)
+    unread = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
+
+
 class Relationship(models.Model):
     from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="from_person")
     to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="to_person")
-    notification = models.OneToOneField('Notification', null=True, blank=True, on_delete=models.SET_NULL)
+    notification = models.OneToOneField(Notification, null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         unique_together = (('from_person', 'to_person'),)
-
-    """def save(self, *args, **kwargs):
-        if self.from_person == self.to_person:
-            return
-        else:
-            super().save(*args, **kwargs)"""
-
     def __str__(self):
         return '%s with %s' % (self.from_person.get_username(), self.to_person.get_username())
 
 @receiver(pre_save, sender=Relationship, dispatch_uid='relationship_save_notification')
 def relationship_save_notification(sender, instance, *args, **kwargs):
+    if instance.from_person == instance.to_person:
+        raise FieldError("You can't make a relationship with yourself.")
     if instance.notification:
         return
     #instance.full_clean()
@@ -137,22 +144,20 @@ def relationship_delete_notification(sender, instance, *args, **kwargs):
         instance.notification.delete()
 
 
-class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
-    link = models.CharField(max_length=150)
-    unread = models.BooleanField(default=True)
-    created = models.DateTimeField(auto_now_add=True)
+CURRENCY = (('RSD', 'Serbian dinars'), ('EUR', 'Euros'))
 
-    class Meta:
-        ordering = ['-created']
+class Currency(models.Model):
+    name = models.CharField(choices=CURRENCY, validators=[MinLengthValidator(3)], max_length=3)
+
+    def __str__(self):
+        return self.name
 
 
 def not_forbidden(value):
     if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static']:
-        raise ValidationError('%s is not permitted as a shortname.' % value)
+        raise ValidationError('"%s" is not permitted as a shortname.' % value)
 
-BUSINESS_TYPE = ((0, 'Restaurant'), (1, 'Tavern'), (2, 'Cafe'), (3, 'Fast food'))
+BUSINESS_TYPE = ((0, 'Restaurant'), (1, 'Tavern'), (2, 'Bistro'), (3, 'Cafe'), (4, 'Pub'), (5, 'Bar'), (6, 'Nightclub'), (7, 'Fast food'))
 
 class Business(models.Model):
     shortname = models.CharField(
@@ -161,7 +166,7 @@ class Business(models.Model):
         unique=True,
         help_text='Maximum 30 characters. Letters, digits and ./-/_ only.',
         validators=[
-            validators.RegexValidator(
+            RegexValidator(
                 r'^[\w.-]+$',
                 ('Enter a valid shortname. This value may contain only '
                   'letters, numbers and ./-/_ characters.')
@@ -172,7 +177,7 @@ class Business(models.Model):
             'unique': "A business with that shortname already exists.",
         },
     )
-    manager = models.ForeignKey(User, on_delete=models.CASCADE)
+    manager = models.OneToOneField(User, on_delete=models.CASCADE)
     type = models.IntegerField(choices=BUSINESS_TYPE)
     name = models.CharField(max_length=60)
     phone = PhoneNumberField(blank=True)
@@ -182,6 +187,8 @@ class Business(models.Model):
     closed = models.TimeField(default=datetime.time(0, 0))
     closed_sat = models.TimeField(null=True, blank=True)
     closed_sun = models.TimeField(null=True, blank=True)
+    currency = models.CharField(choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
+    supported_curr = models.ManyToManyField(Currency, blank=True)
     # geoloc = ...
     # ...
 
@@ -194,25 +201,30 @@ EVENT_MIN_CHAR = 15
 class Event(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     text = models.TextField(validators=[MinLengthValidator(EVENT_MIN_CHAR)])
-    when = models.DateTimeField(null=True, blank=True)
+    when = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.pk)
 
 class Reminder(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    #text = models.TextFeild(blank=True)
-    #link = models.CharField(max_length=150, blank=True)
     when = models.DateTimeField()
 
     class Meta:
         unique_together = (('person', 'event', 'when'),)
 
+    def __str__(self):
+        return str(self.pk)
+
 class EventNotification(models.Model):
     from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person")
     to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_to_person")
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    is_comment = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = (('from_person', 'to_person', 'event'),)
+        unique_together = (('from_person', 'to_person', 'event', 'is_comment'),)
         ordering = ['from_person', 'event', 'pk']
 
 class Comment(models.Model):
@@ -221,6 +233,11 @@ class Comment(models.Model):
     text = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
 
+@receiver(pre_save, sender=Comment, dispatch_uid='comment_save_notification')
+def comment_save_notification(sender, instance, *args, **kwargs):
+    if instance.person != instance.event.business.manager and not EventNotification.objects.filter(from_person=instance.person, event=instance.event, to_person=instance.event.business.manager, is_comment=True).exists():
+        EventNotification.objects.create(from_person=instance.person, event=instance.event, to_person=instance.event.business.manager, is_comment=True)
+
 class Like(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -228,6 +245,56 @@ class Like(models.Model):
 
     class Meta:
         unique_together = (('person', 'event'),)
+
+
+CATEGORY = (
+    ('Alcoholic beverages', (
+            ('cider', 'Ciders'),
+            ('whiskey', 'Whiskeys'),
+            ('wine', 'Wines'),
+            ('beer', 'Beers'),
+            ('vodka', 'Vodkas'),
+            ('brandy', 'Brandy'),
+            ('liqueur', 'Liqueurs'),
+            ('cocktail', 'Cocktails'),
+            ('tequila', 'Tequilas'),
+            ('gin', 'Gin'),
+            ('rum', 'Rum')
+        )
+     ),
+    ('Other drinks', (
+            ('coffee', 'Coffee'),
+            ('soft_drink', 'Soft drinks'),
+            ('juice', 'Juices'),
+            ('tea', 'Teas'),
+            ('hot_chocolate', 'Hot chocolate'),
+            ('water', 'Water')
+        )
+    ),
+    ('Food', (
+            ('fast_food', 'Fast food'),
+            ('meal', 'Meals'),
+            ('barbecue', 'Barbecue'),
+            ('seafood', 'Seafood'),
+            ('salad', 'Salads'),
+            ('dessert', 'Desserts')
+        )
+    )
+)
+ITEM_MIN_CHAR = 2
+
+class Item(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE)
+    category = models.CharField(choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=13)
+    name = models.CharField(validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
+    price = models.DecimalField(max_digits=7, decimal_places=2)
+
+    class Meta:
+        unique_together = (('business', 'name'),)
+        ordering = ['category', 'name', 'price']
+
+    def __str__(self):
+        return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
 
 
 """TESTING:

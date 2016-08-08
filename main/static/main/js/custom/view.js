@@ -1,13 +1,13 @@
 app
     /*.filter('newlines', function () {
         return function(text) {
-            return text.replace(/\n/g, '<br/>');
+            return text.replace(/\n/g, '<br>');
         }
     })*/
 
-    .controller('BusinessCtrl', function($scope, $timeout, multiService) {
+    .controller('BusinessCtrl', function($scope, $timeout, APIService, menuService) {
         //$scope.name = angular.element('.lead.text-center.br2').text();
-        var favouriteService = multiService.init(1), loading;
+        var favouriteService = APIService.init(1), loading;
 
         $scope.doFavouriteAction = function () {
             if (loading) return;
@@ -33,4 +33,12 @@ app
             if ($scope.rel_state == 0) $scope.rel_state_msg += 'set a favourite'; else $scope.rel_state_msg += 'remove from favourites';
             $scope.rel_state_msg += ' <strong>'+$scope.name+'</strong>?'
         })*/
+        $scope.active = 1;
+        $scope.$watch('active', function (){
+            if ($scope.active == 1 && $scope.menu === undefined) {
+                $scope.menu = menuService.menu;
+                menuService.load($scope.id).then(function (){ $scope.loaded = true; $scope.menu[0].content[2].show = true /*del*/ });
+            }
+        });
+        // ...
     });

@@ -18,7 +18,7 @@
     padding-bottom: 18px;
 }*/
 
-.pb8 {
+.pb8, .modal-body .nev {
     padding-bottom: 8px;
 }
 
@@ -44,7 +44,7 @@ legend {
     max-width: 128px;
     min-height: 80px;
 }
-.mb {
+.mb, .tab-content .nev {
     margin-top: 10px;
 }
 .im {
@@ -66,7 +66,7 @@ legend {
     margin-right: 12px;
 }
 
-[class*=event] p {
+[class*=events] p {
     word-wrap: break-word;
 }
 
@@ -93,6 +93,10 @@ legend {
 
 .pb7 {
     padding-bottom: 7px;
+}
+
+.lh {
+    line-height: 2.2;
 }
 
 .badge.label-primary {
@@ -223,6 +227,10 @@ body {
 }
 
 #notif + .popover a:not(.text-info):not(.lm), .well.n, .cmn .prf {
+    color: inherit;
+}
+
+.well.n, .cmn .prf {
     color: initial;
 }
 
@@ -251,8 +259,11 @@ body {
     margin: 0 auto;
 }
 
-.fa-spinner {
+.fa-spinner:not(.fa-2x) {
     margin-bottom: 4px;
+}
+
+.fa-spinner {
     -webkit-animation: spin 1s infinite linear;
     -moz-animation: spin 1s infinite linear;
     -o-animation: spin 1s infinite linear;
@@ -308,7 +319,7 @@ body {
     color: #e1e1e1;
 }
 
-.fri .tab-content {
+.fri .tab-content, .tab-pane > .events_false > div:first-of-type:not(.angular-animate):not(.nev) {
     margin-top: 20px;
 }
 
@@ -443,7 +454,7 @@ body {
     margin-bottom: 4px;
 }
 
-[class*=event] > .ng-enter {
+[class*=events] > .ng-enter {
     top: -50px;
 }
 
@@ -451,7 +462,7 @@ body {
     right: -50px;
 }
 
-[class*=event] .ng-enter {
+[class*=events] .ng-enter {
     /*-webkit-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
     -moz-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
     ms-transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
@@ -461,17 +472,17 @@ body {
     opacity: 0;
 }
 
-[class*=event] .ng-enter.ng-enter-active {
+[class*=events] .ng-enter.ng-enter-active {
     opacity: 1;
     top: 0;
     right: 0;
 }
 
-[class*=event] .ng-leave {
+[class*=events] .ng-leave {
   transition: 0.5s linear all;
   opacity: 1;
 }
 
-[class*=event] .ng-leave.ng-leave-active {
+[class*=events] .ng-leave.ng-leave-active {
   opacity: 0;
 }

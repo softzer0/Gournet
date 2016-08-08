@@ -60,5 +60,5 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     t = 'jpg'
                 elif t == 'gif':
                     t = 'png'
-                saveimgwiththumbs(username=user.username, imgname='avatar.'+t, content=ContentFile(response.content), sizes=((32,32),(48,48),(64,64)))
+                saveimgwiththumbs(type=0, username_id=user.username, imgname='avatar.'+t, content=ContentFile(response.content), sizes=((32,32),(48,48),(64,64)))
         return user

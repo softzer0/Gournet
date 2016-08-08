@@ -39,21 +39,19 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'rest_framework',
     'rest_framework.authtoken',
-#    'rest_framework_jwt',
-#    'django_thumbs',
-#    'messages_extends',
     'decorator_include',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
-#   'allauth.socialaccount.providers.linkedin_oauth2',
-#   'allauth.socialaccount.providers.paypal',
-#   'allauth.socialaccount.providers.twitter',
-#   'djng',
-#   'autoslug',
-#   'cities_light',
+#    'allauth.socialaccount.providers.linkedin_oauth2',
+#    'allauth.socialaccount.providers.paypal',
+#    'allauth.socialaccount.providers.twitter',
+#    'djng',
+#    'autoslug',
+#    'cities_light',
+#    'modeltranslation',
     'phonenumber_field',
     'bootstrap3',
     'stronghold',
@@ -62,10 +60,6 @@ INSTALLED_APPS = [
 ]
 
 SITE_ID = 1
-
-# JWT_AUTH = {
-#    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=14)
-# }
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
@@ -89,29 +83,21 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-       # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
 }
 
-"""MESSAGES_STORAGES = ('messages_extends.storages.StickyStorage',
-     'messages_extends.storages.PersistentStorage',
-     'messages_extends.storages.FallbackStorage',
-     'django.contrib.messages.storage.cookie.CookieStorage',
-     'django.contrib.messages.storage.session.SessionStorage')"""
-
-ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 ROOT_URLCONF = 'gournet.urls'
 AUTH_USER_MODEL = 'main.User'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/'
 
 ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_UNIQUE_EMAIL = True
+#ACCOUNT_UNIQUE_EMAIL = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-# EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
-# ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
+#EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+#ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_ADAPTER = "main.adapters.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "main.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = False
@@ -124,9 +110,9 @@ NOCAPTCHA = True
 
 # Begin custom
 
-EVENTS_PAGE_SIZE = 15
+EVENT_PAGE_SIZE = 15
 NOTIFICATION_PAGE_SIZE = 5
-COMMENTS_PAGE_SIZE = 4
+COMMENT_PAGE_SIZE = 4
 
 # End custom
 
@@ -149,9 +135,13 @@ ACCOUNT_FORMS = {'signup': 'main.allauth_forms.SignupForm'}
 
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = (
-    r'/admin/',
     r'/social/',
-   # r'/api-auth/',
+    r'/api/',
+    r'/password/reset/',
+    r'/email/confirm/',
+    r'/logout/',
+    #r'/static/',
+    #r'/admin/'
 )
 
 TEMPLATES = [
@@ -231,4 +221,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = ROOT_PATH+'/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')

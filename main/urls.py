@@ -21,33 +21,34 @@ urlpatterns = [
 
     # E-mail
     url(r"^email/$", main_views.EmailView.as_view(), name="account_email"),
-    url(r"^email/confirm/$", public(views.email_verification_sent),
+    url(r"^email/confirm/$", views.email_verification_sent,
         name="account_email_verification_sent"),
-    url(r"^email/confirm/(?P<key>[-:\w]+)/$", public(views.confirm_email),
+    url(r"^email/confirm/(?P<key>[-:\w]+)/$", views.confirm_email,
         name="account_confirm_email"),
 
     # password reset
-    url(r"^password/reset/$", public(views.password_reset),
+    url(r"^password/reset/$", views.password_reset,
         name="account_reset_password"),
-    url(r"^password/reset/done/$", public(views.password_reset_done),
+    url(r"^password/reset/done/$", views.password_reset_done,
         name="account_reset_password_done"),
     url(r"^password/reset/key/(?P<uidb36>[0-9A-Za-z]+)-(?P<key>.+)/$",
-        public(views.password_reset_from_key),
+        views.password_reset_from_key,
         name="account_reset_password_from_key"),
-    url(r"^password/reset/key/done/$", public(views.password_reset_from_key_done),
+    url(r"^password/reset/key/done/$", views.password_reset_from_key_done,
         name="account_reset_password_from_key_done"),
 
     # API
-    url(r'^api/comments/(?P<pk>\d+)/$', public(main_views.CommentAPIView.as_view())),
-    url(r'^api/reminders/(?:(?P<pk>\d+)/)?$', public(main_views.ReminderAPIView.as_view())),
-    url(r'^api/likes/(?P<pk>\d+)/$', public(main_views.LikeAPIView.as_view())),
-    url(r'^api/events/(?:(?P<pk>\d+)/)?$', public(main_views.EventAPIView.as_view())),
-    url(r'^api/events/(?P<pk>\d+)/notify/$', public(main_views.send_notifications)),
-    url(r'^api/favourites/(?:(?P<pk>\d+)/)?$', public(main_views.FavouritesAPIView.as_view())),
-    url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', public(main_views.NotificationAPIView.as_view())),
-    url(r'^api/notifications/read/$', public(main_views.notifs_set_all_read)),
-    url(r'^api/friends/(?:(?P<pk>\d+)/)?$', public(main_views.FriendsAPIView.as_view())),
-    url(r'^api/email/$', public(main_views.EmailAPIView.as_view())),
+    url(r'^api/items/(?:(?P<pk>\d+)/)?$', main_views.ItemAPIView.as_view()),
+    url(r'^api/comments/(?:(?P<pk>\d+)/)?$', main_views.CommentAPIView.as_view()),
+    url(r'^api/reminders/(?:(?P<pk>\d+)/)?$', main_views.ReminderAPIView.as_view()),
+    url(r'^api/likes/(?:(?P<pk>\d+)/)?$', main_views.LikeAPIView.as_view()),
+    url(r'^api/events/(?:(?P<pk>\d+)/)?$', main_views.EventAPIView.as_view()),
+    url(r'^api/events/(?P<pk>\d+)/notify/$', main_views.send_notifications),
+    url(r'^api/favourites/(?:(?P<pk>\d+)/)?$', main_views.FavouritesAPIView.as_view()),
+    url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', main_views.NotificationAPIView.as_view()),
+    url(r'^api/notifications/read/$', main_views.notifs_set_all_read),
+    url(r'^api/friends/(?:(?P<pk>\d+)/)?$', main_views.FriendsAPIView.as_view()),
+    url(r'^api/email/$', main_views.EmailAPIView.as_view()),
     #url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
 
     # Custom
@@ -61,6 +62,6 @@ urlpatterns += [url('^social/', decorator_include(login_forbidden, 'main.sociala
 
 
 """from django.conf import settings
+from django.views.static import serve
 if settings.DEBUG:
-    from django.conf.urls.static import static
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)"""
+    urlpatterns += [url(r'^'+settings.MEDIA_URL[1:]+'(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT, 'show_indexes': True})]"""

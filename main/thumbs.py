@@ -8,15 +8,16 @@ A fork of django-thumbs [http://code.google.com/p/django-thumbs/] by Antonio Mel
 """
 import io
 from PIL import Image, ImageOps
-from django.conf import settings
 from django.core.files.base import ContentFile
-from django.contrib.staticfiles.storage import staticfiles_storage
+from django.conf import settings
+import os
 #from django_thumbs.settings import THUMBS_GENERATE_THUMBNAILS
 
 THUMB_SUFFIX = '%s.%sx%s.%s'
 
-def generate_path(username, filename):
-    return 'main/images/user/%s/%s' % (username, filename)
+
+def gen_path(type, username_id):
+    return settings.MEDIA_ROOT+'images/'+type+'/'+username_id+'/'
 
 
 def save_img(original, preserve_ratio, image_format='JPEG', size=None):
@@ -47,7 +48,20 @@ def save_img(original, preserve_ratio, image_format='JPEG', size=None):
     return ContentFile(zo.getvalue())
 
 
-def generate_thumb(username, imgname, image, size, preserve_ratio):
+def save(type, username_id, filename, image):
+    path = gen_path(type, username_id)
+    try:
+        os.makedirs(path)
+    except:
+        pass
+    path += filename
+    fout = open(path, 'wb+')
+    for chunk in image.chunks():
+        fout.write(chunk)
+    fout.close()
+
+
+def generate_thumb(type, username_id, imgname, image, size, preserve_ratio):
     """Generates a thumbnail of `size`.
     :param image: An `File` object with the image in its original size.
     :param size: A tuple with the desired width and height. Example: (100, 100)
@@ -55,28 +69,22 @@ def generate_thumb(username, imgname, image, size, preserve_ratio):
     base, extension = imgname.rsplit('.', 1)
     thumb_name = THUMB_SUFFIX % (base, size[0], size[1], extension)
     thumbnail = save_img(image, preserve_ratio, extension, size)
-    staticfiles_storage.save(generate_path(username, thumb_name), thumbnail)
+    save(type, username_id, thumb_name, thumbnail)
 
 
-def delete(username, imgname, sizes):
-    if imgname and sizes:
-        for size in sizes:
-            base, extension = imgname.rsplit('.', 1)
-            thumb_name = THUMB_SUFFIX % (base, size[0], size[1], extension)
-            try:
-                staticfiles_storage.delete(generate_path(username, thumb_name))
-            except Exception:
-                if settings.DEBUG:
-                    raise
-
-
-def saveimgwiththumbs(username, imgname, content, sizes, preserve_ratio=True):
-    image = save_img(content, preserve_ratio, imgname.split(".")[-1])
-    staticfiles_storage.save(generate_path(username, imgname), image)
+def saveimgwiththumbs(type, username_id, imgname, content, sizes, preserve_ratio=True):
+    image = save_img(content, preserve_ratio, imgname.split('.')[-1])
+    if type == 0:
+        type = 'user'
+    elif type == 1:
+        type = 'business'
+    elif type == 2:
+        type = 'item'
+    save(type, username_id, imgname, image)
     if sizes:
         for size in sizes:
             try:
-                generate_thumb(username, imgname, content, size, preserve_ratio)
+                generate_thumb(type, username_id, imgname, content, size, preserve_ratio)
             except Exception:
                 if settings.DEBUG:
                     raise

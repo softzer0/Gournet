@@ -27,7 +27,7 @@
 .sett .form-control, .bt3, .sett .alert, .rmn + .popover .input-group {
     margin-bottom: 7px;
 }
-.bt3 .btn {
+.bt3 .btn, .mt5 {
     margin-top: 5px;
 }
 

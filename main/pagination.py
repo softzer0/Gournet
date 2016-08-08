@@ -23,10 +23,10 @@ class NotificationPagination(PageNumberPagination):
     page_size = settings.NOTIFICATION_PAGE_SIZE
 
 class EventPagination(PageNumberPagination):
-    page_size = settings.EVENTS_PAGE_SIZE
+    page_size = settings.EVENT_PAGE_SIZE
 
 class CommentPagination(PageNumberPagination):
-    page_size = settings.COMMENTS_PAGE_SIZE
+    page_size = settings.COMMENT_PAGE_SIZE
 
     def get_paginated_response(self, data):
         return Response({

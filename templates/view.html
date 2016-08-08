@@ -66,66 +66,31 @@
 
                     <uib-tab index="1" heading="Menu">
                         <div class="mn">
-                            <a href="#menu_pica" data-toggle="collapse" data-target="#pica" class="lead remm btn btn-primary">Pića</a>
-                            <div id="pica" class="collapse">
-                                <table class="table table-hover tb">
-                                    {% comment %}<thead>
-                                        <tr>
-                                            <th>Ime proizvoda</th>
-                                            <th>Cena</th>
-                                        </tr>
-                                        </thead>
-                                    <tbody>{% endcomment %}
-                                    <tbody>
-                                        <tr>
-                                            <td><img src="http://downloadicons.net/sites/default/files/coke-icons-3489.png"> Koka-kola</td>
-                                            <td>120,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Fanta</td>
-                                            <td>120,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Pepsi-kola</td>
-                                            <td>120,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Cedevita</td>
-                                            <td>120,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Kisela voda</td>
-                                            <td>30,00 RSD</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div ng-if="loaded" ng-repeat="c in menu" ng-cloak>
+                                <h4 ng-bind="c.category"></h4>
+                                <div ng-repeat="sc in c.content">
+                                    <button ng-click="sc.show = !sc.show" class="lead remm btn btn-primary">{% verbatim %}{{ sc.category }}{% endverbatim %}</button>
+                                    <div uib-collapse="!sc.show">
+                                        <table class="table table-hover tb">
+                                            {% comment %}<thead>
+                                                <tr>
+                                                    <th>Ime proizvoda</th>
+                                                    <th>Cena</th>
+                                                </tr>
+                                                </thead>
+                                            <tbody>{% endcomment %}
+                                            <tbody>
+                                                <tr ng-repeat="i in sc.content">
+                                                    <td><img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1"><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div></td>
+                                                    <td><div>{% verbatim %}{{ i.price }}{% endverbatim %} {{ business.currency }}</div></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <hr ng-if="!$last">
                             </div>
-                            <a href="#menu_jela" data-toggle="collapse" data-target="#jela" class="lead remm btn btn-primary">Jela</a>
-                            <div id="jela" class="collapse">
-                                    <table class="table table-hover tb">
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Sarme</td>
-                                            <td>120,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Gravče na tavče</td>
-                                            <td>120,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Punjene paprike</td>
-                                            <td>220,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Musaka</td>
-                                            <td>150,00 RSD</td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="holder.js/32x32">Svinjski gulaš</td>
-                                            <td>300,00 RSD</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && !loaded"><i class="fa fa-spinner fa-2x"></i></div>
                         </div>
 					</uib-tab>
 

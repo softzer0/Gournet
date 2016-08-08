@@ -1,7 +1,7 @@
 app
-    .controller('UserCtrl', function($scope, $timeout, multiService) {
+    .controller('UserCtrl', function($scope, $timeout, APIService) {
         $scope.name = angular.element('.lead.text-center.br2').text();
-        var friendService = multiService.init(), loading;
+        var friendService = APIService.init(), loading;
         $scope.doFriendRequestAction = function () {
             if (loading) return;
             loading = true;

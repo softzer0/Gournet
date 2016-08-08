@@ -4,8 +4,9 @@ from datetime import timedelta
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from allauth.account.models import EmailAddress
-from .models import Relationship, Notification, Business, Event, Comment, Like, Reminder
+from .models import Relationship, Notification, Business, Event, Comment, Like, Reminder, Item
 from django.contrib.auth import get_user_model
+from rest_framework.compat import unicode_to_repr
 
 User = get_user_model()
 
@@ -99,6 +100,8 @@ class PrimaryKeyInObjectOutRelatedField(serializers.PrimaryKeyRelatedField):
     def __init__(self, **kwargs):
         if not hasattr(self, 'output_serializer_class'):
             self.output_serializer_class = kwargs.pop('output_serializer_class', None)
+        if hasattr(self, 'write_only'):
+            kwargs['write_only'] = self.write_only
         super().__init__(**kwargs)
 
     def use_pk_only_optimization(self):
@@ -112,8 +115,12 @@ class PrimaryKeyInObjectOutRelatedField(serializers.PrimaryKeyRelatedField):
             data = super().to_representation(obj)
         return data
 
-class BusinessesOfCurrentUserField(PrimaryKeyInObjectOutRelatedField):
+class BusinessOfCurrentUserField(PrimaryKeyInObjectOutRelatedField):
     output_serializer_class = BusinessSerializer
+
+    def __init__(self, **kwargs):
+        kwargs['read_only'] = True
+        super().__init__(**kwargs)
 
     def get_queryset(self):
         qs = Business.objects.all()
@@ -127,7 +134,7 @@ def chktime(attrs, td=timedelta()):
     return attrs
 
 class EventSerializer(serializers.ModelSerializer):
-    business = BusinessesOfCurrentUserField()
+    business = BusinessOfCurrentUserField()
     like_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
     curruser_status = serializers.SerializerMethodField()
@@ -140,17 +147,17 @@ class EventSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if not 'person_business' in self.context:
+        if not 'person' in self.context:
             self.fields.pop('person_status')
-        elif self.context['person_business'] == True:
-            self.fields.pop('business')
+        #elif self.context['person_business'] == True:
+        #    self.fields.pop('business')
 
     def validate(self, attrs):
         return chktime(attrs) #, timedelta(minutes=1)
 
     def p_status(self, obj, t=None):
         if t:
-            person = self.context['person_business']
+            person = self.context['person']
         elif 'request' in self.context:
             person = self.context['request'].user
         else:
@@ -220,14 +227,51 @@ class ReminderSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     person = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    event = PrimaryKeyInObjectOutRelatedField(queryset=Event.objects.all(), output_serializer_class=EventSerializer, write_only=True)
     is_curruser = serializers.SerializerMethodField()
+    is_manager = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        extra_kwargs = {
-            'event': {'write_only': True},
-            'created': {'read_only': True}
-        }
+        extra_kwargs = {'created': {'read_only': True}}
 
     def get_is_curruser(self, obj):
         return obj.person == self.context['request'].user
+
+    def get_is_manager(self, obj):
+        return obj.person == obj.event.business.manager
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if 'curruser' in self.context:
+            self.fields.pop('person')
+            self.fields.pop('is_curruser')
+            self.fields['event'].write_only = False
+
+
+class CurrentBusinessDefault(object):
+    def set_context(self, serializer_field):
+        try:
+            self.business = Business.objects.get(manager=serializer_field.context['request'].user)
+        except:
+            self.business = Business.objects.none()
+
+    def __call__(self):
+        return self.business
+
+    def __repr__(self):
+        return unicode_to_repr('%s()' % self.__class__.__name__)
+
+class ItemSerializer(serializers.ModelSerializer):
+    business = serializers.HiddenField(default=CurrentBusinessDefault())
+
+    class Meta:
+        model = Item
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Item.objects.all(),
+                fields=('business', 'name'),
+                message="An item with the same name already exists."
+            )
+        ]
