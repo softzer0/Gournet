@@ -32,7 +32,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                       request,
                       sociallogin,
                       data):
-        user = super(SocialAccountAdapter, self).populate_user(request, sociallogin, data)
+        user = super().populate_user(request, sociallogin, data)
         if 'gender' in sociallogin.account.extra_data:
             if sociallogin.account.extra_data['gender'] == 'male':
                 user.gender = 1
@@ -46,7 +46,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def save_user(self, request, sociallogin, form=None):
-        user = super(SocialAccountAdapter, self).save_user(request, sociallogin, form)
+        user = super().save_user(request, sociallogin, form)
         response = None
         if sociallogin.account.provider == 'facebook':
             response = requests.get('https://graph.facebook.com/v2.6/'+sociallogin.account.extra_data['id']+'/picture?width=128&height=128')
@@ -54,11 +54,11 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             response = requests.get(sociallogin.account.extra_data['picture']+'?sz=128')
         if response and response.status_code == 200:
             t = response.headers['content-type']
-            if t in ('image/jpeg', 'image/png', 'image/gif'):
+            if t in ['image/jpeg', 'image/png', 'image/gif']:
                 t = t[6:]
                 if t == 'jpeg':
                     t = 'jpg'
                 elif t == 'gif':
                     t = 'png'
-                saveimgwiththumbs(type=0, username_id=user.username, imgname='avatar.'+t, content=ContentFile(response.content), sizes=((32,32),(48,48),(64,64)))
+                saveimgwiththumbs(type=0, username_id=user.username, imgname='avatar.'+t, content=ContentFile(response.content))
         return user

@@ -69,24 +69,21 @@
                             <div ng-if="loaded" ng-repeat="c in menu" ng-cloak>
                                 <h4 ng-bind="c.category"></h4>
                                 <div ng-repeat="sc in c.content">
-                                    <button ng-click="sc.show = !sc.show" class="lead remm btn btn-primary">{% verbatim %}{{ sc.category }}{% endverbatim %}</button>
-                                    <div uib-collapse="!sc.show">
-                                        <table class="table table-hover tb">
-                                            {% comment %}<thead>
-                                                <tr>
-                                                    <th>Ime proizvoda</th>
-                                                    <th>Cena</th>
-                                                </tr>
-                                                </thead>
-                                            <tbody>{% endcomment %}
-                                            <tbody>
-                                                <tr ng-repeat="i in sc.content">
-                                                    <td><img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1"><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div></td>
-                                                    <td><div>{% verbatim %}{{ i.price }}{% endverbatim %} {{ business.currency }}</div></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <h5 class="text-center">{% verbatim %}{{ sc.category }}{% endverbatim %}</h5>
+                                    <table class="table table-hover tb">
+                                        {% comment %}<thead>
+                                            <tr>
+                                                <th>Ime proizvoda</th>
+                                                <th>Cena</th>
+                                            </tr>
+                                            </thead>{% endcomment %}
+                                        <tbody>
+                                            <tr ng-repeat="i in sc.content">
+                                                <td><img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1"><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div></td>
+                                                <td><div>{% verbatim %}{{ i.price }}{% endverbatim %} {{ business.currency }}</div></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 <hr ng-if="!$last">
                             </div>

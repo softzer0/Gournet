@@ -33,11 +33,11 @@ app
             if ($scope.rel_state == 0) $scope.rel_state_msg += 'set a favourite'; else $scope.rel_state_msg += 'remove from favourites';
             $scope.rel_state_msg += ' <strong>'+$scope.name+'</strong>?'
         })*/
-        $scope.active = 1;
+
         $scope.$watch('active', function (){
             if ($scope.active == 1 && $scope.menu === undefined) {
-                $scope.menu = menuService.menu;
-                menuService.load($scope.id).then(function (){ $scope.loaded = true; $scope.menu[0].content[2].show = true /*del*/ });
+                $scope.menu = menuService.init();
+                menuService.load($scope.id).then(function (){ $scope.loaded = true });
             }
         });
         // ...

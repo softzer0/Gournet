@@ -20,7 +20,7 @@ def gen_path(type, username_id):
     return settings.MEDIA_ROOT+'images/'+type+'/'+username_id+'/'
 
 
-def save_img(original, preserve_ratio, image_format='JPEG', size=None):
+def save_img(original, preserve_ratio=True, image_format='JPEG', size=None):
     """Generates a thumbnail image and returns a ContentFile object with the thumbnail
 
     :param original: The image being resized as `File`.
@@ -31,7 +31,7 @@ def save_img(original, preserve_ratio, image_format='JPEG', size=None):
     """
     original.seek(0)  # see http://code.djangoproject.com/ticket/8222 for details
     image = Image.open(original)
-    if image.mode not in ('L', 'RGB', 'RGBA'):
+    if image.mode not in ['L', 'RGB', 'RGBA']:
         if image.mode == 'P':
             image = image.convert('RGBA')
         else:
@@ -72,15 +72,20 @@ def generate_thumb(type, username_id, imgname, image, size, preserve_ratio):
     save(type, username_id, thumb_name, thumbnail)
 
 
-def saveimgwiththumbs(type, username_id, imgname, content, sizes, preserve_ratio=True):
-    image = save_img(content, preserve_ratio, imgname.split('.')[-1])
-    if type == 0:
-        type = 'user'
-    elif type == 1:
-        type = 'business'
-    elif type == 2:
+def saveimgwiththumbs(type, username_id, imgname, content, preserve_ratio=True, sizes=None):
+    if type in [0, 1]:
+        if type == 0:
+            type = 'user'
+        else:
+            type = 'business'
+        size = None
+        if not sizes:
+            sizes = [(32,32), (48,48), (64,64)]
+    else:
         type = 'item'
-    save(type, username_id, imgname, image)
+        size = (256,256)
+        sizes = [(32,32), (64,64)]
+    save(type, username_id, imgname, save_img(content, preserve_ratio, imgname.split('.')[-1], size))
     if sizes:
         for size in sizes:
             try:

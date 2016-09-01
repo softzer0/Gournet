@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'rest_framework',
     'rest_framework.authtoken',
+    'generic_relations',
     'decorator_include',
     'allauth',
     'allauth.account',
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
     'bootstrap3',
     'stronghold',
     'captcha',
+    'django_settings_export',
     'main'
 ]
 
@@ -113,8 +115,16 @@ NOCAPTCHA = True
 EVENT_PAGE_SIZE = 15
 NOTIFICATION_PAGE_SIZE = 5
 COMMENT_PAGE_SIZE = 4
+CONTENT_TYPES = {}
 
 # End custom
+
+SETTINGS_EXPORT = [
+    'NOTIFICATION_PAGE_SIZE',
+    'COMMENT_PAGE_SIZE',
+    'CONTENT_TYPES',
+    'STATIC_URL'
+]
 
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
@@ -156,7 +166,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.request'
+                'django.template.context_processors.request',
+                'django_settings_export.settings_export'
             ],
         },
     },

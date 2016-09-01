@@ -4,13 +4,16 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.db.models.signals import post_delete, pre_save
+from django.db.models.signals import pre_delete, post_delete, pre_save
 from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.exceptions import FieldError
 import datetime
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 
 CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
 SUPPORTED_PLACES = ((0, "Serbia, Vranje"),)
@@ -45,7 +48,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     #avatar = ImageWithThumbsField(upload_to=upload_to, blank=True, sizes=((48,48),(64,64)))
     friends = models.ManyToManyField('self', blank=True, symmetrical=False, through='Relationship')
     favourites = models.ManyToManyField('Business', blank=True, related_name='favoured_by')
-    likes_dislikes = models.ManyToManyField('Event', blank=True, through='Like')
     #comments = models.ManyToManyField('Event', blank=True, symmetrical=False, through='Comment', related_name='commented_by')
 
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=0)
@@ -206,45 +208,16 @@ class Event(models.Model):
     def __str__(self):
         return str(self.pk)
 
-class Reminder(models.Model):
-    person = models.ForeignKey(User, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    when = models.DateTimeField()
+settings.CONTENT_TYPES['event'] = ContentType.objects.get(model='event')
 
-    class Meta:
-        unique_together = (('person', 'event', 'when'),)
+def cascade_delete(type, pk):
+    for model in [EventNotification, Like, Comment]:
+        qs = model.objects.filter(content_type=settings.CONTENT_TYPES[type], object_id=pk)
+        qs._raw_delete(qs.db)
 
-    def __str__(self):
-        return str(self.pk)
-
-class EventNotification(models.Model):
-    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person")
-    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_to_person")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    is_comment = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = (('from_person', 'to_person', 'event', 'is_comment'),)
-        ordering = ['from_person', 'event', 'pk']
-
-class Comment(models.Model):
-    person = models.ForeignKey(User, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    text = models.TextField()
-    created = models.DateTimeField(auto_now_add=True)
-
-@receiver(pre_save, sender=Comment, dispatch_uid='comment_save_notification')
-def comment_save_notification(sender, instance, *args, **kwargs):
-    if instance.person != instance.event.business.manager and not EventNotification.objects.filter(from_person=instance.person, event=instance.event, to_person=instance.event.business.manager, is_comment=True).exists():
-        EventNotification.objects.create(from_person=instance.person, event=instance.event, to_person=instance.event.business.manager, is_comment=True)
-
-class Like(models.Model):
-    person = models.ForeignKey(User, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    is_dislike = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = (('person', 'event'),)
+@receiver(pre_delete, sender=Event, dispatch_uid='event_cascade_delete')
+def event_cascade_delete(sender, instance, *args, **kwargs):
+    cascade_delete('event', instance.pk)
 
 
 CATEGORY = (
@@ -273,6 +246,8 @@ CATEGORY = (
     ),
     ('Food', (
             ('fast_food', 'Fast food'),
+            ('appetizer', 'Appetizers'),
+            ('soup', 'Soups'),
             ('meal', 'Meals'),
             ('barbecue', 'Barbecue'),
             ('seafood', 'Seafood'),
@@ -295,6 +270,67 @@ class Item(models.Model):
 
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
+
+settings.CONTENT_TYPES['item'] = ContentType.objects.get(model='item')
+
+@receiver(pre_delete, sender=Item, dispatch_uid='item_cascade_delete')
+def item_cascade_delete(sender, instance, *args, **kwargs):
+    cascade_delete('item', instance.pk)
+
+CONTENT_TYPES_PK = [ct.pk for ct in settings.CONTENT_TYPES.values()]
+
+
+class Reminder(models.Model):
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    when = models.DateTimeField()
+
+    class Meta:
+        unique_together = (('person', 'event', 'when'),)
+
+    def __str__(self):
+        return str(self.pk)
+
+class EventNotification(models.Model):
+    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person")
+    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_to_person")
+    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    is_comment = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = (('from_person', 'to_person', 'content_type', 'object_id', 'is_comment'),)
+        ordering = ['from_person', 'content_type', 'object_id', 'pk']
+
+class Comment(models.Model):
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    text = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model, self.content_object.pk)
+
+@receiver(pre_save, sender=Comment, dispatch_uid='comment_save_notification')
+def comment_save_notification(sender, instance, *args, **kwargs):
+    if instance.person != instance.content_object.business.manager and not EventNotification.objects.filter(from_person=instance.person, content_type=ContentType.objects.get_for_model(instance.content_object), object_id=instance.content_object.id, to_person=instance.content_object.business.manager, is_comment=True).exists():
+        EventNotification.objects.create(from_person=instance.person, content_type=ContentType.objects.get_for_model(instance.content_object), object_id=instance.content_object.id, to_person=instance.content_object.business.manager, is_comment=True)
+
+class Like(models.Model):
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    is_dislike = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = (('person', 'content_type', 'object_id'),)
+
+    def __str__(self):
+        return 'User %s, %slike on %s #%d' % (self.person.username, 'dis' if self.is_dislike else '', self.content_type.model, self.content_object.pk)
 
 
 """TESTING:

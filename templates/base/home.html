@@ -25,7 +25,11 @@
     <script src="{% static 'main/js/datetime-picker.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'main/js/angular-css.min.js' %}"></script>{% endcomment %}
-    <script src="{% static 'main/js/custom/home.js' %}"></script>{% endblock %}
+    <script src="{% static 'main/js/custom/home.js' %}"></script>
+    <script>app.constant('BASE_MODAL', '{{ settings.STATIC_URL }}main/modals/base.html')
+            .constant('COMMENT_PAGE_SIZE', {{ settings.COMMENT_PAGE_SIZE }})
+            .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
+            .constant('CONTENT_TYPES', {% load getextend %}{{ '{' }}{% for ct in settings.CONTENT_TYPES %}{{ ct }}: {{ settings.CONTENT_TYPES|get_item:ct|get_attr:'pk' }}{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})</script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 

@@ -1,7 +1,5 @@
-const COMMENT_PAGE_SIZE = 4;
-
 var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime']) /*, 'oc.lazyLoad', 'angularCSS'*/
-    .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings) {
+    .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -13,7 +11,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             .state('main.showEvents', {
                 url: 'show=:ids',
                 modal: true,
-                templateUrl: '/static/main/modals/base.html',
+                templateUrl: BASE_MODAL,
                 size: 'lg',
                 controller: function ($scope, $uibModalInstance, $state, $stateParams, $timeout, eventService) {
                     $scope.title = "Events";
@@ -89,7 +87,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .factory('usersModalService', function($uibModal) {
+    .factory('usersModalService', function($uibModal, BASE_MODAL) {
         var params = {};
         
         return {
@@ -101,7 +99,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 if (type != 3) n = 'friends'; else n = 'likes';
                 $uibModal.open({
                     size: 'lg',
-                    templateUrl: '/static/main/modals/base.html',
+                    templateUrl: BASE_MODAL,
                     controller: 'UsersModalCtrl',
                     resolve: {
                         file: function () { return n },
@@ -143,7 +141,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         break;
                     default: n = 'friends'
                 }
-                return $resource('/api/'+n+'/:id/?format=json', {}, //id: "@event"
+                return $resource('/api/'+n+'/:id/?format=json', {id: '@object_id'},
                 {
                     'get': {method: 'GET'},
                     'query': {method: 'GET', isArray: true},
@@ -156,67 +154,75 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     })
 
     .factory('menuService', function ($q, APIService){
-        var itemService = APIService.init(8), menu = [
-            {category: "Alcoholic beverages", content: [
-                {category: "Ciders", show: false, content: []},
-                {category: "Whiskeys", show: false, content: []},
-                {category: "Wines", show: false, content: []},
-                {category: "Beers", show: false, content: []},
-                {category: "Vodkas", show: false, content: []},
-                {category: "Brandy", show: false, content: []},
-                {category: "Liqueurs", show: false, content: []},
-                {category: "Cocktails", show: false, content: []},
-                {category: "Tequilas", show: false, content: []},
-                {category: "Gin", show: false, content: []},
-                {category: "Rum", show: false, content: []}
-            ]},
-            {category: "Other drinks", content: [
-                {category: "Coffee", show: false, content: []},
-                {category: "Soft drinks", show: false, content: []},
-                {category: "Juices", show: false, content: []},
-                {category: "Teas", show: false, content: []},
-                {category: "Hot chocolate", show: false, content: []},
-                {category: "Water", show: false, content: []}
-            ]},
-            {category: "Food", content: [
-                {category: "Fast food", show: false, content: []},
-                {category: "Meals", show: false, content: []},
-                {category: "Barbecue", show: false, content: []},
-                {category: "Seafood", show: false, content: []},
-                {category: "Salads", show: false, content: []},
-                {category: "Desserts", show: false, content: []}
-            ]}
-        ], category = {
-            'cider': menu[0].content[0].content,
-            'whiskey': menu[0].content[1].content,
-            'wine': menu[0].content[2].content,
-            'beer': menu[0].content[3].content,
-            'vodka': menu[0].content[4].content,
-            'brandy': menu[0].content[5].content,
-            'liqueur': menu[0].content[6].content,
-            'cocktail': menu[0].content[7].content,
-            'tequila': menu[0].content[8].content,
-            'gin': menu[0].content[9].content,
-            'rum': menu[0].content[10].content,
-
-            'coffee': menu[1].content[0].content,
-            'soft_drink': menu[1].content[1].content,
-            'juice': menu[1].content[2].content,
-            'tea': menu[1].content[3].content,
-            'hot_chocolate': menu[1].content[4].content,
-            'water': menu[1].content[5].content,
-
-            'fast_food': menu[2].content[0].content,
-            'meal': menu[2].content[1].content,
-            'barbecue': menu[2].content[2].content,
-            'seafood': menu[2].content[3].content,
-            'salad': menu[2].content[4].content,
-            'dessert': menu[2].content[5].content
-        };
+        var itemService = APIService.init(8), menu;
 
         return {
-            menu: menu,
+            init: function (){
+                menu = [
+                    {category: "Alcoholic beverages", content: [
+                        {category: "Ciders", content: []},
+                        {category: "Whiskeys", content: []},
+                        {category: "Wines", content: []},
+                        {category: "Beers", content: []},
+                        {category: "Vodkas", content: []},
+                        {category: "Brandy", content: []},
+                        {category: "Liqueurs", content: []},
+                        {category: "Cocktails", content: []},
+                        {category: "Tequilas", content: []},
+                        {category: "Gin", content: []},
+                        {category: "Rum", content: []}
+                    ]},
+                    {category: "Other drinks", content: [
+                        {category: "Coffee", content: []},
+                        {category: "Soft drinks", content: []},
+                        {category: "Juices", content: []},
+                        {category: "Teas", content: []},
+                        {category: "Hot chocolate", content: []},
+                        {category: "Water", content: []}
+                    ]},
+                    {category: "Food", content: [
+                        {category: "Fast food", content: []},
+                        {category: "Appetizers", content: []},
+                        {category: "Soups", content: []},
+                        {category: "Meals", content: []},
+                        {category: "Barbecue", content: []},
+                        {category: "Seafood", content: []},
+                        {category: "Salads", content: []},
+                        {category: "Desserts", content: []}
+                    ]}
+                ];
+                return menu;
+            },
             load: function (id){
+                var category = {
+                    'cider': menu[0].content[0].content,
+                    'whiskey': menu[0].content[1].content,
+                    'wine': menu[0].content[2].content,
+                    'beer': menu[0].content[3].content,
+                    'vodka': menu[0].content[4].content,
+                    'brandy': menu[0].content[5].content,
+                    'liqueur': menu[0].content[6].content,
+                    'cocktail': menu[0].content[7].content,
+                    'tequila': menu[0].content[8].content,
+                    'gin': menu[0].content[9].content,
+                    'rum': menu[0].content[10].content,
+
+                    'coffee': menu[1].content[0].content,
+                    'soft_drink': menu[1].content[1].content,
+                    'juice': menu[1].content[2].content,
+                    'tea': menu[1].content[3].content,
+                    'hot_chocolate': menu[1].content[4].content,
+                    'water': menu[1].content[5].content,
+
+                    'fast_food': menu[2].content[0].content,
+                    'appetizer': menu[2].content[1].content,
+                    'soup': menu[2].content[2].content,
+                    'meal': menu[2].content[3].content,
+                    'barbecue': menu[2].content[4].content,
+                    'seafood': menu[2].content[5].content,
+                    'salad': menu[2].content[6].content,
+                    'dessert': menu[2].content[7].content
+                };
                 return itemService.query({id: id},
                     function (result){
                         var i, c = result[0].category;
@@ -225,7 +231,6 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             delete result[i].category;
                             category[c].push(result[i]);
                         }
-                        category = null;
                         for (i = 0; i < menu.length; i++) {
                             for (c = 0; c < menu[i].content.length; c++) {
                                 if (!menu[i].content[c].content.length) {
@@ -245,7 +250,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .factory('eventService', function ($q, APIService){
+    .factory('eventService', function ($q, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES){
         var events = [[],[]], page_num = 1, id = null, s = APIService.init(2), likeService = APIService.init(3), commentService = APIService.init(7), u = false, remids = [];
 
         function dynamicSort(property) {
@@ -350,7 +355,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     if (u) remove(e, index, r);
                     status = 0;
                 } else {
-                    var d = {event: e[index].id, is_dislike: dislike};
+                    var d = {content_type: CONTENT_TYPES['event'], object_id: e[index].id, is_dislike: dislike};
                     if (old_status > 0) s = likeService.update(d); else s = likeService.save(d);
                     status = dislike ? 2 : 1;
                 }
@@ -392,7 +397,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             submitComment: function (index, txt, r){
                 var e;
                 e = (r ? events[1] : events[0])[index];
-                return commentService.save({event: e.id, text: txt},
+                return commentService.save({content_type: CONTENT_TYPES['event'], object_id: e.id, text: txt},
                     function (result){
                         if (!e.hasOwnProperty('user_comments')) e.user_comments = [];
                         e.user_comments.push(result);
@@ -421,7 +426,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .controller('EventsCtrl', function ($rootScope, $scope, $timeout, APIService, eventService, eventActionsService) {
+    .controller('EventsCtrl', function ($rootScope, $scope, $timeout, APIService, eventService, eventActionsService, COMMENT_PAGE_SIZE) {
         $scope.r = $scope.$parent.events !== undefined;
         $scope.events = $scope.r ? $scope.$parent.events : eventService.events();
         $scope.a = eventActionsService;
@@ -627,13 +632,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 scope: $scope,
                 windowClass: 'oc',
                 placement: 'right',
-                controller: function ($scope, $uibModal, $uibModalInstance) { /*, $css*/
+                controller: function ($scope, $uibModal, $uibModalInstance, BASE_MODAL) { /*, $css*/
                     /*$css.add('/static/main/css/sett.css');*/
                     $scope.showSettModal = function (index) {
                         if (index === undefined) index = 0;
                         $uibModal.open({
                             size: 'lg',
-                            templateUrl: '/static/main/modals/base.html',
+                            templateUrl: BASE_MODAL,
                             windowTopClass: 'sett',
                             controller: 'SettModalCtrl',
                             resolve: { index: function (){ return index; } }
@@ -810,8 +815,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .controller('NotificationCtrl', function ($rootScope, $scope, $timeout, APIService) {
-        const NOTIF_PAGE_SIZE = 5;
+    .controller('NotificationCtrl', function ($rootScope, $scope, $timeout, APIService, NOTIF_PAGE_SIZE) {
         var notifService = APIService.init(4);
 
         $scope.loading = false;
