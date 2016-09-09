@@ -23,7 +23,11 @@
 	padding-top: 15px;
 }
 
-.remm:not(:first-child), .mn1 > .events_false > div:first-of-type:not(.angular-animate):not(.nev) {
+.mn1:not(.vi) {
+	padding-top: 5px;
+}
+
+.mn1 > div > div:first-of-type:not(.angular-animate):not(.nev) {
 	margin-top: 15px;
 }
 

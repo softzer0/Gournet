@@ -1,5 +1,5 @@
-<div ng-class="'events_'+r" ng-controller="EventsCtrl">
-    <div class="angular-animate" ng-repeat="e in events" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ events_animation ? 'angular-animate' : '' }}"-->
+<div ng-class="'objs'+r+'_'+t" dynamic-controller="t == 'event' ? 'EventsCtrl' : t == 'item' ? 'ItemsCtrl' : 'ReviewsCtrl'">
+    <div class="angular-animate" ng-repeat="e in objs" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ objs_animation ? 'angular-animate' : '' }}"-->
         <div ng-if="first_name !== undefined" class="mb3">{{ first_name }} <span ng-if="e.person_status != -1">gave {{ e.person_status == 1 ? 'like' : 'dislike' }} to</span><span ng-if="e.person_status == -1">posted</span>:</div>
         <div class="well bs-component clearfix pb18">
             <a ng-if="first_name !== undefined || id === undefined" ng-href="/{{ e.business.shortname }}/">
@@ -8,7 +8,7 @@
             </a>
             <p>{{ e.text }} <small class="text-muted">&mdash; {{ e.when | timeAgo }}</small></p>
             <div class="op br">
-                <a href="javascript:" ng-if="e.curruser_status > -1" ng-class="{'text-warning': e.curruser_status == 1}" ng-click="a.giveDisLike($index, false, r)"><i class="fa fa-plus-square"></i> {{ e.like_count }}</a><span ng-if="e.curruser_status == -1"><i class="fa fa-plus-square"></i> {{ e.like_count }}</span><a href="javascript:" ng-if="e.like_count-e.dislike_count != 0" ng-click="a.showDisLikes($index, r)" class="badge label-primary">{{ e.like_count-e.dislike_count }}</a><span ng-if="e.like_count-e.dislike_count == 0" class="badge">0</span><a href="javascript:" ng-if="e.curruser_status > -1" ng-class="{'text-warning': e.curruser_status == 2}" ng-click="a.giveDisLike($index, true, r)"><i class="fa fa-minus-square"></i> {{ e.dislike_count }}</a><span ng-if="e.curruser_status == -1"><i class="fa fa-minus-square"></i> {{ e.dislike_count }}</span><a href="javascript:" ng-click="showComments($index)"><i class="fa fa-comment"></i> Komentari ({{ e.comment_count }})</a><span ng-if="a.isFuture($index, r)"><a href="javascript:" class="rmn" uib-popover-template="'/static/main/modals/reminder.html'" popover-trigger="outsideClick" popover-is-open="cmb.opened[$index]" ng-click="initRmn($index)"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a><a href="javascript:" ng-click="a.notifySelect($index, r)"><i class="fa fa-users"></i> Obavesti prijatelje</a></span><span ng-if="e.curruser_status == -1"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this event?" ng-dialog-click="a.delete($index, r)"><i class="fa fa-times"></i> Obriši</a></span>
+                <a href="javascript:" ng-if="e.curruser_status > -1" ng-class="{'text-warning': e.curruser_status == 1}" ng-click="giveDisLike($index, false, r)"><i class="fa fa-plus-square"></i> {{ e.like_count }}</a><span ng-if="e.curruser_status == -1"><i class="fa fa-plus-square"></i> {{ e.like_count }}</span><a href="javascript:" ng-if="e.like_count-e.dislike_count != 0" ng-click="showDisLikes($index, r)" class="badge label-primary">{{ e.like_count-e.dislike_count }}</a><span ng-if="e.like_count-e.dislike_count == 0" class="badge">0</span><a href="javascript:" ng-if="e.curruser_status > -1" ng-class="{'text-warning': e.curruser_status == 2}" ng-click="giveDisLike($index, true, r)"><i class="fa fa-minus-square"></i> {{ e.dislike_count }}</a><span ng-if="e.curruser_status == -1"><i class="fa fa-minus-square"></i> {{ e.dislike_count }}</span><a href="javascript:" ng-click="showComments($index)"><i class="fa fa-comment"></i> Komentari ({{ e.comment_count }})</a><span ng-if="isFuture($index, r)"><a href="javascript:" class="rmn" uib-popover-template="'/static/main/modals/reminder.html'" popover-trigger="outsideClick" popover-is-open="cmb.opened[$index]" ng-click="initRmn($index)"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a><a href="javascript:" ng-click="notifySelect($index, r)"><i class="fa fa-users"></i> Obavesti prijatelje</a></span><span ng-if="e.curruser_status == -1"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this event?" ng-dialog-click="delete($index, r)"><i class="fa fa-times"></i> Obriši</a></span>
             </div>
             <div class="cmn" ng-show="showcomm[$index][1]" ng-init="delcomm_msg = 'Are you sure that you want to delete this comment?'">
                 <div class="angular-animate" ng-repeat="c in e.comments">
@@ -17,7 +17,7 @@
                         <strong>{{ c.person.first_name }} {{ c.person.last_name }}</strong>
                     </a>
                     <span ng-if="c.is_manager" class="label label-info lh ml5" uib-tooltip="Manager">M</span>
-                    <span class="ml5" ng-if="e.curruser_status == -1 || c.is_curruser"><a href="javascript:" ng-dialog-message="{{ delcomm_msg }}" ng-dialog-click="a.delete($index, r, $parent.$parent.$index, true)"><i class="fa fa-times"></i> Obriši</a></span>
+                    <span class="ml5" ng-if="e.curruser_status == -1 || c.is_curruser"><a href="javascript:" ng-dialog-message="{{ delcomm_msg }}" ng-dialog-click="delete($index, r, $parent.$parent.$index, true)"><i class="fa fa-times"></i> Obriši</a></span>
                     <p>{{ c.text }} <small class="text-muted">&mdash; {{ c.created | timeAgo }}</small></p>
                 </div>
                 <a href="javascript:" class="mpd lm text-center" ng-show="show_next($index)" ng-click="load_next($index)">Load more</a>
@@ -28,18 +28,18 @@
                         <strong>{{ c.person.first_name }} {{ c.person.last_name }}</strong>
                     </a>
                     <span ng-if="c.is_manager" class="label label-info lh ml5" uib-tooltip="Manager">M</span>
-                    <a class="ml5" href="javascript:" ng-dialog-message="{{ delcomm_msg }}" ng-dialog-click="a.delete($index, r, $parent.$index)"><i class="fa fa-times"></i> Obriši</a>
+                    <a class="ml5" href="javascript:" ng-dialog-message="{{ delcomm_msg }}" ng-dialog-click="delete($index, r, $parent.$index)"><i class="fa fa-times"></i> Obriši</a>
                     <p>{{ c.text }} <small class="text-muted">&mdash; {{ c.created | timeAgo }}</small></p>
                 </div>
                 <div class="form-group cmn mb7">
-                    <textarea id="txt_{{ $index }}" class="form-control" rows="1" placeholder="Your comment" required></textarea>
+                    <textarea ng-attr-id="{{ $parent.t + $index }}" class="form-control" rows="1" placeholder="Your comment" required></textarea>
                 </div>
                 <input type="submit" class="btn btn-sm btn-primary" value="Submit" ng-click="submitComment($index)">
             </div>
         </div>
-        <hr ng-if="a.toggleHr(first_name !== undefined, $last && !r)" class="mpd">
+        <hr ng-if="toggleHr(first_name !== undefined, $last && !r)" class="mpd">
     </div>
-    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="events.has_next_page && !loading" ng-click="load_page()">Load more</a>
+    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="objs.has_next_page && !loading" ng-click="load_page()">Load more</a>
     <div class="loa mb13 loa-c" ng-if="!r && loading"><i class="fa fa-spinner fa-2x"></i></div>
-    <div class="nev" ng-if="!events.length && !loading">No events.</div>
+    <div class="nev" ng-if="!objs.length && !loading">No results.</div>
 </div>

@@ -28,5 +28,7 @@
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
 
-{% load rawinclude %}{% raw_include 'main/events.html' %}
+        <div ng-init="t = 'event'">
+            {% load rawinclude %}{% raw_include 'main/events.html' %}
+        </div>
 {% endblock %}

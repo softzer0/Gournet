@@ -9,7 +9,7 @@ class Metadata(SimpleMetadata):
 
     def get_field_info(self, field):
 
-        if isinstance(field, RelatedField):
+        if isinstance(field, RelatedField) and field.label != 'Content type':
             def kill_queryset(f):
                 @wraps(f)
                 def wrapped(*args, **kwargs):
@@ -24,5 +24,7 @@ class Metadata(SimpleMetadata):
 
         result = super().get_field_info(field)
 
-        if not result.get('choices'):
-            result.pop('choices', None)
+        #if not result.get('choices'):
+        #    result.pop('choices', None)
+
+        return result

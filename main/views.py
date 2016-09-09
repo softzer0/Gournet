@@ -1,4 +1,3 @@
-from itertools import chain
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.http import HttpResponse
@@ -8,10 +7,10 @@ from django.utils import timezone
 from django.db.models import Case, When, Value, IntegerField
 # from django.conf.urls.static import static
 # from django.shortcuts import get_object_or_404
-# from django.utils import six
-from django.db.models import Q
+# from django.db.models import Q
 # from django.views.decorators.csrf import csrf_protect
 # from django.core.paginator import Paginator, InvalidPage
+# from itertools import chain
 from rest_framework.exceptions import NotFound, MethodNotAllowed
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
@@ -21,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
-from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Reminder, Item, Event, EVENT_MIN_CHAR
+from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Reminder, Item, Event, EVENT_MIN_CHAR, CONTENT_TYPES_PK
 import os.path
 # from . import permissions
 # from . import forms
@@ -62,7 +61,6 @@ def gen_where(model, pk, table=None, additional_obj=None, column=None, target=No
 def sort_related(query, first=None, where=None):
     """
     @type query: django.db.models.QuerySet
-    @type others: django.db.models.QuerySet, chain
     """
     others = query.extra(where=[where if where else gen_where(query.model.__name__.lower(), first, target='relationship')])
     if first:
@@ -71,7 +69,7 @@ def sort_related(query, first=None, where=None):
     else:
         cases = []
         s = 0
-    cases += [When(pk=obj.pk, then=Value(i+s)) for i, obj in enumerate(others if type(others) is chain else others.all())]
+    cases += [When(pk=obj.pk, then=Value(i+s)) for i, obj in enumerate(others.all())]
     return query.annotate(rel_objs=Case(*cases, output_field=IntegerField())).order_by('rel_objs')
 
 def get_object(pk, cl=User):
@@ -81,7 +79,7 @@ def get_object(pk, cl=User):
     try:
         return cl.objects.get(pk=pk)
     except:
-        raise NotFound(detail=cl.__name__+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
+        raise NotFound(cl.__name__+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
 
 def get_param_bool(param):
     if param and param in ['1', 'true', 'True', 'TRUE']:
@@ -163,13 +161,22 @@ def return_avatar(request, username_id, size):
     return HttpResponse(open(avatar, 'rb'), content_type='image/'+mimeext, status=status)
 
 
-class PasswordChangeView(views.PasswordChangeView):
+class BaseAuthView():
+    success_url = '/'
+
     def get(self, *args, **kwargs):
         return redirect('/')
 
-class EmailView(views.EmailView):
-    def get(self, *args, **kwargs):
-        return redirect('/')
+    def post(self, request, *args, **kwargs):
+        request.is_ajax = lambda: True
+        # noinspection PyUnresolvedReferences
+        return super().post(request, *args, **kwargs)
+
+class PasswordChangeView(BaseAuthView, views.PasswordChangeView):
+    pass
+
+class EmailView(BaseAuthView, views.EmailView):
+    pass
 
 class EmailAPIView(generics.ListAPIView):
     serializer_class = serializers.EmailSerializer
@@ -202,7 +209,7 @@ class FriendsAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         try:
             Relationship.objects.get(from_person=request.user, to_person=person).delete()
         except:
-            raise NotFound(detail="Relationship not found.")
+            raise NotFound("Relationship not found.")
         try:
             rel = Relationship.objects.get(from_person=person, to_person=request.user)
         except:
@@ -218,15 +225,15 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
     pagination_class = pagination.NotificationPagination
 
     def paginate_queryset(self, queryset):
-        if self.request.query_params.get('page', False):
+        if 'page' in self.request.query_params:
             return super().paginate_queryset(queryset)
         return None
     
-    def add_event_notif(self, curr):
-        self.request.user.notification_set.add(Notification(text="<a href='/user/%s/'><i>%s %s</i></a> notifies you about %s." % (curr['person'].username, curr['person'].first_name, curr['person'].last_name, "one event" if curr['cnt'] == 1 else str(curr['cnt'])+" events"), link='#/show='+curr['pks'][1:]), bulk=False) #posted by %s (...) "the event" (...) curr['business'].name
+    def add_event_notif(self, curr, when):
+        self.request.user.notification_set.add(Notification(text="<a href=\"/user/%s/\"><i>%s %s</i></a> notifies you about %s." % (curr['person'].username, curr['person'].first_name, curr['person'].last_name, "one event" if curr['cnt'] == 1 else str(curr['cnt'])+" events"), link='#/show='+curr['pks'][1:], created=when), bulk=False) #posted by %s (...) "the event" (...) curr['business'].name
 
     def get_queryset(self):
-        if self.request.query_params.get('page', False):
+        if 'page' in self.request.query_params:
             return self.request.user.notification_set.filter(unread=False)
         else:
             rems = self.request.user.reminder_set.filter(when__lte=timezone.now())
@@ -246,15 +253,16 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                 for notif in event_notifies:
                     if curr['person'] != notif.from_person: #or curr['business'] is not notif.event.business
                         if curr['person']:
-                            self.add_event_notif(curr)
+                            self.add_event_notif(curr, notif.created)
                         curr['person'] = notif.from_person
                         #curr['business'] = notif.event.business
-                        curr['pks'] = []
+                        curr['pks'] = ''
                         curr['cnt'] = 0
                     # noinspection PyUnresolvedReferences
-                    curr['pks'].append(notif.event.pk)
+                    curr['pks'] += ','+str(notif.content_object.pk)
                     curr['cnt'] += 1
-                self.add_event_notif(curr)
+                # noinspection PyUnboundLocalVariable
+                self.add_event_notif(curr, notif.created)
                 event_notifies._raw_delete(event_notifies.db)
             comment_notifies = [None, None]
             comment_notifies[0] = EventNotification.objects.filter(to_person=self.request.user, is_comment=True)
@@ -269,7 +277,8 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                                 curr['pks'].append(notif.content_object.pk)
                             if notif.from_person != curr['persons'][-1]:
                                 curr['persons'].append(notif.from_person)
-                        self.request.user.notification_set.add(Notification(text="%s commented on your %s." % ("<a href='/user/%s/'><i>%s %s</i></a> has" % (curr['persons'][0].username, curr['persons'][0].first_name, curr['persons'][0].last_name) if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have", t[1] if len(curr['pks']) == 1 else str(len(curr['pks']))+" "+t[2]), link='#/show='+','.join(str(v) for v in curr['pks'])), bulk=False)
+                        # noinspection PyUnboundLocalVariable
+                        self.request.user.notification_set.add(Notification(text="%s commented on your %s." % ("<a href='/user/%s/'><i>%s %s</i></a> has" % (curr['persons'][0].username, curr['persons'][0].first_name, curr['persons'][0].last_name) if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have", t[1] if len(curr['pks']) == 1 else str(len(curr['pks']))+" "+t[2]), link='#/show='+','.join(str(v) for v in curr['pks'])+'&type='+t[0], created=notif.created), bulk=False)
                         comment_notifies[1]._raw_delete(comment_notifies[1].db)
 
             last = self.request.query_params.get('last', False)
@@ -277,68 +286,58 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                 return self.request.user.notification_set.filter(pk__gt=last, unread=True)
             return self.request.user.notification_set.filter(unread=True)
 
-def notifs_set_all_read(request):
+def base_notif_view(request, t, cont, **kwargs):
+    notxt = get_param_bool(request.GET.get('notxt', False))
     if request.user.is_authenticated():
         try:
-            notifs = Notification.objects.filter(pk__in=[n for n in request.GET['ids'].split(',') if n.isdigit()])
+            objpks = t()
         except:
             status = 400
-            text = "Invalid parameter provided."
+            text = "Invalid parameter provided." if not notxt else None
         else:
-            for notif in notifs:
-                if notif.unread:
-                    notif.unread = False
-                    notif.save()
-            status = 200
-            if get_param_bool(request.GET.get('notxt', False)):
-                text = None
-            else:
-                text = str(notifs.count())+" notifications have been marked as read."
+            status, text = cont(objpks, notxt, **kwargs)
     else:
         status = 403
-        text = "Authentication credentials were not provided."
+        text = "Authentication credentials were not provided." if not notxt else None
 
-    if text:
-        res = JSONRenderer().render({'detail': text})
-    else:
-        res = ''
+    res = JSONRenderer().render({'detail': text}) if text else ''
     return HttpResponse(res, status=status)
+
+def notifs_set_all_read(request):
+    def t():
+        return Notification.objects.filter(pk__in=[n for n in request.GET['ids'].split(',') if n.isdigit()])
+    def cont(objpks, notxt, **kwargs):
+        for notif in objpks:
+            if notif.unread:
+                notif.unread = False
+                notif.save()
+        return 200, str(objpks.count())+" notifications have been marked as read." if not notxt else None
+    return base_notif_view(request, t, cont)
 
 def send_notifications(request, pk):
-    if request.user.is_authenticated():
+    def t():
+        return [n for n in request.GET['to'].split(',') if n.isdigit()]
+    def cont(objpks, notxt, **kwargs):
         try:
-            ids = [n for n in request.GET['to'].split(',') if n.isdigit()]
+            event = Event.objects.get(pk=kwargs['pk'])
         except:
-            status = 400
-            text = "Invalid parameter provided."
+            status = 404
+            text = "Event not found." if not notxt else None
         else:
-            try:
-                event = Event.objects.get(pk=pk)
-            except:
-                status = 404
-                text = "Event not found."
-            else:
-                persons = User.objects.filter(pk__in=ids)
+            persons = User.objects.filter(pk__in=objpks)
+            if not notxt:
                 cnt = 0
-                for person in persons:
-                    if not EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=ContentType.objects.get_for_model(event), object_id=event.pk).exists():
-                        EventNotification.objects.create(from_person=request.user, to_person=person, content_type=ContentType.objects.get_for_model(event), object_id=event.pk)
+            for person in persons:
+                if request.user != person and not EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=ContentType.objects.get_for_model(event), object_id=event.pk).exists():
+                    EventNotification.objects.create(from_person=request.user, to_person=person, content_type=ContentType.objects.get_for_model(event), object_id=event.pk)
+                    if not notxt:
+                        # noinspection PyUnboundLocalVariable
                         cnt += 1
-
-                status = 200
-                if get_param_bool(request.GET.get('notxt', False)):
-                    text = None
-                else:
-                    text = str(cnt)+" persons have been notified."
-    else:
-        status = 403
-        text = "Authentication credentials were not provided."
-
-    if text:
-        res = JSONRenderer().render({'detail': text})
-    else:
-        res = ''
-    return HttpResponse(res, status=status)
+            status = 200
+            # noinspection PyUnboundLocalVariable
+            text = str(cnt)+" persons have been notified." if not notxt else None
+        return status, text
+    return base_notif_view(request, t, cont, pk=pk)
 
 
 class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
@@ -377,17 +376,18 @@ class FavouritesAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
-    serializer_class = serializers.EventSerializer
+class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination
+    filter = 'business__manager'
+    order_by = None
 
     def __init__(self):
         super().__init__()
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
     def get_queryset(self):
-        if self.request.query_params.get('ids', False):
-            qs = Event.objects.filter(pk__in=[n for n in self.request.query_params.get('ids').split(',') if n.isdigit()])
+        if 'ids' in self.request.query_params:
+            qs = self.model.objects.filter(pk__in=[n for n in self.request.query_params.get('ids').split(',') if n.isdigit()])
         else:
             if get_param_bool(self.request.query_params.get('user', False)):
                 if self.kwargs['pk']:
@@ -396,19 +396,25 @@ class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
                     self.kwargs['person'] = person
                 else:
                     person = self.request.user
-                qs = Event.objects.filter(business__manager=person) | generic_rel_filter(person.pk, Event, 'like')
+                qs = self.model.objects.filter(**{self.filter: person}) | generic_rel_filter(person.pk, self.model, 'like')
             else:
                 if self.request.method == 'GET' and self.kwargs['pk']:
                     business = get_object(self.kwargs['pk'], Business)
-                    qs = business.event_set
+                    qs = self.model.objects.filter(business=business)
                     #self.kwargs['person_business'] = True
                 elif self.request.method == 'GET':
-                    return Event.objects.all() # change from all to filter current surrounding events
+                    return self.getnopk()
                 elif self.kwargs['pk']:
-                    return Event.objects.filter(pk=self.kwargs['pk'])
+                    return self.model.objects.filter(pk=self.kwargs['pk'])
                 else:
-                    return Event.objects.none()
-        return qs.order_by('-when', '-pk')
+                    return self.model.objects.none()
+        # noinspection PyArgumentList,PyUnboundLocalVariable
+        return qs.order_by(*self.order_by) if self.order_by else qs
+
+    def paginate_queryset(self, queryset):
+        if 'ids' not in self.request.query_params:
+            return super().paginate_queryset(queryset)
+        return None
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -416,6 +422,59 @@ class EventAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
             context['person'] = self.kwargs['person']
         return context
 
+class EventAPIView(BaseAPIView):
+    serializer_class = serializers.EventSerializer
+    model = Event
+    order_by = ('-when', '-pk')
+
+    def __init__(self):
+        super().__init__()
+        def f():
+            return Event.objects.all() # change from all to filter current surrounding events
+        self.getnopk = f
+
+class ItemAPIView(BaseAPIView):
+    serializer_class = serializers.ItemSerializer
+    model = Item
+
+    def __init__(self):
+        super().__init__()
+        def f():
+            try:
+                business = Business.objects.get(manager=self.request.user)
+            except:
+                raise NotFound(NOT_MANAGER_MSG)
+            return Item.objects.filter(business=business)
+        self.getnopk = f
+
+    def paginate_queryset(self, queryset):
+        if 'menu' not in self.request.query_params:
+            return super().paginate_queryset(queryset)
+        return None
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if 'ids' not in self.request.query_params and not get_param_bool(self.request.query_params.get('user', False)):
+            if get_param_bool(self.request.query_params.get('menu', False)):
+                context['menu'] = None
+            else:
+                context['hiddenbusiness'] = None
+        return context
+
+
+def get_type(request):
+    pk = request.query_params.get('content_type', False)
+    if pk:
+        if int(pk) in CONTENT_TYPES_PK:
+            return ContentType.objects.get(pk=pk)
+        else:
+            raise NotFound("Content type not found.")
+    return False
+
+def get_qs(model, request, pk):
+    ct = get_type(request)
+    obj = get_object(pk, ct.model_class() if ct else Event)
+    return model.objects.filter(content_type=ct if ct else settings.CONTENT_TYPES['event'], object_id=obj.pk)
 
 class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
     serializer_class = serializers.LikeSerializer
@@ -426,32 +485,16 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
 
     def get_queryset(self):
         if self.kwargs['pk']:
-            event = get_object(self.kwargs['pk'], Event)
-            qs = Like.objects.filter(content_type=ContentType.objects.get_for_model(event), object_id=event.pk)
-            if self.request.query_params.get('is_dislike', False):
+            qs = get_qs(Like, self.request, self.kwargs['pk'])
+            if 'is_dislike' in self.request.query_params:
                 qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
             return sort_related(qs, self.request.user.pk)
         elif self.request.method == 'GET':
             raise MethodNotAllowed("No primary key")
 
     def get_object(self):
-        return get_object_or_404(Like, content_type=settings.CONTENT_TYPES['event'], object_id=self.kwargs['pk'], person=self.request.user)
-
-
-class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
-    serializer_class = serializers.ReminderSerializer
-
-    def __init__(self):
-        super().__init__()
-        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
-
-    def get_queryset(self):
-        if self.kwargs['pk']:
-            person = get_object(self.kwargs['pk'], User)
-        else:
-            person = self.request.user
-        return Reminder.objects.filter(person=person)
-
+        ct = get_type(self.request)
+        return get_object_or_404(Like, content_type=ct if ct else settings.CONTENT_TYPES['event'], object_id=self.kwargs['pk'], person=self.request.user)
 
 class CommentAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = serializers.CommentSerializer
@@ -466,10 +509,9 @@ class CommentAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
             if not self.kwargs['pk']:
                 self.pagination_class = pagination.PageNumberPagination
                 return Comment.objects.filter(person=self.request.user)
-            event = get_object(self.kwargs['pk'], Event)
-            qs = Comment.objects.filter(content_type=ContentType.objects.get_for_model(event), object_id=event.pk)
+            qs = get_qs(Comment, self.request, self.kwargs['pk'])
             self.paginator.count = qs.count()
-            #if self.request.query_params.get('exclude', False):
+            #if 'exclude' in self.request.query_params:
             #    qs = qs.exclude(pk__in=[n for n in self.request.query_params.get('exclude').split(',') if n.isdigit()])
             return qs
         if self.kwargs['pk']:
@@ -482,25 +524,19 @@ class CommentAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         return context
 
 
-class ItemAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
-    serializer_class = serializers.ItemSerializer
-    pagination_class = None
+class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    serializer_class = serializers.ReminderSerializer
 
     def __init__(self):
         super().__init__()
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
     def get_queryset(self):
-        #if self.kwargs['pk']:
         if self.request.method == 'GET':
-            if not self.kwargs['pk']:
-                try:
-                    business = Business.objects.get(manager=self.request.user)
-                except:
-                    raise NotFound(NOT_MANAGER_MSG)
+            if self.kwargs['pk']:
+                person = get_object(self.kwargs['pk'], User)
             else:
-                business = get_object(self.kwargs['pk'], Business)
-            return Item.objects.filter(business=business)
-        if self.kwargs['pk']:
-            return Item.objects.filter(pk=self.kwargs['pk'])
-        return Item.objects.none()
+                person = self.request.user
+            return Reminder.objects.filter(person=person)
+        else:
+            return Reminder.objects.filter(pk=self.kwargs['pk']) if self.kwargs['pk'] else Reminder.objects.none()

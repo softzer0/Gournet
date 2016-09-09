@@ -105,7 +105,7 @@ class Notification(models.Model):
     text = models.TextField()
     link = models.CharField(max_length=150)
     unread = models.BooleanField(default=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ['-created']
@@ -118,6 +118,7 @@ class Relationship(models.Model):
 
     class Meta:
         unique_together = (('from_person', 'to_person'),)
+
     def __str__(self):
         return '%s with %s' % (self.from_person.get_username(), self.to_person.get_username())
 
@@ -298,6 +299,7 @@ class EventNotification(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     is_comment = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = (('from_person', 'to_person', 'content_type', 'object_id', 'is_comment'),)
@@ -318,6 +320,14 @@ class Comment(models.Model):
 def comment_save_notification(sender, instance, *args, **kwargs):
     if instance.person != instance.content_object.business.manager and not EventNotification.objects.filter(from_person=instance.person, content_type=ContentType.objects.get_for_model(instance.content_object), object_id=instance.content_object.id, to_person=instance.content_object.business.manager, is_comment=True).exists():
         EventNotification.objects.create(from_person=instance.person, content_type=ContentType.objects.get_for_model(instance.content_object), object_id=instance.content_object.id, to_person=instance.content_object.business.manager, is_comment=True)
+
+@receiver(pre_delete, sender=Comment, dispatch_uid='comment_delete_notification')
+def comment_delete_notification(sender, instance, *args, **kwargs):
+    if instance.person != instance.content_object.business.manager:
+        try:
+            EventNotification.objects.get(from_person=instance.person, content_type=ContentType.objects.get_for_model(instance.content_object), object_id=instance.content_object.id, to_person=instance.content_object.business.manager, is_comment=True).delete()
+        except:
+            pass
 
 class Like(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)

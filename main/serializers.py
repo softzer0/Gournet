@@ -110,16 +110,13 @@ def chkbusiness(business):
     if not business:
         raise serializers.ValidationError({'non_field_errors': [NOT_MANAGER_MSG]})
 
-class EventSerializer(serializers.ModelSerializer):
+class BaseSerializer(serializers.ModelSerializer):
     business = BusinessSerializer(read_only=True, default=CurrentBusinessDefault())
     like_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
     curruser_status = serializers.SerializerMethodField()
     person_status = serializers.SerializerMethodField()
-    comment_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Event
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -133,6 +130,11 @@ class EventSerializer(serializers.ModelSerializer):
         chkbusiness(attrs['business'])
         return chktime(attrs) #, timedelta(minutes=1)
 
+    def get_qs(self, obj):
+        if not hasattr(self, 'likes_qs'):
+            self.likes_qs = Like.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk)
+        return self.likes_qs
+
     def p_status(self, obj, t=None):
         if t:
             person = self.context['person']
@@ -142,7 +144,8 @@ class EventSerializer(serializers.ModelSerializer):
             return -1
         if obj.business.manager != person: #and person.is_authenticated()
             try:
-                is_dislike = Like.objects.get(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk, person=person).is_dislike
+                # noinspection PyUnresolvedReferences
+                is_dislike = self.get_qs(obj).filter(person=person).is_dislike
             except:
                 return 0
             else:
@@ -156,13 +159,40 @@ class EventSerializer(serializers.ModelSerializer):
         return self.p_status(obj, True)
 
     def get_like_count(self, obj):
-        return Like.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk, is_dislike=False).count()
+        return self.get_qs(obj).filter(is_dislike=False).count()
 
     def get_dislike_count(self, obj):
-        return Like.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk, is_dislike=True).count()
+        return self.get_qs(obj).filter(is_dislike=True).count()
 
     def get_comment_count(self, obj):
         return Comment.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk).count()
+
+class EventSerializer(BaseSerializer):
+    class Meta:
+        model = Event
+
+class ItemSerializer(BaseSerializer):
+    class Meta:
+        model = Item
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Item.objects.all(),
+                fields=('business', 'name'),
+                message="An item with the same name already exists."
+            )
+        ]
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if 'hiddenbusiness' in self.context or 'menu' in self.context:
+            self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
+        if 'menu' in self.context:
+            self.fields.pop('like_count')
+            self.fields.pop('dislike_count')
+            self.fields.pop('comment_count')
+            self.fields.pop('curruser_status')
+
 
 class ReminderSerializer(serializers.ModelSerializer):
     person = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -178,7 +208,10 @@ class ReminderSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        return chktime(attrs, timedelta(minutes=1))
+        attrs = chktime(attrs, timedelta(minutes=1))
+        if attrs['when'] > attrs['event'].when:
+            raise serializers.ValidationError({'event': "The reminder date exceeds the event date, or the event is in the past."})
+        return attrs
 
 
 def exists(attrs):
@@ -208,23 +241,6 @@ class LikeSerializer(serializers.ModelSerializer):
         attrs = exists(attrs)
         if attrs['content_object'].business.manager == self.context['request'].user:
             raise serializers.ValidationError({'non_field_errors': ["You can't give a (dis)like to your own "+attrs['content_type'].model+'.']})
-        return attrs
-
-class ItemSerializer(serializers.ModelSerializer):
-    business = serializers.HiddenField(default=CurrentBusinessDefault())
-
-    class Meta:
-        model = Item
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Item.objects.all(),
-                fields=('business', 'name'),
-                message="An item with the same name already exists."
-            )
-        ]
-
-    def validate(self, attrs):
-        chkbusiness(attrs['business'])
         return attrs
 
 

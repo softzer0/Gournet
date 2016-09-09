@@ -17,8 +17,8 @@
                         {% if rel_state > -1 %}<li><a href="javascript:" ng-dialog-message="{% verbatim %}{{ rel_state_msg }}{% endverbatim %}" ng-dialog-click="doFriendRequestAction()"><i class="fa" ng-class="rel_state == 0 || rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i> <span ng-if="rel_state == 0">{% verbatim %}{{ friends_count > 0 ? 'I meni je prijatelj' : 'Moj je prijatelj' }}{% endverbatim %}</span><span ng-if="rel_state == 1">Otkaži zahtev za prijateljstvo</span><span ng-if="rel_state == 2">Prihvati zahtev za prijateljstvo</span><span ng-if="rel_state == 3">Nije mi više prijatelj</span></a></li>{% endif %}{% endblock %}
 
 {% block content %}<uib-tab index="0" heading="Events">
-						<div class="mn1">
-{% load rawinclude %}{% raw_include 'main/events.html' %}
+						<div class="mn1" ng-init="t = 'event'">
+                            {% load rawinclude %}{% raw_include 'main/events.html' %}
                         </div>
                     </uib-tab>
 

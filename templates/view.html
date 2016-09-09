@@ -61,7 +61,9 @@
 							</form>
 						</div>{% endif %}
 
-{% load rawinclude %}{% raw_include 'main/events.html' %}
+                        <div class="mn1 vi" ng-init="t = 'event'">
+                            {% load rawinclude %}{% raw_include 'main/events.html' %}
+                        </div>
                     </uib-tab>
 
                     <uib-tab index="1" heading="Menu">

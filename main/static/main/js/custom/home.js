@@ -1,4 +1,4 @@
-var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime']) /*, 'oc.lazyLoad', 'angularCSS'*/
+var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime']) /*, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'*/
     .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
@@ -8,13 +8,24 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         $stateProvider
             .state('main', { url: '/' })
-            .state('main.showEvents', {
-                url: 'show=:ids',
+            .state('main.showObjs', {
+                url: 'show=:ids&type=:type',
                 modal: true,
                 templateUrl: BASE_MODAL,
                 size: 'lg',
-                controller: function ($scope, $uibModalInstance, $state, $stateParams, $timeout, eventService) {
-                    $scope.title = "Events";
+                controller: function ($scope, $uibModalInstance, $state, $stateParams, $timeout, $injector, CONTENT_TYPES) {
+                    if ($stateParams.type !== undefined) if (CONTENT_TYPES[$stateParams.type] !== undefined) $scope.t = $stateParams.type; else $scope.t = 'event'; //,item,review
+                    var objService = $injector.get($scope.t+'Service');
+                    switch ($scope.t) {
+                        case 'event':
+                            $scope.title = "Events";
+                            break;
+                        case 'item':
+                            $scope.title = "Items";/*
+                            break;
+                        case 'review':
+                            $scope.title = "Reviews";*/
+                    }
                     $scope.file = 'events';
 
                     $scope.close = function() { $uibModalInstance.dismiss('cancel') };
@@ -28,10 +39,10 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     };
                     $scope.set_loaded = function (){ $scope.loaded = true; };
 
-                    $scope.events = eventService.events(true);
-                    eventService.load($stateParams.ids.split(',')).then(
+                    $scope.objs = objService.getobjs(true);
+                    objService.load($stateParams.ids.split(',')).then(
                         function () { $timeout(function () {
-                            if ($scope.events.length == 0) {
+                            if ($scope.objs.length == 0) {
                                 $scope.set_loaded();
                                 //$scope.enableAnimation();
                             }
@@ -85,6 +96,21 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 });
             }
         }
+    })
+
+    .directive('dynamicController', function($controller) {
+        return {
+            restrict: 'A',
+            scope: true,
+            link: function (scope, element, attrs) {
+                var locals = {
+                    $scope: scope,
+                    $element: element,
+                    $attrs: attrs
+                };
+                element.data('$Controller', $controller(scope.$eval(attrs.dynamicController), locals));
+            }
+        };
     })
 
     .factory('usersModalService', function($uibModal, BASE_MODAL) {
@@ -223,7 +249,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     'salad': menu[2].content[6].content,
                     'dessert': menu[2].content[7].content
                 };
-                return itemService.query({id: id},
+                return itemService.query({id: id, menu: true},
                     function (result){
                         var i, c = result[0].category;
                         for (i = 0; i < result.length; i++){
@@ -250,9 +276,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .factory('eventService', function ($q, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES){
-        var events = [[],[]], page_num = 1, id = null, s = APIService.init(2), likeService = APIService.init(3), commentService = APIService.init(7), u = false, remids = [];
-
+    .factory('uniService', function ($q, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES){
         function dynamicSort(property) {
             var sortOrder;
             if(property[0] === '-') {
@@ -279,184 +303,257 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             }
         }
 
-        function remove(e, index, r) {
-            if (r) for (var i = 0; i < events[0].length; i++) if (events[0][i].id == e[index].id) {
-                events[0].splice(i, 1);
-                break;
+        var u = false, id = null, likeService = APIService.init(3), commentService = APIService.init(7);
+
+        function UniObj(t){
+            this.objs = [[],[], t];
+            switch (t){
+                case 'event':
+                    this.s = APIService.init(2);
+                    break;
+                case 'item':
+                    this.s = APIService.init(8);/*
+                    break;
+                case 'review':
+                    this.s = APIService.init(9);*/
             }
-            if (!r || !u) e.splice(index, 1); else remids.push(e[index].id);
+            this.page_num = 1;
+            this.remids = [];
         }
 
-        return {
-            events: function (t, n) {
-                var e;
-                e = t ? events[1] : events[0];
-                if (n === undefined) e.length = 0;
-                return e;
-            },
-            load: function (b, rel_state){
-                var ids = null, d;
-                if (b !== undefined) if (angular.isArray(b)) {
-                    var p;
-                    ids = '';
-                    for (var i = 0; i < b.length && b[i] !== undefined; i++) {
-                        p = false;
-                        for (var j = i + 1; j < b.length; j++) if (b[j] == b[i]) {
-                            delete b[i];
-                            p = true;
-                        }
-                        if (!p) if (/^\d+$/.test(b[i])) {
-                            for (d in events[0]) if (events[0][d].id == b[i]) {
-                                var ev = jQuery.extend(true, {}, events[0][d]);
-                                delete ev.comments;
-                                delete ev.user_comments;
-                                events[1].push(ev);
-                                p = true;
-                                break;
-                            }
-                            if (!p) ids += ','+b[i];
-                        }
+        UniObj.prototype.remove = function (e, index, r) {
+            if (r) for (var i = 0; i < this.objs[0].length; i++) if (this.objs[0][i].id == e[index].id) {
+                this.objs[0].splice(i, 1);
+                break;
+            }
+            if (!r || !u) e.splice(index, 1); else this.remids.push(e[index].id);
+        };
+
+        UniObj.prototype.getobjs = function (t, n) {
+            var e;
+            e = t ? this.objs[1] : this.objs[0];
+            if (n === undefined) e.length = 0;
+            return e;
+        };
+
+        UniObj.prototype.load = function (b, rel_state) {
+            var ids = null, d;
+            if (b !== undefined) if (angular.isArray(b)) {
+                var p;
+                ids = '';
+                for (var i = 0; i < b.length && b[i] !== undefined; i++) {
+                    p = false;
+                    for (var j = i + 1; j < b.length; j++) if (b[j] == b[i]) {
+                        delete b[i];
+                        p = true;
                     }
-                    ids = ids.substr(1);
-                } else id = b;
-                d = {page: page_num, ids: ids};
-                if (ids == '') return $q.when(); else if (ids == null) d.id = id;
+                    if (!p) if (/^\d+$/.test(b[i])) {
+                        for (d in this.objs[0]) if (this.objs[0][d].id == b[i]) {
+                            var ev = angular.merge({}, this.objs[0][d]);
+                            delete ev.comments;
+                            delete ev.user_comments;
+                            this.objs[1].push(ev);
+                            p = true;
+                            break;
+                        }
+                        if (!p) ids += ',' + b[i];
+                    }
+                }
+                ids = ids.substr(1);
+            } else id = b;
+            if (ids == '') return $q.when(); else if (ids == null) {
+                d = {page: this.page_num, id: id};
                 if (rel_state !== undefined) {
                     u = rel_state == -1;
                     d.user = 1;
                 }
-                return s.get(d,
-                    function (result){
-                        var e;
-                        e = ids == null ? events[0] : events[1];
-                        e.push.apply(e, result.results);
-                        e.has_next_page = result.page_count > page_num;
-                        page_num++;
+                var self = this;
+                return this.s.get(d,
+                    function (result) {
+                        self.objs[0].push.apply(self.objs[0], result.results);
+                        self.objs[0].has_next_page = result.page_count > self.page_num;
+                        self.page_num++;
                     }).$promise
-            },
-            new: function(txt, when) {
-                return s.save({text: txt, when: when}, function (result){ events[0].unshift(result) }).$promise
-            },
-            del: function (index, r, par_ind, p) {
-                var e;
-                e = r ? events[1] : events[0];
-                p = p ? e[par_ind].comments : e[par_ind].user_comments;
-                if (par_ind !== undefined) return commentService.delete({id: p[index].id}, function (){
-                    p.splice(index, 1);
-                    e[par_ind].comment_count--;
-                }).$promise; else return s.delete({id: e[index].id}, function (){ remove(e, index, r) }).$promise
-            },
-            setLikeStatus: function (index, dislike, r) {
-                var e;
-                e = r ? events[1] : events[0];
-                var old_status = e[index].curruser_status, status, s;
-                if (old_status == 1 && !dislike || old_status == 2 && dislike) {
-                    s = likeService.delete({id: e[index].id});
-                    if (u) remove(e, index, r);
-                    status = 0;
-                } else {
-                    var d = {content_type: CONTENT_TYPES['event'], object_id: e[index].id, is_dislike: dislike};
-                    if (old_status > 0) s = likeService.update(d); else s = likeService.save(d);
-                    status = dislike ? 2 : 1;
-                }
-                return s.$promise.then(
-                    function (){
-                        if (status > 0) {
-                            if (status == 1) {
-                                e[index].like_count++;
-                                if (old_status == 2) e[index].dislike_count--;
-                            } else {
-                                e[index].dislike_count++;
-                                if (old_status == 1) e[index].like_count--;
-                            }
-                            if (!r && u) e[index].person_status = status;
-                        } else {
-                            if (!r && u) return;
-                            if (old_status == 1) e[index].like_count--; else if (old_status == 2) e[index].dislike_count--;
-                        }
-                        e[index].curruser_status = status;
-                        if (r && u && old_status == 0) for (var i = 0; i < remids.length; i++) if (remids[i] == e[index].id) {
-                            remids.splice(i, 1);
-                            events[0].push(e[index]);
-                            events[0].sort(dynamicSortMultiple('-when', '-id'));
-                        }
-                    });
-            },
-            loadComments: function (index, pg, r){
-                var e;
-                e = (r ? events[1] : events[0])[index];
-                return commentService.get({id: e.id, page: pg},
-                    function (result){
-                        if (!e.hasOwnProperty('comments')) e.comments = [];
-                        result.results.splice(0, e.comments.length % COMMENT_PAGE_SIZE);
-                        e.comments.push.apply(e.comments, result.results);
-                        if (e.hasOwnProperty('user_comments')) for (var i = 0; i < result.results.length; i++) for (var j = 0; j < e.user_comments.length; j++) if (result.results[i].id == e.user_comments[j].id) e.user_comments.splice(j, 1);
-                        e.comment_count = result.comment_count;
-                    }).$promise;
-            },
-            submitComment: function (index, txt, r){
-                var e;
-                e = (r ? events[1] : events[0])[index];
-                return commentService.save({content_type: CONTENT_TYPES['event'], object_id: e.id, text: txt},
-                    function (result){
-                        if (!e.hasOwnProperty('user_comments')) e.user_comments = [];
-                        e.user_comments.push(result);
-                        e.comment_count++;
-                    }).$promise;
+            } else {
+                d = this.objs[1];
+                return this.s.query({ids: ids},
+                    function (result) {
+                        d.push.apply(d, result);
+                    }).$promise
             }
-        }
+        };
+
+        UniObj.prototype.new = function(txt, when) {
+            var objs = this.objs[0];
+            return this.s.save({text: txt, when: when}, function (result){ objs.unshift(result) }).$promise
+        };
+
+        UniObj.prototype.del = function (index, r, par_ind, p) {
+            var e;
+            e = r ? this.objs[1] : this.objs[0];
+            p = p ? e[par_ind].comments : e[par_ind].user_comments;
+            if (par_ind !== undefined) return commentService.delete({id: p[index].id}, function () {
+                p.splice(index, 1);
+                e[par_ind].comment_count--;
+            }).$promise; else {
+                var self = this;
+                return this.s.delete({id: e[index].id}, function (){ self.remove(e, index, r) }).$promise;
+            }
+        };
+
+        UniObj.prototype.setLikeStatus = function (index, dislike, r) {
+            var e;
+            e = r ? this.objs[1] : this.objs[0];
+            var old_status = e[index].curruser_status, status, s;
+            if (old_status == 1 && !dislike || old_status == 2 && dislike) {
+                s = likeService.delete({content_type: CONTENT_TYPES[this.objs[2]], id: e[index].id});
+                if (u) this.remove(e, index, r);
+                status = 0;
+            } else {
+                var d = {content_type: CONTENT_TYPES[this.objs[2]], object_id: e[index].id, is_dislike: dislike};
+                if (old_status > 0) s = likeService.update(d); else s = likeService.save(d);
+                status = dislike ? 2 : 1;
+            }
+            var self = this;
+            return s.$promise.then(
+                function (){
+                    if (status > 0) {
+                        if (status == 1) {
+                            e[index].like_count++;
+                            if (old_status == 2) e[index].dislike_count--;
+                        } else {
+                            e[index].dislike_count++;
+                            if (old_status == 1) e[index].like_count--;
+                        }
+                        if (!r && u) e[index].person_status = status;
+                    } else {
+                        if (!r && u) return;
+                        if (old_status == 1) e[index].like_count--; else if (old_status == 2) e[index].dislike_count--;
+                    }
+                    e[index].curruser_status = status;
+                    if (r && u && old_status == 0) for (var i = 0; i < self.remids.length; i++) if (self.remids[i] == e[index].id) {
+                        self.remids.splice(i, 1);
+                        self.objs[0].push(e[index]);
+                        self.objs[0].sort(self.objs[0].when !== undefined ? dynamicSortMultiple('-when', '-id') : dynamicSort('-id'));
+                    }
+                });
+        };
+
+        UniObj.prototype.loadComments = function (index, pg, r){
+            var e;
+            e = (r ? this.objs[1] : this.objs[0])[index];
+            return commentService.get({content_type: CONTENT_TYPES[this.objs[2]], id: e.id, page: pg},
+                function (result){
+                    if (!e.comments !== undefined) e.comments = [];
+                    result.results.splice(0, e.comments.length % COMMENT_PAGE_SIZE);
+                    e.comments.push.apply(e.comments, result.results);
+                    if (e.user_comments !== undefined) for (var i = 0; i < result.results.length; i++) for (var j = 0; j < e.user_comments.length; j++) if (result.results[i].id == e.user_comments[j].id) e.user_comments.splice(j, 1);
+                    e.comment_count = result.comment_count;
+                }).$promise;
+        };
+
+        UniObj.prototype.submitComment = function (index, txt, r){
+            var e;
+            e = (r ? this.objs[1] : this.objs[0])[index];
+            return commentService.save({content_type: CONTENT_TYPES[this.objs[2]], object_id: e.id, text: txt},
+                function (result){
+                    if (!e.user_comments !== undefined) e.user_comments = [];
+                    e.user_comments.push(result);
+                    e.comment_count++;
+                }).$promise;
+        };
+
+        return { getInstance: function (t) { return new UniObj(t) } }
     })
 
-    .factory('eventActionsService', function ($timeout, $uibModal, usersModalService, eventService) {
-        var loading, currTime;
+    .factory('eventService', function (uniService) { return uniService.getInstance('event') })
 
-        return {
-            setCurrTime: function(t) { currTime = (new Date(t)).valueOf() },
-            giveDisLike: function(index, dislike, r) {
-                if (loading) return;
-                loading = true;
-                function l(){ $timeout(function () { loading = false }) }
-                eventService.setLikeStatus(index, dislike, r).then(l, l);
-            },
-            delete: function (index, r, par_ind, p){ eventService.del(index, r, par_ind, p) },
-            showDisLikes: function (index, r) { usersModalService.setAndOpen(eventService.events(r, true)[index].id, 3) },
-            notifySelect: function (index, r){ usersModalService.setAndOpen(null, 0, eventService.events(r, true)[index].id) },
-            isFuture: function (index, r) { return (new Date(eventService.events(r, true)[index].when)).valueOf() > currTime },
-            toggleHr: function (f, lr) { if (f) if (lr) return angular.element('.events_false .ng-leave').length; else return true; else return false }
+    .controller('BaseCtrl', function ($rootScope, $scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
+        $scope.r = $scope.$parent.objs !== undefined;
+        $scope.objs = $scope.r ? $scope.$parent.objs : objService.getobjs();
+
+        var id, r_s;
+        if ($scope.$parent.$parent.$parent != null) {
+            id = $scope.$parent.$parent.$parent.id;
+            r_s = $scope.$parent.$parent.$parent.rel_state;
         }
-    })
-
-    .controller('EventsCtrl', function ($rootScope, $scope, $timeout, APIService, eventService, eventActionsService, COMMENT_PAGE_SIZE) {
-        $scope.r = $scope.$parent.events !== undefined;
-        $scope.events = $scope.r ? $scope.$parent.events : eventService.events();
-        $scope.a = eventActionsService;
-        $rootScope.$watch('currTime', function (){ $scope.a.setCurrTime($rootScope.currTime) });
-
-        if ($scope.$parent.$parent.$parent != null) var id = $scope.$parent.$parent.$parent.id, r_s = $scope.$parent.$parent.$parent.rel_state;
         if (!$scope.r) {
             $scope.loading = true;
             var l = function() { $scope.loading = false };
-            eventService.load(id, r_s).then(l /*function () { $timeout(function () { if ($scope.events.length == 0) $scope.enableAnimation() }) }*/);
+            objService.load(id, r_s).then(l /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
             $scope.load_page = function (){
                 $scope.loading = true;
-                eventService.load().then(l, l);
+                objService.load().then(l, l);
             };
         }
-        
+
+        $scope.delete = function (index, r, par_ind, p){ objService.del(index, r, par_ind, p) };
+
+        $scope.showDisLikes = function (index, r) { usersModalService.setAndOpen(objService.getobjs(r, true)[index].id, 3) };
+
+        $scope.toggleHr = function (f, lr) { if (f) if (lr) return angular.element('.objsfalse_'+$scope.$parent.t+' .ng-leave').length; else return true; else return false };
+
+        var loading = false;
+        $scope.giveDisLike = function(index, dislike, r) {
+            if (loading) return;
+            loading = true;
+            function l(){ $timeout(function () { loading = false }) }
+            objService.setLikeStatus(index, dislike, r).then(l, l);
+        };
+
+        function load_comments(index){
+            function l() { $timeout(function (){ $scope.showcomm[index][0] = true }) }
+            objService.loadComments(index, $scope.objs[index].comments !== undefined ? Math.floor($scope.objs[index].comments.length / COMMENT_PAGE_SIZE) + 1 : 1, $scope.r).then(l, l);
+        }
+
+        $scope.showcomm = [];
+        $scope.showComments = function(index) {
+            if (!$scope.showcomm.hasOwnProperty(index)) {
+                $scope.showcomm[index] = [false, true];
+                load_comments(index);
+            } else $scope.showcomm[index][1] = !$scope.showcomm[index][1];
+        };
+
+        $scope.show_next = function (index){
+            if (!$scope.objs[index].comments !== undefined) return false;
+            if ($scope.showcomm[index][0]) {
+                if ($scope.objs[index].user_comments !== undefined) if ($scope.objs[index].comment_count == $scope.objs[index].comments.length + $scope.objs[index].user_comments.length) return false;
+                return $scope.objs[index].comment_count > $scope.objs[index].comments.length;
+            } else return false;
+        };
+
+        $scope.load_next = function (index){
+            $scope.showcomm[index][0] = false;
+            load_comments(index);
+        };
+
+        $scope.submitComment = function (index) {
+            var el = angular.element('#'+$scope.$parent.t+index);
+            if (el.val() != '') objService.submitComment(index, el.val(), $scope.r).then(function () { el.val('') })
+        }
+    })
+
+    .controller('EventsCtrl', function($scope, $rootScope, $controller, $timeout, usersModalService, eventService, APIService) {
+        angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: eventService}));
+
+        $scope.notifySelect = function (index, r){ usersModalService.setAndOpen(null, 0, eventService.getobjs(r, true)[index].id) };
+
+        $scope.isFuture = function (index, r) { return (new Date(eventService.getobjs(r, true)[index].when)).valueOf() > $rootScope.currTime };
+
         function subTime(d,h,m,v){
             var r = new Date(d);
             r.setHours(d.getHours()-h);
             r.setMinutes(d.getMinutes()-m);
             r.setSeconds(0, 0);
-            if (v) return r.valueOf(); else return r;
+            return v ? r.valueOf() : r;
         }
         var when, index;
         $scope.cmb = {choices: ["(Custom)"]};
         $scope.picker = {options: {minDate: subTime($rootScope.currTime, 0, -1)}};
         $scope.initRmn = function (ind){
-            if (index !== undefined) if ($scope.events[ind].id == $scope.events[index].id) return;
+            if (index !== undefined) if ($scope.objs[ind].id == $scope.objs[index].id) return;
             index = ind;
-            when = new Date($scope.events[index].when);
+            when = new Date($scope.objs[index].when);
             $scope.picker.options.maxDate = when;
             $scope.cmb.choices.length = 1;
             var md = $scope.picker.options.minDate.valueOf();
@@ -580,44 +677,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             var curr = subTime($rootScope.currTime, 0, -1);
             if ($scope.picker.date === undefined || $scope.picker.date < curr) $scope.picker.date = curr;
             $scope.picker.options.minDate = curr;
-            reminderService.save({event: $scope.events[index].id, when: $scope.picker.date},
+            reminderService.save({event: $scope.objs[index].id, when: $scope.picker.date},
                 function (){
                     $scope.cmb.opened[index] = false;
                     $timeout(function () { $scope.working = false });
                 },
                 function () { $scope.working = false });
         };
-
-        $scope.showcomm = [];
-        $scope.showComments = function(index) {
-            if (!$scope.showcomm.hasOwnProperty(index)) {
-                $scope.showcomm[index] = [false, true];
-                load_comments(index);
-            } else $scope.showcomm[index][1] = !$scope.showcomm[index][1];
-        };
-
-        $scope.show_next = function (index){
-            if (!$scope.events[index].hasOwnProperty('comments')) return false;
-            if ($scope.showcomm[index][0]) {
-                if ($scope.events[index].hasOwnProperty('user_comments')) if ($scope.events[index].comment_count == $scope.events[index].comments.length + $scope.events[index].user_comments.length) return false;
-                return $scope.events[index].comment_count > $scope.events[index].comments.length;
-            } else return false;
-        };
-
-        $scope.load_next = function (index){
-            $scope.showcomm[index][0] = false;
-            load_comments(index);
-        };
-
-        function load_comments(index){
-            function l() { $timeout(function (){ $scope.showcomm[index][0] = true }) }
-            eventService.loadComments(index, $scope.events[index].comments !== undefined ? Math.floor($scope.events[index].comments.length / COMMENT_PAGE_SIZE) + 1 : 1, $scope.r).then(l, l);
-        }
-
-        $scope.submitComment = function (index) {
-            var el = angular.element('#txt_'+index);
-            if (el.val() != '') eventService.submitComment(index, el.val(), $scope.r).then(function () { el.val('') })
-        }
     })
 
     .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, usersModalService) { //, $interval
@@ -641,7 +707,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             templateUrl: BASE_MODAL,
                             windowTopClass: 'sett',
                             controller: 'SettModalCtrl',
-                            resolve: { index: function (){ return index; } }
+                            resolve: { index: function (){ return index } }
                         });
                     };
                     $scope.close = function() { $uibModalInstance.dismiss('cancel') };
@@ -728,6 +794,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             $scope.EmailSelected();
         });
         $scope.addEmail = function () {
+            if ($scope.obj.email === undefined) return;
             for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
             emailService.add($scope.obj.email).then(function (){
                 $scope.sent.push($scope.obj.email);
@@ -772,7 +839,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             delete $scope.pass_err_txt;
         };
         $scope.changePassword = function () {
-            //if (!$scope.changepw.$valid) return;
+            for (var i = 0; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
             var pw_fields = angular.element('input[type="password"]');
             if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
                 //if ($scope.pass_err != 4) {
@@ -792,18 +859,17 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 return;
             }
             $scope.dismissError();
-            var i = 0;
             $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
                 $scope.pass_err = 0;
-                for (; i < 3; i++) $scope.obj.pass[i] = '';
+                for (i = 0; i < 3; i++) $scope.obj.pass[i] = '';
             }, function (response){
-                if (response.data.hasOwnProperty('form_errors')) {
+                if (response.data.form_errors !== undefined) {
                     var err = 0;
                     $scope.pass_err_txt = '';
                     for (var e in response.data.form_errors) {
                         //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
                         if (e == 'oldpassword') err += 1; else err += 2;
-                        for (; i < response.data.form_errors[e].length; i++) {
+                        for (i = 0; i < response.data.form_errors[e].length; i++) {
                             if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
                             $scope.pass_err_txt += response.data.form_errors[e][i];
                         }
@@ -954,7 +1020,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         $scope.makeSel = function (i) {
             //if ($scope.event !== undefined) {
             if ($scope.event === undefined || $scope.working) return;
-            $scope.elems[i].selected = $scope.elems[i].hasOwnProperty('selected') ? !$scope.elems[i].selected : true;
+            $scope.elems[i].selected = $scope.elems[i].selected !== undefined ? !$scope.elems[i].selected : true;
             if ($scope.elems[i].selected) $scope.sel_cnt++; else $scope.sel_cnt--;
             //} else $window.location.href = '/'+($scope.favs ? $scope.elems[i].shortname : 'user/'+$scope.elems[i].username)+'/'
         };
