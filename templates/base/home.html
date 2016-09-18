@@ -29,7 +29,8 @@
     <script>app.constant('BASE_MODAL', '{{ settings.STATIC_URL }}main/modals/base.html')
             .constant('COMMENT_PAGE_SIZE', {{ settings.COMMENT_PAGE_SIZE }})
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
-            .constant('CONTENT_TYPES', {% load getextend %}{{ '{' }}{% for ct in settings.CONTENT_TYPES %}{{ ct }}: {{ settings.CONTENT_TYPES|get_item:ct|get_attr:'pk' }}{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})</script>{% endblock %}
+            .constant('CONTENT_TYPES', {% load getextend %}{{ '{' }}{% for ct in settings.CONTENT_TYPES %}{{ ct }}: {{ settings.CONTENT_TYPES|get_item:ct|get_attr:'pk' }}{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
+            .constant('HAS_STARS', {{ '{' }}{% for ct in settings.HAS_STARS %}{{ settings.HAS_STARS|get_item:ct }}: null{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})</script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 

@@ -1,5 +1,7 @@
 app
-    .controller('UserCtrl', function($scope, $timeout, APIService) {
+    .controller('UserCtrl', function($scope, $timeout, $controller, APIService) {
+        angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope, tabs: [{name: 'events', func: function(){ $scope.objloaded = true }}, {name: 'reviews'}, {name: 'reminders'}]}));
+
         $scope.name = angular.element('.lead.text-center.br2').text();
         var friendService = APIService.init(), loading;
         $scope.doFriendRequestAction = function () {
@@ -24,9 +26,9 @@ app
                         });
             }
         };
-        $scope.$parent.$watch('rel_state', function () {
+        $scope.$parent.$watch('rel_state', function (value) {
             $scope.rel_state_msg = 'Are you sure that you want to ';
-            switch($scope.rel_state) {
+            switch(value) {
                 case 0:
                     $scope.rel_state_msg += 'send a friend request to';
                     break;

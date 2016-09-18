@@ -61,7 +61,7 @@
 							</form>
 						</div>{% endif %}
 
-                        <div class="mn1 vi" ng-init="t = 'event'">
+                        <div class="mn1 vi" ng-init="t = 'event'" ng-if="objloaded || active == 0">
                             {% load rawinclude %}{% raw_include 'main/events.html' %}
                         </div>
                     </uib-tab>
@@ -80,7 +80,7 @@
                                             </tr>
                                             </thead>{% endcomment %}
                                         <tbody>
-                                            <tr ng-repeat="i in sc.content">
+                                            <tr ng-repeat="i in sc.content" such-href="/show={% verbatim %}{{ i.id }}{% endverbatim %}&type=item&nobusiness">
                                                 <td><img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1"><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div></td>
                                                 <td><div>{% verbatim %}{{ i.price }}{% endverbatim %} {{ business.currency }}</div></td>
                                             </tr>

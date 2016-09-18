@@ -1,16 +1,9 @@
 <div class="loaded container-fluid" ng-class="{'um': loaded}" ng-if="elems.length">
     <div class="row fri">
-        <uib-tabset active="active">
-            <uib-tab index="0" heading="Liked by" ng-if="check(false)">
-                <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in elems | filter:{is_dislike: false}">
-                    <a class="oh well n" ng-href="/user/{{ e.person.username }}/">
-                        <img class="img-thumbnail margin-center prof" ng-src="/images/{{ e.person.username }}/avatar/">
-                        <p class="text-center br3 def" data-fittext>{{ e.person.first_name }} {{ e.person.last_name }}</p>
-                    </a>
-                </div>
-            </uib-tab>
-            <uib-tab index="1" heading="Disliked by" ng-if="check(true)">
-                <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in elems | filter:{is_dislike: true}">
+        <uib-tabset active="active" ng-if="loaded !== null && loaded !== undefined">
+            <uib-tab ng-repeat="t in tabs" index="$index">
+                <uib-tab-heading ng-bind-html="t.heading | unsafe"></uib-tab-heading>
+                <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in elems[$index]">
                     <a class="oh well n" ng-href="/user/{{ e.person.username }}/">
                         <img class="img-thumbnail margin-center prof" ng-src="/images/{{ e.person.username }}/avatar/">
                         <p class="text-center br3 def" data-fittext>{{ e.person.first_name }} {{ e.person.last_name }}</p>

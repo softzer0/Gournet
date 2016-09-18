@@ -2,7 +2,8 @@
 {% load staticfiles %}
 
 {% block head %}{{ block.super }}
-    <link rel="stylesheet" href="{% static 'main/css/view.css' %}">{% endblock %}
+    <link rel="stylesheet" href="{% static 'main/css/view.css' %}">
+    <script src="{% static 'main/js/custom/base_view.js' %}"></script>{% endblock %}
 
 {% block container %}
         <div class="row" {% block rowatt %}{% endblock %}>

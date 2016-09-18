@@ -20,6 +20,7 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
+from rest_framework.serializers import ValidationError
 from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Reminder, Item, Event, EVENT_MIN_CHAR, CONTENT_TYPES_PK
 import os.path
 # from . import permissions
@@ -230,7 +231,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
         return None
     
     def add_event_notif(self, curr, when):
-        self.request.user.notification_set.add(Notification(text="<a href=\"/user/%s/\"><i>%s %s</i></a> notifies you about %s." % (curr['person'].username, curr['person'].first_name, curr['person'].last_name, "one event" if curr['cnt'] == 1 else str(curr['cnt'])+" events"), link='#/show='+curr['pks'][1:], created=when), bulk=False) #posted by %s (...) "the event" (...) curr['business'].name
+        self.request.user.notification_set.add(Notification(text="<a href=\"/user/%s/\"><i>%s %s</i></a> notifies you about %s." % (curr['person'].username, curr['person'].first_name, curr['person'].last_name, "one event" if curr['cnt'] == 1 else str(curr['cnt'])+" events"), link='#/show='+curr['pks'][1:]+'&type=event', created=when), bulk=False) #posted by %s (...) "the event" (...) curr['business'].name
 
     def get_queryset(self):
         if 'page' in self.request.query_params:
@@ -245,7 +246,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                     text = "You have "+str(rems.count())+" reminders."
                 else:
                     text = "You have one reminder."
-                self.request.user.notification_set.add(Notification(text=text, link='#/show=%s%s' % (pks, rems.last().event.pk)), bulk=False)
+                self.request.user.notification_set.add(Notification(text=text, link='#/show=%s%s&type=event' % (pks, rems.last().event.pk)), bulk=False)
                 rems._raw_delete(rems.db)
             event_notifies = EventNotification.objects.filter(to_person=self.request.user, is_comment=False)
             if event_notifies.count() > 0:
@@ -447,8 +448,14 @@ class ItemAPIView(BaseAPIView):
             return Item.objects.filter(business=business)
         self.getnopk = f
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if get_param_bool(self.request.query_params.get('menu', False)):
+            qs = qs.order_by('name', 'category')
+        return qs
+
     def paginate_queryset(self, queryset):
-        if 'menu' not in self.request.query_params:
+        if not get_param_bool(self.request.query_params.get('menu', False)):
             return super().paginate_queryset(queryset)
         return None
 
@@ -461,14 +468,31 @@ class ItemAPIView(BaseAPIView):
                 context['hiddenbusiness'] = None
         return context
 
+    def delete(self, request, *args, **kwargs):
+        try:
+            obj = Item.objects.get(pk=self.kwargs['pk'])
+        except:
+            raise NotFound("Item not found.")
+        else:
+            if Item.objects.filter(business=obj.business).count() == 1:
+                raise ValidationError({'non_field_errors': ["The last remaining item can't be deleted."]})
+            obj.delete()
+
+def get_t_pk(request, dic):
+    pk = request.data.get('content_type', False) or request.query_params.get('content_type', False)
+    if pk and (isinstance(pk, int) or pk.isdigit()):
+        if int(pk) in dic:
+            return pk
+        else:
+            return False
+    return None
 
 def get_type(request):
-    pk = request.query_params.get('content_type', False)
+    pk = get_t_pk(request, CONTENT_TYPES_PK)
     if pk:
-        if int(pk) in CONTENT_TYPES_PK:
-            return ContentType.objects.get(pk=pk)
-        else:
-            raise NotFound("Content type not found.")
+        return ContentType.objects.get(pk=pk)
+    elif pk == False:
+        raise NotFound("Content type not found.")
     return False
 
 def get_qs(model, request, pk):
@@ -483,18 +507,41 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
         super().__init__()
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
+    def set_t(self, request):
+        if get_t_pk(request, settings.HAS_STARS):
+            self.kwargs['stars'] = None
+
     def get_queryset(self):
         if self.kwargs['pk']:
             qs = get_qs(Like, self.request, self.kwargs['pk'])
-            if 'is_dislike' in self.request.query_params:
-                qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
+            self.set_t(self.request)
+            if 'stars' not in self.kwargs:
+                if 'is_dislike' in self.request.query_params:
+                    qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
+            else:
+                stars = self.request.query_params.get('stars', False)
+                if stars and (isinstance(stars, int) or stars.isdigit()) and int(stars) >= 1 and int(stars) <= 5:
+                    qs = qs.filter(stars=stars)
             return sort_related(qs, self.request.user.pk)
         elif self.request.method == 'GET':
             raise MethodNotAllowed("No primary key")
 
     def get_object(self):
         ct = get_type(self.request)
+        self.set_t(self.request)
         return get_object_or_404(Like, content_type=ct if ct else settings.CONTENT_TYPES['event'], object_id=self.kwargs['pk'], person=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if 'stars' in self.kwargs:
+            context['stars'] = None
+        return context
+
+    def create(self, request, *args, **kwargs):
+        self.set_t(request)
+        return super().create(request, *args, **kwargs)
+
+
 
 class CommentAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = serializers.CommentSerializer
@@ -521,6 +568,8 @@ class CommentAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         context = super().get_serializer_context()
         if self.pagination_class == pagination.PageNumberPagination:
             context['curruser'] = None
+        if get_t_pk(self.request, settings.HAS_STARS):
+            context['stars'] = None
         return context
 
 

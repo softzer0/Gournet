@@ -1,53 +1,52 @@
 var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime']) /*, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'*/
-    .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL) {
+    .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL, CONTENT_TYPES) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
         $animateProvider.classNameFilter(/(angular-animate|tab-pane)/);
         timeAgoSettings.allowFuture = true;
 
+        var t = '';
+        for (var k in CONTENT_TYPES) t += '|'+k;
         $stateProvider
             .state('main', { url: '/' })
             .state('main.showObjs', {
-                url: 'show=:ids&type=:type',
+                url: 'show=:ids&type={type:(?:'+t.substr(1)+')}{nobusiness:(?:&nobusiness)?}',
                 modal: true,
                 templateUrl: BASE_MODAL,
                 size: 'lg',
                 controller: function ($scope, $uibModalInstance, $state, $stateParams, $timeout, $injector, CONTENT_TYPES) {
                     if ($stateParams.type !== undefined) if (CONTENT_TYPES[$stateParams.type] !== undefined) $scope.t = $stateParams.type; else $scope.t = 'event'; //,item,review
+                    $scope.loading = true;
+                    $scope.nobusiness = $stateParams.nobusiness == '&nobusiness';
                     var objService = $injector.get($scope.t+'Service');
                     switch ($scope.t) {
-                        case 'event':
-                            $scope.title = "Events";
-                            break;
                         case 'item':
-                            $scope.title = "Items";/*
-                            break;
+                            $scope.title = "Item(s)";
+                            break;/*
                         case 'review':
-                            $scope.title = "Reviews";*/
+                            $scope.title = "Review(s)";
+                            break;*/
+                        default: $scope.title = "Event(s)";
                     }
                     $scope.file = 'events';
 
                     $scope.close = function() { $uibModalInstance.dismiss('cancel') };
                     $scope.set_modal_loaded = function (){
-                        var unregister = $scope.$watch(function() { return angular.element('.loaded').length }, function() {
-                            if (angular.element('.loaded').length > 0) {
+                        var unregister = $scope.$watch(function() { return angular.element('.loaded').length }, function(value) {
+                            if (value > 0) {
                                 unregister();
                                 $scope.modal_loaded = true;
                             }
                         });
                     };
-                    $scope.set_loaded = function (){ $scope.loaded = true; };
+                    $scope.set_loaded = function (){ $scope.loaded = true };
 
                     $scope.objs = objService.getobjs(true);
-                    objService.load($stateParams.ids.split(',')).then(
-                        function () { $timeout(function () {
-                            if ($scope.objs.length == 0) {
-                                $scope.set_loaded();
-                                //$scope.enableAnimation();
-                            }
-                        })
-                    });
+                    objService.load($stateParams.ids.split(',')).then(function () { $timeout(function () {
+                        $scope.loading = false;
+                        if ($scope.objs.length == 0) $scope.set_loaded();
+                    }) }); //$scope.enableAnimation(); }
                 }
             });
     })
@@ -67,10 +66,10 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
     .factory('dialogService', function($uibModal) {
         return {
-            show: function (message, OkOnly, OkCancel) {
+            show: function (message, OkCancel) {
                 return $uibModal.open({
                     windowTopClass: 'modal-confirm',
-                    template: '<div class="modal-body">' + message + '</div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(!OkCancel ? 'Yes' : 'OK')+'</button>'+(!OkOnly ? '<button class="btn btn-warning" ng-click="cancel()">'+(!OkCancel ? 'No' : 'Cancel')+'</button></div>':''),
+                    template: '<div class="modal-body">' + message + '</div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(OkCancel === undefined ? 'Yes' : 'OK')+'</button>'+((OkCancel || OkCancel === undefined) ? '<button class="btn btn-warning" ng-click="cancel()">'+(OkCancel === undefined ? 'No' : 'Cancel')+'</button></div>':''),
                     controller: function($scope, $uibModalInstance) {
                         $scope.ok = function() { $uibModalInstance.close() };
                         $scope.cancel = function() { $uibModalInstance.dismiss('cancel') };
@@ -91,8 +90,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             },
             link: function(scope, element, attrs) {
                 element.bind('click', function() {
-                    var OkOnly = attrs.ngDialogOkonly || false;
-                    dialogService.show(attrs.ngDialogMessage || "Are you sure?", OkOnly, OkOnly || attrs.ngDialogOkcancel || false).then(function() { scope.ngDialogClick() }/*, function() {}*/);
+                    dialogService.show(attrs.ngDialogMessage || "Are you sure?", (attrs.ngDialogOkcancel && attrs.ngDialogOkonly) ? false : attrs.ngDialogOkcancel || (attrs.ngDialogOkonly ? false : undefined)).then(function() { scope.ngDialogClick() }/*, function() {}*/);
                 });
             }
         }
@@ -103,26 +101,83 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             restrict: 'A',
             scope: true,
             link: function (scope, element, attrs) {
-                var locals = {
-                    $scope: scope,
-                    $element: element,
-                    $attrs: attrs
-                };
-                element.data('$Controller', $controller(scope.$eval(attrs.dynamicController), locals));
+                element.data('$Controller', $controller(scope.$eval(attrs.dynamicController), {$scope: scope}));
             }
         };
     })
 
+    .directive('suchHref', function ($location) {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attr) {
+                element.attr('class', 'clickable');
+                element.on('click', function() {
+                    $location.url(attr.suchHref);
+                    scope.$apply();
+                });
+            }
+        }
+    })
+
+    .directive('starRating', function() {
+        return {
+            restrict: 'A',
+            template:
+                '<span class="star-rating" ng-if="readonly">' +
+                '    <i ng-repeat="a in range() track by $index" class="fa" ng-class="(ratingValue >= $index + 1) ? \'fa-star\' : floor(ratingValue) == $index && ratingValue % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\'"></i' +
+                '></span>' +
+                '<span class="star-rating" ng-if="!readonly">' +
+                '    <a href="javascript:" ng-repeat="a in range() track by $index" ng-click="toggle($index)" ng-mouseover="hoverIn($index)" ng-mouseleave="hoverOut()"><i class="fa" ng-class="(hover > 0 && hover >= $index + 1 ? \'fa-star\' : hover == 0 ? ratingValue >= $index + 1 ? \'fa-star\' : ratingValue == $index + 0.5 ? \'fa-star-half-o\' : \'fa-star-o\' : \'fa-star-o\')+(userRating >= $index + 1 ? \' text-warning\' : \'\')"></i></a' +
+                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || showStats)">|<a href="javascript:" ng-if="onClickStats !== undefined" ng-click="show()" class="ml3">{{ ratingValue | number:1 }} ({{ userNumber }})</a><span ng-if="showStats && onClickStats === undefined" class="ml3">{{ ratingValue | number:1 }} ({{ userNumber }})</span></span>',
+            scope: {
+                ratingValue: '=',
+                userNumber: '=',
+                userRating: '=',
+                max: '=?', //optional: default is 5
+                onChange: '@?', //must return a promise
+                showStats: '=?',
+                onClickStats: '@?',
+                funcParams: '=?'
+            },
+            link: function(scope, elem, attrs) {
+                scope.floor = Math.floor;
+                scope.range = function() {
+                    if (attrs.max === undefined) attrs.max = 5;
+                    return new Array(attrs.max);
+                };
+                scope.readonly = scope.userRating === undefined || scope.userRating == -1;
+                if (!scope.readonly) {
+                    scope.hover = 0;
+                    scope.hoverIn = function (i) { scope.hover = i + 1 };
+                    scope.hoverOut = function () { scope.hover = 0 };
+                }
+                if (scope.funcParams !== undefined) {
+                    var p = '';
+                    for (var k in scope.funcParams) p += ',' + k;
+                    p = p.substr(1);
+                } else scope.funcParams = {};
+                var loading;
+                scope.toggle = function (i) {
+                    if (loading) return;
+                    loading = true;
+                    if (scope.userRating == i + 1) i = 0; else i++;
+                    scope.$parent.$eval(scope.onChange+'('+p+', value)', angular.extend({}, scope.funcParams, {value: i})).then(function (){ loading = false });
+                };
+                scope.show = function () { scope.$parent.$eval(scope.onClickStats+'('+p+')', scope.funcParams) };
+			}
+		};
+	})
+
     .factory('usersModalService', function($uibModal, BASE_MODAL) {
         var params = {};
-        
+
         return {
             params: params,
             setAndOpen: function(id, type, event) {
                 params.id = id;
                 params.type = type;
                 var n;
-                if (type != 3) n = 'friends'; else n = 'likes';
+                if (typeof(type) == 'string') n = 'likes'; else n = 'friends';
                 $uibModal.open({
                     size: 'lg',
                     templateUrl: BASE_MODAL,
@@ -133,6 +188,110 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     }
                 });
             }
+        }
+    })
+
+    .controller('UsersModalCtrl', function ($rootScope, $scope, $timeout, $resource, $window, $uibModalInstance, orderByFilter, file, event, usersModalService, APIService, CONTENT_TYPES, HAS_STARS) {
+        $scope.close = function() { $uibModalInstance.dismiss('cancel') };
+        $scope.set_modal_loaded = function (){
+            var unregister = $scope.$watch(function() { return angular.element('.loaded').length }, function(value) {
+                if (value > 0) {
+                    unregister();
+                    $scope.modal_loaded = true;
+                }
+            });
+        };
+        $scope.file = file;
+        $scope.event = event;
+        if ($scope.event !== undefined) $scope.sel_cnt = 0;
+
+        var d = {id: usersModalService.params.id}, t = usersModalService.params.type, o, st = typeof(t) == 'string', i;
+        if (st) var stars = HAS_STARS[t] !== undefined;
+        switch (t){
+            case 0:
+                $scope.title = d.id == null ? ($scope.event !== undefined ? "Select friend(s)" : "Your friends") : "Friends";
+                o = APIService.init();
+                break;
+            case 1:
+            case 2:
+                if (d.id == null || t == 2) {
+                    if (d.id != null) {
+                        $scope.title = "Favourites";
+                        d.user = 1;
+                    } else $scope.title = "Your favourites";
+                    $scope.favs = true;
+                } else $scope.title = "Favoured by";
+                o = APIService.init(1);
+                break;
+            default:
+                o = APIService.init(3);
+                d.content_type = CONTENT_TYPES[t];
+                if (stars) {
+                    $scope.title = "Ratings";
+                    var star = ' <i class="fa fa-star"></i>';
+                } else $scope.title = "Reactions";
+                $scope.tabs = [];
+                var c = 0, l = 0;
+        }
+        $scope.elems = [];
+        $scope.next_page = [];
+        $scope.load_page = function (i) {
+            var t = angular.extend({}, d);
+            if (i === undefined) i = 0;
+            if ($scope.loaded !== null) {
+                if (st) if (stars) t.stars = $scope.tabs[i].value; else t.is_dislike = $scope.tabs[i].value == 0;
+                $scope.loaded = false;
+                t.page = $scope.next_page[i];
+            } else if (st) if (stars) t.stars = i + 1; else t.is_dislike = i == 0; else $scope.loaded = undefined;
+            o.get(t,
+                function (result){
+                    if (st && $scope.loaded === null) l++;
+                    if (result.results.length > 0) {
+                        if (st) {
+                            if ($scope.loaded === null) {
+                                var old = i;
+                                i = c;
+                                c++;
+                                if (stars) {
+                                    $scope.tabs[i] = {value: old + 1, heading: ''};
+                                    for (var j = 0; j <= old; j++) $scope.tabs[i].heading += star;
+                                    $scope.tabs[i].heading = $scope.tabs[i].heading.substr(1);
+                                } else $scope.tabs[i] = {value: i, heading: old == 1 ? "Liked by" : "Disliked by"};
+                            }
+                        }
+                        if ($scope.elems[i] === undefined) $scope.elems[i] = [];
+                        $scope.elems[i].push.apply($scope.elems[i], result.results);
+                    }
+                    var pg;
+                    if ($scope.next_page[i] === undefined) pg = 1; else pg = $scope.next_page[i]+1;
+                    if (result.page_count == pg) { if ($scope.next_page[i] !== undefined) delete $scope.next_page[i]; } else $scope.next_page[i] = pg;
+                    if ($scope.loaded === undefined || l == (stars ? 5 : 2)) $timeout(function() {
+                        if (st) $scope.tabs = orderByFilter($scope.tabs, '-value');
+                        $scope.loaded = true;
+                    });
+                })
+        };
+        $scope.loaded = null;
+        if (st) {
+            if (!stars) {
+                $scope.load_page(0);
+                $scope.load_page(1);
+            } else for (i = 0; i < 5; i++) $scope.load_page(i);
+        } else $scope.load_page();
+
+        $scope.makeSel = function (i) {
+            //if ($scope.event !== undefined) {
+            if ($scope.event === undefined || $scope.working) return;
+            $scope.elems[0][i].selected = $scope.elems[0][i].selected !== undefined ? !$scope.elems[0][i].selected : true;
+            if ($scope.elems[0][i].selected) $scope.sel_cnt++; else $scope.sel_cnt--;
+            //} else $window.location.href = '/'+($scope.favs ? $scope.elems[0][i].shortname : 'user/'+$scope.elems[0][i].username)+'/'
+        };
+
+        $scope.sendNotify = function (){
+            $scope.working = true;
+            var to = '';
+            for (i = 0; i < $scope.elems[0].length; i++) if ($scope.elems[0][i].selected) to += ',' + $scope.elems[0][i].id;
+            $rootScope.sendreq('api/events/'+$scope.event+'/notify/?notxt=1&to='+to.substr(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
         }
     })
 
@@ -181,6 +340,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
     .factory('menuService', function ($q, APIService){
         var itemService = APIService.init(8), menu;
+
+        function chngmenu() { if (menu[0].category == "Other drinks") menu[0].category = "Drinks"; /*if (menu.length)*/ }
 
         return {
             init: function (){
@@ -249,7 +410,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     'salad': menu[2].content[6].content,
                     'dessert': menu[2].content[7].content
                 };
-                return itemService.query({id: id, menu: true},
+                return itemService.query({id: id, menu: 1},
                     function (result){
                         var i, c = result[0].category;
                         for (i = 0; i < result.length; i++){
@@ -269,40 +430,38 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                                 i--;
                             }
                         }
-                        if (menu[0].category == "Other drinks") menu[0].category = "Drinks"; //if (menu.length)
+                        chngmenu();
                     }
                 ).$promise;
+            },
+            del: function (id){
+                if (menu === undefined) return;
+                var d = false;
+                for (var i = 0; i < menu.length; i++) {
+                    for (var j = 0; j < menu[i].content.length; j++) {
+                        for (var k = 0; k < menu[i].content[j].content.length; k++) {
+                            if (menu[i].content[j].content[k].id == id) {
+                                menu[i].content[j].content.splice(k, 1);
+                                d = true;
+                                break;
+                            }
+                        }
+                        if (d && !menu[i].content[j].content.length) {
+                            menu[i].content.splice(j, 1);
+                            break;
+                        }
+                    }
+                    if (d && !menu[i].content.length) {
+                        menu.splice(i, 1);
+                        break;
+                    }
+                }
+                chngmenu();
             }
         }
     })
 
-    .factory('uniService', function ($q, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES){
-        function dynamicSort(property) {
-            var sortOrder;
-            if(property[0] === '-') {
-                sortOrder = -1;
-                property = property.substr(1);
-            } else sortOrder = 1;
-            return function (a,b) { return ((a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0) * sortOrder }
-        }
-
-        function dynamicSortMultiple() {
-            /*
-             * save the arguments object as it will be overwritten
-             * note that arguments object is an array-like object
-             * consisting of the names of the properties to sort by
-             */
-            var props = arguments;
-            return function (obj1, obj2) {
-                var result = 0, numberOfProperties = props.length;
-                /* try getting a different result from 0 (equal)
-                 * as long as we have extra properties to compare
-                 */
-                for(var i = 0; result == 0 && i < numberOfProperties; i++) result = dynamicSort(props[i])(obj1, obj2);
-                return result;
-            }
-        }
-
+    .factory('uniService', function ($q, orderByFilter, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES, menuService, dialogService){
         var u = false, id = null, likeService = APIService.init(3), commentService = APIService.init(7);
 
         function UniObj(t){
@@ -330,6 +489,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         };
 
         UniObj.prototype.getobjs = function (t, n) {
+            if (t === undefined) return this.objs[2];
             var e;
             e = t ? this.objs[1] : this.objs[0];
             if (n === undefined) e.length = 0;
@@ -347,9 +507,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         delete b[i];
                         p = true;
                     }
-                    if (!p) if (/^\d+$/.test(b[i])) {
+                    if (!p && /^\d+$/.test(b[i])) {
                         for (d in this.objs[0]) if (this.objs[0][d].id == b[i]) {
-                            var ev = angular.merge({}, this.objs[0][d]);
+                            var ev = angular.copy(this.objs[0][d]);
                             delete ev.comments;
                             delete ev.user_comments;
                             this.objs[1].push(ev);
@@ -391,50 +551,65 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         UniObj.prototype.del = function (index, r, par_ind, p) {
             var e;
             e = r ? this.objs[1] : this.objs[0];
-            p = p ? e[par_ind].comments : e[par_ind].user_comments;
-            if (par_ind !== undefined) return commentService.delete({id: p[index].id}, function () {
-                p.splice(index, 1);
-                e[par_ind].comment_count--;
-            }).$promise; else {
+            if (par_ind !== undefined) {
+                p = p ? e[par_ind].comments : e[par_ind].user_comments;
+                return commentService.delete({id: p[index].id}, function () {
+                    p.splice(index, 1);
+                    e[par_ind].comment_count--;
+                }).$promise;
+            } else {
                 var self = this;
-                return this.s.delete({id: e[index].id}, function (){ self.remove(e, index, r) }).$promise;
+                return this.s.delete({id: e[index].id}, function (){
+                    self.remove(e, index, r);
+                    if (self.objs[2] == 'item') menuService.del(e[index].id);
+                }, function (result){
+                    if (self.objs[2] == 'item' && result.non_field_errors !== undefined) dialogService.show("You can't delete the last remaining item!", false)
+                }).$promise;
             }
         };
 
-        UniObj.prototype.setLikeStatus = function (index, dislike, r) {
+        UniObj.prototype.setLikeStatus = function (index, r, dislike_stars) {
             var e;
             e = r ? this.objs[1] : this.objs[0];
             var old_status = e[index].curruser_status, status, s;
-            if (old_status == 1 && !dislike || old_status == 2 && dislike) {
+            var isl = typeof(dislike_stars) == 'boolean', cond = isl ? old_status == 1 && !dislike_stars || old_status == 2 && dislike_stars : dislike_stars == 0;
+            if (cond) {
                 s = likeService.delete({content_type: CONTENT_TYPES[this.objs[2]], id: e[index].id});
                 if (u) this.remove(e, index, r);
                 status = 0;
             } else {
-                var d = {content_type: CONTENT_TYPES[this.objs[2]], object_id: e[index].id, is_dislike: dislike};
+                var d = {content_type: CONTENT_TYPES[this.objs[2]], object_id: e[index].id};
+                if (isl) d.is_dislike = dislike_stars; else d.stars = dislike_stars;
                 if (old_status > 0) s = likeService.update(d); else s = likeService.save(d);
-                status = dislike ? 2 : 1;
+                status = isl ? dislike_stars ? 2 : 1 : dislike_stars;
             }
             var self = this;
             return s.$promise.then(
-                function (){
-                    if (status > 0) {
-                        if (status == 1) {
-                            e[index].like_count++;
-                            if (old_status == 2) e[index].dislike_count--;
-                        } else {
-                            e[index].dislike_count++;
-                            if (old_status == 1) e[index].like_count--;
-                        }
+                function () {
+                    if (status != 0) {
+                        if (isl) {
+                            if (status == 1) {
+                                e[index].likestars_count++;
+                                if (old_status == 2) e[index].dislike_count--;
+                            } else {
+                                e[index].dislike_count++;
+                                if (old_status == 1) e[index].likestars_count--;
+                            }
+                        } else if (old_status == 0) e[index].likestars_count++;
                         if (!r && u) e[index].person_status = status;
-                    } else {
-                        if (!r && u) return;
-                        if (old_status == 1) e[index].like_count--; else if (old_status == 2) e[index].dislike_count--;
-                    }
+                    } else if (isl) { if (r || !u) { if (old_status == 1) e[index].likestars_count--; else if (old_status == 2) e[index].dislike_count--; }
+                    } else if (old_status != 0) e[index].likestars_count--;
                     e[index].curruser_status = status;
-                    if (r && u && old_status == 0) for (var i = 0; i < self.remids.length; i++) if (self.remids[i] == e[index].id) {
+                    var i;
+                    if (!isl) {
+                        e[index].stars_avg = e[index].stars_avg != 0 && e[index].likestars_count != 0 ? (((status != 0 && old_status == 0) ? (e[index].likestars_count - 1) : (status == 0 && old_status != 0) ? (e[index].likestars_count + 1) : e[index].likestars_count) * e[index].stars_avg - old_status + status) / e[index].likestars_count : status;
+                        cond = [e[index].comments, e[index].user_comments];
+                        for (isl in cond) if (cond[isl] !== undefined) for (i = 0; i < cond[isl].length; i++) if (cond[isl][i].is_curruser) cond[isl][i].manager_stars = status;
+                    }
+                    if (r && u && old_status == 0) for (i = 0; i < self.remids.length; i++) if (self.remids[i] == e[index].id) {
                         self.remids.splice(i, 1);
                         self.objs[0].push(e[index]);
-                        self.objs[0].sort(self.objs[0].when !== undefined ? dynamicSortMultiple('-when', '-id') : dynamicSort('-id'));
+                        self.objs[0] = orderByFilter(self.objs[0], self.objs[0].when !== undefined ? ['-when', '-id'] : '-id');
                     }
                 });
         };
@@ -465,40 +640,34 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         return { getInstance: function (t) { return new UniObj(t) } }
     })
-
     .factory('eventService', function (uniService) { return uniService.getInstance('event') })
+    .factory('itemService', function (uniService) { return uniService.getInstance('item') })
 
     .controller('BaseCtrl', function ($rootScope, $scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
         $scope.r = $scope.$parent.objs !== undefined;
-        $scope.objs = $scope.r ? $scope.$parent.objs : objService.getobjs();
-
-        var id, r_s;
-        if ($scope.$parent.$parent.$parent != null) {
-            id = $scope.$parent.$parent.$parent.id;
-            r_s = $scope.$parent.$parent.$parent.rel_state;
-        }
+        $scope.objs = $scope.r ? $scope.$parent.objs : objService.getobjs(false);
         if (!$scope.r) {
             $scope.loading = true;
             var l = function() { $scope.loading = false };
-            objService.load(id, r_s).then(l /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
+            objService.load($scope.id, $scope.rel_state).then(l /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
             $scope.load_page = function (){
                 $scope.loading = true;
                 objService.load().then(l, l);
             };
         }
 
-        $scope.delete = function (index, r, par_ind, p){ objService.del(index, r, par_ind, p) };
+        $scope.delete = function (index, par_ind, p){ objService.del(index, $scope.r, par_ind, p) };
 
-        $scope.showDisLikes = function (index, r) { usersModalService.setAndOpen(objService.getobjs(r, true)[index].id, 3) };
+        $scope.showDisLikes = function (index) { usersModalService.setAndOpen(objService.getobjs($scope.r, true)[index].id, objService.getobjs()) };
 
-        $scope.toggleHr = function (f, lr) { if (f) if (lr) return angular.element('.objsfalse_'+$scope.$parent.t+' .ng-leave').length; else return true; else return false };
+        $scope.toggleHr = function (f, l) { if (f) if (l) if (!angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave').length) return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave-prepare').length; else return true; else return true; else return false };
 
-        var loading = false;
-        $scope.giveDisLike = function(index, dislike, r) {
+        var loading;
+        $scope.giveDisLike = function(index, dislike) {
             if (loading) return;
             loading = true;
             function l(){ $timeout(function () { loading = false }) }
-            objService.setLikeStatus(index, dislike, r).then(l, l);
+            return objService.setLikeStatus(index, $scope.r, dislike).then(l, l);
         };
 
         function load_comments(index){
@@ -508,7 +677,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         $scope.showcomm = [];
         $scope.showComments = function(index) {
-            if (!$scope.showcomm.hasOwnProperty(index)) {
+            if ($scope.showcomm[index] === undefined) {
                 $scope.showcomm[index] = [false, true];
                 load_comments(index);
             } else $scope.showcomm[index][1] = !$scope.showcomm[index][1];
@@ -517,7 +686,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         $scope.show_next = function (index){
             if (!$scope.objs[index].comments !== undefined) return false;
             if ($scope.showcomm[index][0]) {
-                if ($scope.objs[index].user_comments !== undefined) if ($scope.objs[index].comment_count == $scope.objs[index].comments.length + $scope.objs[index].user_comments.length) return false;
+                if ($scope.objs[index].user_comments !== undefined && $scope.objs[index].comment_count == $scope.objs[index].comments.length + $scope.objs[index].user_comments.length) return false;
                 return $scope.objs[index].comment_count > $scope.objs[index].comments.length;
             } else return false;
         };
@@ -533,12 +702,12 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .controller('EventsCtrl', function($scope, $rootScope, $controller, $timeout, usersModalService, eventService, APIService) {
+    .controller('eventsCtrl', function($scope, $rootScope, $controller, $timeout, usersModalService, eventService, APIService) {
         angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: eventService}));
 
-        $scope.notifySelect = function (index, r){ usersModalService.setAndOpen(null, 0, eventService.getobjs(r, true)[index].id) };
+        $scope.notifySelect = function (index){ usersModalService.setAndOpen(null, 0, eventService.getobjs($scope.r, true)[index].id) };
 
-        $scope.isFuture = function (index, r) { return (new Date(eventService.getobjs(r, true)[index].when)).valueOf() > $rootScope.currTime };
+        $scope.isFuture = function (index) { return (new Date(eventService.getobjs($scope.r, true)[index].when)).valueOf() > $rootScope.currTime };
 
         function subTime(d,h,m,v){
             var r = new Date(d);
@@ -551,7 +720,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         $scope.cmb = {choices: ["(Custom)"]};
         $scope.picker = {options: {minDate: subTime($rootScope.currTime, 0, -1)}};
         $scope.initRmn = function (ind){
-            if (index !== undefined) if ($scope.objs[ind].id == $scope.objs[index].id) return;
+            if (index !== undefined && $scope.objs[ind].id == $scope.objs[index].id) return;
             index = ind;
             when = new Date($scope.objs[index].when);
             $scope.picker.options.maxDate = when;
@@ -579,7 +748,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             if (subTime(when, 168, 0, true) > md) $scope.cmb.choices.push("A week");
         };
 
-        $scope.$watch('cmb.selected', function() { if ($scope.cmb.selected !== undefined) checkSel() });
+        $scope.$watch('cmb.selected', function(value) { if (value !== undefined) checkSel() });
 
         var sel;
         function checkSel() {
@@ -638,8 +807,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             }
         }
 
-        $scope.$watch('picker.date', function() {
-            if ($scope.picker.date === undefined) return;
+        $scope.$watch('picker.date', function(value) {
+            if (value === undefined) return;
             if (sel) {
                 sel = false;
                 return;
@@ -684,6 +853,10 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 },
                 function () { $scope.working = false });
         };
+    })
+
+    .controller('itemsCtrl', function($scope, $controller, itemService) {
+        angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: itemService}));
     })
 
     .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, usersModalService) { //, $interval
@@ -779,106 +952,108 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         //var load;
         $scope.sent = [];
-        $scope.$watch('obj.active', function () {
-            if ($scope.obj.active == 1 || $scope.emails !== undefined) return;
+        $scope.$watch('obj.active', function (value) {
+            if (value == 1 || $scope.emails !== undefined) return;
             //$scope.obj.selected = 0;
             $scope.emails = emailService.emails;
             //if ($scope.emails.length == 0) {
                 //load = true;
             emailService.load().then(function (){ $timeout(function() { $scope.loaded = true; /*load = false*/ }) });
-            //} else { $scope.loaded = true }
-        });
-        $scope.$watch('emails.length', function () {
-            if ($scope.emails === undefined) return; //load
-            $scope.obj.selected = $scope.emails.length-1;
-            $scope.EmailSelected();
-        });
-        $scope.addEmail = function () {
-            if ($scope.obj.email === undefined) return;
-            for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
-            emailService.add($scope.obj.email).then(function (){
-                $scope.sent.push($scope.obj.email);
-                $scope.obj.email = '';
-            });
-        };
-        $scope.removeEmail = function () {
-            emailService.remove().then(function (e) {
-                for (var i = 0; i < $scope.sent.length; i++) {
-                    if ($scope.sent[i]==e) {
-                        $scope.sent.splice(i, 1);
-                        break
-                    }
-                }
-            })
-        };
-        $scope.resendConfirmationEmail = function () {
-            var t = $scope.emails[$scope.obj.selected].email;
-            emailService.resend().then(function (){
-                for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) t = null;
-                if (t != null) $scope.sent.push(t);
-            });
-        };
-        var loading;
-        $scope.makePrimaryEmail = function () {
-            if (loading) return;
-            loading = true;
-            emailService.primary().then(function (){
-                /*$scope.obj.selected = 0;
-                $scope.EmailSelected();*/
-                $timeout(function() { loading = false });
-            });
-        };
-        $scope.EmailSelected = function () {
-            emailService.setCurrent($scope.obj.selected);
-        };
-
-        // Password
-
-        $scope.dismissError = function (){
-            delete $scope.pass_err;
-            delete $scope.pass_err_txt;
-        };
-        $scope.changePassword = function () {
-            for (var i = 0; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
-            var pw_fields = angular.element('input[type="password"]');
-            if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
-                //if ($scope.pass_err != 4) {
-                $scope.pass_err_txt = "New password fields don't match.";
-                $scope.pass_err = 4;
-                pw_fields[2].focus();
-                //}
-                return;
-            }
-            if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
-                /*var t = "Your new password matches the current password, enter a different one.";
-                if ($scope.pass_err_txt != t) {*/
-                $scope.pass_err_txt = "Your new password matches the current password, enter a different one."; //t
-                $scope.pass_err = 2;
-                pw_fields[1].focus();
-                //}
-                return;
-            }
-            $scope.dismissError();
-            $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
-                $scope.pass_err = 0;
-                for (i = 0; i < 3; i++) $scope.obj.pass[i] = '';
-            }, function (response){
-                if (response.data.form_errors !== undefined) {
-                    var err = 0;
-                    $scope.pass_err_txt = '';
-                    for (var e in response.data.form_errors) {
-                        //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
-                        if (e == 'oldpassword') err += 1; else err += 2;
-                        for (i = 0; i < response.data.form_errors[e].length; i++) {
-                            if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
-                            $scope.pass_err_txt += response.data.form_errors[e][i];
+            $scope.addEmail = function () {
+                if ($scope.obj.email === undefined) return;
+                for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
+                emailService.add($scope.obj.email).then(function (){
+                    $scope.sent.push($scope.obj.email);
+                    $scope.obj.email = '';
+                });
+            };
+            $scope.removeEmail = function () {
+                emailService.remove().then(function (e) {
+                    for (var i = 0; i < $scope.sent.length; i++) {
+                        if ($scope.sent[i]==e) {
+                            $scope.sent.splice(i, 1);
+                            break
                         }
                     }
-                    $scope.pass_err = err;
-                    if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
-                }
+                })
+            };
+            $scope.resendConfirmationEmail = function () {
+                var t = $scope.emails[$scope.obj.selected].email;
+                emailService.resend().then(function (){
+                    for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) t = null;
+                    if (t != null) $scope.sent.push(t);
+                });
+            };
+            var loading;
+            $scope.makePrimaryEmail = function () {
+                if (loading) return;
+                loading = true;
+                emailService.primary().then(function (){
+                    /*$scope.obj.selected = 0;
+                    $scope.EmailSelected();*/
+                    $timeout(function() { loading = false });
+                });
+            };
+            $scope.EmailSelected = function () {
+                emailService.setCurrent($scope.obj.selected);
+            };
+
+            $scope.$watch('emails.length', function () {
+                if ($scope.emails === undefined) return; //load
+                $scope.obj.selected = $scope.emails.length-1;
+                $scope.EmailSelected();
             });
-        }
+
+            // Password
+
+            $scope.dismissError = function (){
+                delete $scope.pass_err;
+                delete $scope.pass_err_txt;
+            };
+            $scope.changePassword = function () {
+                var i = 0;
+                for (; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
+                var pw_fields = angular.element('input[type="password"]');
+                if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
+                    //if ($scope.pass_err != 4) {
+                    $scope.pass_err_txt = "New password fields don't match.";
+                    $scope.pass_err = 4;
+                    pw_fields[2].focus();
+                    //}
+                    return;
+                }
+                if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
+                    /*var t = "Your new password matches the current password, enter a different one.";
+                    if ($scope.pass_err_txt != t) {*/
+                    $scope.pass_err_txt = "Your new password matches the current password, enter a different one."; //t
+                    $scope.pass_err = 2;
+                    pw_fields[1].focus();
+                    //}
+                    return;
+                }
+                $scope.dismissError();
+                $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
+                    $scope.pass_err = 0;
+                    for (i = 0; i < 3; i++) $scope.obj.pass[i] = '';
+                }, function (response){
+                    if (response.data.form_errors !== undefined) {
+                        var err = 0;
+                        $scope.pass_err_txt = '';
+                        for (var e in response.data.form_errors) {
+                            //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
+                            if (e == 'oldpassword') err += 1; else err += 2;
+                            for (i = 0; i < response.data.form_errors[e].length; i++) {
+                                if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
+                                $scope.pass_err_txt += response.data.form_errors[e][i];
+                            }
+                        }
+                        $scope.pass_err = err;
+                        if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
+                    }
+                });
+            };
+            //} else { $scope.loaded = true }
+        });
     })
 
     .controller('NotificationCtrl', function ($rootScope, $scope, $timeout, APIService, NOTIF_PAGE_SIZE) {
@@ -931,14 +1106,14 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             });
             if (!notick) $timeout($scope.getNotifs, 10000);
         })();
-        $scope.$watch('opened', function() {
-            if ($scope.opened === undefined) return;
-            if ($scope.opened && $scope.unread) {
+        $scope.$watch('opened', function(value) {
+            if (value === undefined) return;
+            if (value && $scope.unread) {
                 markAllAsRead();
                 u = 0;
                 $rootScope.title = $rootScope.title.substr($rootScope.title.indexOf(' ')+1);
             }
-            if (!$scope.opened) {
+            if (!value) {
                 if ($scope.notifs.length > NOTIF_PAGE_SIZE) {
                     $scope.notifs.splice(NOTIF_PAGE_SIZE, $scope.notifs.length - NOTIF_PAGE_SIZE);
                     $scope.has_next_page = true;
@@ -955,80 +1130,5 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         function markAllAsRead(){
             $rootScope.sendreq('api/notifications/read/?notxt=1&ids='+ids.substr(1));
             ids = '';
-        }
-    })
-
-    .controller('UsersModalCtrl', function ($rootScope, $scope, $timeout, $resource, $window, $uibModalInstance, file, event, usersModalService, APIService) {
-        $scope.close = function() { $uibModalInstance.dismiss('cancel') };
-        $scope.set_modal_loaded = function (){
-            var unregister = $scope.$watch(function() { return angular.element('.loaded').length }, function() {
-                if (angular.element('.loaded').length > 0) {
-                    unregister();
-                    $scope.modal_loaded = true;
-                }
-            });
-        };
-        $scope.file = file;
-        $scope.event = event;
-        if ($scope.event !== undefined) $scope.sel_cnt = 0;
-
-        var d = {id: usersModalService.params.id}, t = usersModalService.params.type, o;
-        switch (t){
-            case 1:
-            case 2:
-                if (d.id == null || t == 2) {
-                    if (d.id != null) {
-                        $scope.title = "Favourites";
-                        d.user = 1;
-                    } else $scope.title = "Your favourites";
-                    $scope.favs = true;
-                } else $scope.title = "Favoured by";
-                o = APIService.init(1);
-                break;
-            case 3:
-                $scope.title = "Reactions";
-                o = APIService.init(3);
-                break;
-            default:
-                $scope.title = d.id == null ? ($scope.event !== undefined ? "Select friend(s)" : "Your friends") : "Friends";
-                o = APIService.init();
-        }
-        $scope.elems = [];
-        $scope.next_page = [null, null];
-        $scope.load_page = function (t, l) {
-            $scope.loaded = false;
-            if (t !== undefined) d.is_dislike = t; else t = 0;
-            d.page = $scope.next_page[t];
-            o.get(d,
-                function (result){
-                    $scope.elems.push.apply($scope.elems, result.results);
-                    var pg;
-                    if ($scope.next_page[t] == null) pg = 1; else pg = $scope.next_page[t]+1;
-                    if (result.page_count == pg) delete $scope.next_page[t]; else $scope.next_page[t] = pg;
-                    if (l === undefined) $timeout(function() { $scope.loaded = true });
-                })
-        };
-        if (t == 3) {
-            $scope.load_page(0, true);
-            $scope.load_page(1);
-        } else $scope.load_page();
-
-        $scope.check = function (is_dislike) {
-            return $scope.elems.some(function(el) { return el.is_dislike == is_dislike });
-        };
-
-        $scope.makeSel = function (i) {
-            //if ($scope.event !== undefined) {
-            if ($scope.event === undefined || $scope.working) return;
-            $scope.elems[i].selected = $scope.elems[i].selected !== undefined ? !$scope.elems[i].selected : true;
-            if ($scope.elems[i].selected) $scope.sel_cnt++; else $scope.sel_cnt--;
-            //} else $window.location.href = '/'+($scope.favs ? $scope.elems[i].shortname : 'user/'+$scope.elems[i].username)+'/'
-        };
-
-        $scope.sendNotify = function (){
-            $scope.working = true;
-            var to = '';
-            for (var i = 0; i < $scope.elems.length; i++) if ($scope.elems[i].selected) to += ',' + $scope.elems[i].id;
-            $rootScope.sendreq('api/events/'+$scope.event+'/notify/?notxt=1&to='+to.substr(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
         }
     });

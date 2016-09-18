@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinLengthValidator
+from django.core.validators import RegexValidator, MinLengthValidator, MaxValueValidator
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.exceptions import FieldError
 import datetime
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 
@@ -223,37 +223,37 @@ def event_cascade_delete(sender, instance, *args, **kwargs):
 
 CATEGORY = (
     ('Alcoholic beverages', (
-            ('cider', 'Ciders'),
-            ('whiskey', 'Whiskeys'),
-            ('wine', 'Wines'),
-            ('beer', 'Beers'),
-            ('vodka', 'Vodkas'),
+            ('cider', 'Cider'),
+            ('whiskey', 'Whiskey'),
+            ('wine', 'Wine'),
+            ('beer', 'Beer'),
+            ('vodka', 'Vodka'),
             ('brandy', 'Brandy'),
-            ('liqueur', 'Liqueurs'),
-            ('cocktail', 'Cocktails'),
-            ('tequila', 'Tequilas'),
+            ('liqueur', 'Liqueur'),
+            ('cocktail', 'Cocktail'),
+            ('tequila', 'Tequila'),
             ('gin', 'Gin'),
             ('rum', 'Rum')
         )
      ),
     ('Other drinks', (
             ('coffee', 'Coffee'),
-            ('soft_drink', 'Soft drinks'),
-            ('juice', 'Juices'),
-            ('tea', 'Teas'),
+            ('soft_drink', 'Soft drink'),
+            ('juice', 'Juice'),
+            ('tea', 'Tea'),
             ('hot_chocolate', 'Hot chocolate'),
             ('water', 'Water')
         )
     ),
     ('Food', (
             ('fast_food', 'Fast food'),
-            ('appetizer', 'Appetizers'),
-            ('soup', 'Soups'),
-            ('meal', 'Meals'),
+            ('appetizer', 'Appetizer'),
+            ('soup', 'Soup'),
+            ('meal', 'Meal'),
             ('barbecue', 'Barbecue'),
             ('seafood', 'Seafood'),
-            ('salad', 'Salads'),
-            ('dessert', 'Desserts')
+            ('salad', 'Salad'),
+            ('dessert', 'Dessert')
         )
     )
 )
@@ -273,6 +273,7 @@ class Item(models.Model):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
 
 settings.CONTENT_TYPES['item'] = ContentType.objects.get(model='item')
+settings.HAS_STARS[ContentType.objects.get(model='item').pk] = 'item'
 
 @receiver(pre_delete, sender=Item, dispatch_uid='item_cascade_delete')
 def item_cascade_delete(sender, instance, *args, **kwargs):
@@ -335,12 +336,13 @@ class Like(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     is_dislike = models.BooleanField(default=False)
+    stars = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)], null=True, blank=True)
 
     class Meta:
         unique_together = (('person', 'content_type', 'object_id'),)
 
     def __str__(self):
-        return 'User %s, %slike on %s #%d' % (self.person.username, 'dis' if self.is_dislike else '', self.content_type.model, self.content_object.pk)
+        return 'User %s, %s on %s #%d' % (self.person.username, 'dislike' if self.is_dislike else 'like' if self.content_type_id not in settings.HAS_STARS else str(self.stars)+' stars', self.content_type.model, self.content_object.pk)
 
 
 """TESTING:

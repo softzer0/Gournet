@@ -1,6 +1,6 @@
-<div class="loaded container-fluid" ng-class="{'um': loaded}" ng-if="elems.length">
+<div class="loaded container-fluid" ng-class="{'um': loaded}" ng-if="elems[0] !== undefined">
     <div class="row fri">
-        <div class="us" ng-class="favs ? 'col-xs-5 col-sm-4 col-lg-3' : 'col-xs-4 col-sm-3 col-lg-2'" ng-repeat="e in elems">
+        <div class="us" ng-class="favs ? 'col-xs-5 col-sm-4 col-lg-3' : 'col-xs-4 col-sm-3 col-lg-2'" ng-repeat="e in elems[0]">
             <a class="oh well clickable n ns" ng-href="{{ event === undefined ? '/'+(favs ? e.shortname : 'user/'+e.username)+'/' : '' }}" ng-click="makeSel($index)" ng-class="{'bc': e.selected}">
                 <img class="img-thumbnail margin-center prof" ng-src="/images/{{ favs ? e.id : e.username }}/avatar/{{ favs ? '?business=1' : '' }}">
                 <p class="text-center br3 def" data-fittext>{{ favs ? e.name : e.first_name+' '+e.last_name }}</p>
@@ -15,4 +15,4 @@
     </div>
 </div>
 <div class="loaded loa loa-c" ng-if="!loaded"><i class="fa fa-spinner fa-2x"></i></div>
-<div class="loaded" ng-if="!elems.length && loaded">No {{ favs ? 'favourites' : 'friends' }}.</div>
+<div class="loaded" ng-if="elems[0] === undefined && loaded">No {{ favs ? 'favourites' : 'friends' }}.</div>
