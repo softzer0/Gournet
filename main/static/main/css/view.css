@@ -88,12 +88,6 @@
 	margin-right: 7px;
 }
 
-.an {
-	margin-top: 14px;
-	padding-top: 10px;
-	padding-bottom: 10px;
-}
-
 .rw {
 	margin-bottom: -5px;
 }
@@ -123,10 +117,6 @@
   .bs-sidebar.affix {
 	width: 263px;
   }
-}
-
-.form-group, .nmb {
-	margin-bottom: 0;
 }
 
 .mn h4 {

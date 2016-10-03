@@ -1,9 +1,9 @@
-<div class="loaded container-fluid" ng-class="{'um': loaded}" ng-if="elems.length">
+<div class="loaded container-fluid" ng-class="{'um': loaded}">
     <div class="row fri">
         <uib-tabset active="active" ng-if="loaded !== null && loaded !== undefined">
             <uib-tab ng-repeat="t in tabs" index="$index">
                 <uib-tab-heading ng-bind-html="t.heading | unsafe"></uib-tab-heading>
-                <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in elems[$index]">
+                <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in t.elems">
                     <a class="oh well n" ng-href="/user/{{ e.person.username }}/">
                         <img class="img-thumbnail margin-center prof" ng-src="/images/{{ e.person.username }}/avatar/">
                         <p class="text-center br3 def" data-fittext>{{ e.person.first_name }} {{ e.person.last_name }}</p>
@@ -11,7 +11,7 @@
                 </div>
             </uib-tab>
         </uib-tabset>
-        <div class="us col-xs-4 col-sm-3 col-lg-2" ng-show="next_page[active] && loaded">
+        <div class="us col-xs-4 col-sm-3 col-lg-2" ng-show="tabs[active].next_page && loaded">
             <a href="javascript:" ng-click="load_page(active)" class="well n">
                 <i class="text-center fa fa-ellipsis-v fa-4x"></i>
                 <p class="text-center br3 def">Load more</p>

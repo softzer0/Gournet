@@ -70,6 +70,6 @@
     }
 }
 
-.rmn + .popover ul {
+.rmn + .popover ul, .comb {
     width: initial !important;
 }

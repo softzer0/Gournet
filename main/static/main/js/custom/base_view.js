@@ -43,7 +43,7 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, tabs) {
     $scope.$watch('active', function (value) {
         if (value === undefined) return;
         chng = true;
-        if (tabs[value].func !== undefined) tabs[value].func();
+        tabs[value].func();
         if (value != 0) { if (location.hash != '#/'+tabs[value].name) location.hash = '#/'+tabs[value].name } else if (location.hash !== init && location.hash.substr(2) != '' && location.hash != '#/'+tabs[0].name) location.hash = '#/'+tabs[0].name;
         if (init !== undefined) init = undefined;
         $timeout(function () { chng = false });

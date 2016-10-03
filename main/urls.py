@@ -44,7 +44,6 @@ urlpatterns = [
     url(r'^api/likes/(?:(?P<pk>\d+)/)?$', main_views.LikeAPIView.as_view()),
     url(r'^api/events/(?:(?P<pk>\d+)/)?$', main_views.EventAPIView.as_view()),
     url(r'^api/events/(?P<pk>\d+)/notify/$', main_views.send_notifications),
-    url(r'^api/favourites/(?:(?P<pk>\d+)/)?$', main_views.FavouritesAPIView.as_view()),
     url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', main_views.NotificationAPIView.as_view()),
     url(r'^api/notifications/read/$', main_views.notifs_set_all_read),
     url(r'^api/friends/(?:(?P<pk>\d+)/)?$', main_views.FriendsAPIView.as_view()),

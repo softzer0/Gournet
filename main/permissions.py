@@ -20,5 +20,5 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             user = obj.person
 
         if isinstance(obj, Comment) and user != request.user:
-            return obj.event.business.manager == request.user
+            return request.user == (obj.content_object.content_object.manager if isinstance(obj.content_object, Comment) else obj.content_object.business.manager)
         return user == request.user

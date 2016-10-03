@@ -8,6 +8,10 @@
     margin-bottom: 3px;
 }
 
+.mb3, .mb3 > * {
+    display: inline-block;
+}
+
 .well {
     background-color: #fffdfd;
 }
@@ -65,8 +69,28 @@ legend {
     margin-right: 12px;
 }
 
-.star-rating > *, .star-rating > span > * {
+.com > a, .com > span > *, .com span > *:first-child:not(:only-child), .com span > *:not(:last-child) {
+    margin-right: 7px;
+}
+
+.star-rating > *:not(.last-star), .star-rating > span > *:not(.last-star) {
     padding-right: 3px;
+}
+
+.nav-tabs .star-rating > *:last-child {
+    padding-right: 0;
+}
+
+.an {
+	padding: 10px 15px;
+}
+
+.feedback {
+    background-color: #337ab7;
+}
+
+.planned {
+    background-color: #5bc0de;
 }
 
 .ml3 {
@@ -85,11 +109,22 @@ legend {
     margin-top: 13px !important;
 }
 
+.comb {
+    margin-right: 5px;
+}
+
+.comb > button {
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
 .mb13 {
     margin-bottom: 13px !important;
 }
 
-.cmn .pull-left {
+.com .pull-left {
     margin-top: 14px;
     width: 45px;
 }
@@ -98,9 +133,9 @@ legend {
     margin-bottom: 7px !important;
 }
 
-.ml5 {
+/*.ml5 {
     margin-left: 5px;
-}
+}*/
 
 .pb7 {
     padding-bottom: 7px;
@@ -159,7 +194,7 @@ html, body {
   height: 100%;
 }
 
-body {
+body, .mb3 p, .form-group, .nmb, .well.cmn > p {
 	margin-bottom: 0;
 }
 

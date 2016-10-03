@@ -24,11 +24,11 @@ class NotificationPagination(PageNumberPagination):
 class EventPagination(PageNumberPagination):
     page_size = settings.EVENT_PAGE_SIZE
 
-class CommentPagination(PageNumberPagination):
-    page_size = settings.COMMENT_PAGE_SIZE
+class CommentPagination(pagination.LimitOffsetPagination):
+    default_limit = settings.COMMENT_PAGE_SIZE
 
     def get_paginated_response(self, data):
         return Response({
-            'comment_count': self.page.paginator.count,
+            'count': self.count,
             'results': data
         })

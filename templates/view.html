@@ -14,15 +14,29 @@
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ business.id }}"{% endblock %}
 
-{% block rowatt %}ng-controller="BusinessCtrl" ng-init="favoured_count = {{ business.favoured_by.count }}; fav_state = {{ fav_state }}{% if fav_state == -1 %}; minchar = {{ minchar }}{% endif %}"{% endblock %}
+{% block rowatt %}ng-controller="BusinessCtrl" ng-init="fav_count = {{ fav_count }}; fav_state = {{ fav_state }}; minchar = {{ minchar }}"{% endblock %}
 
 {% block name %}{{ business.get_type_display }} "{{ business.name }}"{% endblock %}
 
 {% block img %}{{ business.pk }}/avatar/?business=1{% endblock %}
 
 {% block other %}<li><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-o"></i> | 4.0</li>
-                        <li><span ng-if="favoured_count > 0"><a href="javascript:" ng-click="showFavouritesModal(1)"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ favoured_count }}{% endverbatim %}</strong></a> {% verbatim %}{{ favoured_count > 1 ? 'osobe su favorizovale' : 'osoba je favorizovala' }}{% endverbatim %} ovo</span><span ng-if="favoured_count == 0"><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span></li>
-                        {% if fav_state > -1 %}<li><a href="javascript:" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"><span ng-if="fav_state == 0"><i class="fa fa-plus-square"></i> {% verbatim %}{{ favoured_count > 0 ? 'I meni je omiljeno' : 'Meni je omiljeno' }}{% endverbatim %}</span><span ng-if="fav_state == 1"><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span></a></li>
+                        <li
+                            ><span ng-if="fav_count > 0"
+                                ><a href="javascript:" ng-click="showFavouritesModal(1)"
+                                    ><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong
+                                ></a> {% verbatim %}{{ fav_count > 1 ? "osobe su favorizovale" : "osoba je favorizovala" }}{% endverbatim %} ovo</span
+                            ><span ng-if="fav_count == 0"
+                                ><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span
+                        ></li>
+                        {% if fav_state > -1 %}<li
+                            ><a href="javascript:" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"
+                                ><span ng-if="fav_state == 0"
+                                    ><i class="fa fa-plus-square"></i> {% verbatim %}{{ fav_count > 0 ? "I meni je omiljeno" : "Meni je omiljeno" }}{% endverbatim %}</span
+                                ><span ng-if="fav_state == 1"
+                                    ><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span
+                            ></a
+                        ></li>
                         {% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>{% endcomment %}
                         {% endif %}<li>
                             <hr style="margin: 8px 13px 13px;">
@@ -45,9 +59,9 @@
 
 {% block content %}<uib-tab index="0" heading="Events">
 {% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="EventCtrl">
-							<form name="eventform" ng-submit="submitEvent()" class="form-vertical">
-                                <uib-alert class="mpd" type="danger" close="dismissAlert()" ng-if="eventform_showalert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
-                                <div class="form-group" ng-class="{'has-error': eventform.$invalid}">
+							<form name="forms.event" ng-submit="submitEvent()" class="form-vertical">
+                                <uib-alert class="mpd" type="danger" close="dismissAlert()" ng-if="event_showalert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
+                                <div class="form-group" ng-class="{'has-error': forms.event.$invalid}">
 								    <textarea name="text" class="form-control br2" rows="3" required></textarea>
                                 </div>
                                 <p class="input-group" style="width: 250px;">
@@ -59,16 +73,14 @@
                                 </p>
 								<input type="submit" class="btn btn-primary" value="Submit">
 							</form>
-						</div>{% endif %}
+						</div>
 
-                        <div class="mn1 vi" ng-init="t = 'event'" ng-if="objloaded || active == 0">
-                            {% load rawinclude %}{% raw_include 'main/events.html' %}
-                        </div>
+{% endif %}                        <div class="mn1 vi" ng-init="t = 'event'" ng-if="objloaded[0] || active == 0" ng-include="'/static/main/events.html'"></div>
                     </uib-tab>
 
                     <uib-tab index="1" heading="Menu">
                         <div class="mn">
-                            <div ng-if="loaded" ng-repeat="c in menu" ng-cloak>
+                            <div ng-if="objloaded[1]" ng-repeat="c in menu" ng-cloak>
                                 <h4 ng-bind="c.category"></h4>
                                 <div ng-repeat="sc in c.content">
                                     <h5 class="text-center">{% verbatim %}{{ sc.category }}{% endverbatim %}</h5>
@@ -89,48 +101,21 @@
                                 </div>
                                 <hr ng-if="!$last">
                             </div>
-                            <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && !loaded"><i class="fa fa-spinner fa-2x"></i></div>
+                            <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && !objloaded[1]"><i class="fa fa-spinner fa-2x"></i></div>
                         </div>
 					</uib-tab>
 
                     <uib-tab index="2" heading="Reviews">
-						<div class="well bs-component clearfix wp">
-							<form class="form-vertical">
-								<textarea class="form-control br2" rows="3" id="comment"></textarea>
-								<button class="btn btn-primary">Submit</button>
+{% if fav_state != -1 %}						<div ng-if="showrevf" class="well bs-component clearfix wp">
+							<form name="forms.review" ng-submit="submitReview()" class="form-vertical">
+                                <uib-alert class="mpd" type="danger" close="dismissAlert()" ng-if="review_alert > 0">{% verbatim %}{{ review_alert != 2 ? "Please enter a message with "+minchar+" or more characters." : '' }} {{ review_alert != 1 ? "Please select how many stars you give." : '' }}{% endverbatim %}</uib-alert>
+                                <div class="form-group" ng-class="{'has-error': forms.review.$invalid}">
+								    <textarea name="text" class="form-control br2" rows="3" required></textarea>
+                                </div>
+                                <div class="mpd" star-rating user-rating="forms.review_stars"></div>
+								<input type="submit" class="btn btn-primary" value="Submit">
 							</form>
 						</div>
-						<div class="well bs-component clearfix">
-							<legend>Mihailo Popović</legend>
-							<img class="bor media-object" src="http://i.imgur.com/mKpzieM.jpg">
-							<p>Jako pristojno osoblje, jela i roštilj su za desetku! Zato dajem svih 5 zvzedica :)</p>
-							<div class="br">
-								<span class="b"><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> | 5.0</span>
-								<a href="javascript:" class="b"><i class="fa fa-plus-square"></i> 10</a>
-								<a href="javascript:" class="b"><i class="fa fa-minus-square"></i> 0</a>
-								<a href="javascript:" class="b"><i class="fa fa-comment"></i> Komentari</a>
-							</div>
-						</div>
 
-						<div class="well bs-component clearfix">
-							<legend>Milorad Stajić</legend>
-							<img class="bor media-object" src="holder.js/64x64">
-							<p>Hrana dobra, samo jedna sitna zamerka... Ne vidim čačkalice na stolu.</p>
-							<div class="br">
-								<span class="b"><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-half-o"></i> <i class="fa fa-star-o"></i> | 3.5</span>
-								<a href="javascript:" class="b"><i class="fa fa-plus-square"></i> 4</a>
-								<a href="javascript:" class="b"><i class="fa fa-minus-square"></i> 5</a>
-								<a href="javascript:" class="b"><i class="fa fa-comment"></i> Komentari</a>
-							</div>
-							<div class="well bs-component clearfix br an">
-								<ul class="list-unstyled ls rw">
-									<li><b class="text-uppercase text-success"> <i class="fa fa-check-square-o"></i> Started</b></li>
-									<li>Hvala Vam na sugestiji, poradićemo na tome. :)</li>
-									<li>
-										<a href="javascript:" class="b"><i class="fa fa-plus-square"></i> 30</a>
-										<a href="javascript:" class="b"><i class="fa fa-minus-square"></i> 0</a>
-									</li>
-								</ul>
-							</div>
-						</div>
+{% endif %}                        <div class="mn1 vi" ng-init="t = 'review'" ng-if="objloaded[2] || active == 2" ng-include="'/static/main/events.html'"></div>
                     </uib-tab>{% endblock %}
