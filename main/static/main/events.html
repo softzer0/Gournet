@@ -1,4 +1,4 @@
-<div ng-class="'objs'+r+'_'+t" dynamic-controller="t+'sCtrl'">
+<div ng-class="'objs'+r+'_'+t+(modal_loaded ? ' um' : '')" dynamic-controller="t+'sCtrl'">
     <script type="text/ng-template" id="likes"
         ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 1}" ng-click="giveDisLike(o[1], false, o[2])"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</a
         ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</span
@@ -33,13 +33,13 @@
     <div class="angular-animate" ng-repeat="e in objs" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ objs_animation ? 'angular-animate' : '' }}"-->
         <div ng-if="first_name !== undefined" class="mb3">
             <p>{{ first_name }}</p>
-            <span ng-if="e.person_status == -1"><span ng-switch="t"><span ng-switch-default>posted</span><span ng-switch-when="item">added</span><span ng-switch-when="review">reviewed</span></span></span
-            ><div ng-if="e.person_status != -1">
+            <span ng-if="e.person_status[0] == -1"><span ng-switch="t"><span ng-switch-default>posted</span><span ng-switch-when="item">added</span><span ng-switch-when="review">reviewed</span></span></span
+            ><div ng-if="e.person_status[0] != -1">
                 <div ng-if="e.stars_avg === undefined">
-                    <p>gave {{ e.person_status == 1 ? "like" : "dislike" }} to</p
+                    <p>gave {{ e.person_status[0] == 1 ? "like" : "dislike" }} to</p
                 ></div>
                 <div ng-if="e.stars_avg !== undefined">
-                    <p>gave {{ e.person_status }} {{ e.person_status == 1 ? "star" : "stars" }} to</p
+                    <p>gave {{ e.person_status[0] }} {{ e.person_status[0] == 1 ? "star" : "stars" }} to</p
                 ></div>
             </div><p>:</p>
         </div>
@@ -52,7 +52,7 @@
                 <p>{{ e.text }} <small class="text-muted">&mdash; {{ (e.when || e.created) | timeAgo }}</small></p>
             </div>
             <div ng-if="t == 'item'">
-                <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ e.price }} {{ e.business.currency }}</p>
+                <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ e.price }} {{ e.business.currency || e.currency }}</p>
             </div>
             <div class="op br">
                 <span ng-if="t == 'review'" star-rating rating-value="e.stars"></span
@@ -86,12 +86,12 @@
                 <ul ng-if="t == 'review' && e.is_manager" class="nya-bs-select comb" ng-model="e.status" ng-init="e.status = choices[0]">
                     <li nya-bs-option="choice in choices"><a>{{ choice.name }}</a></li>
                 </ul
-                ><input type="submit" class="btn btn-sm btn-primary" value="Submit" ng-click="submitComment($index)">
+                ><input type="submit" ng-attr-id="{{ t + $index }}b" class="btn btn-sm btn-primary" value="Submit" ng-click="submitComment($index)">
             </div>
         </div>
         <hr ng-if="toggleHr(first_name !== undefined, $last && !r)" class="mpd">
     </div>
     <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="objs.has_next_page && !loading" ng-click="load_page()">Load more</a>
     <div class="loa mb13 loa-c" ng-if="!r && loading"><i class="fa fa-spinner fa-2x"></i></div>
-    <div class="nev" ng-if="!objs.length && !loading"><span ng-hide="toggleHr(true, true)">No results.</span></div>
+    <div class="nev" ng-if="!objs.length && !loading"><span ng-hide="checkAnim()">No results.</span></div>
 </div>

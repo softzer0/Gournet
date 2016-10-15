@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.relations import PrimaryKeyRelatedField
 from allauth.account.models import EmailAddress
-from .models import Relationship, Notification, Business, Event, Comment, Like, Reminder, Item, CONTENT_TYPES_PK
+from .models import Relationship, Notification, Business, Event, Comment, Like, EventNotification, Item, CONTENT_TYPES_PK
 from django.contrib.auth import get_user_model
 from rest_framework.compat import unicode_to_repr
 from generic_relations.relations import GenericRelatedField
@@ -67,12 +67,12 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class BusinessSerializer(serializers.ModelSerializer):
-    business = serializers.PrimaryKeyRelatedField(queryset=Business.objects.all(), write_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
+    read_only = True
 
     class Meta:
         model = Business
-        fields = ('business', 'id', 'shortname', 'name', 'type_display')
+        fields = ('id', 'shortname', 'name', 'type_display') #, business
         extra_kwargs = {
             'shortname': {'read_only': True},
             'name': {'read_only': True}
@@ -91,6 +91,9 @@ class BusinessSerializer(serializers.ModelSerializer):
 
         if 'notype' in self.context:
             self.fields.pop('type_display')
+
+        #if ...:
+        #    self.fields['business'] = serializers.PrimaryKeyRelatedField(queryset=Business.objects.all(), write_only=True)
 
 class CurrentBusinessDefault(object):
     def set_context(self, serializer_field):
@@ -130,7 +133,7 @@ def extarg(kwargs, name, obj=None):
         return res
 
 class BaseSerializer(serializers.ModelSerializer):
-    business = BusinessSerializer(read_only=True, default=CurrentBusinessDefault())
+    business = BusinessSerializer(default=CurrentBusinessDefault())
     likestars_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
@@ -144,6 +147,10 @@ class BaseSerializer(serializers.ModelSerializer):
             self.fields['person_status'] = serializers.SerializerMethodField()
         if self.stars:
             self.fields['stars_avg'] = serializers.SerializerMethodField()
+        if 'hiddenbusiness' in self.context:
+            self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
+        else:
+            self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault(), currency=True)
         #elif self.context['person_business'] == True:
         #    self.fields.pop('business')
 
@@ -151,25 +158,29 @@ class BaseSerializer(serializers.ModelSerializer):
         chkbusiness(attrs['business'])
         return attrs #, timedelta(minutes=1)
 
-    def p_cont(self, obj, person, manager=None, stars=False):
+    def p_cont(self, obj, person, manager=None, stars=False, t=False):
         if (manager if manager else obj.business.manager) != person:
             try:
                 ls = Like.objects.get(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk, person=person)
             except:
                 return 0
             if not self.stars and not stars:
-                return 2 if ls.is_dislike else 1
-            return ls.stars
+                return [2 if ls.is_dislike else 1, ls.date] if t else 2 if ls.is_dislike else 1
+            return [ls.stars, ls.date] if t else ls.stars
+        if t:
+            if not isinstance(obj, Comment) and 'person' in self.context and self.context['person'] == self.context['request'].user:
+                return [-1, obj.created]
+            return [-1]
         return -1
 
-    def p_status(self, obj, t=None):
+    def p_status(self, obj, t=False):
         if t:
             person = self.context['person']
         elif 'request' in self.context: #and self.context['request'].user.is_authenticated()
             person = self.context['request'].user
         else:
-            return -1
-        return self.p_cont(obj, person)
+            return [-1] if t else -1
+        return self.p_cont(obj, person, t=t)
 
     def get_curruser_status(self, obj):
         return self.p_status(obj)
@@ -180,8 +191,7 @@ class BaseSerializer(serializers.ModelSerializer):
     def get_likestars_count(self, obj):
         if not self.stars:
             return Like.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk, is_dislike=False).count()
-        else:
-            return Like.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk).count()
+        return Like.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk).count()
 
     def get_stars_avg(self, obj):
         avg = Like.objects.filter(content_type__pk=ContentType.objects.get_for_model(obj).pk, object_id=obj.pk).aggregate(Avg('stars'))['stars__avg']
@@ -267,8 +277,8 @@ class CommentSerializer(BaseSerializer):
             obj.content_object.save()
         return obj"""
 
-    def p_cont(self, obj, person, manager=None, stars=False):
-        return super().p_cont(obj, person, manager if manager else obj.person, stars)
+    def p_cont(self, obj, person, manager=None, stars=False, t=False):
+        return super().p_cont(obj, person, manager if manager else obj.person, stars, t)
 
     def get_is_curruser(self, obj):
         return obj.person == self.context['request'].user
@@ -290,6 +300,11 @@ class EventSerializer(BaseSerializer):
     class Meta:
         model = Event
 
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        self.fields.pop('created')
+
     def validate(self, attrs):
         return chktime(super().validate(attrs)) #, timedelta(minutes=1)
 
@@ -308,18 +323,18 @@ class ItemSerializer(BaseSerializer):
         kwargs['stars'] = True
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if 'hiddenbusiness' in self.context or 'menu' in self.context:
-            self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
-        else:
-            self.fields['business'] = BusinessSerializer(read_only=True, default=CurrentBusinessDefault(), currency=True)
+        self.fields.pop('created')
+        self.fields.pop('dislike_count')
         if 'menu' in self.context:
             self.fields.pop('curruser_status')
             self.fields.pop('likestars_count')
-            self.fields.pop('dislike_count')
             self.fields.pop('comment_count')
             #self.fields.pop('stars_avg')
         else:
-            self.fields['category'].write_only = True
+            if 'ids' not in self.context:
+                self.fields['category'].write_only = True
+            if 'hiddenbusiness' in self.context:
+                self.fields['currency'] = serializers.CharField(source='business.currency', read_only=True)
             self.fields['category_display'] = serializers.CharField(source='get_category_display', read_only=True)
 
 
@@ -371,20 +386,22 @@ class LikeSerializer(serializers.ModelSerializer):
 
 
 class ReminderSerializer(serializers.ModelSerializer):
-    person = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    to_person = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    content_type = serializers.HiddenField(default=settings.CONTENT_TYPES['event'])
 
     class Meta:
-        model = Reminder
+        model = EventNotification
+        exclude = ('from_person', 'comment_type')
         validators = [
             UniqueTogetherValidator(
-                queryset=Reminder.objects.all(),
-                fields=('person', 'event', 'when'),
+                queryset=EventNotification.objects.all(),
+                fields=('to_person', 'content_type', 'object_id', 'when'),
                 message="Such reminder with the same date is already set."
             )
         ]
 
     def validate(self, attrs):
-        attrs = chktime(attrs, timedelta(minutes=1))
-        if attrs['when'] > attrs['event'].when:
-            raise serializers.ValidationError({'event': "The reminder date exceeds the event date, or the event is in the past."})
+        attrs = chktime(exists(attrs), timedelta(minutes=1))
+        if attrs['when'] > attrs['content_object'].when:
+            raise serializers.ValidationError({'content_object': "The reminder date exceeds the event date, or the event is in the past."})
         return attrs

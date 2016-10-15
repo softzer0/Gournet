@@ -9,9 +9,9 @@ from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
 from phonenumber_field.modelfields import PhoneNumberField
-from django.core.exceptions import FieldError
+#from django.core.exceptions import FieldError
 import datetime
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 
@@ -126,8 +126,8 @@ class Relationship(models.Model):
 
 @receiver(pre_save, sender=Relationship, dispatch_uid='relationship_save_notification')
 def relationship_save_notification(instance, **kwargs):
-    if instance.from_person == instance.to_person:
-        raise FieldError("You can't make a relationship with yourself.")
+    """if instance.from_person == instance.to_person:
+        raise FieldError("You can't make a relationship with yourself.")"""
     if instance.notification:
         return
     #instance.full_clean()
@@ -214,6 +214,13 @@ class Event(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     text = models.TextField(validators=[MinLengthValidator(EVENT_MIN_CHAR)])
     when = models.DateTimeField()
+    created = models.DateTimeField(auto_now_add=True)
+    likes = GenericRelation('Like')
+
+    class Meta:
+        ordering = ['-when', '-pk']
+        #verbose_name = "event"
+        #verbose_name_plural = "events"
 
     def __str__(self):
         return 'Event #%d on business #%d' % (self.pk, self.business_id)
@@ -273,10 +280,15 @@ class Item(models.Model):
     category = models.CharField(choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=13)
     name = models.CharField(validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
     price = models.DecimalField(max_digits=7, decimal_places=2)
+    created = models.DateTimeField(auto_now_add=True)
+    likes = GenericRelation('Like')
 
     class Meta:
+        ordering = ['business', 'category', 'name', 'price']
         unique_together = (('business', 'name'),)
-        ordering = ['category', 'name', 'price']
+        #ordering = ['category', 'name', 'price']
+        #verbose_name = "item"
+        #verbose_name_plural = "items"
 
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
@@ -303,36 +315,58 @@ class Comment(models.Model):
     stars = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)], null=True, blank=True)
     main_comment = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
     status = models.IntegerField(choices=REVIEW_STATUS, null=True, blank=True)
+    likes = GenericRelation('Like')
+
+    class Meta:
+        ordering = ['-created']
+        verbose_name = "review"
+        #verbose_name_plural = "reviews"
 
     def __str__(self):
         return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type.model != 'comment' else 'review', self.object_id)
 
-def prep_obj(instance):
-    business = isinstance(instance.content_object, Business)
-    ct = settings.CONTENT_TYPES['comment'] if business else instance.content_type
-    obj_pk = instance.pk if business else instance.object_id
-    manager = instance.content_object.manager if business else instance.content_object.content_object.manager if isinstance(instance.content_object, Comment) else instance.content_object.business.manager
-    is_comment = None if business else True
-    return ct, obj_pk, manager, is_comment
+def create_notif(from_person, ct, obj_pk, to_person, typ):
+    if EventNotification.objects.filter(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person, comment_type=typ).exists():
+        obj = EventNotification.objects.get(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person, comment_type=typ)
+        obj.count += 1
+        obj.save()
+    else:
+        EventNotification.objects.create(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person, comment_type=typ)
 
 @receiver(post_save, sender=Comment, dispatch_uid='comment_save_notification')
 def comment_save_notification(instance, created, **kwargs):
     if created:
-        if instance.content_type.model == 'comment' and instance.status is not None:
+        bc = 2 if isinstance(instance.content_object, Business) else 1 if isinstance(instance.content_object, Comment) else 0
+        if bc == 1 and instance.status is not None:
             instance.content_object.main_comment = instance
             instance.content_object.save()
-        ct, obj_pk, manager, is_comment = prep_obj(instance)
-        if not EventNotification.objects.filter(from_person=instance.person, content_type=ct, object_id=obj_pk, to_person=manager if instance.person != manager else instance.content_object.person, is_comment=is_comment).exists():
-            EventNotification.objects.create(from_person=instance.person, content_type=ct, object_id=obj_pk, to_person=manager if instance.person != manager else instance.content_object.person, is_comment=is_comment)
+        ct = settings.CONTENT_TYPES['comment'] if bc == 2 else instance.content_type
+        obj_pk = instance.pk if bc == 2 else instance.object_id
+        # noinspection PyUnresolvedReferences
+        manager = instance.content_object.manager if bc == 2 else instance.content_object.content_object.manager if bc == 1 else instance.content_object.business.manager
+        if instance.person != manager:
+            create_notif(instance.person, ct, obj_pk, manager, bc)
+        if bc == 1 and instance.person != instance.content_object.person: #instance.person == manager
+            create_notif(instance.person, ct, obj_pk, instance.content_object.person, 0)
+
+def del_notif(from_person, ct, obj_pk, to_person):
+    try:
+        obj = EventNotification.objects.get(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person)
+    except:
+        return
+    obj.count -= 1
+    if obj.count == 0:
+        obj.delete()
+    else:
+        obj.save()
 
 @receiver(pre_delete, sender=Comment, dispatch_uid='comment_cascade_delete')
 def comment_cascade_delete(instance, **kwargs):
-    if instance.content_type.model != 'business':
-        try:
-            EventNotification.objects.get(from_person=instance.person, content_type=instance.content_type, object_id=instance.object_id, to_person=(instance.content_object.content_object.manager if instance.person != instance.content_object.content_object.manager else instance.content_object.person) if isinstance(instance.content_object, Comment) else instance.content_object.business.manager, is_comment=True).delete()
-        except:
-            pass
-    else:
+    del_notif(instance.person, instance.content_type, instance.object_id, instance.content_object.manager if isinstance(instance.content_object, Business) else instance.content_object.content_object.manager if isinstance(instance.content_object, Comment) else instance.content_object.business.manager)
+    if isinstance(instance.content_object, Comment):
+        if instance.person != instance.content_object.person:
+            del_notif(instance.person, instance.content_type, instance.object_id, instance.content_object.person)
+    elif isinstance(instance.content_object, Business):
         cascade_delete('comment', instance.pk)
 
 class Like(models.Model):
@@ -342,37 +376,29 @@ class Like(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     is_dislike = models.BooleanField(default=False)
     stars = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)], null=True, blank=True)
+    date = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = (('person', 'content_type', 'object_id'),)
+        ordering = ['-date']
 
     def __str__(self):
         return 'User %s, %s on %s #%d' % (self.person.username, 'dislike' if self.is_dislike else 'like' if self.content_type_id not in settings.HAS_STARS else str(self.stars)+' stars', self.content_type.model, self.object_id)
 
 
 class EventNotification(models.Model):
-    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person")
+    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person", blank=True, null=True)
     to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_to_person")
     content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
-    is_comment = models.NullBooleanField(default=False)
-    created = models.DateTimeField(auto_now_add=True)
+    comment_type = models.PositiveSmallIntegerField(blank=True, null=True)
+    when = models.DateTimeField(auto_now_add=True)
+    count = models.PositiveSmallIntegerField(default=1)
 
     class Meta:
-        unique_together = (('from_person', 'to_person', 'content_type', 'object_id', 'is_comment'),)
-        ordering = ['from_person', 'content_type', 'object_id', 'pk']
-
-class Reminder(models.Model):
-    person = models.ForeignKey(User, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    when = models.DateTimeField()
-
-    class Meta:
-        unique_together = (('person', 'event', 'when'),)
-
-    def __str__(self):
-        return str(self.pk)
+        unique_together = (('from_person', 'to_person', 'content_type', 'object_id', 'comment_type'),)
+        ordering = ['comment_type', 'content_type', 'from_person', 'object_id', 'when']
 
 
 """TESTING:
@@ -391,10 +417,11 @@ a.save()
 
 from main.models import User
 a = User.objects.get(pk=1)
-a.set_password('123456')
+a.username = 'user'
+a.set_password('1')
 a.save()
-a = User.objects.create(username='mikisoft1',email='lololoasadasdd@sdaaadsa.ss',first_name='Miki',last_name='Pop',birthdate='***REMOVED***',location=0)
-a.set_password('123456')
+a = User.objects.create(username='manager',email='lololoasadasdd@sdaaadsa.ss',first_name='Miki',last_name='Pop',birthdate='***REMOVED***',location=0)
+a.set_password('1')
 a.save()
 # try to login to site
 from allauth.account.models import EmailAddress

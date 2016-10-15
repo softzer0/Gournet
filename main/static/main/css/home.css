@@ -65,7 +65,7 @@ legend {
     padding-bottom: 18px;
 }
 
-.op > a, .op > span > *, .op span:not(.star-rating) > *:not(.star-rating):first-child:not(:only-child), .op span:not(.star-rating) > *:not(.star-rating):not(:last-child) {
+.op > a, .op > span:not(:last-child), .op > span > span:first-child:not(:only-child), .op > span > span:not(:last-child), .op span:not(.star-rating):not(.btn-group) > *:not(.star-rating):not(div):first-child:not(:only-child), .op span:not(.star-rating):not(.btn-group) > *:not(.star-rating):not(:last-child):not(div) {
     margin-right: 12px;
 }
 
@@ -166,13 +166,17 @@ legend {
 
 @media (max-width: 387px) {
     #sr {
-        width: 105px;
+        width: 115px;
+    }
+
+    .navbar-form {
+        padding: 0 4px 0 0;
     }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 345px) {
     #sr {
-        width: 85px;
+        width: 90px;
     }
 }
 
@@ -531,4 +535,17 @@ body, .mb3 p, .form-group, .nmb, .well.cmn > p {
 
 [class*=objs] .ng-leave.ng-leave-active {
   opacity: 0;
+}
+
+#quicks {
+    position: absolute;
+    display: none;
+    border: 1px solid black; /*#e3e3e3*/
+    left: 0;/*112px;*/
+    height: 220px;
+    width: 320px;
+    overflow-y: auto;
+    max-width: 320px;
+    background-color: white;
+    z-index: 1;
 }

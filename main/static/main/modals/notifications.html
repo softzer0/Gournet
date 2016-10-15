@@ -11,22 +11,3 @@
     </div>
 </div>
 <div class="dt" ng-if="!notifs.length">You don't have any notifications yet.</div>
-
-<script>
-    $(document).ready(function () {
-        var e = $('#notif').next();
-        var func = setTimeout(function () {
-            //console.log($(window).width() - (e.offset().left + e.outerWidth()));
-            if (e.offset().left == 0 || $(window).width() - (e.offset().left + e.outerWidth()) == 66) {
-                //console.log($(window).width()+' '+(e.width()+66));
-                if ($(window).width() <= e.width() + 66) {
-                    e.addClass('notif');
-                    e.children('.arrow').css('left', $("#nf").offset().left + 6);
-                    //e.children('.popover-content').css('white-space', 'normal');
-                    $('#nct').scope().enableScroll(); // e = e.find('.popover-content');
-                    // $('#nct').scope().$apply(); // if (e.height() < 18+e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden');
-                }
-            } else setTimeout(func, 1000);
-        }, 1000);
-    });
-</script>

@@ -168,4 +168,8 @@ footer .text-muted {
     .navbar-text.navbar-right:last-child {
         margin-right: 0;
     }
+
+    .navbar > .container {
+        padding-left: 0;
+    }
 }

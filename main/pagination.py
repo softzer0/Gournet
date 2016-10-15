@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework import pagination
 from rest_framework.response import Response
 
+
 class PageNumberPagination(pagination.PageNumberPagination):
     page_size = 25
     page_size_query_param = 'page_size'
@@ -17,14 +18,14 @@ class PageNumberPagination(pagination.PageNumberPagination):
             'results': data
         })
 
-
 class NotificationPagination(PageNumberPagination):
     page_size = settings.NOTIFICATION_PAGE_SIZE
 
 class EventPagination(PageNumberPagination):
     page_size = settings.EVENT_PAGE_SIZE
 
-class CommentPagination(pagination.LimitOffsetPagination):
+
+class LimitOffsetPagination(pagination.LimitOffsetPagination):
     default_limit = settings.COMMENT_PAGE_SIZE
 
     def get_paginated_response(self, data):
@@ -32,3 +33,9 @@ class CommentPagination(pagination.LimitOffsetPagination):
             'count': self.count,
             'results': data
         })
+
+class CommentPagination(LimitOffsetPagination):
+    default_limit = settings.COMMENT_PAGE_SIZE
+
+class SearchPagination(LimitOffsetPagination):
+    default_limit = settings.SEARCH_PAGE_SIZE

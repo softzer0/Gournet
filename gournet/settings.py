@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'generic_relations',
+#    'drf_multiple_model',
     'decorator_include',
     'allauth',
     'allauth.account',
@@ -115,6 +116,7 @@ NOCAPTCHA = True
 EVENT_PAGE_SIZE = 15
 NOTIFICATION_PAGE_SIZE = 5
 COMMENT_PAGE_SIZE = 4
+SEARCH_PAGE_SIZE = 10
 CONTENT_TYPES = {}
 HAS_STARS = {}
 
@@ -123,6 +125,7 @@ HAS_STARS = {}
 SETTINGS_EXPORT = [
     'NOTIFICATION_PAGE_SIZE',
     'COMMENT_PAGE_SIZE',
+    'SEARCH_PAGE_SIZE',
     'CONTENT_TYPES',
     'HAS_STARS',
     'STATIC_URL'

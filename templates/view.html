@@ -59,10 +59,10 @@
 
 {% block content %}<uib-tab index="0" heading="Events">
 {% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="EventCtrl">
-							<form name="forms.event" ng-submit="submitEvent()" class="form-vertical">
-                                <uib-alert class="mpd" type="danger" close="dismissAlert()" ng-if="event_showalert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
-                                <div class="form-group" ng-class="{'has-error': forms.event.$invalid}">
-								    <textarea name="text" class="form-control br2" rows="3" required></textarea>
+							<form name="forms.event" ng-submit="submitEvent()" class="frm form-vertical">
+                                <uib-alert class="mpd" type="danger" close="forms.event.alert = false" ng-if="forms.event.alert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
+                                <div class="form-group" ng-class="{'has-error': forms.event.alert}">
+								    <textarea name="text" class="form-control" rows="3" required></textarea>
                                 </div>
                                 <p class="input-group" style="width: 250px;">
                                     <input type="hidden" name="when" class="form-control" datetime-picker="dd.MM.yyyy HH:mm" datepicker-options="picker.options" ng-model="picker.date" is-open="picker.open" />
@@ -79,11 +79,26 @@
                     </uib-tab>
 
                     <uib-tab index="1" heading="Menu">
-                        <div class="mn">
-                            <div ng-if="objloaded[1]" ng-repeat="c in menu" ng-cloak>
-                                <h4 ng-bind="c.category"></h4>
-                                <div ng-repeat="sc in c.content">
-                                    <h5 class="text-center">{% verbatim %}{{ sc.category }}{% endverbatim %}</h5>
+{% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="ItemCtrl">
+							<form name="forms.item" ng-submit="submitItem()" class="frm form-vertical">
+                                <uib-alert class="mpd" type="danger" close="forms.item.alert = undefined" ng-if="forms.item.alert !== undefined">Please enter a valid name (it {% verbatim %}{{ forms.item.alert === true ? "must have minimum 2 characters" : "conflicts with the existing item" }}{% endverbatim %}).</uib-alert>
+                                <div class="form-group" ng-class="{'has-error': forms.item.alert !== undefined}">
+                                    <input name="name" type="text" class="form-control" required>
+                                </div>
+                                <div class="input-group">
+                                    <input type="number" name="price" step="0.01" min="0" class="form-control" required>
+                                    <span class="input-group-addon">{{ business.currency }}</span>
+                                </div>
+                                {% load bootstrap3 %}{% bootstrap_field form.cat %}
+								<input type="submit" class="btn btn-primary" value="Submit">
+							</form>
+						</div>
+
+{% endif %}                        <div class="mn">
+                            <div class="angular-animate" ng-if="objloaded[1] && c.hascontent" ng-repeat="c in menu" ng-cloak>
+                                <h4 ng-bind="c.name"></h4>
+                                <div class="angular-animate" ng-repeat="sc in c.content" ng-if="sc.content.length > 0">
+                                    <h5 class="text-center">{% verbatim %}{{ sc.name }}{% endverbatim %}</h5>
                                     <table class="table table-hover tb">
                                         {% comment %}<thead>
                                             <tr>
@@ -92,7 +107,7 @@
                                             </tr>
                                             </thead>{% endcomment %}
                                         <tbody>
-                                            <tr ng-repeat="i in sc.content" such-href="/show={% verbatim %}{{ i.id }}{% endverbatim %}&type=item&nobusiness">
+                                            <tr class="angular-animate" ng-repeat="i in sc.content" such-href="/show={% verbatim %}{{ i.id }}{% endverbatim %}&type=item&nobusiness">
                                                 <td><img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1"><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div></td>
                                                 <td><div>{% verbatim %}{{ i.price }}{% endverbatim %} {{ business.currency }}</div></td>
                                             </tr>
@@ -107,12 +122,12 @@
 
                     <uib-tab index="2" heading="Reviews">
 {% if fav_state != -1 %}						<div ng-if="showrevf" class="well bs-component clearfix wp">
-							<form name="forms.review" ng-submit="submitReview()" class="form-vertical">
-                                <uib-alert class="mpd" type="danger" close="dismissAlert()" ng-if="review_alert > 0">{% verbatim %}{{ review_alert != 2 ? "Please enter a message with "+minchar+" or more characters." : '' }} {{ review_alert != 1 ? "Please select how many stars you give." : '' }}{% endverbatim %}</uib-alert>
-                                <div class="form-group" ng-class="{'has-error': forms.review.$invalid}">
-								    <textarea name="text" class="form-control br2" rows="3" required></textarea>
+							<form name="forms.review" ng-submit="submitReview()" class="frm form-vertical">
+                                <uib-alert class="mpd" type="danger" close="forms.review.alert = 0" ng-if="forms.review.alert > 0">{% verbatim %}{{ forms.review.alert != 2 ? "Please enter a message with "+minchar+" or more characters." : '' }} {{ forms.review.alert != 1 ? "Please select how many stars you give." : '' }}{% endverbatim %}</uib-alert>
+                                <div class="form-group" ng-class="{'has-error': forms.review.alert == 1 || forms.review.alert == 3}">
+								    <textarea name="text" class="form-control" rows="3" required></textarea>
                                 </div>
-                                <div class="mpd" star-rating user-rating="forms.review_stars"></div>
+                                <div class="mpd" star-rating user-rating="forms.review.stars"></div>
 								<input type="submit" class="btn btn-primary" value="Submit">
 							</form>
 						</div>

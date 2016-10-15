@@ -12,11 +12,11 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, tabs) {
     }
 
     $scope.$watch(function () { return location.hash }, function (value, oldvalue) {
-        if (chng) return;
+        if (chng || location.hash.slice(7) == '#/show=') return;
         if (init !== undefined) init = value;
-        value = value.substr(2);
+        value = value.slice(2);
         if (value != '') {
-            oldvalue = oldvalue.substr(2);
+            oldvalue = oldvalue.slice(2);
             var o = false;
             for (var i = 0; i < tabs.length; i++) {
                 if (value == tabs[i].name) {

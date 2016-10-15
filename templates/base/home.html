@@ -34,7 +34,8 @@
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
-{% block begin %}<div id="offcanvas" ng-non-bindable><div class="navmenu navmenu-default navmenu-fixed-right">{% with current='#" ng-click="close()' %}
+{% block begin %}<script type="text/ng-template" id="offcanvas">
+    <div class="navmenu navmenu-default navmenu-fixed-right">{% with current='#" ng-click="close()' %}
         <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
         <ul class="nav navmenu-nav">
             {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
@@ -67,12 +68,13 @@
             </li>{% endcomment %}
             <li><a href="{% url 'account_logout' %}">Logout</a></li>
         </ul>
-    </div></div>{% endwith %}{% endblock %}
+    </div></script>{% endwith %}{% endblock %}
 
 {% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}
 {% block navbar %}<form class="navbar-form navbar-left" role="search">
                 <div class="form-group">
                     <input type="text" class="form-control" id="sr" placeholder="Search">
+                    <div id="quicks"></div>
                 </div>
             </form>
             <div ng-controller="NotificationCtrl" id="nct" class="navbar-header pull-right" style="width: 105px;">

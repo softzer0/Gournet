@@ -4,10 +4,10 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Case, When, Value, IntegerField
+from django.db.models import Case, When, Value, IntegerField, F, Q
 # from django.conf.urls.static import static
 # from django.shortcuts import get_object_or_404
-# from django.db.models import Q
+# from django.db.models.functions import Coalesce
 # from django.views.decorators.csrf import csrf_protect
 # from django.core.paginator import Paginator, InvalidPage
 # from itertools import chain
@@ -18,10 +18,12 @@ from allauth.account import views
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
+from rest_framework.filters import SearchFilter
+#from drf_multiple_model.views import MultipleModelAPIView
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
 from rest_framework.serializers import ValidationError
-from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Reminder, Item, Event, EVENT_MIN_CHAR, CONTENT_TYPES_PK
+from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Item, Event, EVENT_MIN_CHAR, CONTENT_TYPES_PK
 import os.path
 # from . import permissions
 # from . import forms
@@ -31,11 +33,12 @@ import os.path
 # from stronghold.views import StrongholdPublicMixin
 from django.contrib.contenttypes.models import ContentType
 from .serializers import NOT_MANAGER_MSG
+from .forms import DummyCategory
 
 User = get_user_model()
 
 APP_LABEL = os.path.basename(os.path.dirname(__file__))
-def generic_rel_filter(pk, model, target, swap=None, ct=None):
+def generic_rel_filter(pk, model, target, swap=None, ct=None, order_by=False):
     """
     @type model: django.db.models.Model
     """
@@ -44,8 +47,9 @@ def generic_rel_filter(pk, model, target, swap=None, ct=None):
         {app_label}_{model}.id in
         (select {sel}_id from {app_label}_{target}
         where content_type_id = {content_type}
-            and {column}_id = {pk})
-        {additional}'''.format(app_label=APP_LABEL, model=model_name, sel='object' if not swap else 'person', target=target, content_type=settings.CONTENT_TYPES[model_name].pk if not swap else settings.CONTENT_TYPES[swap].pk, column='person' if not swap else 'object', pk=pk,
+            and {column}_id = {pk}
+            {order_by})
+        {additional}'''.format(app_label=APP_LABEL, model=model_name, sel='object' if not swap else 'person', target=target, content_type=settings.CONTENT_TYPES[model_name].pk if not swap else settings.CONTENT_TYPES[swap].pk, column='person' if not swap else 'object', pk=pk, order_by='ORDER BY created DESC' if order_by else '',
                        additional='and {app_label}_{model}.content_type_id = {ct}'.format(app_label=APP_LABEL, model=model_name, ct=ct) if ct else '')])
 
 def gen_where(model, pk, table=None, additional_obj=None, column=None, target=None, ct=None):
@@ -120,6 +124,7 @@ def show_business(request, shortname):
     else:
         data['fav_state'] = -1
         data['minchar'] = EVENT_MIN_CHAR
+        data['form'] = DummyCategory()
     return render(request, 'view.html', data)
 
 
@@ -164,8 +169,7 @@ def return_avatar(request, username_id, size):
         status = 404
     return HttpResponse(open(avatar, 'rb'), content_type='image/'+mimeext, status=status)
 
-
-class BaseAuthView():
+class BaseAuthView:
     success_url = '/'
 
     def get(self, *args, **kwargs):
@@ -189,27 +193,39 @@ class EmailAPIView(generics.ListAPIView):
     def get_queryset(self):
         return EmailAddress.objects.filter(user=self.request.user).order_by('-primary', '-verified')
 
+class BusinessAPIView(generics.ListAPIView):
+    serializer_class = serializers.BusinessSerializer
+    queryset = Business.objects.all()
+    pagination_class = pagination.SearchPagination
+    filter_backends = (SearchFilter,)
+    search_fields = ('name', 'shortname')
 
-class FriendsAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+class UserAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    filter_backends = (SearchFilter,)
+    search_fields = ('first_name', 'last_name', 'username')
+
+    def paginate_queryset(self, queryset):
+        if self.request.query_params.get('search', False):
+            self.pagination_class = pagination.SearchPagination
+        return super().paginate_queryset(queryset)
+
     def get_serializer_class(self):
         if self.request.method != 'GET':
             return serializers.RelationshipSerializer
         return serializers.UserSerializer
 
-    def get_user(self, pk):
-        if pk:
-            return get_object(pk)
-        return self.request.user
-
     def get_queryset(self):
-        person = self.get_user(self.kwargs['pk'])
-        qs = User.objects.filter(from_person__from_person__in=person.friends.all(), from_person__to_person=person)
-        if person != self.request.user:
-            return sort_related(qs, self.request.user.pk)
-        return qs #modify for sorting by recent
+        if self.request.query_params.get('search', False):
+            return User.objects.all()
+        else:
+            person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
+            qs = User.objects.filter(from_person__from_person__in=person.friends.all(), from_person__to_person=person)
+            if person != self.request.user:
+                return sort_related(qs, self.request.user.pk)
+            return qs #modify for sorting by recent
 
     def delete(self, request, *args, **kwargs):
-        person = self.get_user(kwargs['pk'])
+        person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
         try:
             Relationship.objects.get(from_person=request.user, to_person=person).delete()
         except:
@@ -229,69 +245,56 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
     pagination_class = pagination.NotificationPagination
 
     def paginate_queryset(self, queryset):
-        if 'page' in self.request.query_params:
+        if self.request.query_params.get('page', False):
             return super().paginate_queryset(queryset)
         return None
-    
-    def add_event_notif(self, curr, when):
-        self.request.user.notification_set.add(Notification(text="<a href=\"/user/%s/\"><i>%s %s</i></a> notifies you about %s." % (curr['person'].username, curr['person'].first_name, curr['person'].last_name, "one event" if curr['cnt'] == 1 else str(curr['cnt'])+" events"), link='#/show='+curr['pks'][1:]+'&type=event', created=when), bulk=False) #posted by %s (...) "the event" (...) curr['business'].name
+
+    def create_notif(self, txt, pks, created):
+        self.request.user.notification_set.add(Notification(text=txt[0], link='#/show='+','.join(str(v) for v in pks)+'&type='+txt[1], created=created), bulk=False)
+
+    def gen_person(self, person):
+        return '<a href="/user/%s/"><i>%s %s</i></a>' % (person.username, person.first_name, person.last_name)
+
+    def add_notif(self, curr, created):
+        if curr['typ'] is not None:
+            txt = [(self.gen_person(curr['persons'][0])+" has" if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have")+' '+("commented on" if curr['typ'] != 2 else "reviewed")+' '+(("your" if curr['typ'] != 1 else "a")+' '+(curr['ct'].model_class()._meta.verbose_name.lower() if curr['typ'] != 2 else "business") if len(curr['pks']) == 1 else str(len(curr['pks']))+' '+curr['ct'].model_class()._meta.verbose_name_plural.lower())+(" on your business" if curr['typ'] == 1 else '')+'.', (curr['ct'].model if curr['ct'].model != 'comment' else 'review')+('&showcomments' if curr['typ'] != 2 and len(curr['pks']) == 1 else '')]
+        else:
+            txt = [self.gen_person(curr['persons'][0])+" notifies you about "+("one event" if len(curr['pks']) == 1 else str(len(curr['pks']))+" events"), 'event']
+        self.create_notif(txt, curr['pks'], created)
 
     def get_queryset(self):
-        if 'page' in self.request.query_params:
+        if self.request.query_params.get('page', False):
             return self.request.user.notification_set.filter(unread=False)
         else:
-            rems = self.request.user.reminder_set.filter(when__lte=timezone.now())
-            if rems.count() > 0:
-                pks = ''
-                if rems.count() > 1:
-                    for i in range(len(rems) - 1):
-                        pks = str(rems[i].event.pk)+','
-                    text = "You have "+str(rems.count())+" reminders."
-                else:
-                    text = "You have one reminder."
-                self.request.user.notification_set.add(Notification(text=text, link='#/show=%s%s&type=event' % (pks, rems.last().event.pk)), bulk=False)
-                rems._raw_delete(rems.db)
-            event_notifies = EventNotification.objects.filter(to_person=self.request.user, is_comment=False)
-            if event_notifies.count() > 0:
-                curr = {'person': False}
-                for notif in event_notifies:
-                    if curr['person'] != notif.from_person: #or curr['business'] is not notif.event.business
-                        if curr['person']:
-                            self.add_event_notif(curr, notif.created)
-                        curr['person'] = notif.from_person
-                        #curr['business'] = notif.event.business
-                        curr['pks'] = ''
-                        curr['cnt'] = 0
-                    # noinspection PyUnresolvedReferences
-                    curr['pks'] += ','+str(notif.content_object.pk)
-                    curr['cnt'] += 1
-                # noinspection PyUnboundLocalVariable
-                self.add_event_notif(curr, notif.created)
-                event_notifies._raw_delete(event_notifies.db)
-            comment_notifies = [None, None]
-            comment_notifies[0] = EventNotification.objects.filter(to_person=self.request.user, is_comment=None)
-            if comment_notifies[0].count() > 0:
-                curr = {'pks': [], 'persons': []}
-                # noinspection PyTypeChecker
-                for notif in comment_notifies[0]:
-                    curr['pks'].append(notif.content_object.pk)
-                    curr['persons'].append(notif.from_person)
-                self.request.user.notification_set.add(Notification(text="%s reviewed your business." % ("<a href='/user/%s/'><i>%s %s</i></a> has" % (curr['persons'][0].username, curr['persons'][0].first_name, curr['persons'][0].last_name) if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have"), link='#/show='+','.join(str(v) for v in curr['pks'])+'&type=review', created=notif.created), bulk=False)
-                comment_notifies[0]._raw_delete(comment_notifies[0].db)
-            comment_notifies[0] = EventNotification.objects.filter(to_person=self.request.user, is_comment=True)
-            if comment_notifies[0].count() > 0:
-                for t in [['event', "your event", "your events"], ['item', "your item", "your items"], ['comment', ["a review on your business", "your review"], "reviews on your business"]]:
-                    comment_notifies[1] = comment_notifies[0].filter(content_type=settings.CONTENT_TYPES[t[0]])
-                    if comment_notifies[1].count() > 0:
-                        curr = {'pks': [], 'persons': [comment_notifies[1].first().from_person]}
-                        # noinspection PyTypeChecker
-                        for notif in comment_notifies[1]:
-                            if notif.content_object.pk not in curr['pks']:
-                                curr['pks'].append(notif.content_object if t[0] == 'comment' else notif.content_object.pk)
-                            if notif.from_person != curr['persons'][-1]:
-                                curr['persons'].append(notif.from_person)
-                        self.request.user.notification_set.add(Notification(text="%s commented on %s." % ("<a href='/user/%s/'><i>%s %s</i></a> has" % (curr['persons'][0].username, curr['persons'][0].first_name, curr['persons'][0].last_name) if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have", (t[1] if t[0] != 'comment' else t[1][0] if self.request.user == curr['pks'][0].content_object.manager else t[1][1]) if len(curr['pks']) == 1 else str(len(curr['pks']))+" "+t[2]), link='#/show='+','.join(str(v.pk if t[0] == 'comment' else v) for v in curr['pks'])+'&type='+(t[0] if t[0] != 'comment' else 'review')+('&showcomments' if len(curr['pks']) == 1 else ''), created=notif.created), bulk=False)
-                        comment_notifies[1]._raw_delete(comment_notifies[1].db)
+            notifies = EventNotification.objects.filter(to_person=self.request.user)
+            if notifies.count() > 0:
+                rems = notifies.filter(from_person=None, when__lte=timezone.now())
+                if rems.count() > 0:
+                    curr = []
+                    for i in range(rems.count()):
+                        if rems[i].object_id not in curr:
+                            curr.append(rems[i].object_id)
+                    self.create_notif(["You have "+("one reminder" if len(curr) == 1 else str(len(curr))+" reminders")+'.', 'event'], curr, rems.last().when)
+                    rems._raw_delete(rems.db)
+                notifies = notifies.exclude(from_person=None)
+                if notifies.count() > 0:
+                    curr = {'pks': [], 'persons': [notifies.first().from_person], 'typ': notifies.first().comment_type, 'ct': notifies.first().content_type}
+                    for notif in notifies:
+                        if curr['typ'] != notif.comment_type or curr['ct'] != notif.content_type:
+                            self.add_notif(curr, notif.when)
+                            curr['pks'][:] = [notif.object_id]
+                            curr['persons'][:] = [notif.from_person]
+                            if curr['typ'] != notif.comment_type:
+                                curr['typ'] = notif.comment_type
+                            else:
+                                curr['ct'] = notif.content_type
+                        if notif.object_id not in curr['pks']:
+                            curr['pks'].append(notif.object_id)
+                        if notif.from_person != curr['persons'][-1]:
+                            curr['persons'].append(notif.from_person)
+                    # noinspection PyUnboundLocalVariable
+                    self.add_notif(curr, notif.when)
+                    notifies._raw_delete(notifies.db)
 
             last = self.request.query_params.get('last', False)
             if last and last.isdigit():
@@ -340,8 +343,8 @@ def send_notifications(request, pk):
             if not notxt:
                 cnt = 0
             for person in persons:
-                if request.user != person and not EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=ContentType.objects.get_for_model(event), object_id=event.pk).exists():
-                    EventNotification.objects.create(from_person=request.user, to_person=person, content_type=ContentType.objects.get_for_model(event), object_id=event.pk)
+                if request.user != person and not EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=settings.CONTENT_TYPES['event'], object_id=event.pk).exists():
+                    EventNotification.objects.create(from_person=request.user, to_person=person, content_type=settings.CONTENT_TYPES['event'], object_id=event.pk)
                     if not notxt:
                         # noinspection PyUnboundLocalVariable
                         cnt += 1
@@ -355,58 +358,48 @@ def send_notifications(request, pk):
 class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination
     filter = 'business__manager'
-    additional_filters = None
-    order_by = None
-    order_by_noperson = None
+    order_by = 'created'
+    ct = None
 
     def __init__(self):
         super().__init__()
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
     def get_person_qs(self, person):
-        f = {self.filter: person}
-        if self.additional_filters:
-            f.update(self.additional_filters)
-        return self.model.objects.filter(**f) | generic_rel_filter(person.pk, self.model, 'like', ct=self.additional_filters['content_type'].pk if self.additional_filters and 'content_type' in self.additional_filters else None)
+        qs = (self.model.objects.filter(content_type__pk=self.ct) if self.ct else self.model.objects).filter(Q(**{self.filter: person}) | Q(likes__person=person))
+        return qs.order_by(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)).desc(), *self.model._meta.ordering) if self.order_by else qs
 
     def get_qs_pk(self):
         business = get_object(self.kwargs['pk'], Business)
         return self.model.objects.filter(business=business)
 
     def order_qs(self, qs):
-        # noinspection PyArgumentList,PyUnboundLocalVariable
-        if self.order_by_noperson and not get_param_bool(self.request.query_params.get('is_person', False)):
-            order_by = self.order_by_noperson
-        else:
-            order_by = self.order_by
-        return qs.order_by(*order_by) if order_by else qs
+        return qs
 
     def get_queryset(self):
-        if 'ids' in self.request.query_params:
-            qs = self.model.objects.filter(pk__in=[n for n in self.request.query_params.get('ids').split(',') if n.isdigit()])
-        else:
-            if get_param_bool(self.request.query_params.get('is_person', False)):
-                if self.kwargs['pk']:
-                    person = get_object(self.kwargs['pk'], User)
-                    #if person != self.request.user:
-                    self.kwargs['person'] = person
-                else:
-                    person = self.request.user
-                qs = self.get_person_qs(person)
+        if self.request.query_params.get('ids', False):
+            return self.model.objects.filter(pk__in=[n for n in self.request.query_params['ids'].split(',') if n.isdigit()])
+        if get_param_bool(self.request.query_params.get('is_person', False)):
+            if self.kwargs['pk']:
+                person = get_object(self.kwargs['pk'], User)
+                #if person != self.request.user:
+                self.kwargs['person'] = person
             else:
-                if self.request.method == 'GET' and self.kwargs['pk']:
-                    qs = self.get_qs_pk()
-                    #self.kwargs['person_business'] = True
-                elif self.request.method == 'GET':
-                    return self.getnopk()
-                elif self.kwargs['pk']:
-                    return self.model.objects.filter(pk=self.kwargs['pk'])
-                else:
-                    return self.model.objects.none()
-        return self.order_qs(qs)
+                person = self.request.user
+            return self.get_person_qs(person)
+        if self.request.method == 'GET' and self.kwargs['pk']:
+            return self.order_qs(self.get_qs_pk())
+            #self.kwargs['person_business'] = True
+        elif self.request.method == 'GET':
+            return self.getnopk()
+        elif self.kwargs['pk']:
+            return self.model.objects.filter(pk=self.kwargs['pk'])
+        return self.model.objects.none()
 
     def paginate_queryset(self, queryset):
-        if 'ids' not in self.request.query_params:
+        if not self.request.query_params.get('ids', False):
+            if self.filter_backends and self.request.query_params.get('search', False):
+                self.pagination_class = pagination.SearchPagination
             return super().paginate_queryset(queryset)
         return None
 
@@ -414,6 +407,8 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         context = super().get_serializer_context()
         if 'person' in self.kwargs:
             context['person'] = self.kwargs['person']
+        if self.request.query_params.get('no_business', False):
+            context['hiddenbusiness'] = None
         return context
 
 def get_t_pk(obj, dic):
@@ -455,16 +450,15 @@ def get_qs(obj_v, model):
     obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else Event)
     return model.objects.filter(content_type=ct if ct else settings.CONTENT_TYPES['event'], object_id=obj.pk)
 
-def set_t(obj_v, context=None):
+def set_t(obj_v, context):
     """
     @type obj_v: django.views.generic.base.View
     """
     pk = get_t_pk(obj_v, settings.HAS_STARS)
-    obj = context if context else obj_v.kwargs
     if pk is True:
-        obj['stars'] = None
+        context['stars'] = None
     elif pk == settings.CONTENT_TYPES['business'].pk:
-        obj['business'] = None
+        context['business'] = None
     else:
         return False
     return True
@@ -474,8 +468,7 @@ class CommentAPIView(BaseAPIView):
     pagination_class = pagination.CommentPagination
     model = Comment
     filter = 'person'
-    additional_filters = {'content_type': settings.CONTENT_TYPES['business']}
-    order_by = ['-pk']
+    ct = settings.CONTENT_TYPES['business'].pk
 
     def get_person_qs(self, person):
         self.pagination_class = pagination.PageNumberPagination
@@ -485,14 +478,13 @@ class CommentAPIView(BaseAPIView):
         return self.order_qs(self.get_person_qs(self.request.user))
 
     def get_qs_pk(self):
-        self.order_by_noperson = ['created' if get_param_bool(self.request.query_params.get('reverse', False)) else '-created']
         return get_qs(self, Comment)
 
     def order_qs(self, qs):
-        qs = super().order_qs(qs)
-        self.get_serializer_context(True)
-        if 'business' in self.kwargs['context'] and not self.request.query_params.get('ids', False):
-            qs = qs.annotate(curruser=Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField())).order_by('-curruser')
+        if 'business' in self.get_serializer_context(True) and not self.request.query_params.get('ids', False):
+            qs = qs.annotate(curruser=Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField())).order_by('-curruser', *Comment._meta.ordering)
+        elif get_param_bool(self.request.query_params.get('reverse', False)):
+            qs = qs.order_by('created')
         return qs
 
     def get_serializer_context(self, kw=False):
@@ -504,8 +496,8 @@ class CommentAPIView(BaseAPIView):
                 self.kwargs['context'] = context
         else:
             context = self.kwargs['context']
-        if not kw:
-            return context
+        #if not kw:
+        return context
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -523,7 +515,8 @@ class CommentAPIView(BaseAPIView):
 class EventAPIView(BaseAPIView):
     serializer_class = serializers.EventSerializer
     model = Event
-    order_by = ['-when', '-pk']
+    filter_backends = (SearchFilter,)
+    search_fields = ('text', 'business__name')
 
     def getnopk(self):
         return Event.objects.all() # change from all to filter current surrounding events
@@ -537,6 +530,8 @@ def get_b_manager(user):
 class ItemAPIView(BaseAPIView):
     serializer_class = serializers.ItemSerializer
     model = Item
+    filter_backends = (SearchFilter,)
+    search_fields = ('name', 'business__name')
 
     def getnopk(self):
         return Item.objects.filter(business=get_b_manager(self.request.user))
@@ -554,11 +549,11 @@ class ItemAPIView(BaseAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if 'ids' not in self.request.query_params and not get_param_bool(self.request.query_params.get('is_person', False)):
-            if get_param_bool(self.request.query_params.get('menu', False)):
-                context['menu'] = None
-            else:
-                context['hiddenbusiness'] = None
+        if not get_param_bool(self.request.query_params.get('is_person', False)) and get_param_bool(self.request.query_params.get('menu', False)):
+            context['hiddenbusiness'] = None
+            context['menu'] = None
+        if self.request.query_params.get('ids', False):
+            context['ids'] = None
         return context
 
     def delete(self, request, *args, **kwargs):
@@ -575,13 +570,16 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
-            if get_param_bool(self.request.query_params.get('is_person', False)) and get_type(self) and self.kwargs['ct'].model == 'business':
-                self.kwargs['notype'] = None
-                return serializers.BusinessSerializer
-            if get_type(self) and self.kwargs['ct'].model == 'business' or not self.kwargs['pk']:
-                return serializers.UserSerializer
-        return serializers.LikeSerializer
+        if not self.serializer_class:
+            if self.request.method == 'GET':
+                if get_param_bool(self.request.query_params.get('is_person', False)) and get_type(self) and self.kwargs['ct'].model == 'business':
+                    self.kwargs['notype'] = None
+                    self.serializer_class = serializers.BusinessSerializer
+                elif get_type(self) and self.kwargs['ct'].model == 'business' or not self.kwargs['pk']:
+                    self.serializer_class = serializers.UserSerializer
+            if not self.serializer_class:
+                self.serializer_class = serializers.LikeSerializer
+        return self.serializer_class
 
     def get_queryset(self):
         if not self.kwargs['pk'] or get_type(self) and self.kwargs['ct'].model == 'business':
@@ -595,34 +593,29 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
             business = get_object(pk, Business) if pk else get_b_manager(self.request.user)
             return sort_related(generic_rel_filter(business.pk, User, 'like', 'business'), where=gen_where('user', business.pk, 'like', self.request.user, 'object', ct=settings.CONTENT_TYPES['business'].pk))
         qs = get_qs(self, Like)
-        if 'stars' not in self.request.query_params:
-            if 'is_dislike' in self.request.query_params:
-                qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
+        if 'stars' not in self.get_serializer_context(True) and self.request.query_params.get('is_dislike', False):
+            qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
         else:
             stars = self.request.query_params.get('stars', False)
-            if stars and stars.isdigit() and int(stars) >= 1 and int(stars) <= 5:
+            if stars and stars.isdigit() and 1 <= int(stars) <= 5:
                 qs = qs.filter(stars=stars)
         return sort_related(qs, self.request.user.pk)
 
     def get_object(self):
         ct = get_type(self)
-        set_t(self)
         return get_object_or_404(Like, content_type=ct if ct else settings.CONTENT_TYPES['event'], object_id=self.kwargs['pk'], person=self.request.user)
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        if 'notype' in self.kwargs:
-            context['notype'] = None
-        if 'business' in self.kwargs:
-            context['business'] = None
-        elif 'stars' in self.kwargs:
-            context['stars'] = None
+    def get_serializer_context(self, kw=False):
+        if 'context' not in self.kwargs:
+            context = super().get_serializer_context()
+            set_t(self, context)
+            if 'notype' in self.kwargs:
+                context['notype'] = None
+            if kw:
+                self.kwargs['context'] = context
+        else:
+            context = self.kwargs['context']
         return context
-
-    def create(self, request, *args, **kwargs):
-        set_t(self)
-        return super().create(request, *args, **kwargs)
-
 
 class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = serializers.ReminderSerializer
@@ -637,5 +630,5 @@ class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
                 person = get_object(self.kwargs['pk'], User)
             else:
                 person = self.request.user
-            return Reminder.objects.filter(person=person)
-        return Reminder.objects.filter(pk=self.kwargs['pk']) if self.kwargs['pk'] else Reminder.objects.none()
+            return EventNotification.objects.filter(to_person=person, type=None)
+        return EventNotification.objects.filter(pk=self.kwargs['pk']) if self.kwargs['pk'] else EventNotification.objects.none()
