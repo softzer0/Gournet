@@ -1,0 +1,9 @@
+<a href="javascript:" ng-click="$parent.doFriendRequestAction(o[1])"
+    ><i class="fa" ng-class="o[0].rel_state == 0 || o[0].rel_state == 2 ? 'fa-user-plus' : 'fa-user-times'"></i>
+    <span ng-switch="o[0].rel_state"
+        ><span ng-switch-when="0">{{ o[0].friend_count > 0 ? "I meni je prijatelj" : "Moj je prijatelj" }}</span
+        ><span ng-switch-when="1">Otkaži zahtev za prijateljstvo</span
+        ><span ng-switch-when="2">Prihvati zahtev za prijateljstvo</span
+        ><span ng-switch-when="3">Nije mi više prijatelj</span
+    ></span>
+</a>

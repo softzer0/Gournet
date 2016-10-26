@@ -15,6 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.2/ui-bootstrap-tpls.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-resource.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.3.1/angular-ui-router.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ui-router-extras/0.1.3/ct-ui-router-extras.min.js"></script>
     <script src="{% static 'main/js/angular-ui-router-uib-modal.js' %}"></script>
     <script src="{% static 'main/js/nya-bs-select.min.js' %}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
@@ -25,7 +26,7 @@
     <script src="{% static 'main/js/datetime-picker.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'main/js/angular-css.min.js' %}"></script>{% endcomment %}
-    <script src="{% static 'main/js/custom/home.js' %}"></script>
+    <script src="{% static 'main/js/custom/base_home.js' %}"></script>
     <script>app.constant('BASE_MODAL', '{{ settings.STATIC_URL }}main/modals/base.html')
             .constant('COMMENT_PAGE_SIZE', {{ settings.COMMENT_PAGE_SIZE }})
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
@@ -43,7 +44,7 @@
             <li uib-dropdown><a href="javascript:" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>Favourites <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="favourites">
                     <li><a href="{% if request.path == "/favourites/" %}{{ current }}{% else %}/favourites{% endif %}">News feed</a></li>
-                    <li><a href="javascript:" ng-click="showFavouritesModal(1, true)">Show list</a></li>
+                    <li><a href="javascript:" ng-click="showFavouritesModal(1, null)">Show list</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
                     <li><a href="javascript:">Kafana "Stara kuća"</a></li>
@@ -53,7 +54,7 @@
             <li uib-dropdown><a href="javascript:" id="friends" class="dropdown-toggle" uib-dropdown-toggle>Friends <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="friends">
                     <li><a href="{% if request.path == "/friends/" %}{{ current }}{% else %}/friends{% endif %}">News feed</a></li>
-                    <li><a href="javascript:" ng-click="showFriendsModal(true)">Show list</a></li>
+                    <li><a href="javascript:" ng-click="showFriendsModal(null)">Show list</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
                     <li><a href="javascript:">Miloš Simić</a></li>
@@ -72,12 +73,22 @@
 
 {% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}
 {% block navbar %}<form class="navbar-form navbar-left" role="search">
-                <div class="form-group">
-                    <input type="text" class="form-control" id="sr" placeholder="Search">
-                    <div id="quicks"></div>
+                <div class="form-group" click-outside="search.show = false">
+                    <input type="text" class="form-control" id="sr" placeholder="Search" select-on-click ng-model="search.keywords" ng-change="search.func()" ng-focus="search.show = search.keywords != ''; search.chngl()" ng-model-options="{updateOn: 'default blur', debounce: {default: 1000, blur: 0}}">
+                    <div id="quicks" ng-show="search.show" ng-cloak>
+                        <div class="bu" ng-repeat="b in search.results" such-href="/{% verbatim %}{{ b.shortname }}{% endverbatim %}/">
+                            <img class="bor mr7" ng-src="/images/{% verbatim %}{{ b.id }}{% endverbatim %}/avatar/32/?business=1"
+                            ><span>{% verbatim %}{{ b.type_display+' "'+b.name+'"'}}{% endverbatim %}</span>
+                        </div>
+                        <div class="loa tc" ng-show="search.loading"><i class="fa fa-spinner"></i></div>
+                        <a ng-if="search.count == null || search.count > 5" ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=business"><i class="fa fa-map-pin"></i> Pretraži{% verbatim %}{{ search.count != null ? " ostale" : '' }}{% endverbatim %} lokale...</a>
+                        <a ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=event"><i class="fa fa-calendar"></i> Pretraži događaje...</a>
+                        <a ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=item"><i class="fa fa-th-list"></i> Pretraži proizvode...</a>
+                        <a ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> Pretraži korisnike...</a>
+                    </div>
                 </div>
             </form>
-            <div ng-controller="NotificationCtrl" id="nct" class="navbar-header pull-right" style="width: 105px;">
+            <div id="nct" class="navbar-header pull-right" style="width: 105px;">
                 <a id="notif" class="clickable" popover-placement="bottom-right" uib-popover-template="'{% static 'main/modals/notifications.html' %}'" popover-trigger="outsideClick" popover-is-open="opened"><i id="nf" class="fa" ng-class="unread ? 'fa-bell' : 'fa-bell-o'"></i></a>
                 <button type="button" class="navbar-toggle" ng-click="showOffcanvas()">
                     <span class="icon-bar"></span>

@@ -1,21 +1,21 @@
-<div ng-class="'objs'+r+'_'+t+(modal_loaded ? ' um' : '')" dynamic-controller="t+'sCtrl'">
+<div ng-class="'objs'+r+'_'+t+(modal_loaded ? ' um' : '')" dynamic-controller="t+'sOnlyCtrl'">
     <script type="text/ng-template" id="likes"
         ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 1}" ng-click="giveDisLike(o[1], false, o[2])"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</a
         ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</span
 
-        ><a href="javascript:" ng-if="o[0].likestars_count-o[0].dislike_count != 0" ng-click="showDisLikes(o[1], o[2])" class="badge label-primary">{{ o[0].likestars_count-o[0].dislike_count }}</a
-        ><span ng-if="o[0].likestars_count-o[0].dislike_count == 0" class="badge">0</span
+        ><a href="javascript:" ng-if="o[0].likestars_count - (o[0].dislike_count || 0) != 0" ng-click="o[0].is_opened === undefined ? showDisLikes(o[1], o[2]) : $parent.showFavouritesModal(1, false, o[0].id)" class="badge label-primary">{{ o[0].likestars_count - (o[0].dislike_count || 0) }}</a
+        ><span ng-if="o[0].likestars_count - (o[0].dislike_count || 0) == 0" class="badge">0</span
 
-        ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 2}" ng-click="giveDisLike(o[1], true, o[2])"><i class="fa fa-minus-square"></i> {{ o[0].dislike_count }}</a
-        ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-minus-square"></i> {{ o[0].dislike_count }}</span
+        ><a href="javascript:" ng-if="o[0].is_opened === undefined && o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 2}" ng-click="giveDisLike(o[1], true, o[2])"><i class="fa fa-minus-square"></i> {{ o[0].dislike_count }}</a
+        ><span ng-if="o[0].is_opened === undefined && o[0].curruser_status == -1"><i class="fa fa-minus-square"></i> {{ o[0].dislike_count }}</span
     ></script>
     <script type="text/ng-template" id="comment">
         <a class="prf" ng-href="/user/{{ m.obj.person.username }}/">
             <div class="pb7 pull-left"><img class="bor media-object" ng-src="/images/{{ m.obj.person.username }}/avatar/32/"></div>
             <strong>{{ m.obj.person.first_name }} {{ m.obj.person.last_name }}</strong
         ></a
-        ><span ng-if="t != 'review' || !isObject(m.obj.manager_stars)"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="Manager">M</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="Stars">{{ m.obj.manager_stars }} <i class="fa fa-star"></i></span></span
-        ><span ng-if="t == 'review' && isObject(m.obj.manager_stars)"
+        ><span ng-if="m.obj.created === undefined || m.obj.manager_stars.status === undefined"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="Manager">M</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="Stars">{{ m.obj.manager_stars }} <i class="fa fa-star"></i></span></span
+        ><span ng-if="m.obj.created !== undefined && m.obj.manager_stars.status !== undefined"
             ><span ng-switch="m.obj.manager_stars.status" uib-tooltip="Status"
                 ><span ng-switch-when="0" class="label label-primary lh">Started</span
                 ><span ng-switch-when="1" class="label label-warning lh">Closed</span
@@ -27,54 +27,73 @@
                 ><span ng-switch-when="7" class="label feedback lh">Need feedback</span
             ></span
             ><span ng-include="'likes'" new-scope ng-init="o = [m.obj.manager_stars, k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index]"></span
-        ></span><span ng-if="m.obj.can_delete"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this comment?" ng-dialog-click="delete(k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index, k[1])"><i class="fa fa-times"></i> Obriši</a></span>
+        ></span
+        ><span ng-if="m.obj.can_delete"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this comment?" ng-dialog-click="delete(k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index, k[1])"><i class="fa fa-times"></i> Obriši</a></span>
         <p>{{ m.obj.text }} <small class="text-muted">&mdash; {{ m.obj.created | timeAgo }}</small></p>
     </script>
     <div class="angular-animate" ng-repeat="e in objs" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ objs_animation ? 'angular-animate' : '' }}"-->
-        <div ng-if="first_name !== undefined" class="mb3">
-            <p>{{ first_name }}</p>
-            <span ng-if="e.person_status[0] == -1"><span ng-switch="t"><span ng-switch-default>posted</span><span ng-switch-when="item">added</span><span ng-switch-when="review">reviewed</span></span></span
-            ><div ng-if="e.person_status[0] != -1">
-                <div ng-if="e.stars_avg === undefined">
-                    <p>gave {{ e.person_status[0] == 1 ? "like" : "dislike" }} to</p
-                ></div>
-                <div ng-if="e.stars_avg !== undefined">
-                    <p>gave {{ e.person_status[0] }} {{ e.person_status[0] == 1 ? "star" : "stars" }} to</p
-                ></div>
-            </div><p>:</p>
-        </div>
+        <span ng-if="e.person_status !== undefined" class="mb3">
+            <span>{{ first_name || e.person.first_name }}</span>
+            <span ng-if="e.person_status[0] == -1"><span ng-if="e.when !== undefined">posted</span><span ng-if="e.name !== undefined">added</span><span ng-if="e.created !== undefined">reviewed</span></span
+            ><span ng-if="e.person_status[0] != -1">
+                <span ng-if="e.stars_avg === undefined">gave {{ e.person_status[0] == 1 ? "like" : "dislike" }} to</span>
+                <span ng-if="e.stars_avg !== undefined">gave {{ e.person_status[0] }} {{ e.person_status[0] == 1 ? "star" : "stars" }} to</span>
+            </span><span>:</span>
+        </span>
         <div class="well bs-component clearfix pb18">
-            <div ng-if="!nobusiness && (first_name !== undefined || id === undefined) || e.person !== undefined" ng-init="obj = e.business !== undefined ? e.business : e.person !== undefined ? e.person : e.content_object">
+            <div ng-if="!nobusiness && (first_name !== undefined || id === undefined) || e.person !== undefined" ng-init="obj = e.business !== undefined ? e.business : e.person !== undefined ? e.person : e.content_object !== undefined ? e.content_object : e">
                 <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person !== undefined && e.content_object !== undefined">, to: <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span></legend>
-                <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ t == 'item' ? '/images/'+e.id+'/avatar/64/?item=1' : '/images/'+obj.id+'/avatar/64/'+(obj.shortname !== undefined ? '?business=1' : '') }}"></a></div>
+                <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ e.price !== undefined ? '/images/'+e.id+'/avatar/64/?item=1' : '/images/'+obj.id+'/avatar/64/'+(obj.shortname !== undefined ? '?business=1' : '') }}"></a></div>
             </div>
-            <div ng-if="t != 'item'">
+            <div ng-if="e.text !== undefined">
                 <p>{{ e.text }} <small class="text-muted">&mdash; {{ (e.when || e.created) | timeAgo }}</small></p>
             </div>
-            <div ng-if="t == 'item'">
+            <div ng-if="e.price !== undefined">
                 <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ e.price }} {{ e.business.currency || e.currency }}</p>
             </div>
-            <div class="op br">
-                <span ng-if="t == 'review'" star-rating rating-value="e.stars"></span
-
-                ><span ng-if="e.stars_avg === undefined"
-                    ><span ng-include="'likes'" new-scope ng-init="o = [e, $index]"></span
-                ></span
-                ><span ng-if="e.stars_avg !== undefined"
-                    ><span star-rating rating-value="e.stars_avg" user-number="e.likestars_count" user-rating="e.curruser_status" on-change="giveDisLike" on-click-stats="showDisLikes" func-params="{index: $index}"></span
-                ></span
-
-                ><a href="javascript:" ng-click="showComments($index)"><i class="fa fa-comment"></i> Komentari ({{ e.comment_count }})</a
-
-                ><span ng-if="t == 'event' && isFuture($index)"
-                    ><a href="javascript:" class="rmn" uib-popover-template="'/static/main/modals/reminder.html'" popover-trigger="outsideClick" popover-is-open="cmb.opened[$index]" ng-click="initRmn($index)"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a
-                    ><a href="javascript:" ng-click="notifySelect($index)"><i class="fa fa-users"></i> Obavesti prijatelje</a
-                ></span
-
-                ><span ng-if="e.curruser_status == -1"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this {{ t }}?" ng-dialog-click="delete($index)"><i class="fa fa-times"></i> Obriši</a></span>
+            <div ng-if="e.is_opened !== undefined">
+                <p>Currently <strong>{{ e.is_opened ? "opened" : "closed" }}</strong>; {{ e.item_count }} {{ e.item_count > 1 ? "items" : "item" }}; supported {{ e.supported_curr.length == 0 ? "currency" : "currencies" }}: <strong>{{ e.currency }}</strong><span ng-repeat="c in e.supported_curr">, <strong>{{ c }}</strong></span></p>
             </div>
-            <div ng-if="t == 'review' && e.main_comment != null"><div class="well bs-component clearfix br an cmn com" ng-include="'comment'" new-scope ng-init="m = {obj: e.main_comment}"></div></div>
-            <div class="cmn" ng-show="e.showcomm[1]">
+            <div ng-if="e.friend_count !== undefined">
+                <p><span>Has</span
+                    > <span ng-switch="e.friend_count[0]"
+                        ><span ng-switch-when="0">no friends</span
+                        ><span ng-switch-when="1">one friend</span
+                        ><span ng-switch-default>{{ e.friend_count[0] }} friends</span
+                    ></span
+                    ><span ng-if="e.friend_count[0] > 0" ng-switch="e.friend_count[1]"
+                        >; <span ng-switch-when="0">no mutual friends</span
+                        ><span ng-switch-when="1"><strong>one</strong> mutual friend</span
+                        ><span ng-switch-default><strong>{{ e.friend_count[1] }}</strong> friends</span
+                    ></span
+                ></p>
+            </div>
+            <div class="op br">
+                <span ng-if="e.friend_count === undefined"
+                    ><span ng-if="e.created !== undefined" star-rating rating-value="e.stars"></span
+
+                    ><span ng-if="e.stars_avg === undefined"
+                        ><span ng-include="'likes'" new-scope ng-init="o = [e, $index]"></span
+                    ></span
+                    ><span ng-if="e.stars_avg !== undefined"
+                        ><span star-rating rating-value="e.stars_avg" user-number="e.likestars_count" user-rating="e.curruser_status" on-change="giveDisLike" on-click-stats="showDisLikes" func-params="{index: $index}"></span
+                    ></span
+
+                    ><span ng-if="e.is_opened === undefined"
+                        ><a href="javascript:" ng-click="showComments($index)"><i class="fa fa-comment"></i> Komentari ({{ e.comment_count }})</a
+
+                        ><span ng-if="e.when !== undefined && isFuture($index)"
+                            ><a href="javascript:" class="rmn" uib-popover-template="'/static/main/modals/reminder.html'" popover-trigger="outsideClick" popover-is-open="cmb.opened[$index]" ng-click="initRmn($index)"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a
+                            ><a href="javascript:" ng-click="notifySelect($index)"><i class="fa fa-users"></i> Obavesti prijatelje</a
+                        ></span
+
+                        ><span ng-if="e.curruser_status == -1"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this {{ t }}?" ng-dialog-click="delete($index)"><i class="fa fa-times"></i> Obriši</a></span
+                    ></span
+                ></span
+                ><span ng-if="e.friend_count !== undefined" ng-include="'/static/main/friend.html'" new-scope ng-init="o = [e, $index]"></span>
+            </div>
+            <div ng-if="e.created !== undefined && e.main_comment != null"><div class="well bs-component clearfix br an cmn com" ng-include="'comment'" new-scope ng-init="m = {obj: e.main_comment}"></div></div>
+            <div class="cmn" ng-if="e.is_opened === undefined && e.friend_count === undefined" ng-show="e.showcomm[1]">
                 <div ng-repeat="k in com">
                     <a href="javascript:" class="mpd lm text-center" ng-show="show_next($parent.$index, k[2])" ng-click="load_next($parent.$index, k[2])">Load {{ k[0] }}</a>
                     <div class="cmn mb13 loa-c" ng-if="e.showcomm[0][k[2]] == false"><i class="fa fa-spinner fa-2x"></i></div>
@@ -83,7 +102,7 @@
                 <div class="form-group cmn mb7">
                     <textarea ng-attr-id="{{ t + $index }}" class="form-control" rows="1" placeholder="Your comment" required></textarea>
                 </div>
-                <ul ng-if="t == 'review' && e.is_manager" class="nya-bs-select comb" ng-model="e.status" ng-init="e.status = choices[0]">
+                <ul ng-if="e.created !== undefined && e.is_manager" class="nya-bs-select comb" ng-model="e.status" ng-init="e.status = choices[0]">
                     <li nya-bs-option="choice in choices"><a>{{ choice.name }}</a></li>
                 </ul
                 ><input type="submit" ng-attr-id="{{ t + $index }}b" class="btn btn-sm btn-primary" value="Submit" ng-click="submitComment($index)">

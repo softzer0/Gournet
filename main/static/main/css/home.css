@@ -8,10 +8,6 @@
     margin-bottom: 3px;
 }
 
-.mb3, .mb3 > * {
-    display: inline-block;
-}
-
 .well {
     background-color: #fffdfd;
 }
@@ -109,7 +105,7 @@ legend {
     margin-top: 13px !important;
 }
 
-.comb {
+.comb, .mr7 {
     margin-right: 5px;
 }
 
@@ -276,12 +272,12 @@ body, .mb3 p, .form-group, .nmb, .well.cmn > p {
     margin: 10px 0;
 }
 
-#notif + .popover a:not(.text-info):not(.lm), .well.n, .cmn .prf {
-    color: inherit;
+#notif + .popover a:not(.text-info):not(.lm) {
+    color: inherit !important;
 }
 
-.well.n, .cmn .prf {
-    color: initial;
+.well.n, .prf {
+    color: initial !important;
 }
 
 .loa {
@@ -539,13 +535,29 @@ body, .mb3 p, .form-group, .nmb, .well.cmn > p {
 
 #quicks {
     position: absolute;
-    display: none;
-    border: 1px solid black; /*#e3e3e3*/
-    left: 0;/*112px;*/
-    height: 220px;
-    width: 320px;
+    border: 1px solid #e3e3e3;
+    min-width: 230px;
+    max-width: 100%;
     overflow-y: auto;
-    max-width: 320px;
     background-color: white;
     z-index: 1;
+}
+
+#quicks > * {
+    margin: 5px;
+    display: block;
+}
+
+#quicks > .bu {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tc { /* #quicks > *:not(.bu) */
+    text-align: center;
+}
+
+#quicks > .bu:hover {
+    background-color: #fffccc;
 }

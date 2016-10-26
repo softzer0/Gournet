@@ -169,7 +169,7 @@ footer .text-muted {
         margin-right: 0;
     }
 
-    .navbar > .container {
+    header.navbar > .container {
         padding-left: 0;
     }
 }

@@ -1,0 +1,1493 @@
+function dynamicSort(property) {
+    var sortOrder;
+    if(property[0] == '-') {
+        sortOrder = -1;
+        property = property.slice(1);
+    } else sortOrder = 1;
+    return function (a,b) {
+        var aprop, bprop;
+        function getval(o, p) { return p.indexOf('.') >= 0 ? getval(o[p.slice(0, p.indexOf('.'))], p.slice(p.indexOf('.')+1)) : o[p] }
+        if (property.indexOf('/') >= 0) {
+            var props = property.split('/');
+            for (var i = 0; i < props.length && (aprop === undefined || bprop === undefined); i++) {
+                if (aprop === undefined) aprop = getval(a, props[i]);
+                if (bprop === undefined) bprop = getval(b, props[i]);
+            }
+        } else {
+            aprop = getval(a, property);
+            bprop = getval(b, property);
+        }
+        if (aprop === undefined || bprop === undefined) return 0;
+        return ((aprop < bprop) ? -1 : (aprop > bprop) ? 1 : 0) * sortOrder;
+    }
+}
+
+function dynamicSortMultiple() {
+    /*
+     * save the arguments object as it will be overwritten
+     * note that arguments object is an array-like object
+     * consisting of the names of the properties to sort by
+     */
+    var props = arguments;
+    return function (obj1, obj2) {
+        var result = 0, numberOfProperties = props.length;
+        /* try getting a different result from 0 (equal)
+         * as long as we have extra properties to compare
+         */
+        for(var i = 0; result == 0 && i < numberOfProperties; i++) result = dynamicSort(props[i])(obj1, obj2);
+        return result;
+    }
+}
+
+var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime', 'ct.ui.router.extras']) /*, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'*/
+    .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL, CONTENT_TYPES) {
+        $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+        $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+        $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+        $animateProvider.classNameFilter(/(angular-animate|tab-pane)/);
+        timeAgoSettings.allowFuture = true;
+
+        var t = '', name = (window.location.pathname != '/' ? 'main.' : '') + 'showObjs';
+        for (var k in CONTENT_TYPES) t += '|'+(k != 'comment' ? k : 'review');
+        if (window.location.pathname != '/') $stateProvider.state('main', {url: '/'}); else if (window.location.hash == '' || window.location.hash == '#') window.location.hash = '#/';
+        $stateProvider.state(name, {
+            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:'+t.slice(1)+')}{nobusiness:(?:&nobusiness)?}{showcomments:(?:&showcomments)?}',
+            modal: true,
+            templateUrl: BASE_MODAL,
+            size: 'lg',
+            controller: function ($scope, $uibModalInstance, $stateParams, $timeout, $injector) {
+                $scope.loading = true;
+                $scope.nobusiness = $stateParams.nobusiness == '&nobusiness';
+                $scope.t = $stateParams.type;
+                var objService = $injector.get($scope.t+'Service');
+                switch ($scope.t) {
+                    case 'event':
+                        $scope.title = "Event(s)";
+                        break;
+                    case 'item':
+                        $scope.title = "Item(s)";
+                        break;
+                    case 'review':
+                        $scope.title = "Review(s)";
+                }
+                $scope.file = '../events';
+
+                $scope.close = function() {
+                    $uibModalInstance.dismiss('cancel');
+                    delete $scope.close;
+                };
+                $scope.$on('$stateChangeStart', function(evt, toState) {
+                    objService.getobjs(true, null);
+                    if ($scope.close !== undefined && !toState.$$state().includes[name]) $scope.close();
+                });
+
+                $scope.objs = objService.getobjs(true, false);
+                objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.nobusiness).then(function () {
+                    $timeout(function () {
+                        $scope.loading = false;
+                        $scope.modal_loaded = true;
+                    });
+                }); //$scope.enableAnimation(); }
+            }
+        });
+    })
+
+    .run(function($rootScope, $http) {
+        $rootScope.sendreq = function(url, data) {
+            return $http({
+                method: data !== undefined ? 'POST' : 'GET',
+                url: '/'+url,
+                data: data,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            })/*.then(function(response) { return response.data })*/;
+        };
+    })
+
+    .filter('unsafe', function($sce) { return $sce.trustAsHtml })
+    //.filter('spaces', function() { return function(input) { return input.replace(/\s+/g, '+') } })
+
+    .directive('newScope', function() {
+        return {
+            scope: true,
+            priority: 450
+        };
+    })
+
+    .factory('dialogService', function($uibModal) {
+        return {
+            show: function (message, OkCancel) {
+                return $uibModal.open({
+                    windowTopClass: 'modal-confirm',
+                    template: '<div class="modal-body">' + message + '</div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(OkCancel === undefined ? 'Yes' : 'OK')+'</button>'+((OkCancel || OkCancel === undefined) ? '<button class="btn btn-warning" ng-click="cancel()">'+(OkCancel === undefined ? 'No' : 'Cancel')+'</button></div>':''),
+                    controller: function($scope, $uibModalInstance) {
+                        $scope.ok = function() { $uibModalInstance.close() };
+                        $scope.cancel = function() { $uibModalInstance.dismiss('cancel') };
+                    }
+                }).result;
+            }
+        }
+    })
+
+    .directive('ngDialogClick', function(dialogService) {
+        return {
+            restrict: 'A',
+            scope: {
+                ngDialogMessage: '@?',
+                ngDialogOkcancel: '=?',
+                ngDialogOkonly: '=?',
+                ngDialogClick: '&'
+            },
+            link: function(scope, element, attrs) {
+                element.bind('click', function() {
+                    dialogService.show(attrs.ngDialogMessage || "Are you sure?", (attrs.ngDialogOkcancel && attrs.ngDialogOkonly) ? false : attrs.ngDialogOkcancel || (attrs.ngDialogOkonly ? false : undefined)).then(function() { scope.ngDialogClick() }/*, function() {}*/);
+                });
+            }
+        }
+    })
+
+    .directive('dynamicController', function($controller) {
+        return {
+            restrict: 'A',
+            scope: true,
+            link: function (scope, element, attrs) {
+                element.data('$Controller', $controller(scope.$eval(attrs.dynamicController), {$scope: scope}));
+            }
+        };
+    })
+
+    .directive('suchHref', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attr) {
+                element.addClass('clickable');
+                element.on('click', function() {
+                    window.location.href = attr.suchHref;
+                    scope.$apply();
+                });
+            }
+        }
+    })
+
+    .directive('starRating', function() {
+        return {
+            restrict: 'A',
+            template:
+                '<span class="star-rating" ng-if="readonly">' +
+                '    <i ng-repeat="a in max track by $index" class="fa" ng-class="(floor(ratingValue) > $index + 1 || ratingValue == $index + 1 ? \'fa-star\' : floor(ratingValue) == $index + 1 && ratingValue % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\')+($last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats)) ? \' last-star\' : \'\')"></i' +
+                '></span>' +
+                '<span class="star-rating" ng-if="!readonly">' +
+                '    <a href="javascript:" ng-repeat="a in max track by $index" ng-class="{\'last-star\': $last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats))}" ng-click="toggle($index)" ng-mouseover="hoverIn($index)" ng-mouseleave="hoverOut()"><i class="fa" ng-class="(hover > 0 && hover >= $index + 1 ? \'fa-star\' : hover == 0 ? floor(ratingValue) > $index + 1 || ratingValue == $index + 1 ? \'fa-star\' : floor(ratingValue) == $index + 1 && ratingValue % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\' : \'fa-star-o\')+(userRating >= $index + 1 ? \' text-warning\' : \'\')"></i></a' +
+                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || showStats)">|<a href="javascript:" ng-if="onClickStats !== undefined" ng-click="show()" class="ml3">{{ ratingValue | number:1 }} ({{ userNumber }})</a><span ng-if="showStats && onClickStats === undefined" class="ml3">{{ ratingValue | number:1 }} ({{ userNumber }})</span></span>',
+            scope: {
+                ratingValue: '=?',
+                userNumber: '=?',
+                userRating: '=',
+                max: '=?', //optional: default is 5
+                onChange: '@?', //must return a promise
+                showStats: '=?',
+                onClickStats: '@?',
+                funcParams: '=?'
+            },
+            link: function(scope, elem, attrs) {
+                scope.floor = Math.floor;
+                if (attrs.max === undefined) scope.max = new Array(5); else scope.max = new Array(attrs.max);
+                scope.readonly = scope.userRating === undefined || scope.userRating == -1;
+                if (!scope.readonly) {
+                    scope.hover = 0;
+                    scope.hoverIn = function (i) { scope.hover = i + 1 };
+                    scope.hoverOut = function () { scope.hover = 0 };
+                }
+                if (scope.funcParams !== undefined) {
+                    var p = '';
+                    for (var k in scope.funcParams) p += ',' + k;
+                    p = p.slice(1);
+                } else scope.funcParams = {};
+                if (scope.onChange !== undefined) var loading;
+                scope.toggle = function (i) { //$event,
+                    scope.hoverOut(); //$event.stopPropagation();
+                    if (scope.onChange !== undefined) {
+                        if (loading) return;
+                        loading = true;
+                        scope.$parent.$eval(scope.onChange + '(' + p + ', value)', angular.extend({}, scope.funcParams, {value: scope.userRating != i + 1 ? i + 1 : 0})).then(function () { loading = false });
+                    } else if (scope.userRating !== undefined) {
+                        scope.userRating = scope.userRating != i + 1 ? i + 1 : 0;
+                        scope.ratingValue = scope.userRating;
+                    }
+                };
+                scope.show = function () { scope.$parent.$eval(scope.onClickStats+'('+p+')', scope.funcParams) };
+                if (scope.userRating !== undefined && scope.ratingValue !== undefined) scope.$watch('userRating', function (status, old_status) { if (status != old_status) scope.ratingValue = scope.ratingValue != 0 && scope.userNumber != 0 ? (((status != 0 && old_status == 0) ? (scope.userNumber - 1) : (status == 0 && old_status != 0) ? (scope.userNumber + 1) : scope.userNumber) * scope.ratingValue - old_status + status) / scope.userNumber : status });
+			}
+		};
+	})
+
+    .directive('clickOutside', function ($document) {
+        return {
+           restrict: 'A',
+           scope: {clickOutside: '&'},
+           link: function (scope, el) { $document.on('click', function (e) { if (el !== e.target && !el[0].contains(e.target)) { scope.$apply(function () { scope.$eval(scope.clickOutside) }) } }) }
+        }
+    })
+
+    .directive('selectOnClick', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, element) {
+                var isFocused = false;
+                element.on('click', function () {
+                    if (!isFocused) {
+                        try { this.setSelectionRange(0, this.value.length + 1) } catch (err) { this.select() }
+                        isFocused = true;
+                    }
+                });
+                element.on('blur', function () { isFocused = false });
+            }
+        };
+    })
+
+    .factory('usersModalService', function($uibModal, BASE_MODAL) {
+        var params = {};
+
+        return {
+            params: params,
+            setAndOpen: function(id, type, event) {
+                params.id = id;
+                params.type = type;
+                var n;
+                if (typeof(type) == 'string') n = 'likes'; else n = 'friends';
+                $uibModal.open({
+                    size: 'lg',
+                    templateUrl: BASE_MODAL,
+                    controller: 'UsersModalCtrl',
+                    resolve: {
+                        file: function () { return n },
+                        event: function () { return event }
+                    }
+                });
+            }
+        }
+    })
+
+    .controller('UsersModalCtrl', function ($rootScope, $scope, $timeout, $resource, $window, $uibModalInstance, file, event, usersModalService, APIService, CONTENT_TYPES, HAS_STARS) {
+        $scope.close = function() { $uibModalInstance.dismiss('cancel') };
+        $scope.set_modal_loaded = function (){
+            var unregister = $scope.$watch(function() { return angular.element('.loaded').length }, function(value) {
+                if (value > 0) {
+                    unregister();
+                    $scope.modal_loaded = true;
+                }
+            });
+        };
+        $scope.file = file;
+        $scope.event = event;
+        if ($scope.event !== undefined) $scope.sel_cnt = 0;
+
+        var d = {id: usersModalService.params.id}, t = usersModalService.params.type, o, st = typeof(t) == 'string', i;
+        if (st) var stars = HAS_STARS[t];
+        if (t == 0) o = APIService.init(); else o = APIService.init(3);
+        switch (t){
+            case 0:
+                $scope.title = d.id == null ? ($scope.event !== undefined ? "Select friend(s)" : "Your friends") : "Friends";
+                o = APIService.init();
+                break;
+            case 1:
+            case 2:
+                d.content_type = CONTENT_TYPES['business'];
+                if (d.id == null || t == 2) {
+                    if (d.id != null) $scope.title = "Favourites"; else $scope.title = "Your favourites";
+                    d.is_person = 1;
+                    $scope.favs = true;
+                } else $scope.title = "Favoured by";
+                break;
+            default:
+                d.content_type = CONTENT_TYPES[t];
+                if (stars) $scope.title = "Ratings"; else $scope.title = "Reactions";
+                var c = 0, l = 0;
+        }
+        $scope.tabs = [];
+        $scope.load_page = function (i) {
+            var t = angular.extend({}, d);
+            if (i === undefined) i = 0;
+            if ($scope.loaded !== null) {
+                if (st) if (stars) t.stars = $scope.tabs[i].value; else t.is_dislike = $scope.tabs[i].value == 0;
+                $scope.loaded = false;
+                t.page = $scope.tabs[i].next_page;
+            } else if (st) if (stars) t.stars = i + 1; else t.is_dislike = i == 0; else $scope.loaded = undefined;
+            o.get(t,
+                function (result){
+                    if (st && $scope.loaded === null) l++;
+                    if (result.results.length > 0) {
+                        if (st) {
+                            if ($scope.loaded === null) {
+                                var old = i;
+                                i = c;
+                                c++;
+                                if (stars) {
+                                    $scope.tabs[i] = {value: old + 1, heading: '<span class="star-rating">'};
+                                    for (var j = 0; j <= old; j++) $scope.tabs[i].heading += '<i class="fa fa-star"></i>';
+                                    $scope.tabs[i].heading += '</span>'; //$scope.tabs[i].heading.slice(1)
+                                } else $scope.tabs[i] = {value: i, heading: old == 1 ? "Liked by" : "Disliked by"};
+                            }
+                        } else if ($scope.loaded == undefined) $scope.tabs[0] = {elems: []};
+                        if ($scope.tabs[i].elems === undefined) $scope.tabs[i].elems = [];
+                        $scope.tabs[i].elems.push.apply($scope.tabs[i].elems, result.results);
+                        var pg;
+                        if ($scope.tabs[i].next_page === undefined) pg = 1; else pg = $scope.tabs[i].next_page+1;
+                        if (result.page_count != pg) $scope.tabs[i].next_page = pg; else if ($scope.tabs[i].next_page !== undefined) delete $scope.tabs[i].next_page;
+                    }
+                    if ($scope.loaded === undefined || l == (stars ? 5 : 2)) {
+                        if (st) $scope.tabs.sort(dynamicSort('-value'));
+                        $timeout(function(){ $scope.loaded = true });
+                    }
+                })
+        };
+        $scope.loaded = null;
+        if (st) {
+            if (!stars) {
+                $scope.load_page(0);
+                $scope.load_page(1);
+            } else for (i = 0; i < 5; i++) $scope.load_page(i);
+        } else $scope.load_page();
+
+        $scope.makeSel = function (i) {
+            //if ($scope.event !== undefined) {
+            if ($scope.event === undefined || $scope.working) return;
+            $scope.tabs[0].elems[i].selected = $scope.tabs[0].elems[i].selected !== undefined ? !$scope.tabs[0].elems[i].selected : true;
+            if ($scope.tabs[0].elems[i].selected) $scope.sel_cnt++; else $scope.sel_cnt--;
+            //} else $window.location.href = '/'+($scope.favs ? $scope.tabs[0].elems[i].shortname : 'user/'+$scope.tabs[0].elems[i].username)+'/'
+        };
+
+        $scope.sendNotify = function (){
+            $scope.working = true;
+            var to = '';
+            for (i = 0; i < $scope.tabs[0].elems.length; i++) if ($scope.tabs[0].elems[i].selected) to += ',' + $scope.tabs[0].elems[i].id;
+            $rootScope.sendreq('api/events/'+$scope.event+'/notify/?notxt=1&to='+to.slice(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
+        }
+    })
+
+    .factory('APIService', function($resource) {
+        return {
+            init: function (t){
+                var n;
+                switch (t){
+                    case 2:
+                        n = 'events';
+                        break;
+                    case 3:
+                        n = 'likes';
+                        break;
+                    case 4:
+                        n = 'notifications';
+                        break;
+                    case 5:
+                        n = 'emails';
+                        break;
+                    case 6:
+                        n = 'reminders';
+                        break;
+                    case 7:
+                        n = 'comments';
+                        break;
+                    case 8:
+                        n = 'items';
+                        break;
+                    case 9:
+                        n = 'businesses';
+                        break;
+                    case 10:
+                        n = 'feed';
+                        break;
+                    default: n = 'users'
+                }
+                return $resource('/api/'+n+'/:id/?format=json:m', {id: '@object_id'},
+                {
+                    'get': {method: 'GET'},
+                    'query': {method: 'GET', isArray: true},
+                    'save': {
+                        method: 'POST',
+                        transformRequest: function (data) {
+                            delete data.m;
+                            return JSON.stringify(data);
+                        },
+                        params: {m: '@m'}
+                    },
+                    'update': {method: 'PUT'},
+                    'delete': {method: 'DELETE'}
+                });
+            }
+        }
+    })
+
+    .factory('menuService', function ($q, APIService){
+        var itemService = APIService.init(8), menu; //, category
+
+        function chngmenu() { if (!menu[0].hascontent) menu[1].name = "Drinks"; else menu[1].name = "Other drinks"; /*menu[0].name == "Other drinks" / if (menu.length)*/ }
+
+        /*name = {
+            'cider': menu[0].content[0].content,
+            'whiscategory': menu[0].content[1].content,
+            'wine': menu[0].content[2].content,
+            'beer': menu[0].content[3].content,
+            'vodka': menu[0].content[4].content,
+            'brandy': menu[0].content[5].content,
+            'liqueur': menu[0].content[6].content,
+            'cocktail': menu[0].content[7].content,
+            'tequila': menu[0].content[8].content,
+            'gin': menu[0].content[9].content,
+            'rum': menu[0].content[10].content,
+
+            'coffee': menu[1].content[0].content,
+            'soft_drink': menu[1].content[1].content,
+            'juice': menu[1].content[2].content,
+            'tea': menu[1].content[3].content,
+            'hot_chocolate': menu[1].content[4].content,
+            'water': menu[1].content[5].content,
+
+            'fast_food': menu[2].content[0].content,
+            'appetizer': menu[2].content[1].content,
+            'soup': menu[2].content[2].content,
+            'meal': menu[2].content[3].content,
+            'barbecue': menu[2].content[4].content,
+            'seafood': menu[2].content[5].content,
+            'salad': menu[2].content[6].content,
+            'dessert': menu[2].content[7].content
+        };*/
+
+        function add(item) {
+            var c;
+            for (var i = 0; i < menu.length; i++) {
+                for (var j = 0; j < menu[i].content.length; j++) {
+                    if (menu[i].content[j].category == item.category) {
+                        menu[i].content[j].content.push(item);
+                        c = true;
+                        break;
+                    }
+                }
+                if (c) {
+                    if (!menu[i].hascontent) menu[i].hascontent = true;
+                    break;
+                }
+            }
+        }
+
+        return {
+            init: function (){
+                menu = [
+                    {hascontent: false, name: "Alcoholic beverages", content: [
+                        {category: 'cider', name: "Ciders", content: []},
+                        {category: 'whiskey', name: "Whiskeys", content: []},
+                        {category: 'wine', name: "Wines", content: []},
+                        {category: 'beer', name: "Beers", content: []},
+                        {category: 'vodka', name: "Vodkas", content: []},
+                        {category: 'brandy', name: "Brandy", content: []},
+                        {category: 'liqueur', name: "Liqueurs", content: []},
+                        {category: 'cocktail', name: "Cocktails", content: []},
+                        {category: 'tequila', name: "Tequilas", content: []},
+                        {category: 'gin', name: "Gin", content: []},
+                        {category: 'rum', name: "Rum", content: []}
+                    ]},
+                    {hascontent: false, name: "Other drinks", content: [
+                        {category: 'coffee', name: "Coffee", content: []},
+                        {category: 'soft_drink', name: "Soft drinks", content: []},
+                        {category: 'juice', name: "Juices", content: []},
+                        {category: 'tea', name: "Teas", content: []},
+                        {category: 'hot_chocolate', name: "Hot chocolate", content: []},
+                        {category: 'water', name: "Water", content: []}
+                    ]},
+                    {hascontent: false, name: "Food", content: [
+                        {category: 'fast_food', name: "Fast food", content: []},
+                        {category: 'appetizer', name: "Appetizers", content: []},
+                        {category: 'soup', name: "Soups", content: []},
+                        {category: 'meal', name: "Meals", content: []},
+                        {category: 'barbecue', name: "Barbecue", content: []},
+                        {category: 'seafood', name: "Seafood", content: []},
+                        {category: 'salad', name: "Salads", content: []},
+                        {category: 'dessert', name: "Desserts", content: []}
+                    ]}
+                ];
+                return menu;
+            },
+            load: function (id){
+                return itemService.query({id: id, menu: 1},
+                    function (result){
+                        var i;
+                        for (i = 0; i < result.length; i++) add(result[i]);
+                        /*for (i = 0; i < menu.length; i++) {
+                            for (c = 0; c < menu[i].content.length; c++) {
+                                if (!menu[i].content[c].content.length) {
+                                    menu[i].content.splice(c, 1);
+                                    c--;
+                                }
+                            }
+                            if (!menu[i].content.length) {
+                                menu.splice(i, 1);
+                                i--;
+                            }
+                        }*/
+                        chngmenu();
+                    }
+                ).$promise;
+            },
+            del: function (cat, id){
+                if (menu === undefined) return;
+                var d = false, h = false;
+                for (var i = 0; i < menu.length; i++) {
+                    for (var j = 0; j < menu[i].content.length; j++) {
+                        if (!d && menu[i].content[j].category == cat) for (var k = 0; k < menu[i].content[j].content.length; k++) {
+                            if (menu[i].content[j].content[k].id == id) {
+                                menu[i].content[j].content.splice(k, 1);
+                                d = true;
+                                break;
+                            }
+                        }
+                        if (!h && menu[i].content[j].content.length > 0) h = true;
+                        if (h && d) break; /*&& !menu[i].content[j].content.length) {
+                            menu[i].content.splice(j, 1);
+                            break;
+                        }*/
+                    }
+                    if (d) {
+                        menu[i].hascontent = h;
+                        break;
+                    } else h = false; /*&& !menu[i].content.length) {
+                        menu.splice(i, 1);
+                        break;
+                    }*/
+                }
+                chngmenu();
+            },
+            new: function (name, price, cat) {
+                return itemService.save({name: name, price: price, category: cat, m: '&menu=1'},
+                    function (result) {
+                        add(result);
+                        chngmenu();
+                     }
+                ).$promise;
+            }
+        }
+    })
+
+    .factory('makeFriendService', function ($timeout, APIService) { //, $q
+        var friendService = APIService.init(), loading;
+        function l() { $timeout(function() { loading = false }) }
+
+        return {
+            /*config: function (u) {
+                u.rel_state_msg = "Are you sure that you want to ";
+                switch (u.rel_state) {
+                    case 0:
+                        u.rel_state_msg += "send a friend request to this person?";
+                        break;
+                    case 1:
+                        u.rel_state_msg += "cancel the friend request to this person?";
+                        break;
+                    case 2:
+                        u.rel_state_msg += "accept the friend request from this person?";
+                        break;
+                    case 3:
+                        u.rel_state_msg += "remove from friends this person?";
+                }
+                return $q.when();
+            },*/
+            run: function (u, id) {
+                if (loading) return;
+                loading = true;
+                //var c = this.config;
+                switch (u.rel_state) {
+                    case 0:
+                    case 2:
+                        friendService.save({to_person: id || u.id},
+                            function () {
+                                u.rel_state++;
+                                //c(u);
+                                if (u.rel_state == 3) if (angular.isArray(u.friend_count)) u.friend_count[0]++; else u.friend_count++;
+                                l();
+                            });
+                        break;
+                    default:
+                        friendService.delete({id: id || u.id},
+                            function () {
+                                if (u.rel_state == 3) if (angular.isArray(u.friend_count)) u.friend_count[0]--; else u.friend_count--;
+                                u.rel_state = 0;
+                                //c(u);
+                                l();
+                            });
+                }
+            }
+        }
+    })
+
+    .factory('uniService', function ($q, $timeout, $injector, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES, menuService, dialogService){
+        var u = false, id = null, likeService = APIService.init(3), commentService = APIService.init(7), SEARCH_PAGE_SIZE; //, rs = false
+
+        function UniObj(t){
+            this.objs = [[],[], t];
+            switch (t){
+                case 'event':
+                    this.s = APIService.init(2);
+                    break;
+                case 'item':
+                    this.s = APIService.init(8);
+                    break;
+                case 'comment':
+                    this.s = commentService;
+                    break;
+                case 'business':
+                    this.s = APIService.init(9);
+                    break;
+                case 'user':
+                    this.s = APIService.init();
+                    break;
+                default: this.u = {event: APIService.init(2), item: APIService.init(8), comment: commentService, feed: APIService.init(10)};
+            }
+            this.page_offset = 1;
+            this.remids = [];
+            this.unloaded = [false, false];
+        }
+
+        UniObj.prototype.remove = function (e, index, r, l) {
+            if (r) if (!this.bu) {
+                for (var i = 0; i < this.objs[0].length; i++) if (this.objs[0][i].id == e[index].id) {
+                    this.objs[0].splice(i, 1);
+                    break;
+                }
+            } else menuService.del(e[index].category, e[index].id);
+            if (l) this.remids.push(e[index].id);
+            if (!r || !u) e.splice(index, 1);
+        };
+
+        UniObj.prototype.getobjs = function (t, n) {
+            if (t === undefined) return this.objs[2];
+            var e;
+            e = t ? this.objs[1] : this.objs[0];
+            if (n == undefined) {
+                e.length = 0;
+                if (!t) {
+                    this.page_offset = 1;
+                    id = null;
+                }
+            }
+            this.unloaded[t ? 1 : 0] = n === null;
+            if (n !== null) return e;
+        };
+
+        UniObj.prototype.load = function (b, rel_state, nob) {
+            var ids = null, d, self = this;
+            if (b !== undefined) if (angular.isArray(b)) {
+                function showc(i) {
+                    if (self.objs[1][i].showcomm === undefined) {
+                        self.objs[1][i].showcomm = [[false, true], true];
+                        self.loadComments(i, true).then(function l() { if (!self.unloaded[1]) $timeout(function () { if (!self.unloaded[1]) self.objs[1][i].showcomm[0][0] = true }) });
+                    } else self.objs[1][i].showcomm[1] = true;
+                }
+                var p, i;
+                ids = '';
+                for (i = 0; i < b.length && b[i] !== undefined; i++) {
+                    p = false;
+                    for (var j = i + 1; j < b.length; j++) if (b[j] == b[i]) {
+                        delete b[i];
+                        p = true;
+                    }
+                    if (!p) { // && /^\d+$/.test(b[i])
+                        for (d in this.objs[0]) if (this.objs[0][d].id == b[i]) {
+                            var ev = angular.copy(this.objs[0][d]);
+                            /*delete ev.comments;
+                            delete ev.user_comments;
+                            delete ev.offset;
+                            delete ev.comment_more;*/
+                            if (ev.showcomm !== undefined) ev.showcomm = [[true, true], false]; //delete ev.showcomm;
+                            this.objs[1].push(ev);
+                            if (rel_state) showc(this.objs[1].length - 1);
+                            p = true;
+                            break;
+                        }
+                        if (!p) ids += ',' + b[i];
+                    }
+                }
+                ids = ids.slice(1);
+            } else if (typeof(b) == 'string') id = {search: b}; else if (b !== undefined) id = {id: b};
+            if (ids == '') return $q.when(); else if (ids == null) {
+                d = SEARCH_PAGE_SIZE !== undefined ? {offset: this.page_offset} : {page: this.page_offset};
+                if (id != null) angular.extend(d, id);
+                if (rel_state !== undefined) {
+                    u = rel_state == -1;
+                    d.is_person = 1;
+                    //rs = true;
+                }
+                if (this.objs[2] == 'comment') d.content_type = CONTENT_TYPES['business'];
+                return (this.s || this.u.feed).get(d,
+                    function (result) {
+                        if (self.unloaded[0]) return;
+                        self.objs[0].push.apply(self.objs[0], result.results);
+                        if (result.count !== undefined) {
+                            if (SEARCH_PAGE_SIZE === undefined) {
+                                SEARCH_PAGE_SIZE = $injector.get('SEARCH_PAGE_SIZE');
+                                self.page_offset = 0;
+                            }
+                            self.page_offset += SEARCH_PAGE_SIZE;
+                            self.objs[0].has_next_page = result.count > self.page_offset;
+                        } else {
+                            self.objs[0].has_next_page = result.page_count > self.page_offset;
+                            self.page_offset++;
+                        }
+                    }).$promise
+            } else {
+                d = this;
+                return this.s.query({ids: ids, no_business: nob || null}, function (result) {
+                    if (d.unloaded[1]) return;
+                    d.objs[1].push.apply(d.objs[1], result);
+                    if (rel_state) for (i = 0; i < d.objs[1].length; i++) showc(i);
+                }).$promise
+            }
+        };
+
+        UniObj.prototype.new = function() {
+            var self = this, d;
+            switch (this.objs[2]) {
+                case 'event':
+                    d = {text: arguments[0], when: arguments[1]};
+                    break;
+                case 'comment':
+                    d = {text: arguments[0], stars: arguments[1], object_id: arguments[2], content_type: CONTENT_TYPES['business']};
+            }
+            return this.s.save(d, function (result){ if (!self.unloaded[0]) this.objs[0].unshift(result) }).$promise;
+        };
+
+        UniObj.prototype.del = function (index, r, par_ind, p) {
+            var e = r ? this.objs[1] : this.objs[0], self = this;
+            if (par_ind !== undefined) {
+                if (r || index == null) var objs = [this.objs[0]];
+                e = e[par_ind];
+                var id = [e.id];
+                if (index == null) {
+                    if (r) objs.push(this.objs[1]);
+                    id.push(e.main_comment.id);
+                } else id.push(e[p][index].id);
+                return commentService.delete({id: id[1]}, function (result) {
+                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (objs !== undefined) for (var l = 0; l < objs.length; l++) for (var i = 0; i < objs[l].length; i++) if (objs[l][i].id == id[0]) {
+                        if (objs[l][i].main_comment != null && objs[l][i].main_comment.id == id[1]) if (result.id !== undefined) angular.copy(result, objs[l][i].main_comment); else delete objs[l][i].main_comment;
+                        var uc = ['comments', 'user_comments'];
+                        for (var k = 0; k < 2; k++) if (objs[l][i][uc[k]] !== undefined) for (var j = 0; j < objs[l][i][uc[k]].length; j++) if (objs[l][i][uc[k]][j].id == id[1]) {
+                            objs[l][i][uc[k]].splice(j, 1);
+                            objs[l][i].offset--;
+                            break;
+                        }
+                        objs[l][i].comment_count = e.comment_count - 1;
+                        break;
+                    }
+                    if (index != null) {
+                        if (e.main_comment != null && e.main_comment.id == id[1]) if (result.id !== undefined) angular.copy(result, e.main_comment); else delete e.main_comment;
+                        e[p].splice(index, 1);
+                        e.comment_count--;
+                        e.offset--;
+                    }
+                }).$promise;
+            } else {
+                var is_item = e[index].name !== undefined;
+                return (this.s || this.u[e[index].type]).delete({id: e[index].id}, function (){
+                    if (!self.unloaded[r ? 1 : 0]) self.remove(e, index, r);
+                }, function (result){
+                    if (is_item && result.data !== undefined && result.data.non_field_errors !== undefined) dialogService.show("You can't delete the last remaining item!", false)
+                }).$promise;
+            }
+        };
+
+        UniObj.prototype.setLikeStatus = function (index, r, dislike_stars, par_ind) {
+            var e = r ? this.objs[1] : this.objs[0], id, isl;
+            if (par_ind !== undefined) {
+                id = index != null ? e[par_ind].comments[index] : e[par_ind].main_comment;
+                par_ind = [e[par_ind], id.id, index != null];
+                e = [id.manager_stars];
+                id = par_ind[1];
+                index = 0;
+                isl = true;
+            } else {
+                id = e[index].id;
+                isl = typeof(dislike_stars) == 'boolean';
+            }
+            var old_status = e[index].curruser_status, status, s;
+            if (isl ? old_status == 1 && !dislike_stars || old_status == 2 && dislike_stars : dislike_stars == 0) {
+                s = likeService.delete({content_type: CONTENT_TYPES[e[index].type || this.objs[2]], id: id});
+                status = 0;
+            } else {
+                var d = {content_type: CONTENT_TYPES[e[index].type || this.objs[2]], object_id: id};
+                if (isl) d.is_dislike = dislike_stars; else d.stars = dislike_stars;
+                s = old_status > 0 ? likeService.update(d) : likeService.save(d);
+                status = isl ? dislike_stars ? 2 : 1 : dislike_stars;
+            }
+            var self = this;
+            return s.$promise.then(
+                function () {
+                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (status != 0) {
+                        if (isl) {
+                            if (status == 1) {
+                                e[index].likestars_count++;
+                                if (old_status == 2) e[index].dislike_count--;
+                            } else {
+                                e[index].dislike_count++;
+                                if (old_status == 1) e[index].likestars_count--;
+                            }
+                        } else if (old_status == 0) e[index].likestars_count++;
+                        if (!r && u) {
+                            e[index].person_status[0] = status;
+                            e[index].person_status[1] = new Date();
+                        }
+                    } else if (par_ind !== undefined || r || !u) if (isl) { if (old_status == 1) e[index].likestars_count--; else if (old_status == 2) e[index].dislike_count--; } else if (old_status != 0 && status == 0) e[index].likestars_count--;
+                    if (par_ind !== undefined || r || !u || status != 0) e[index].curruser_status = status;
+                    var i;
+                    if (self.objs[0] !== undefined && (r || par_ind !== undefined)) {
+                        var obj;
+                        if (!u || status != 0 || par_ind !== undefined) {
+                            var objs = [self.objs[0]];
+                            if (par_ind !== undefined) {
+                                id = par_ind[0].id;
+                                if (r) objs.push(self.objs[1]);
+                                var mc = par_ind[0].main_comment !== undefined;
+                            }
+                            for (var t = 0; t < objs.length; t++) for (i = 0; i < objs[t].length; i++) if (objs[t][i].id === undefined || objs[t][i].id == id) {
+                                if (par_ind !== undefined && objs[t][i].comments !== undefined) {
+                                    if (par_ind[2] || r && objs[t] === self.objs[0]) {
+                                        if (mc && objs[t][i].main_comment.id == par_ind[1]) objs.push([objs[t][i].main_comment.manager_stars]);
+                                        if (objs[t][i] === par_ind[0]) break;
+                                    }
+                                    for (var j = 0; j < objs[t][i].comments.length; j++) if (objs[t][i].comments[j].id == par_ind[1]) {
+                                        obj = objs[t][i].comments[j].manager_stars;
+                                        break;
+                                    }
+                                } else if (par_ind === undefined || objs[t][i].main_comment === undefined) obj = objs[t][i]; else break;
+                                obj.likestars_count = e[index].likestars_count;
+                                if (isl) obj.dislike_count = e[index].dislike_count;
+                                obj.curruser_status = status;
+                                if (u) {
+                                    obj.person_status[0] = status;
+                                    obj.person_status[1] = e[index].person_status[1];
+                                }
+                                if (!isl) var k = [obj.comments, obj.user_comments];
+                                break;
+                            }
+                        }
+                        if (par_ind === undefined && u && status != 0 && old_status == 0) for (i = 0; i < self.remids.length; i++) if (self.remids[i] == id) {
+                            self.remids.splice(i, 1);
+                            obj = angular.copy(e[index]);
+                            obj.person_status[0] = status;
+                            obj.person_status[1] = new Date();
+                            self.objs[0].push(obj);
+                            self.objs[0].sort(dynamicSortMultiple('-person_status.1/created', '-id'));
+                            break;
+                        }
+                    }
+                    if (par_ind === undefined) {
+                        if (u && status == 0) self.remove(e, index, r, true);
+                        if (!isl && (r || !u || status != 0)) {
+                            if (k === undefined) var k = [];
+                            k.push.apply(k, [e[index].comments, e[index].user_comments]);
+                            for (isl = 0; isl < k.length; isl++) if (k[isl] !== undefined) for (i = 0; i < k[isl].length; i++) if (k[isl][i].is_curruser) k[isl][i].manager_stars = status;
+                        }
+                    }
+                });
+        };
+
+        UniObj.prototype.loadComments = function (index, r, l, a){
+            var self = this, e = (r ? this.objs[1] : this.objs[0])[index], o = l === undefined || l > 0;
+            if (l !== undefined) { if (l < 0) l = -l; } else l = null;
+            if (e.offset === undefined) e.offset = 0;
+            var p = commentService.get({content_type: CONTENT_TYPES[e.type || this.objs[2]], id: e.id, offset: o ? e.offset : (e.comments !== undefined ? e.comments.length : 0) - (a ? l : 0), limit: l, reverse: !o || null},
+                function (result){
+                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (a !== 0) a = 0;
+                    if (e.comments === undefined) e.comments = [];
+                    var k = [e.comments, e.user_comments], no;
+                    for (var i = 0; i < result.results.length; i++) {
+                        no = false;
+                        for (var j = 0; j < 1; j++) if (k[j] !== undefined) for (var m = 0; m < k[j].length; m++) if (k[j][m].id == result.results[i].id) {
+                            if (!o && j == 1) {
+                                e.user_comments.splice(m, 1);
+                                no = null;
+                                break;
+                            }
+                            no = true;
+                            break;
+                        }
+                        if (!no) {
+                            if (o) e.comments.unshift(result.results[i]); else e.comments.push(result.results[i]);
+                            if (no === false) a++;
+                        }
+                    }
+                    e.comment_count = result.count;
+                    if (!o) e.comment_more -= a; else e.offset += l || (e.offset + COMMENT_PAGE_SIZE > e.count ? e.count - e.offset : COMMENT_PAGE_SIZE);
+                }).$promise;
+            return p.then(function (){
+                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (l != null ? a != l : a != COMMENT_PAGE_SIZE && e.comment_count > (e.comments !== undefined ? e.comments.length : 0) + (e.user_comments !== undefined ? e.user_comments.length : 0)) {
+                        if (!o) return self.loadComments(index, r, a-l, true); else {
+                            if (e.comment_more === undefined) e.comment_more = COMMENT_PAGE_SIZE - a; else e.comment_more += COMMENT_PAGE_SIZE - a;
+                            return self.loadComments(index, r, COMMENT_PAGE_SIZE - a);
+                        }
+                    }
+                    return p;
+                }, function (){ return p });
+        };
+
+        UniObj.prototype.submitComment = function (index, txt, r){
+            var e = (r ? this.objs[1] : this.objs[0])[index], self = this;
+            if (r) var objs = this.objs[0];
+            return commentService.save({content_type: CONTENT_TYPES[e.type || this.objs[2]], object_id: e.id, text: txt, status: e.status !== undefined ? e.status.value : null},
+                function (result){
+                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (e.user_comments === undefined) e.user_comments = [];
+                    e.user_comments.push(result);
+                    if (angular.isObject(result.manager_stars)) if (e.main_comment == null) e.main_comment = angular.copy(result); else angular.copy(result, e.main_comment);
+                    e.offset++;
+                    e.comment_count++;
+                    if (r) for (var i = 0; i < objs.length; i++) if (objs[i].id == e.id) {
+                        if (objs[i].user_comments !== undefined) {
+                            objs[i].user_comments.push(result);
+                            if (angular.isObject(result.manager_stars)) if (objs[i].main_comment == null) objs[i].main_comment = angular.copy(result); else angular.copy(result, objs[i].main_comment);
+                            objs[i].offset++;
+                        }
+                        objs[i].comment_count = e.comment_count;
+                        break;
+                    }
+                }).$promise;
+        };
+
+        return { getInstance: function (t) { return new UniObj(t) } }
+    })
+    .factory('eventService', function (uniService) { return uniService.getInstance('event') })
+    .factory('itemService', function (uniService) { return uniService.getInstance('item') })
+    .factory('reviewService', function (uniService) { return uniService.getInstance('comment') })
+
+    .controller('BaseCtrl', function ($rootScope, $scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
+        $scope.r = $scope.$parent.objs !== undefined;
+        $scope.objs = $scope.r ? $scope.$parent.objs : objService[0].getobjs(false); //, false
+        if (!$scope.r) { // && $scope.objs.length == 0
+            $scope.loading = true;
+            var l = function() { $timeout(function() { $scope.loading = false }) };
+            objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state : undefined).then(function() { l(); if (objService.length == 2) objService[1](); } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
+            $scope.load_page = function (){
+                $scope.loading = true;
+                objService[0].load().then(l, l);
+            };
+        }
+
+        $scope.com = [['older', 'comments', 0], ['newer', 'user_comments', 1]];
+
+        $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1]() }) }; //... > 1)
+
+        $scope.showDisLikes = function (index, par_ind) { if (par_ind === undefined) usersModalService.setAndOpen($scope.objs[index].id, objService[0].getobjs()); else if (index != null) usersModalService.setAndOpen($scope.objs[par_ind].comments[index].id, 'comment'); else usersModalService.setAndOpen($scope.objs[par_ind].main_comment.id, 'comment') };
+
+        $scope.checkAnim = function () { if (!angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave').length) return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave-prepare').length; else return true }
+        $scope.toggleHr = function (f, l) { if (f) if (l) return $scope.checkAnim(); else return true; else return false };
+
+        var loading;
+        $scope.giveDisLike = function(index, dislike, par_ind) {
+            if (loading) return;
+            loading = true;
+            function l(){ $timeout(function () { loading = false }) }
+            return objService[0].setLikeStatus(index, $scope.r, dislike, par_ind).then(l, l);
+        };
+
+        function load_comments(index, m){
+            function l() { $timeout(function (){ $scope.objs[index].showcomm[0][m || 0] = true }) }
+            objService[0].loadComments(index, $scope.r, m === 1 ? $scope.objs[index].comment_more > COMMENT_PAGE_SIZE ? -COMMENT_PAGE_SIZE : -$scope.objs[index].comment_more : undefined).then(l, l);
+        }
+
+        $scope.showComments = function(index) {
+            if ($scope.objs[index].showcomm === undefined) {
+                $scope.objs[index].showcomm = [[false, true], true];
+                load_comments(index);
+            } else $scope.objs[index].showcomm[1] = !$scope.objs[index].showcomm[1];
+        };
+
+        $scope.show_next = function (index, m){ return $scope.objs[index].comments !== undefined && $scope.objs[index].showcomm[0][m || 0] ? m === 1 ? $scope.objs[index].comment_more !== undefined ? $scope.objs[index].comment_more > 0 : false : $scope.objs[index].comment_count > $scope.objs[index].comments.length + ($scope.objs[index].user_comments !== undefined ? $scope.objs[index].user_comments.length : 0) + ($scope.objs[index].comment_more !== undefined ? $scope.objs[index].comment_more : 0) : false };
+
+        $scope.load_next = function (index, m){
+            $scope.objs[index].showcomm[0][m || 0] = false;
+            load_comments(index, m);
+        };
+
+        $scope.submitComment = function (index) {
+            var el = angular.element('#'+$scope.$parent.t+index), bu = angular.element('#'+$scope.$parent.t+index+'b');
+            bu.attr('disabled', true);
+            if (el.val() != '') objService[0].submitComment(index, el.val(), $scope.r).then(
+                function () {
+                    el.val('');
+                    bu.attr('disabled', false);
+                    if ($scope.objs[index].status !== undefined && $scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0]; //if (objService.length == 3) objService[2](index);
+                }, function () { bu.attr('disabled', false) })
+        }
+    })
+
+    .controller('EventsCtrl', function($scope, $rootScope, $timeout, usersModalService, APIService) {
+        $scope.notifySelect = function (index){ usersModalService.setAndOpen(null, 0, $scope.objs[index].id) };
+
+        $scope.isFuture = function (index) { return (new Date($scope.objs[index].when)).valueOf() > $rootScope.currTime };
+
+        function subTime(d,h,m,v){
+            var r = new Date(d);
+            r.setHours(d.getHours()-h);
+            r.setMinutes(d.getMinutes()-m);
+            r.setSeconds(0, 0);
+            return v ? r.valueOf() : r;
+        }
+        var when, index;
+        $scope.cmb = {choices: ["(Custom)"]};
+        $scope.picker = {options: {minDate: subTime($rootScope.currTime, 0, -1)}};
+        $scope.initRmn = function (ind){
+            if (index !== undefined && $scope.objs[ind].id == $scope.objs[index].id) return;
+            index = ind;
+            when = new Date($scope.objs[index].when);
+            $scope.picker.options.maxDate = when;
+            $scope.cmb.choices.length = 1;
+            var md = $scope.picker.options.minDate.valueOf();
+            if (subTime(when, 0, 15, true) > md) $scope.cmb.choices.push("15 minutes");
+            if (subTime(when, 0, 30, true) > md) $scope.cmb.choices.push("Half an hour");
+            for (var i = 2; i >= 0; i--) if ($scope.cmb.choices.length >= i + 1) {
+                if ($scope.cmb.selected != $scope.cmb.choices[i]) $scope.cmb.selected = $scope.cmb.choices[i]; else checkSel();
+                break;
+            }
+            if (subTime(when, 0, 45, true) > md) $scope.cmb.choices.push("45 minutes");
+            if (subTime(when, 1, 0, true) > md) $scope.cmb.choices.push("An hour");
+            if (subTime(when, 2, 0, true) > md) $scope.cmb.choices.push("2 hours");
+            if (subTime(when, 3, 0, true) > md) $scope.cmb.choices.push("3 hours");
+            if (subTime(when, 4, 0, true) > md) $scope.cmb.choices.push("4 hours");
+            if (subTime(when, 5, 0, true) > md) $scope.cmb.choices.push("5 hours");
+            if (subTime(when, 6, 0, true) > md) $scope.cmb.choices.push("Half a day");
+            if (subTime(when, 24, 0, true) > md) $scope.cmb.choices.push("A day");
+            if (subTime(when, 48, 0, true) > md) $scope.cmb.choices.push("2 days");
+            if (subTime(when, 72, 0, true) > md) $scope.cmb.choices.push("3 days");
+            if (subTime(when, 96, 0, true) > md) $scope.cmb.choices.push("4 days");
+            if (subTime(when, 120, 0, true) > md) $scope.cmb.choices.push("5 days");
+            if (subTime(when, 144, 0, true) > md) $scope.cmb.choices.push("6 days");
+            if (subTime(when, 168, 0, true) > md) $scope.cmb.choices.push("A week");
+        };
+
+        $scope.$watch('cmb.selected', function(value) { if (value !== undefined) checkSel() });
+
+        var sel;
+        function checkSel() {
+            sel = true;
+            switch($scope.cmb.selected) {
+                case $scope.cmb.choices[0]:
+                    if ($scope.picker.date === undefined) $scope.picker.date = $scope.picker.options.minDate; else sel = false;
+                    break;
+                case $scope.cmb.choices[1]:
+                    $scope.picker.date = subTime(when, 0, 15);
+                    break;
+                case $scope.cmb.choices[2]:
+                    $scope.picker.date = subTime(when, 0, 30);
+                    break;
+                case $scope.cmb.choices[3]:
+                    $scope.picker.date = subTime(when, 0, 45);
+                    break;
+                case $scope.cmb.choices[4]:
+                    $scope.picker.date = subTime(when, 1, 0);
+                    break;
+                case $scope.cmb.choices[5]:
+                    $scope.picker.date = subTime(when, 2, 0);
+                    break;
+                case $scope.cmb.choices[6]:
+                    $scope.picker.date = subTime(when, 3, 0);
+                    break;
+                case $scope.cmb.choices[7]:
+                    $scope.picker.date = subTime(when, 4, 0);
+                    break;
+                case $scope.cmb.choices[8]:
+                    $scope.picker.date = subTime(when, 5, 0);
+                    break;
+                case $scope.cmb.choices[9]:
+                    $scope.picker.date = subTime(when, 6, 0);
+                    break;
+                case $scope.cmb.choices[10]:
+                    $scope.picker.date = subTime(when, 24, 0);
+                    break;
+                case $scope.cmb.choices[11]:
+                    $scope.picker.date = subTime(when, 48, 0);
+                    break;
+                case $scope.cmb.choices[12]:
+                    $scope.picker.date = subTime(when, 72, 0);
+                    break;
+                case $scope.cmb.choices[13]:
+                    $scope.picker.date = subTime(when, 96, 0);
+                    break;
+                case $scope.cmb.choices[14]:
+                    $scope.picker.date = subTime(when, 120, 0);
+                    break;
+                case $scope.cmb.choices[15]:
+                    $scope.picker.date = subTime(when, 144, 0);
+                    break;
+                case $scope.cmb.choices[16]:
+                    $scope.picker.date = subTime(when, 168, 0);
+            }
+        }
+
+        $scope.$watch('picker.date', function(value) {
+            if (value === undefined) {
+                if ($scope.cmb.selected != $scope.cmb.choices[0]) $scope.cmb.selected = $scope.cmb.choices[0];
+                return;
+            }
+            if (sel) {
+                sel = false;
+                return;
+            }
+            $scope.picker.date.setSeconds(0, 0);
+            var i = 0, j, d = $scope.picker.date.valueOf();
+            function chk(h, m) {
+                if ($scope.cmb.choices.length >= i++) if (d == subTime(when, h, m, true)) j = i; else if ($scope.cmb.choices.length != i) return; else j = 0; else j = 0;
+                $scope.cmb.selected = $scope.cmb.choices[j];
+                return true;
+            }
+            if (chk(0, 15)) return;
+            if (chk(0, 30)) return;
+            if (chk(0, 45)) return;
+            if (chk(1, 0)) return;
+            if (chk(2, 0)) return;
+            if (chk(3, 0)) return;
+            if (chk(4, 0)) return;
+            if (chk(5, 0)) return;
+            if (chk(6, 0)) return;
+            if (chk(24, 0)) return;
+            if (chk(48, 0)) return;
+            if (chk(72, 0)) return;
+            if (chk(96, 0)) return;
+            if (chk(120, 0)) return;
+            if (chk(144, 0)) return;
+            if (chk(168, 0)) return;
+            if ($scope.cmb.selected != $scope.cmb.choices[0]) $scope.cmb.selected = $scope.cmb.choices[0];
+        });
+
+        var reminderService = APIService.init(6);
+        $scope.setReminder = function ($event){
+            $event.stopPropagation();
+            $scope.working = true;
+            $rootScope.currTime = new Date();
+            var curr = subTime($rootScope.currTime, 0, -1);
+            if ($scope.picker.date === undefined || $scope.picker.date < curr) $scope.picker.date = curr;
+            $scope.picker.options.minDate = curr;
+            reminderService.save({object_id: $scope.objs[index].id, when: $scope.picker.date},
+                function (){
+                    $scope.cmb.opened[index] = false;
+                    $timeout(function () { $scope.working = false });
+                },
+                function () { $scope.working = false });
+        };
+    })
+
+    .controller('ReviewsCtrl', function($scope) {  $scope.choices = [{name: "(None)", value: null}, {name: "Started", value: 0}, {name: "Closed", value: 1}, {name: "Completed", value: 2}, {name: "Declined", value: 3}, {name: "Under review", value: 4}, {name: "Planned", value: 5}, {name: "Archived", value: 6}, {name: "Need feedback", value: 7}] })
+
+    .controller('eventsOnlyCtrl', function ($scope, $controller, eventService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [eventService]}), $controller('EventsCtrl', {$scope: $scope})) })
+
+    .controller('itemsOnlyCtrl', function($scope, $controller, itemService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [itemService]})) })
+
+    .controller('reviewsOnlyCtrl', function ($scope, $controller, reviewService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [reviewService, function (){ if (!$scope.r && $scope.$parent.$parent.$parent.$parent.$parent.fav_state !== undefined && $scope.$parent.$parent.$parent.$parent.$parent.fav_state != -1) $scope.$parent.$parent.$parent.$parent.$parent.showrevf = $scope.objs[0] === undefined || $scope.objs[0].curruser_status != -1 }]}), $controller('ReviewsCtrl', {$scope: $scope})); /*, function (index) { if ($scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0] }*/ })
+
+    .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, usersModalService, APIService, NOTIF_PAGE_SIZE) { //, $interval
+        $rootScope.title = $window.document.title;
+        $rootScope.currTime = new Date();
+        $scope.showOffcanvas = function (){
+            $aside.open({
+                size: 'sm',
+                templateUrl: 'offcanvas',
+                scope: $scope,
+                windowClass: 'oc',
+                placement: 'right',
+                controller: function ($scope, $uibModal, $uibModalInstance, BASE_MODAL) { /*, $css*/
+                    /*$css.add('/static/main/css/sett.css');*/
+                    $scope.showSettModal = function (index) {
+                        $uibModal.open({
+                            size: 'lg',
+                            templateUrl: BASE_MODAL,
+                            windowTopClass: 'sett',
+                            controller: 'SettModalCtrl',
+                            resolve: { index: function (){ return index || 0 } }
+                        });
+                    };
+                    $scope.close = function() { $uibModalInstance.dismiss('cancel') };
+                }
+            });
+        };
+
+        $scope.showFavouritesModal = function (t, id){ usersModalService.setAndOpen(id === null ? null : (id || $scope.id), t) };
+        $scope.showFriendsModal = function (id){ usersModalService.setAndOpen(id === null ? null : (id || $scope.id), 0) };
+
+        // Search
+
+        var bsearchService = APIService.init(9);
+        $scope.search = {show: false, keywords: '', count: null, loading: false, results: [],
+            func: function () {
+                $scope.search.count = null;
+                if ($scope.search.keywords != '') {
+                    $scope.search.show = true;
+                    $scope.search.loading = true;
+                    bsearchService.get({search: $scope.search.keywords, limit: 5},
+                        function (result) {
+                            $scope.search.results.length = 0;
+                            if (result.results.length > 0) $scope.search.results.push.apply($scope.search.results, result.results);
+                            $scope.search.count = result.count;
+                            $timeout(function () { $scope.search.loading = false });
+                            $scope.search.chngl();
+                        },
+                        function () {
+                            $scope.search.results.length = 0;
+                            $scope.search.loading = false;
+                            $scope.search.chngl();
+                        }
+                    );
+                } else {
+                    $scope.search.show = false;
+                    $scope.search.results.length = 0;
+                }
+            },
+            chngl: function () {
+                $timeout(function (){
+                    var e = angular.element('#quicks');
+                    if (e.offset().left + e.outerWidth() > angular.element(window).width()) e.css('left', angular.element(window).width() > e.outerWidth() ? (angular.element(window).width() - e.outerWidth()) / 2 : 0); else if (e.offset().left != angular.element('#sr').offset().left && angular.element('#sr').offset().left + e.outerWidth() < angular.element(window).width()) e.css('left', angular.element('#sr').offset().left);
+                });
+            }
+        };
+
+        // Notfication system
+
+        var notifService = APIService.init(4);
+
+        $scope.loading = false;
+        $scope.notifs = [];
+        var ids = '', frse, u = 0;
+        ($scope.getNotifs = function (notick) {
+            if (notick) {
+                $scope.loading = true;
+                var page_num = Math.floor(($scope.notifs.length - u) / NOTIF_PAGE_SIZE) + 1;
+            }
+            var ret;
+            if (page_num === undefined) {
+                var d = {};
+                if ($scope.unread) d.last = $scope.notifs[0].id;
+                ret = notifService.query(d);
+            } else ret = notifService.get({page: page_num});
+            ret.$promise.then(function (result) {
+                var res;
+                if (page_num !== undefined) {
+                    res = result.results;
+                    $scope.has_next_page = result.page_count > page_num;
+                } else res = result;
+                if (res.length) {
+                    if (page_num !== undefined) if (frse && $scope.notifs.length - u > NOTIF_PAGE_SIZE) res.splice(0, ($scope.notifs.length - u) % NOTIF_PAGE_SIZE); else if (frse == false) {
+                        res.splice(0, u);
+                        frse = true;
+                    }
+                    if (page_num === undefined) {
+                        $scope.notifs.unshift.apply($scope.notifs, res);
+                        for (var i = 0; i < res.length; i++) ids += ','+res[i].id;
+                        if (!$scope.opened) {
+                            u += i;
+                            if ($scope.unread) i = $rootScope.title.indexOf(' ')+1; else {
+                                $scope.unread = true;
+                                i = 0;
+                            }
+                            $rootScope.title = '('+u+') '+$rootScope.title.slice(i);
+                        } else markAllAsRead();
+                    } else $scope.notifs.push.apply($scope.notifs, res);
+                    if ($scope.opened) $scope.setSize(true);
+                    if ($scope.loading) $timeout(function() { $scope.loading = false });
+                }
+                if (frse === undefined) {
+                    frse = false;
+                    $scope.getNotifs(true);
+                }
+            });
+            if (!notick) $timeout($scope.getNotifs, 10000);
+        })();
+        var setScroll = function (e) {
+            var popc = e.find('.popover-content');
+            if (popc.height() < 18+popc.children('.dt').height()) popc.css('overflow-y', 'scroll'); else popc.css('overflow-y', 'hidden');
+        };
+        $scope.setSize = function (p) { $timeout(function () {
+            var e = angular.element('#notif').next();
+            //console.log(angular.element(window).width() - (e.offset().left + e.outerWidth()));
+            if (e.offset().left == 0 || e.offset().left == 1 || angular.element(window).width() - (e.offset().left + e.outerWidth()) == 66) {
+                //console.log(angular.element(window).width()+' '+(e.width()+66));
+                if (angular.element(window).width() <= e.width() + 66) {
+                    e.addClass('notif');
+                    e.children('.arrow').css('left', angular.element("#nf").offset().left + 6);
+                    //e.children('.popover-content').css('white-space', 'normal');
+                    setScroll(e); //e = e.find('.popover-content');
+                    // angular.element('#nct').scope().$apply(); // if (e.height() < 18+e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden');
+                } else if (p) setScroll(e);
+            } else $scope.setSize(p);
+        }, 1000) };
+        $scope.$watch('opened', function(value) {
+            if (value === undefined) return;
+            if (value && $scope.unread) {
+                markAllAsRead();
+                u = 0;
+                $rootScope.title = $rootScope.title.slice($rootScope.title.indexOf(' ')+1);
+            }
+            if (!value) {
+                if ($scope.notifs.length > NOTIF_PAGE_SIZE) {
+                    $scope.notifs.splice(NOTIF_PAGE_SIZE, $scope.notifs.length - NOTIF_PAGE_SIZE);
+                    $scope.has_next_page = true;
+                }
+                for (var i = 0; i < $scope.notifs.length; i++) if ($scope.notifs[i].unread) $scope.notifs[i].unread = false; else break;
+            } else $scope.setSize();
+            $scope.unread = false;
+        });
+        function markAllAsRead(){
+            $rootScope.sendreq('api/notifications/read/?notxt=1&ids='+ids.slice(1));
+            ids = '';
+        }
+    })
+
+    .factory('emailService', function($rootScope, $resource, APIService) {
+        var emails = [];
+        var selected = 0;
+
+        function _sendreq(action, email){
+            return $rootScope.sendreq('email/', 'action_' + action + '=&email=' + email)
+        }
+
+        return {
+            emails: emails,
+            selected: selected,
+            setCurrent: function(curr){ selected = curr },
+            load: function(){
+                emails.length = 0;
+                return APIService.init(5).query({}, function (result) { emails.push.apply(emails, result) }).$promise;
+            },
+            add: function(email) {
+                return _sendreq('add', email).then(function (){ emails.push({email: email, primary: false, verified: false}) });
+            },
+            remove: function() {
+                return _sendreq('remove', emails[selected].email).then(function (){ return emails.splice(selected, 1)[0].email; });
+            },
+            resend: function() {
+                return _sendreq('send', emails[selected].email);
+            },
+            primary: function() {
+                return _sendreq('primary', emails[selected].email).then(function (){
+                    var t = emails[0];
+                    t.primary = false;
+                    emails[selected].primary = true;
+                    emails[0] = emails[selected];
+                    emails[selected] = t;
+                });
+            }
+        }
+
+    })
+
+    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, emailService) { //, $animate
+        $scope.close = function() { $uibModalInstance.dismiss('cancel') };
+        $scope.set_modal_loaded = function (){ $timeout(function() { $scope.modal_loaded = true }) };
+        $scope.title = "Settings";
+        $scope.file = 'settings';
+        $scope.obj = {active: index, pass: null, email: null, selected: 0};
+        //$scope.enableAnimation = function (){ console.log(angular.element('.nji')[0]); $animate.enabled(angular.element('.nji')[0], true) };
+
+        // Email
+
+        //var load;
+        $scope.sent = [];
+        $scope.$watch('obj.active', function (value) {
+            if (value == 1 || $scope.emails !== undefined) return;
+            //$scope.obj.selected = 0;
+            $scope.emails = emailService.emails;
+            //if ($scope.emails.length == 0) {
+                //load = true;
+            emailService.load().then(function (){ $timeout(function() { $scope.loaded = true; /*load = false*/ }) });
+            $scope.addEmail = function () {
+                if ($scope.obj.email === undefined) return;
+                for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
+                emailService.add($scope.obj.email).then(function (){
+                    $scope.sent.push($scope.obj.email);
+                    $scope.obj.email = '';
+                });
+            };
+            $scope.removeEmail = function () {
+                emailService.remove().then(function (e) {
+                    for (var i = 0; i < $scope.sent.length; i++) {
+                        if ($scope.sent[i]==e) {
+                            $scope.sent.splice(i, 1);
+                            break
+                        }
+                    }
+                })
+            };
+            $scope.resendConfirmationEmail = function () {
+                var t = $scope.emails[$scope.obj.selected].email;
+                emailService.resend().then(function (){
+                    for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) t = null;
+                    if (t != null) $scope.sent.push(t);
+                });
+            };
+            var loading;
+            $scope.makePrimaryEmail = function () {
+                if (loading) return;
+                loading = true;
+                emailService.primary().then(function (){
+                    /*$scope.obj.selected = 0;
+                    $scope.EmailSelected();*/
+                    $timeout(function() { loading = false });
+                });
+            };
+            $scope.EmailSelected = function () {
+                emailService.setCurrent($scope.obj.selected);
+            };
+
+            $scope.$watch('emails.length', function () {
+                if ($scope.emails === undefined) return; //load
+                $scope.obj.selected = $scope.emails.length-1;
+                $scope.EmailSelected();
+            });
+
+            // Password
+
+            $scope.dismissError = function (){
+                delete $scope.pass_err;
+                delete $scope.pass_err_txt;
+            };
+            $scope.changePassword = function () {
+                var i = 0;
+                for (; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
+                var pw_fields = angular.element('input[type="password"]');
+                if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
+                    //if ($scope.pass_err != 4) {
+                    $scope.pass_err_txt = "New password fields don't match.";
+                    $scope.pass_err = 4;
+                    pw_fields[2].focus();
+                    //}
+                    return;
+                }
+                if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
+                    /*var t = "Your new password matches the current password, enter a different one.";
+                    if ($scope.pass_err_txt != t) {*/
+                    $scope.pass_err_txt = "Your new password matches the current password, enter a different one."; //t
+                    $scope.pass_err = 2;
+                    pw_fields[1].focus();
+                    //}
+                    return;
+                }
+                $scope.dismissError();
+                $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
+                    $scope.pass_err = 0;
+                    for (i = 0; i < 3; i++) $scope.obj.pass[i] = '';
+                }, function (response){
+                    if (response.data !== undefined && response.data.form_errors !== undefined) {
+                        var err = 0;
+                        $scope.pass_err_txt = '';
+                        for (var e in response.data.form_errors) {
+                            //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
+                            if (e == 'oldpassword') err += 1; else err += 2;
+                            for (i = 0; i < response.data.form_errors[e].length; i++) {
+                                if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
+                                $scope.pass_err_txt += response.data.form_errors[e][i];
+                            }
+                        }
+                        $scope.pass_err = err;
+                        if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
+                    }
+                });
+            };
+            //} else { $scope.loaded = true }
+        });
+    });

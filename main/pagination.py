@@ -26,7 +26,7 @@ class EventPagination(PageNumberPagination):
 
 
 class LimitOffsetPagination(pagination.LimitOffsetPagination):
-    default_limit = settings.COMMENT_PAGE_SIZE
+    default_limit = 25
 
     def get_paginated_response(self, data):
         return Response({

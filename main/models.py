@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
 from phonenumber_field.modelfields import PhoneNumberField
 #from django.core.exceptions import FieldError
-import datetime
+import datetime, re
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -19,6 +19,20 @@ CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
 SUPPORTED_PLACES = ((0, "Serbia, Vranje"),)
 
 alphabet_only = RegexValidator(r'^[^\W\d_]+$', "Only letters from the alphabet are allowed.")
+user_short_name = RegexValidator(
+                    r'^[\w.-]+$',
+                    ('Enter a valid shortname. This value may contain only letters from the English alphabet, numbers and ./-/_ characters.'),
+                    re.ASCII
+                )
+
+class MyUserManager(UserManager):
+    """def create_user(self, username, email=None, password=None, **extra_fields):
+        extra_fields.first_name = extra_fields.first_name.capitalize()
+        extra_fields.last_name = extra_fields.last_name.capitalize()
+        return super().create_user(username, email, password, **extra_fields)"""
+
+    def get_by_natural_key(self, username):
+        return self.get(username__iexact=username)
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
@@ -29,14 +43,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         'username',
         max_length=30,
         unique=True,
-        help_text='Maximum 30 characters. Letters, digits and ./-/_ only.',
-        validators=[
-            RegexValidator(
-                r'^[\w.-]+$',
-                ('Enter a valid username. This value may contain only '
-                  'letters, numbers and ./-/_ characters.')
-            ),
-        ],
+        help_text='Maximum 30 characters. English letters (case-insensitive), digits and ./-/_ only.',
+        validators=[user_short_name],
         error_messages={
             'unique': "A user with that username already exists.",
         },
@@ -73,7 +81,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField('date joined', default=timezone.now)
 
-    objects = UserManager()
+    objects = MyUserManager()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birthdate', 'country', 'city'] # Added fields after "email"
@@ -83,6 +91,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         ordering = ('username', 'first_name', 'last_name')
         verbose_name = 'user'
         verbose_name_plural = 'users'
+
+    def save(self, *args, **kwargs):
+        self.first_name = self.first_name.capitalize()
+        self.last_name = self.last_name.capitalize()
+        super().save(*args, **kwargs)
 
     def get_full_name(self):
         """
@@ -100,7 +113,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
-
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -163,19 +175,16 @@ def not_forbidden(value):
         raise ValidationError('"%s" is not permitted as a shortname.' % value)
 
 BUSINESS_TYPE = ((0, "Restaurant"), (1, "Tavern"), (2, "Bistro"), (3, "Cafe"), (4, "Pub"), (5, "Bar"), (6, "Nightclub"), (7, "Fast food"))
+settings.CONTENT_TYPES['business'] = ContentType.objects.get(model='business')
 
 class Business(models.Model):
     shortname = models.CharField(
         'shortname',
         max_length=30,
         unique=True,
-        help_text='Maximum 30 characters. Letters, digits and ./-/_ only.',
+        help_text='Maximum 30 characters. English letters, digits and ./-/_ only.',
         validators=[
-            RegexValidator(
-                r'^[\w.-]+$',
-                ('Enter a valid shortname. This value may contain only '
-                  'letters, numbers and ./-/_ characters.')
-            ),
+            user_short_name,
             not_forbidden,
         ],
         error_messages={
@@ -186,9 +195,8 @@ class Business(models.Model):
     type = models.IntegerField(choices=BUSINESS_TYPE)
     name = models.CharField(max_length=60, validators=[
             RegexValidator(
-                r'^(?!\s)(?!.*\s$)(?=.*\w)[\w \.&@\-\'"~?!]{2,}$',
-                ('Enter a valid business name. This value may contain only '
-                  'letters, numbers and ./-/_/&/"/\'/?/!/~/@ characters.')
+                r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`"\^&#@%\\/<>;:,|\[\]{}~=?!]{2,}$',
+                ('Enter a valid business name.')
             ),
         ])
     phone = PhoneNumberField(blank=True)
@@ -202,13 +210,18 @@ class Business(models.Model):
     supported_curr = models.ManyToManyField(Currency, blank=True)
     # geoloc = ...
     # ...
+    likes = GenericRelation('Like')
 
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
-settings.CONTENT_TYPES['business'] = ContentType.objects.get(model='business')
+@receiver(pre_delete, sender=Business, dispatch_uid='business_review_delete')
+def business_review_delete(instance, **kwargs):
+    Comment.objects.filter(content_type=settings.CONTENT_TYPES['business'], object_id=instance.pk).delete()
+
 
 EVENT_MIN_CHAR = 15
+settings.CONTENT_TYPES['event'] = ContentType.objects.get(model='event')
 
 class Event(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
@@ -225,10 +238,8 @@ class Event(models.Model):
     def __str__(self):
         return 'Event #%d on business #%d' % (self.pk, self.business_id)
 
-settings.CONTENT_TYPES['event'] = ContentType.objects.get(model='event')
-
 def cascade_delete(type, pk):
-    for model in [EventNotification, Like, Comment]:
+    for model in [EventNotification, Comment]:
         qs = model.objects.filter(content_type=settings.CONTENT_TYPES[type], object_id=pk)
         qs._raw_delete(qs.db)
 
@@ -275,6 +286,9 @@ CATEGORY = (
 )
 ITEM_MIN_CHAR = 2
 
+settings.CONTENT_TYPES['item'] = ContentType.objects.get(model='item')
+settings.HAS_STARS[settings.CONTENT_TYPES['item'].pk] = 'item'
+
 class Item(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     category = models.CharField(choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=13)
@@ -293,12 +307,10 @@ class Item(models.Model):
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
 
-settings.CONTENT_TYPES['item'] = ContentType.objects.get(model='item')
-settings.HAS_STARS[settings.CONTENT_TYPES['item'].pk] = 'item'
-
 @receiver(pre_delete, sender=Item, dispatch_uid='item_cascade_delete')
 def item_cascade_delete(instance, **kwargs):
     cascade_delete('item', instance.pk)
+
 
 REVIEW_STATUS = ((0, "Started"), (1, "Closed"), (2, "Completed"), (3, "Declined"), (4, "Under review"), (5, "Planned"), (6, "Archived"), (7, "Need feedback"))
 
@@ -335,19 +347,20 @@ def create_notif(from_person, ct, obj_pk, to_person, typ):
 
 @receiver(post_save, sender=Comment, dispatch_uid='comment_save_notification')
 def comment_save_notification(instance, created, **kwargs):
-    if created:
-        bc = 2 if isinstance(instance.content_object, Business) else 1 if isinstance(instance.content_object, Comment) else 0
-        if bc == 1 and instance.status is not None:
-            instance.content_object.main_comment = instance
-            instance.content_object.save()
-        ct = settings.CONTENT_TYPES['comment'] if bc == 2 else instance.content_type
-        obj_pk = instance.pk if bc == 2 else instance.object_id
-        # noinspection PyUnresolvedReferences
-        manager = instance.content_object.manager if bc == 2 else instance.content_object.content_object.manager if bc == 1 else instance.content_object.business.manager
-        if instance.person != manager:
-            create_notif(instance.person, ct, obj_pk, manager, bc)
-        if bc == 1 and instance.person != instance.content_object.person: #instance.person == manager
-            create_notif(instance.person, ct, obj_pk, instance.content_object.person, 0)
+    if not created:
+        return
+    bc = 2 if isinstance(instance.content_object, Business) else 1 if isinstance(instance.content_object, Comment) else 0
+    if bc == 1 and instance.status is not None:
+        instance.content_object.main_comment = instance
+        instance.content_object.save()
+    ct = settings.CONTENT_TYPES['comment'] if bc == 2 else instance.content_type
+    obj_pk = instance.pk if bc == 2 else instance.object_id
+    # noinspection PyUnresolvedReferences
+    manager = instance.content_object.manager if bc == 2 else instance.content_object.content_object.manager if bc == 1 else instance.content_object.business.manager
+    if instance.person != manager:
+        create_notif(instance.person, ct, obj_pk, manager, bc)
+    if bc == 1 and instance.person != instance.content_object.person: #instance.person == manager
+        create_notif(instance.person, ct, obj_pk, instance.content_object.person, 0)
 
 def del_notif(from_person, ct, obj_pk, to_person):
     try:
@@ -368,6 +381,7 @@ def comment_cascade_delete(instance, **kwargs):
             del_notif(instance.person, instance.content_type, instance.object_id, instance.content_object.person)
     elif isinstance(instance.content_object, Business):
         cascade_delete('comment', instance.pk)
+
 
 class Like(models.Model):
     person = models.ForeignKey(User, on_delete=models.CASCADE)

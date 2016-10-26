@@ -14,9 +14,44 @@ from generic_relations.relations import GenericRelatedField
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Avg
 from django.conf import settings
+import os.path
+from django.db.models import Case, When, Value, IntegerField
 
 User = get_user_model()
 NOT_MANAGER_MSG = "You're not a manager of any business."
+
+APP_LABEL = os.path.basename(os.path.dirname(__file__))
+def gen_where(model, pk, table=None, additional_obj=None, column=None, target=None, ct=None): #, col_add=None
+    #if not col_add:
+    col_add = 'person_' if model != 'user' and target == 'relationship' else 'from_person_' if model == 'relationship' else ''
+    target = target or model
+    return '''
+        {app_label}_{model}.{col_add}id in
+        (select {app_label}_{target}.{sel_add}id from {app_label}_{target}
+        {inner_join}
+        where {content_type}
+            {column} = {pk})
+        {additional}'''.format(app_label=APP_LABEL, model=model, col_add=col_add, sel_add='to_person_' if target == 'relationship' else '', target=target,
+                       inner_join='inner join {app_label}{add_user}_{table} on ({app_label}_{target}.id = {app_label}{add_user}_{table}.{on_col}_id)'.format(app_label=APP_LABEL, add_user='_user' if table != 'relationship' and not column else '', table=table, target=target, on_col='to_person' if table == 'relationship' else 'object' if column == 'person' else 'person' if target == 'user' else target) if table else '',
+                       content_type='{app_label}_{table}.content_type_id = {ct} and'.format(app_label=APP_LABEL, table=table, ct=ct) if ct else '',
+                       column='main_relationship.from_person_id' if not table or table == 'relationship' else '{app_label}{add_user}_{table}.{column}_id'.format(app_label=APP_LABEL, add_user = '_user' if model != 'user' and column != 'person' else '', table=table, column=column or 'user'), pk=pk,
+                       additional='or {app_label}_{model}.{col_add}id = {additional_pk}'.format(app_label=APP_LABEL, model=model, col_add=col_add, additional_pk=additional_obj.pk) if additional_obj else '')
+
+def sort_related(query, first=None, where=None, retothers=False):
+    """
+    @type query: django.db.models.QuerySet
+    """
+    others = query.extra(where=[where if where else gen_where(query.model.__name__.lower(), first, target='relationship')])
+    if retothers:
+        return others
+    if first:
+        cases = [When(pk=first, then=Value(0))]
+        s = 1
+    else:
+        cases = []
+        s = 0
+    cases += [When(pk=obj.pk, then=Value(i+s)) for i, obj in enumerate(others.all())]
+    return query.annotate(rel_objs=Case(*cases, output_field=IntegerField())).order_by('rel_objs', *query.model._meta.ordering)
 
 class UsersWithoutCurrentField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
@@ -43,12 +78,6 @@ class RelationshipSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'first_name', 'last_name')
-
-
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailAddress
@@ -56,44 +85,103 @@ class EmailSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notification
-        exclude = ('user',)
-        extra_kwargs = {
-            'link': {'read_only': True},
-            'text': {'read_only': True},
-            'created': {'read_only': True}
-        }
-
-
-class BusinessSerializer(serializers.ModelSerializer):
-    type_display = serializers.CharField(source='get_type_display', read_only=True)
     read_only = True
 
     class Meta:
+        model = Notification
+        exclude = ('user',)
+
+
+def extarg(kwargs, name, obj=None):
+    if name in kwargs:
+        res = kwargs[name]
+        kwargs.pop(name)
+    else:
+        res = False
+    if obj:
+        setattr(obj, name, res)
+    else:
+        return res
+
+class CurrentUserDefault(object):
+    def set_context(self, serializer_field):
+        if isinstance(serializer_field, serializers.Serializer):
+            sf = serializer_field.parent
+        else:
+            sf = serializer_field
+        self.user = sf.context['request'].user
+
+    def __call__(self):
+        return self.user
+
+    def __repr__(self):
+        return unicode_to_repr('%s()' % self.__class__.__name__)
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name')
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        self.read_only = True
+        if 'list' in self.context:
+            self.fields['rel_state'] = serializers.SerializerMethodField()
+            self.fields['friend_count'] = serializers.SerializerMethodField()
+
+    def get_friend_count(self, obj):
+        friends = User.objects.filter(from_person__to_person=obj).extra(where=[gen_where('relationship', obj.pk, 'relationship', target='user', column='id')])
+        return [friends.count(), sort_related(friends, self.context['request'].user.pk, retothers=True).count()]
+
+    def get_rel_state(self, obj):
+        if self.context['request'].user != obj:
+            r = 0
+            if Relationship.objects.filter(from_person=self.context['request'].user, to_person=obj).exists():
+                r = 1
+            if Relationship.objects.filter(from_person=obj, to_person=self.context['request'].user).exists():
+                r += 2
+            return r
+        return -1
+
+
+class BusinessSerializer(serializers.ModelSerializer):
+    class Meta:
         model = Business
-        fields = ('id', 'shortname', 'name', 'type_display') #, business
+        #exclude = ('manager', 'type', 'phone')
+        fields = ('id', 'shortname', 'name') #, business
         extra_kwargs = {
             'shortname': {'read_only': True},
             'name': {'read_only': True}
         }
 
     def __init__(self, *args, **kwargs):
-        # Don't pass the 'fields' arg up to the superclass
+        currency = extarg(kwargs, 'currency')
         kwargs.pop('fields', None)
-
-        if kwargs.get('currency', False):
-            self.fields['currency'] = serializers.CharField(read_only=True) #, source='get_currency_display'
-            kwargs.pop('currency')
-
-        # Instantiate the superclass normally
         super().__init__(*args, **kwargs)
+        self.read_only = True
+        if 'list' in self.context or currency:
+            self.fields['currency'] = serializers.CharField() #, source='get_currency_display'
+            if not currency:
+                self.fields['supported_curr'] = serializers.SerializerMethodField()
+                self.fields['is_opened'] = serializers.SerializerMethodField()
+                self.fields['item_count'] = serializers.IntegerField(source='item_set.count')
+                self.fields['curruser_status'] = serializers.SerializerMethodField()
+                self.fields['likestars_count'] = serializers.IntegerField(source='likes.count')
+        if 'notype' not in self.context:
+            self.fields['type_display'] = serializers.CharField(source='get_type_display')
 
-        if 'notype' in self.context:
-            self.fields.pop('type_display')
+    def get_is_opened(self, obj):
+        day = timezone.now().weekday()
+        opened = obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened
+        closed = obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed
+        return opened <= timezone.now().time() < closed
 
-        #if ...:
-        #    self.fields['business'] = serializers.PrimaryKeyRelatedField(queryset=Business.objects.all(), write_only=True)
+    def get_supported_curr(self, obj):
+        return obj.supported_curr.values_list('name', flat=True)
+
+    def get_curruser_status(self, obj):
+        return -1 if self.context['request'].user == obj.manager else 1 if obj.likes.filter(person=self.context['request'].user).exists() else 0
 
 class CurrentBusinessDefault(object):
     def set_context(self, serializer_field):
@@ -121,19 +209,7 @@ def chkbusiness(business):
     if not business:
         raise serializers.ValidationError({'non_field_errors': [NOT_MANAGER_MSG]})
 
-def extarg(kwargs, name, obj=None):
-    if name in kwargs:
-        res = kwargs[name]
-        kwargs.pop(name)
-    else:
-        res = False
-    if obj:
-        setattr(obj, name, res)
-    else:
-        return res
-
 class BaseSerializer(serializers.ModelSerializer):
-    business = BusinessSerializer(default=CurrentBusinessDefault())
     likestars_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
@@ -147,10 +223,6 @@ class BaseSerializer(serializers.ModelSerializer):
             self.fields['person_status'] = serializers.SerializerMethodField()
         if self.stars:
             self.fields['stars_avg'] = serializers.SerializerMethodField()
-        if 'hiddenbusiness' in self.context:
-            self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
-        else:
-            self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault(), currency=True)
         #elif self.context['person_business'] == True:
         #    self.fields.pop('business')
 
@@ -206,11 +278,12 @@ class BaseSerializer(serializers.ModelSerializer):
 REVIEW_MIN_CHAR = 6
 
 class CommentSerializer(BaseSerializer):
-    person = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    person = UserSerializer(default=CurrentUserDefault())
     content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.filter(pk__in=CONTENT_TYPES_PK), write_only=True)
 
     class Meta:
         model = Comment
+        exclude = ('main_comment',)
         extra_kwargs = {
             'created': {'read_only': True},
             'object_id': {'write_only': True}
@@ -220,7 +293,6 @@ class CommentSerializer(BaseSerializer):
         likes = extarg(kwargs, 'likes')
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        self.fields.pop('business')
         if not self.read_only and not likes and ('person' in self.context or 'curruser' in self.context or 'business' in self.context or 'ids' in self.context):
             context = self.context.copy()
             if 'business' not in self.context:
@@ -251,7 +323,6 @@ class CommentSerializer(BaseSerializer):
                 self.fields.pop('object_id')
             self.fields.pop('stars')
             self.fields.pop('comment_count')
-            self.fields.pop('main_comment')
 
     def validate(self, attrs):
         attrs = exists(attrs)
@@ -299,11 +370,16 @@ class CommentSerializer(BaseSerializer):
 class EventSerializer(BaseSerializer):
     class Meta:
         model = Event
+        exclude = ('business',)
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
         self.fields.pop('created')
+        if 'hiddenbusiness' in self.context:
+            self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
+        else:
+            self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault())
 
     def validate(self, attrs):
         return chktime(super().validate(attrs)) #, timedelta(minutes=1)
@@ -311,6 +387,7 @@ class EventSerializer(BaseSerializer):
 class ItemSerializer(BaseSerializer):
     class Meta:
         model = Item
+        exclude = ('business',)
         validators = [
             UniqueTogetherValidator(
                 queryset=Item.objects.all(),
@@ -325,6 +402,10 @@ class ItemSerializer(BaseSerializer):
         super().__init__(*args, **kwargs)
         self.fields.pop('created')
         self.fields.pop('dislike_count')
+        if 'hiddenbusiness' in self.context:
+            self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
+        else:
+            self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault(), currency=True)
         if 'menu' in self.context:
             self.fields.pop('curruser_status')
             self.fields.pop('likestars_count')
@@ -346,12 +427,12 @@ def exists(attrs):
     return attrs
 
 class LikeSerializer(serializers.ModelSerializer):
-    person = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    person = UserSerializer(default=CurrentUserDefault())
     content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.filter(pk__in=CONTENT_TYPES_PK), write_only=True)
 
     class Meta:
         model = Like
-        exclude = ('id',)
+        exclude = ('id', 'is_dislike')
         extra_kwargs = {'object_id': {'write_only': True}}
         validators = [
             UniqueTogetherValidator(
@@ -365,7 +446,6 @@ class LikeSerializer(serializers.ModelSerializer):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
         if 'stars' in self.context:
-            self.fields.pop('is_dislike')
             self.fields['stars'] = serializers.IntegerField(min_value=1, max_value=5)
         else:
             self.fields.pop('stars')
@@ -379,7 +459,7 @@ class LikeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'non_field_errors': ["Liking an user comment currently isn't supported."]})
         elif attrs['content_type'].model == 'business':
             if attrs['content_object'].manager == self.context['request'].user:
-                raise serializers.ValidationError({'non_field_errors': ["You can't make as favourite your own business."]})
+                raise serializers.ValidationError({'non_field_errors': ["You can't make your own business as favourite."]})
         elif attrs['content_object'].business.manager == self.context['request'].user:
             raise serializers.ValidationError({'non_field_errors': ["You can't %s your own %s." % ("give a (dis)like to" if not 'stars' in self.fields else "rate", attrs['content_type'].model)]})
         return attrs

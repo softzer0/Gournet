@@ -1,48 +1,9 @@
 app
-    .controller('UserCtrl', function($scope, $timeout, $controller, APIService) {
+    .controller('UserCtrl', function($scope, $timeout, $controller, makeFriendService) {
         $scope.objloaded = [];
-        $scope.tabs = [{name: 'events', func: function(){ $scope.objloaded[0] = true }}, {name: 'items', func: function(){ $scope.objloaded[1] = true }}, {name: 'reviews', func: function(){ $scope.objloaded[2] = true }}];
+        $scope.tabs = [{display: "Events", name: 'events', func: function(){ $scope.objloaded[0] = true }}, {display: "Items", name: 'items', func: function(){ $scope.objloaded[1] = true }}, {display: "Reviews", name: 'reviews', func: function(){ $scope.objloaded[2] = true }}];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope, tabs: $scope.tabs}));
 
-        //$scope.name = angular.element('.lead.text-center.br2').text();
-        var friendService = APIService.init(), loading;
-        $scope.doFriendRequestAction = function () {
-            if (loading) return;
-            loading = true;
-            switch($scope.$parent.rel_state) {
-                case 0:
-                case 2:
-                    friendService.save({to_person: $scope.$parent.id},
-                        function (){
-                            $scope.$parent.rel_state++;
-                            if ($scope.$parent.rel_state == 3) $scope.friends_count++;
-                            $timeout(function() { loading = false });
-                        });
-                    break;
-                default:
-                    friendService.delete({id: $scope.$parent.id},
-                        function (){
-                            if ($scope.$parent.rel_state == 3) $scope.friends_count--;
-                            $scope.$parent.rel_state = 0;
-                            $timeout(function() { loading = false });
-                        });
-            }
-        };
-        $scope.$parent.$watch('rel_state', function (value) {
-            $scope.rel_state_msg = "Are you sure that you want to ";
-            switch(value) {
-                case 0:
-                    $scope.rel_state_msg += "send a friend request to this person?";
-                    break;
-                case 1:
-                    $scope.rel_state_msg += "cancel the friend request to this person?";
-                    break;
-                case 2:
-                    $scope.rel_state_msg += "accept the friend request from this person?";
-                    break;
-                case 3:
-                    $scope.rel_state_msg += "remove from friends this person?";
-            }
-            //$scope.rel_state_msg += ' <strong>'+$scope.name+'</strong>?';
-        })
+        //makeFriendService.config($scope.$parent.u);
+        $scope.doFriendRequestAction = function () { makeFriendService.run($scope.$parent.u, $scope.$parent.id) };
     });

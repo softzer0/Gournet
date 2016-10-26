@@ -11,7 +11,7 @@ from django.db.models import Case, When, Value, IntegerField, F, Q
 # from django.views.decorators.csrf import csrf_protect
 # from django.core.paginator import Paginator, InvalidPage
 # from itertools import chain
-from rest_framework.exceptions import NotFound, MethodNotAllowed
+from rest_framework.exceptions import NotFound #, MethodNotAllowed
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
 from allauth.account import views
@@ -32,54 +32,10 @@ import os.path
 # from decorator_include import decorator_include
 # from stronghold.views import StrongholdPublicMixin
 from django.contrib.contenttypes.models import ContentType
-from .serializers import NOT_MANAGER_MSG
+from .serializers import NOT_MANAGER_MSG, gen_where, sort_related
 from .forms import DummyCategory
 
 User = get_user_model()
-
-APP_LABEL = os.path.basename(os.path.dirname(__file__))
-def generic_rel_filter(pk, model, target, swap=None, ct=None, order_by=False):
-    """
-    @type model: django.db.models.Model
-    """
-    model_name = model.__name__.lower()
-    return model.objects.extra(where=['''
-        {app_label}_{model}.id in
-        (select {sel}_id from {app_label}_{target}
-        where content_type_id = {content_type}
-            and {column}_id = {pk}
-            {order_by})
-        {additional}'''.format(app_label=APP_LABEL, model=model_name, sel='object' if not swap else 'person', target=target, content_type=settings.CONTENT_TYPES[model_name].pk if not swap else settings.CONTENT_TYPES[swap].pk, column='person' if not swap else 'object', pk=pk, order_by='ORDER BY created DESC' if order_by else '',
-                       additional='and {app_label}_{model}.content_type_id = {ct}'.format(app_label=APP_LABEL, model=model_name, ct=ct) if ct else '')])
-
-def gen_where(model, pk, table=None, additional_obj=None, column=None, target=None, ct=None):
-    col_add = 'person_' if model != 'user' and target == 'relationship' else ''
-    target = target or model
-    return '''
-        {app_label}_{model}.{col_add}id in
-        (select {app_label}_{target}.{sel_add}id from {app_label}_{target}
-        {inner_join}
-        where {content_type}
-            {column} = {pk})
-        {additional}'''.format(app_label=APP_LABEL, model=model, col_add=col_add, sel_add='to_person_' if target == 'relationship' else '', target=target,
-                       inner_join='inner join {app_label}{add_user}_{table} on ({app_label}_{target}.id = {app_label}{add_user}_{table}.{on_col}_id)'.format(app_label=APP_LABEL, add_user='_user' if table != 'relationship' and not column else '', table=table, target=target, on_col='to_person' if table == 'relationship' else 'object' if column == 'person' else 'person' if target == 'user' else target) if table else '',
-                       content_type='{app_label}_{table}.content_type_id = {ct} and'.format(app_label=APP_LABEL, table=table, ct=ct) if ct else '',
-                       column='main_relationship.from_person_id' if not table or table == 'relationship' else '{app_label}{add_user}_{table}.{column}_id'.format(app_label=APP_LABEL, add_user = '_user' if model != 'user' and column != 'person' else '', table=table, column=column or 'user'), pk=pk,
-                       additional='or {app_label}_{model}.{col_add}id = {additional_pk}'.format(app_label=APP_LABEL, model=model, col_add=col_add, additional_pk=additional_obj.pk) if additional_obj else '')
-
-def sort_related(query, first=None, where=None):
-    """
-    @type query: django.db.models.QuerySet
-    """
-    others = query.extra(where=[where if where else gen_where(query.model.__name__.lower(), first, target='relationship')])
-    if first:
-        cases = [When(pk=first, then=Value(0))]
-        s = 1
-    else:
-        cases = []
-        s = 0
-    cases += [When(pk=obj.pk, then=Value(i+s)) for i, obj in enumerate(others.all())]
-    return query.annotate(rel_objs=Case(*cases, output_field=IntegerField())).order_by('rel_objs')
 
 def get_object(pk, cl=User):
     """
@@ -133,7 +89,7 @@ def show_profile(request, username):
         data = {'user': User.objects.get(username=username)}
     except User.DoesNotExist:
         return redirect('/')
-    data['friends_count'] = Relationship.objects.filter(from_person__in=data['user'].friends.all(), to_person=data['user']).count()
+    data['friend_count'] = User.objects.filter(from_person__to_person=data['user']).extra(where=[gen_where('relationship', data['user'].pk, 'relationship', target='user', column='id')]).count()
     if request.user != data['user']:
         data['rel_state'] = 0
         if Relationship.objects.filter(from_person=request.user, to_person=data['user']).exists():
@@ -193,21 +149,28 @@ class EmailAPIView(generics.ListAPIView):
     def get_queryset(self):
         return EmailAddress.objects.filter(user=self.request.user).order_by('-primary', '-verified')
 
-class BusinessAPIView(generics.ListAPIView):
-    serializer_class = serializers.BusinessSerializer
-    queryset = Business.objects.all()
-    pagination_class = pagination.SearchPagination
-    filter_backends = (SearchFilter,)
-    search_fields = ('name', 'shortname')
 
-class UserAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+class SearchAPIView(generics.ListAPIView):
     filter_backends = (SearchFilter,)
-    search_fields = ('first_name', 'last_name', 'username')
 
     def paginate_queryset(self, queryset):
-        if self.request.query_params.get('search', False):
+        if self.request.query_params.get('limit', '').isdigit():
             self.pagination_class = pagination.SearchPagination
         return super().paginate_queryset(queryset)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.request.query_params.get('search', False) and not self.request.query_params.get('limit', '').isdigit():
+            context['list'] = None
+        return context
+
+class BusinessAPIView(SearchAPIView):
+    serializer_class = serializers.BusinessSerializer
+    queryset = Business.objects.all()
+    search_fields = ('name', 'shortname')
+
+class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView):
+    search_fields = ('first_name', 'last_name', 'username')
 
     def get_serializer_class(self):
         if self.request.method != 'GET':
@@ -216,13 +179,12 @@ class UserAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def get_queryset(self):
         if self.request.query_params.get('search', False):
-            return User.objects.all()
-        else:
-            person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
-            qs = User.objects.filter(from_person__from_person__in=person.friends.all(), from_person__to_person=person)
-            if person != self.request.user:
-                return sort_related(qs, self.request.user.pk)
-            return qs #modify for sorting by recent
+            return User.objects.exclude(pk=self.request.user.pk)
+        person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
+        qs = User.objects.filter(from_person__to_person=person).extra(where=[gen_where('relationship', person.pk, 'relationship', target='user', column='id')])
+        if person != self.request.user:
+            return sort_related(qs, self.request.user.pk)
+        return qs #modify for sorting by recent
 
     def delete(self, request, *args, **kwargs):
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
@@ -516,12 +478,12 @@ class EventAPIView(BaseAPIView):
     serializer_class = serializers.EventSerializer
     model = Event
     filter_backends = (SearchFilter,)
-    search_fields = ('text', 'business__name')
+    search_fields = ('text',) #'business__name'
 
     def getnopk(self):
         return Event.objects.all() # change from all to filter current surrounding events
 
-def get_b_manager(user):
+def get_b_from(user):
     try:
         return Business.objects.get(manager=user)
     except:
@@ -531,10 +493,12 @@ class ItemAPIView(BaseAPIView):
     serializer_class = serializers.ItemSerializer
     model = Item
     filter_backends = (SearchFilter,)
-    search_fields = ('name', 'business__name')
+    search_fields = ('name',)
 
     def getnopk(self):
-        return Item.objects.filter(business=get_b_manager(self.request.user))
+        if self.request.query_params.get('search', False):
+            return Item.objects.all()
+        return Item.objects.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -588,13 +552,14 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
             if is_user:
                 if pk and pk != self.request.user.pk:
                     person = get_object(pk)
-                    return sort_related(generic_rel_filter(person.pk, Business, 'like'), where=gen_where('business', self.request.user.pk, 'like', Business.objects.filter(manager=self.request.user).first(), 'person', ct=settings.CONTENT_TYPES['business'].pk))
-                return generic_rel_filter(self.request.user.pk, Business, 'like') #modify for sorting by recent
-            business = get_object(pk, Business) if pk else get_b_manager(self.request.user)
-            return sort_related(generic_rel_filter(business.pk, User, 'like', 'business'), where=gen_where('user', business.pk, 'like', self.request.user, 'object', ct=settings.CONTENT_TYPES['business'].pk))
+                    return sort_related(Business.objects.filter(likes__person=person), where=gen_where('business', self.request.user.pk, 'like', Business.objects.filter(manager=self.request.user).first(), 'person', ct=settings.CONTENT_TYPES['business'].pk))
+                return Business.objects.filter(likes__person=self.request.user) #modify for sorting by recent
+            business = get_object(pk, Business) if pk else get_b_from(self.request.user)
+            return sort_related(User.objects.filter(like__content_type=settings.CONTENT_TYPES['business'], like__object_id=business.pk), where=gen_where('user', business.pk, 'like', self.request.user, 'object', ct=settings.CONTENT_TYPES['business'].pk))
         qs = get_qs(self, Like)
-        if 'stars' not in self.get_serializer_context(True) and self.request.query_params.get('is_dislike', False):
-            qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
+        if 'stars' not in self.get_serializer_context(True):
+            if self.request.query_params.get('is_dislike', False):
+                qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
         else:
             stars = self.request.query_params.get('stars', False)
             if stars and stars.isdigit() and 1 <= int(stars) <= 5:

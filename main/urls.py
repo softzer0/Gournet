@@ -1,4 +1,4 @@
-from django.conf.urls import url, include
+from django.conf.urls import url #, include
 # from django.views.generic.edit import CreateView
 # from django.views.generic import TemplateView
 from decorator_include import decorator_include
@@ -47,8 +47,8 @@ urlpatterns = [
     url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', main_views.NotificationAPIView.as_view()),
     url(r'^api/notifications/read/$', main_views.notifs_set_all_read),
     url(r'^api/users/(?:(?P<pk>\d+)/)?$', main_views.UserAPIView.as_view()),
-    url(r'^api/business/$', main_views.BusinessAPIView.as_view()),
-    url(r'^api/email/$', main_views.EmailAPIView.as_view()),
+    url(r'^api/businesses/$', main_views.BusinessAPIView.as_view()),
+    url(r'^api/emails/$', main_views.EmailAPIView.as_view()),
     #url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
 
     # Custom

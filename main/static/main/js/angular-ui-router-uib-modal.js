@@ -1,12 +1,11 @@
 /* global angular */
-"use strict";
-angular.module("ui.router.modal", ["ui.router"])
-	.config(["$stateProvider", function($stateProvider) {
+'use strict';
+angular.module('ui.router.modal', ['ui.router'])
+	.config(['$stateProvider', function($stateProvider) {
 
 		var stateProviderState = $stateProvider.state;
 
 		$stateProvider.state = function(stateName, options) {
-
 			if (options.modal) {
 
 				if (options.onEnter) {
@@ -22,8 +21,8 @@ angular.module("ui.router.modal", ["ui.router"])
 				// Get modal.resolve keys from state.modal or state.resolve
 				var resolve = (Array.isArray(options.modal) ? options.modal : []).concat(Object.keys(options.resolve || {}));
 
-				var inject = ["$uibModal", "$state"];
-				options.onEnter = function($uibModal, $state) {
+				var inject = ['$uibModal', '$state', '$previousState'];
+				options.onEnter = function($uibModal, $state, $previousState) {
 
 					// Add resolved values to modal options
 					if (resolve.length) {
@@ -33,12 +32,14 @@ angular.module("ui.router.modal", ["ui.router"])
 						}
 					}
 
+					$previousState.memo('modalInvoker');
 					var thisModal = openModal = $uibModal.open(options);
 
 					openModal.result['finally'](function() {
 						if (thisModal === openModal) {
-							// Dialog was closed via $uibModalInstance.close/dismiss, go to our parent state
-							$state.go($state.get("^", stateName).name);
+							// Dialog was closed via $uibModalInstance.close/dismiss, go to our previous/parent state
+							if ($previousState.get('modalInvoker').state != null) $previousState.go('modalInvoker'); else $state.go($state.get('^', stateName).name);
+							$previousState.forget('modalInvoker');
 						}
 					});
 				};

@@ -1,5 +1,8 @@
 {% extends 'base/home.html' %}
 
+{% block head %}{{ block.super }}
+    {% load staticfiles %}<script src="{% static 'main/js/custom/home.js' %}"></script>
+    <script>app.constant('SEARCH_PAGE_SIZE', {{ settings.SEARCH_PAGE_SIZE }})</script>{% endblock %}
 {% block title %}Home - Gournet{% endblock %}
 {% block container %}
         <div id="map" class="bor" style="height: 250px; margin-bottom: 40px;"></div>
@@ -28,5 +31,9 @@
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
 
-        <div ng-init="t = 'event'" ng-include="'/static/main/events.html'"></div>
+        <script type="text/ng-template" id="search">
+            <p><i class="fa fa-search"></i> Searching <strong>{% verbatim %}{{ t == 'user' ? "users" : t == "business" ? "businesses" : t == 'item' ? "items" : "events" }}{% endverbatim %}</strong>, with keyword(s): <strong>{% verbatim %}{{ keywords }}{% endverbatim %}</strong>. <a href="#/"><i class="fa fa-chevron-left"></i> Go back.</a></p>
+            <div ng-include="'/static/main/events.html'"></div>
+        </script>
+        <div ui-view="main"></div>
 {% endblock %}

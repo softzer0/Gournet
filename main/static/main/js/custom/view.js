@@ -1,10 +1,4 @@
 app
-    /*.filter('newlines', function () {
-        return function(text) {
-            return text.replace(/\n/g, '<br>');
-        }
-    })*/
-
     .controller('BusinessCtrl', function($scope, $timeout, $controller, $injector, APIService, menuService, CONTENT_TYPES, reviewService, itemService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
