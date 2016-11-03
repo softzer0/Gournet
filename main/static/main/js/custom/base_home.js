@@ -77,7 +77,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     delete $scope.close;
                 };
                 $scope.$on('$stateChangeStart', function(evt, toState) {
-                    objService.getobjs(true, null);
+                    $scope.loading = true;
                     if ($scope.close !== undefined && !toState.$$state().includes[name]) $scope.close();
                 });
 
@@ -595,7 +595,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 switch (u.rel_state) {
                     case 0:
                     case 2:
-                        friendService.save({to_person: id || u.id},
+                        friendService.save({to_person: id || u.id || u.target.id},
                             function () {
                                 u.rel_state++;
                                 //c(u);
@@ -604,7 +604,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             });
                         break;
                     default:
-                        friendService.delete({id: id || u.id},
+                        friendService.delete({id: id || u.id || u.target.id},
                             function () {
                                 if (u.rel_state == 3) if (angular.isArray(u.friend_count)) u.friend_count[0]--; else u.friend_count--;
                                 u.rel_state = 0;
@@ -617,7 +617,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     })
 
     .factory('uniService', function ($q, $timeout, $injector, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES, menuService, dialogService){
-        var u = false, id = null, likeService = APIService.init(3), commentService = APIService.init(7), SEARCH_PAGE_SIZE; //, rs = false
+        var u = false, ld = {}, likeService = APIService.init(3), commentService = APIService.init(7), SEARCH_PAGE_SIZE; //, rs = false
 
         function UniObj(t){
             this.objs = [[],[], t];
@@ -637,7 +637,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 case 'user':
                     this.s = APIService.init();
                     break;
-                default: this.u = {event: APIService.init(2), item: APIService.init(8), comment: commentService, feed: APIService.init(10)};
+                default: this.u = {event: APIService.init(2), item: APIService.init(8), comment: commentService, business: APIService.init(9), user: APIService.init(), feed: APIService.init(10)};
             }
             this.page_offset = 1;
             this.remids = [];
@@ -663,7 +663,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 e.length = 0;
                 if (!t) {
                     this.page_offset = 1;
-                    id = null;
+                    delete this.objs[0].has_next_page;
+                    ld = {};
                 }
             }
             this.unloaded[t ? 1 : 0] = n === null;
@@ -671,7 +672,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         };
 
         UniObj.prototype.load = function (b, rel_state, nob) {
-            var ids = null, d, self = this;
+            var ids = null, self = this;
             if (b !== undefined) if (angular.isArray(b)) {
                 function showc(i) {
                     if (self.objs[1][i].showcomm === undefined) {
@@ -688,7 +689,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         p = true;
                     }
                     if (!p) { // && /^\d+$/.test(b[i])
-                        for (d in this.objs[0]) if (this.objs[0][d].id == b[i]) {
+                        for (var d in this.objs[0]) if (this.objs[0][d].id == b[i]) {
                             var ev = angular.copy(this.objs[0][d]);
                             /*delete ev.comments;
                             delete ev.user_comments;
@@ -704,17 +705,19 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     }
                 }
                 ids = ids.slice(1);
-            } else if (typeof(b) == 'string') id = {search: b}; else if (b !== undefined) id = {id: b};
+            }
             if (ids == '') return $q.when(); else if (ids == null) {
-                d = SEARCH_PAGE_SIZE !== undefined ? {offset: this.page_offset} : {page: this.page_offset};
-                if (id != null) angular.extend(d, id);
+                if (this.objs[0].has_next_page !== undefined) if (SEARCH_PAGE_SIZE !== undefined) ld.offset = this.page_offset; else ld.page = this.page_offset;
+                if (b !== undefined) if (typeof(b) == 'string') ld.search = b; else ld.id = b;
                 if (rel_state !== undefined) {
-                    u = rel_state == -1;
-                    d.is_person = 1;
-                    //rs = true;
+                    if (typeof(rel_state) == 'number') {
+                        u = rel_state == -1;
+                        ld.is_person = 1;
+                        //rs = true;
+                    } else ld.favourites = 1;
                 }
-                if (this.objs[2] == 'comment') d.content_type = CONTENT_TYPES['business'];
-                return (this.s || this.u.feed).get(d,
+                if (this.objs[2] == 'comment') ld.content_type = CONTENT_TYPES['business'];
+                return (this.s || this.u.feed).get(ld,
                     function (result) {
                         if (self.unloaded[0]) return;
                         self.objs[0].push.apply(self.objs[0], result.results);
@@ -731,7 +734,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         }
                     }).$promise
             } else {
-                d = this;
+                var d = this;
                 return this.s.query({ids: ids, no_business: nob || null}, function (result) {
                     if (d.unloaded[1]) return;
                     d.objs[1].push.apply(d.objs[1], result);
@@ -960,24 +963,23 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
     .controller('BaseCtrl', function ($rootScope, $scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
         $scope.r = $scope.$parent.objs !== undefined;
-        $scope.objs = $scope.r ? $scope.$parent.objs : objService[0].getobjs(false); //, false
+        $scope.objs = $scope.r ? $scope.$parent.objs : objService[0].getobjs(false, false);
         if (!$scope.r) { // && $scope.objs.length == 0
             $scope.loading = true;
             var l = function() { $timeout(function() { $scope.loading = false }) };
-            objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state : undefined).then(function() { l(); if (objService.length == 2) objService[1](); } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
+            objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state : $scope.is_fav).then(function() { l(); if (objService.length == 2) objService[1](); } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
             $scope.load_page = function (){
                 $scope.loading = true;
                 objService[0].load().then(l, l);
             };
         }
 
-        $scope.com = [['older', 'comments', 0], ['newer', 'user_comments', 1]];
+        $scope.$on('$destroy', function() { objService[0].getobjs($scope.r, null) });
 
-        $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1]() }) }; //... > 1)
+        if (objService[0].getobjs() == 'user') return;
 
-        $scope.showDisLikes = function (index, par_ind) { if (par_ind === undefined) usersModalService.setAndOpen($scope.objs[index].id, objService[0].getobjs()); else if (index != null) usersModalService.setAndOpen($scope.objs[par_ind].comments[index].id, 'comment'); else usersModalService.setAndOpen($scope.objs[par_ind].main_comment.id, 'comment') };
+        $scope.showDisLikes = function (index, par_ind) { if (par_ind === undefined) usersModalService.setAndOpen($scope.objs[index].id, $scope.objs[index].type || objService[0].getobjs()); else if (index != null) usersModalService.setAndOpen($scope.objs[par_ind].comments[index].id, 'comment'); else usersModalService.setAndOpen($scope.objs[par_ind].main_comment.id, 'comment') };
 
-        $scope.checkAnim = function () { if (!angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave').length) return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave-prepare').length; else return true }
         $scope.toggleHr = function (f, l) { if (f) if (l) return $scope.checkAnim(); else return true; else return false };
 
         var loading;
@@ -987,6 +989,14 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             function l(){ $timeout(function () { loading = false }) }
             return objService[0].setLikeStatus(index, $scope.r, dislike, par_ind).then(l, l);
         };
+
+        if (objService[0].getobjs() == 'business') return;
+
+        $scope.checkAnim = function () { if (!angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave').length) return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave-prepare').length; else return true };
+
+        $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1]() }) }; //... > 1)
+
+        $scope.com = [['older', 'comments', 0], ['newer', 'user_comments', 1]];
 
         function load_comments(index, m){
             function l() { $timeout(function (){ $scope.objs[index].showcomm[0][m || 0] = true }) }
@@ -1203,12 +1213,17 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             resolve: { index: function (){ return index || 0 } }
                         });
                     };
-                    $scope.close = function() { $uibModalInstance.dismiss('cancel') };
+                    $scope.close = function() {
+                        $uibModalInstance.dismiss('cancel');
+                        delete $scope.close;
+                    };
+                    $scope.c = function() { if ($scope.close !== undefined) $scope.close() };
+                    $scope.$on('$stateChangeStart', function() { $scope.c() });
                 }
             });
         };
 
-        $scope.showFavouritesModal = function (t, id){ usersModalService.setAndOpen(id === null ? null : (id || $scope.id), t) };
+        $scope.showFavouritesModal = function (id, t){ usersModalService.setAndOpen(id === null ? null : (id || $scope.id), t ? 2 : 1) };
         $scope.showFriendsModal = function (id){ usersModalService.setAndOpen(id === null ? null : (id || $scope.id), 0) };
 
         // Search
@@ -1351,7 +1366,6 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             selected: selected,
             setCurrent: function(curr){ selected = curr },
             load: function(){
-                emails.length = 0;
                 return APIService.init(5).query({}, function (result) { emails.push.apply(emails, result) }).$promise;
             },
             add: function(email) {
@@ -1439,6 +1453,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 $scope.obj.selected = $scope.emails.length-1;
                 $scope.EmailSelected();
             });
+
+            $scope.$on('$destroy', function() { $scope.emails.length = 0 });
 
             // Password
 

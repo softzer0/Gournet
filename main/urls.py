@@ -38,6 +38,7 @@ urlpatterns = [
         name="account_reset_password_from_key_done"),
 
     # API
+    url(r'^api/feed/$', main_views.FeedAPIView.as_view()),
     url(r'^api/items/(?:(?P<pk>\d+)/)?$', main_views.ItemAPIView.as_view()),
     url(r'^api/comments/(?:(?P<pk>\d+)/)?$', main_views.CommentAPIView.as_view()),
     url(r'^api/reminders/(?:(?P<pk>\d+)/)?$', main_views.ReminderAPIView.as_view()),

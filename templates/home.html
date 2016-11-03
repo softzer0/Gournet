@@ -32,7 +32,7 @@
         <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
 
         <script type="text/ng-template" id="search">
-            <p><i class="fa fa-search"></i> Searching <strong>{% verbatim %}{{ t == 'user' ? "users" : t == "business" ? "businesses" : t == 'item' ? "items" : "events" }}{% endverbatim %}</strong>, with keyword(s): <strong>{% verbatim %}{{ keywords }}{% endverbatim %}</strong>. <a href="#/"><i class="fa fa-chevron-left"></i> Go back.</a></p>
+            <p><i class="fa fa-search"></i> Searching <strong>{% verbatim %}{{ t == 'user' ? "users" : t == "business" ? "businesses" : t == 'item' ? "items" : "events" }}{% endverbatim %}</strong>, with keyword(s): <strong>{% verbatim %}{{ keywords }}{% endverbatim %}</strong>. <a href="#/"><i class="fa fa-chevron-left"></i> Go to main page.</a></p>
             <div ng-include="'/static/main/events.html'"></div>
         </script>
         <div ui-view="main"></div>

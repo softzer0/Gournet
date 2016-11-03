@@ -23,7 +23,7 @@
 {% block other %}<li><i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star"></i> <i class="fa fa-star-o"></i> | 4.0</li>
                         <li
                             ><span ng-if="fav_count > 0"
-                                ><a href="javascript:" ng-click="showFavouritesModal(1)"
+                                ><a href="javascript:" ng-click="showFavouritesModal()"
                                     ><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong
                                 ></a> {% verbatim %}{{ fav_count > 1 ? "osobe su favorizovale" : "osoba je favorizovala" }}{% endverbatim %} ovo</span
                             ><span ng-if="fav_count == 0"

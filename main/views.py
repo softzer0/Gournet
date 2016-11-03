@@ -19,7 +19,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.filters import SearchFilter
-#from drf_multiple_model.views import MultipleModelAPIView
+from drf_multiple_model.views import MultipleModelAPIView
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
 from rest_framework.serializers import ValidationError
@@ -32,7 +32,7 @@ import os.path
 # from decorator_include import decorator_include
 # from stronghold.views import StrongholdPublicMixin
 from django.contrib.contenttypes.models import ContentType
-from .serializers import NOT_MANAGER_MSG, gen_where, sort_related
+from .serializers import NOT_MANAGER_MSG, gen_where, sort_related, friends_from
 from .forms import DummyCategory
 
 User = get_user_model()
@@ -50,7 +50,6 @@ def get_param_bool(param):
     if param and param in ['1', 'true', 'True', 'TRUE']:
         return True
     return False
-
 
 @public
 def home_index(request):
@@ -89,7 +88,7 @@ def show_profile(request, username):
         data = {'user': User.objects.get(username=username)}
     except User.DoesNotExist:
         return redirect('/')
-    data['friend_count'] = User.objects.filter(from_person__to_person=data['user']).extra(where=[gen_where('relationship', data['user'].pk, 'relationship', target='user', column='id')]).count()
+    data['friend_count'] = friends_from(data['user']).count()
     if request.user != data['user']:
         data['rel_state'] = 0
         if Relationship.objects.filter(from_person=request.user, to_person=data['user']).exists():
@@ -166,7 +165,7 @@ class SearchAPIView(generics.ListAPIView):
 
 class BusinessAPIView(SearchAPIView):
     serializer_class = serializers.BusinessSerializer
-    queryset = Business.objects.all()
+    queryset = Business.objects.all().defer('manager', 'phone') #, ...
     search_fields = ('name', 'shortname')
 
 class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView):
@@ -181,9 +180,9 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView
         if self.request.query_params.get('search', False):
             return User.objects.exclude(pk=self.request.user.pk)
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
-        qs = User.objects.filter(from_person__to_person=person).extra(where=[gen_where('relationship', person.pk, 'relationship', target='user', column='id')])
+        qs = friends_from(person, True)
         if person != self.request.user:
-            return sort_related(qs, self.request.user.pk)
+            return sort_related(qs, self.request.user)
         return qs #modify for sorting by recent
 
     def delete(self, request, *args, **kwargs):
@@ -316,6 +315,28 @@ def send_notifications(request, pk):
         return status, text
     return base_view(request, t, cont, pk=pk)
 
+class FeedAPIView(MultipleModelAPIView):
+    sorting_field = '-sort_field'
+    flat = True
+
+    def get_friends_qs(self, friends, model, filter='business__manager', ct=None):
+        qs = model.objects.filter(content_type__pk=ct) if ct else model.objects
+        if filter:
+            return qs.filter(Q(**{filter + '__in': friends}) | Q(likes__person__in=friends)).annotate(is_liked=Case(When(likes__person__in=friends, then=1), default=0, output_field=IntegerField()), sort_field=Case(When(likes__person__in=friends, then=F('likes__date')), default=F('created')))
+        return qs.filter(likes__person__in=friends).annotate(sort_field=F('likes__date'))
+
+    def get_queryList(self):
+        friends = list(friends_from(self.request.user).values_list('pk', flat=True))
+        return [(self.get_friends_qs(friends, Business, ''), serializers.BusinessSerializer),
+                (self.get_friends_qs(friends, Event), serializers.EventSerializer),
+                (self.get_friends_qs(friends, Item), serializers.ItemSerializer),
+                (self.get_friends_qs(friends, Comment, 'person', settings.CONTENT_TYPES['business'].pk), serializers.CommentSerializer),
+                (Relationship.objects.filter(Q(from_person__in=friends) | Q(to_person__in=friends)).filter(symmetric=True).exclude(to_person=self.request.user).exclude(from_person=self.request.user).annotate(rev_dir=Case(When(to_person__in=friends, then=1), default=0, output_field=IntegerField()), sort_field=F('notification__created')).defer('notification', 'symmetric'), serializers.RelationshipSerializer, 'user')]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['feed'] = None
+        return context
 
 class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination
@@ -427,26 +448,27 @@ def set_t(obj_v, context):
 
 class CommentAPIView(BaseAPIView):
     serializer_class = serializers.CommentSerializer
-    pagination_class = pagination.CommentPagination
     model = Comment
     filter = 'person'
     ct = settings.CONTENT_TYPES['business'].pk
 
-    def get_person_qs(self, person):
-        self.pagination_class = pagination.PageNumberPagination
-        return super().get_person_qs(person)
-
     def getnopk(self):
         return self.order_qs(self.get_person_qs(self.request.user))
+
+    def get_person_qs(self, person):
+        return super().get_person_qs(person).annotate(is_liked=Case(When(likes__person=person, then=1), default=0, output_field=IntegerField()))
 
     def get_qs_pk(self):
         return get_qs(self, Comment)
 
     def order_qs(self, qs):
-        if 'business' in self.get_serializer_context(True) and not self.request.query_params.get('ids', False):
-            qs = qs.annotate(curruser=Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField())).order_by('-curruser', *Comment._meta.ordering)
-        elif get_param_bool(self.request.query_params.get('reverse', False)):
-            qs = qs.order_by('created')
+        if not self.request.query_params.get('ids', False):
+            if 'business' in self.get_serializer_context(True):
+                qs = qs.annotate(curruser=Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField())).order_by('-curruser', *Comment._meta.ordering)
+            else:
+                self.pagination_class = pagination.CommentPagination
+                if get_param_bool(self.request.query_params.get('reverse', False)):
+                    qs = qs.order_by('created')
         return qs
 
     def get_serializer_context(self, kw=False):
@@ -481,6 +503,8 @@ class EventAPIView(BaseAPIView):
     search_fields = ('text',) #'business__name'
 
     def getnopk(self):
+        if get_param_bool(self.request.query_params.get('favourites', False)):
+            return Event.objects.extra(where=[gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=settings.CONTENT_TYPES['business'].pk)])
         return Event.objects.all() # change from all to filter current surrounding events
 
 def get_b_from(user):
@@ -552,10 +576,10 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
             if is_user:
                 if pk and pk != self.request.user.pk:
                     person = get_object(pk)
-                    return sort_related(Business.objects.filter(likes__person=person), where=gen_where('business', self.request.user.pk, 'like', Business.objects.filter(manager=self.request.user).first(), 'person', ct=settings.CONTENT_TYPES['business'].pk))
+                    return sort_related(Business.objects.filter(likes__person=person), Business.objects.filter(manager=self.request.user).first(), gen_where('business', self.request.user.pk, 'like', 'person', ct=settings.CONTENT_TYPES['business'].pk))
                 return Business.objects.filter(likes__person=self.request.user) #modify for sorting by recent
             business = get_object(pk, Business) if pk else get_b_from(self.request.user)
-            return sort_related(User.objects.filter(like__content_type=settings.CONTENT_TYPES['business'], like__object_id=business.pk), where=gen_where('user', business.pk, 'like', self.request.user, 'object', ct=settings.CONTENT_TYPES['business'].pk))
+            return sort_related(User.objects.filter(like__content_type=settings.CONTENT_TYPES['business'], like__object_id=business.pk), self.request.user, gen_where('user', business.pk, 'like', 'object', ct=settings.CONTENT_TYPES['business'].pk))
         qs = get_qs(self, Like)
         if 'stars' not in self.get_serializer_context(True):
             if self.request.query_params.get('is_dislike', False):
@@ -564,7 +588,7 @@ class LikeAPIView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.D
             stars = self.request.query_params.get('stars', False)
             if stars and stars.isdigit() and 1 <= int(stars) <= 5:
                 qs = qs.filter(stars=stars)
-        return sort_related(qs, self.request.user.pk)
+        return sort_related(qs, self.request.user)
 
     def get_object(self):
         ct = get_type(self)

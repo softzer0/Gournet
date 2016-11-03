@@ -36,15 +36,15 @@
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
 {% block begin %}<script type="text/ng-template" id="offcanvas">
-    <div class="navmenu navmenu-default navmenu-fixed-right">{% with current='#" ng-click="close()' %}
-        <a class="n" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}{{ current }}{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+    <div class="navmenu navmenu-default navmenu-fixed-right">
+        <a class="n" ng-click="c()" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}javascript:{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
         <ul class="nav navmenu-nav">
             {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
             {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
             <li uib-dropdown><a href="javascript:" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>Favourites <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="favourites">
-                    <li><a href="{% if request.path == "/favourites/" %}{{ current }}{% else %}/favourites{% endif %}">News feed</a></li>
-                    <li><a href="javascript:" ng-click="showFavouritesModal(1, null)">Show list</a></li>
+                    <li><a href="/#/filter=favourites" ng-click="c()">News feed</a></li>
+                    <li><a href="javascript:" ng-click="showFavouritesModal(null)">Show list</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
                     <li><a href="javascript:">Kafana "Stara kuća"</a></li>
@@ -53,7 +53,7 @@
             </li>
             <li uib-dropdown><a href="javascript:" id="friends" class="dropdown-toggle" uib-dropdown-toggle>Friends <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="friends">
-                    <li><a href="{% if request.path == "/friends/" %}{{ current }}{% else %}/friends{% endif %}">News feed</a></li>
+                    <li><a href="/#/filter=friends" ng-click="c()">News feed</a></li>
                     <li><a href="javascript:" ng-click="showFriendsModal(null)">Show list</a></li>
                     <li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
@@ -69,7 +69,7 @@
             </li>{% endcomment %}
             <li><a href="{% url 'account_logout' %}">Logout</a></li>
         </ul>
-    </div></script>{% endwith %}{% endblock %}
+    </div></script>{% endblock %}
 
 {% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}
 {% block navbar %}<form class="navbar-form navbar-left" role="search">
@@ -81,10 +81,10 @@
                             ><span>{% verbatim %}{{ b.type_display+' "'+b.name+'"'}}{% endverbatim %}</span>
                         </div>
                         <div class="loa tc" ng-show="search.loading"><i class="fa fa-spinner"></i></div>
-                        <a ng-if="search.count == null || search.count > 5" ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=business"><i class="fa fa-map-pin"></i> Pretraži{% verbatim %}{{ search.count != null ? " ostale" : '' }}{% endverbatim %} lokale...</a>
-                        <a ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=event"><i class="fa fa-calendar"></i> Pretraži događaje...</a>
-                        <a ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=item"><i class="fa fa-th-list"></i> Pretraži proizvode...</a>
-                        <a ng-href="/#/search={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> Pretraži korisnike...</a>
+                        <a ng-if="search.count == null || search.count > 5" ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=business"><i class="fa fa-map-pin"></i> Pretraži{% verbatim %}{{ search.count != null ? " ostale" : '' }}{% endverbatim %} lokale...</a>
+                        <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=event"><i class="fa fa-calendar"></i> Pretraži događaje...</a>
+                        <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=item"><i class="fa fa-th-list"></i> Pretraži proizvode...</a>
+                        <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> Pretraži korisnike...</a>
                     </div>
                 </div>
             </form>

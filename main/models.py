@@ -129,6 +129,7 @@ class Relationship(models.Model):
     from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="from_person")
     to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="to_person")
     notification = models.OneToOneField(Notification, null=True, blank=True, on_delete=models.SET_NULL)
+    symmetric = models.BooleanField(default=False)
 
     class Meta:
         unique_together = (('from_person', 'to_person'),)
@@ -149,6 +150,7 @@ def relationship_save_notification(instance, **kwargs):
     except:
         text += "wants to be your friend"
     else:
+        instance.symmetric = True
         text += "has accepted friend request"
         if rel.notification.unread:
             rel.notification.unread = False
@@ -195,7 +197,7 @@ class Business(models.Model):
     type = models.IntegerField(choices=BUSINESS_TYPE)
     name = models.CharField(max_length=60, validators=[
             RegexValidator(
-                r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`"\^&#@%\\/<>;:,|\[\]{}~=?!]{2,}$',
+                r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`"\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$',
                 ('Enter a valid business name.')
             ),
         ])

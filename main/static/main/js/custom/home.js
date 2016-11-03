@@ -1,6 +1,8 @@
 //app.requires.push('ct.ui.router.extras');
 app
     .config(function ($stateProvider) {
+        function gentemp(g, t) { return (g ? '<p><a href="#/"><i class="fa fa-chevron-left"></i> Go to main page.</a></p>' : '')+'<div ng-init="t = \''+(t !== undefined ? t : '\'')+'" ng-include="\'/static/main/events.html\'"></div>' }
+
         $stateProvider.state('main', {
             url: '/',
             sticky: true,
@@ -8,19 +10,26 @@ app
             views: {main: {template: '<div ui-view></div>'}}
         })
         .state('main.search', {
-            url: 'search={keywords}&type={type:(?:user|business|item|event)}',
+            url: 'filter={keywords}&type={type:(?:user|business|item|event)}',
             templateUrl: 'search',
             controller: function ($scope, $stateParams) {
                 $scope.keywords = $stateParams.keywords; //.replace(/\++/g, ' ');
                 $scope.t = $stateParams.type;
                 if ($scope.$parent.search.keywords != $scope.keywords) $scope.$parent.search.keywords = $scope.keywords;
                 $scope.$parent.search.show = false;
-                //...
             }
+        })
+        .state('main.friends', {
+            url: 'filter=friends',
+            template: gentemp(true)
+        })
+        .state('main.favourites', {
+            url: 'filter=favourites',
+            template: gentemp(true, 'event\'; is_fav = true')
         })
         .state('main.main', {
             url: '*path',
-            template: '<div ng-init="t = \'event\'" ng-include="\'/static/main/events.html\'"></div>'
+            template: gentemp(false, 'event\'')
         });
     })
 
@@ -38,16 +47,10 @@ app
     .factory('userService', function (uniService) { return uniService.getInstance('user') })
     .factory('mixedService', function (uniService) { return uniService.getInstance() })
 
+    .controller('UsersCtrl', function ($scope, makeFriendService) { $scope.doFriendRequestAction = function (index) { makeFriendService.run($scope.objs[index]) } })
+
+    .controller('usersOnlyCtrl', function($scope, $controller, userService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [userService]}), $controller('UsersCtrl', {$scope: $scope})) })
+
     .controller('businesssOnlyCtrl', function($scope, $controller, businessService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [businessService]})) })
 
-    .controller('usersOnlyCtrl', function($scope, $controller, userService, makeFriendService) {
-        angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [userService]}));
-
-        $scope.doFriendRequestAction = function (index) { makeFriendService.run($scope.objs[index]) };
-    })
-
-    .controller('sOnlyCtrl', function($scope, $controller, mixedService) {
-        angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [mixedService]}), $controller('EventsCtrl', {$scope: $scope}), $controller('ReviewsCtrl', {$scope: $scope}));
-
-        // ...
-    });
+    .controller('sOnlyCtrl', function($scope, $controller, mixedService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [mixedService]}), $controller('EventsCtrl', {$scope: $scope}), $controller('ReviewsCtrl', {$scope: $scope}), $controller('UsersCtrl', {$scope: $scope})) });

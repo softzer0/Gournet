@@ -3,7 +3,7 @@
         ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 1}" ng-click="giveDisLike(o[1], false, o[2])"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</a
         ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</span
 
-        ><a href="javascript:" ng-if="o[0].likestars_count - (o[0].dislike_count || 0) != 0" ng-click="o[0].is_opened === undefined ? showDisLikes(o[1], o[2]) : $parent.showFavouritesModal(1, false, o[0].id)" class="badge label-primary">{{ o[0].likestars_count - (o[0].dislike_count || 0) }}</a
+        ><a href="javascript:" ng-if="o[0].likestars_count - (o[0].dislike_count || 0) != 0" ng-click="o[0].is_opened === undefined ? showDisLikes(o[1], o[2]) : $parent.showFavouritesModal(o[0].id)" class="badge label-primary">{{ o[0].likestars_count - (o[0].dislike_count || 0) }}</a
         ><span ng-if="o[0].likestars_count - (o[0].dislike_count || 0) == 0" class="badge">0</span
 
         ><a href="javascript:" ng-if="o[0].is_opened === undefined && o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 2}" ng-click="giveDisLike(o[1], true, o[2])"><i class="fa fa-minus-square"></i> {{ o[0].dislike_count }}</a
@@ -32,17 +32,30 @@
         <p>{{ m.obj.text }} <small class="text-muted">&mdash; {{ m.obj.created | timeAgo }}</small></p>
     </script>
     <div class="angular-animate" ng-repeat="e in objs" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ objs_animation ? 'angular-animate' : '' }}"-->
-        <span ng-if="e.person_status !== undefined" class="mb3">
-            <span>{{ first_name || e.person.first_name }}</span>
-            <span ng-if="e.person_status[0] == -1"><span ng-if="e.when !== undefined">posted</span><span ng-if="e.name !== undefined">added</span><span ng-if="e.created !== undefined">reviewed</span></span
-            ><span ng-if="e.person_status[0] != -1">
-                <span ng-if="e.stars_avg === undefined">gave {{ e.person_status[0] == 1 ? "like" : "dislike" }} to</span>
-                <span ng-if="e.stars_avg !== undefined">gave {{ e.person_status[0] }} {{ e.person_status[0] == 1 ? "star" : "stars" }} to</span>
-            </span><span>:</span>
-        </span>
+        <div ng-if="e.person_status !== undefined || e.friend !== undefined" class="mb3">
+            <span ng-if="e.friend === undefined || e.friend.count === undefined"
+                ><span ng-if="first_name !== undefined" ng-bind="first_name"></span><a ng-if="first_name === undefined" ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a>
+                <span ng-if="(e.person_status[0] || e.friend.status) == -1 || e.target !== undefined || e.is_opened !== undefined"
+                    ><span ng-if="e.when !== undefined">posted</span
+                    ><span ng-if="e.price !== undefined">added</span
+                    ><span ng-if="e.created !== undefined">reviewed</span
+                    ><span ng-if="e.target !== undefined">became a friend to</span
+                    ><span ng-if="e.is_opened !== undefined">favoured</span
+                ></span
+                ><span ng-if="(e.person_status[0] || e.friend.status) !== undefined && (e.person_status[0] || e.friend.status) != -1"
+                    ><span ng-if="e.stars_avg === undefined">gave {{ (e.person_status[0] || e.friend.status) == 1 ? "like" : "dislike" }} to</span
+                    ><span ng-if="e.stars_avg !== undefined">gave {{ e.person_status[0] || e.friend.status }} {{ (e.person_status[0] || e.friend.status) == 1 ? "star" : "stars" }} to</span
+                ></span
+            ></span
+            ><span ng-if="e.friend !== undefined && e.friend.count !== undefined"
+                ><span ng-repeat="p in e.friend.objs"><span ng-if="$last && e.friend.count <= 3"> and </span><a ng-href="/user/{{ p.username }}/"><strong>{{ p.first_name }} {{ p.last_name }}</strong></a><span ng-if="!$last && e.friend.count != $index + 2">, </span></span>
+                <span ng-if="e.friend.count > 3">and {{ e.friend.count }} other {{ e.friend.count == 1 ? 'friend' : 'friends' }}</span><span> <span ng-if="e.is_opened !== undefined">favoured</span><span ng-if="e.is_opened === undefined"><span ng-if="e.stars_avg === undefined">reacted to</span><span ng-if="e.stars_avg !== undefined">rated</span></span></span
+            ></span
+            ><span>:</span>
+        </div>
         <div class="well bs-component clearfix pb18">
-            <div ng-if="!nobusiness && (first_name !== undefined || id === undefined) || e.person !== undefined" ng-init="obj = e.business !== undefined ? e.business : e.person !== undefined ? e.person : e.content_object !== undefined ? e.content_object : e">
-                <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person !== undefined && e.content_object !== undefined">, to: <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span></legend>
+            <div ng-if="!nobusiness && (first_name !== undefined || id === undefined) || e.person !== undefined" ng-init="obj = e.business !== undefined ? e.business : e.target !== undefined ? e.target : e.person != undefined ? e.person : e.content_object !== undefined ? e.content_object : e">
+                <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person != undefined && e.content_object !== undefined">, to: <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span></legend>
                 <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ e.price !== undefined ? '/images/'+e.id+'/avatar/64/?item=1' : '/images/'+obj.id+'/avatar/64/'+(obj.shortname !== undefined ? '?business=1' : '') }}"></a></div>
             </div>
             <div ng-if="e.text !== undefined">
@@ -58,8 +71,8 @@
                 <p><span>Has</span
                     > <span ng-switch="e.friend_count[0]"
                         ><span ng-switch-when="0">no friends</span
-                        ><span ng-switch-when="1">one friend</span
-                        ><span ng-switch-default>{{ e.friend_count[0] }} friends</span
+                        ><a href="javascript:" ng-click="$parent.showFriendsModal(e.id || e.target.id)" ng-switch-when="1">one friend</a
+                        ><a href="javascript:" ng-click="$parent.showFriendsModal(e.id || e.target.id)" ng-switch-default>{{ e.friend_count[0] }} friends</a
                     ></span
                     ><span ng-if="e.friend_count[0] > 0" ng-switch="e.friend_count[1]"
                         >; <span ng-switch-when="0">no mutual friends</span
@@ -108,7 +121,7 @@
                 ><input type="submit" ng-attr-id="{{ t + $index }}b" class="btn btn-sm btn-primary" value="Submit" ng-click="submitComment($index)">
             </div>
         </div>
-        <hr ng-if="toggleHr(first_name !== undefined, $last && !r)" class="mpd">
+        <hr ng-if="toggleHr(first_name !== undefined || !t, $last && !r)" class="mpd">
     </div>
     <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="objs.has_next_page && !loading" ng-click="load_page()">Load more</a>
     <div class="loa mb13 loa-c" ng-if="!r && loading"><i class="fa fa-spinner fa-2x"></i></div>
