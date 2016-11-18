@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django.contrib.gis',
 #    'django_extensions',
     'rest_framework',
     'rest_framework.authtoken',
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
 #    'cities_light',
 #    'modeltranslation',
     'phonenumber_field',
+    'multiselectfield',
     'bootstrap3',
     'stronghold',
     'captcha',
@@ -111,6 +113,8 @@ ACCOUNT_LOGOUT_ON_GET = True
 RECAPTCHA_PUBLIC_KEY = "***REMOVED***"
 RECAPTCHA_PRIVATE_KEY = "***REMOVED***"
 NOCAPTCHA = True
+
+PHONENUMBER_DEFAULT_REGION = "RS"
 
 # Begin custom
 
@@ -173,7 +177,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
-                'django_settings_export.settings_export'
+                'django_settings_export.settings_export',
+                'main.context_processor.base'
             ],
         },
     },
@@ -194,7 +199,7 @@ WSGI_APPLICATION = 'gournet.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }

@@ -3,7 +3,7 @@
     overflow-x: auto;
 }
 
-.well {
+[class*="-12"] .well {
     margin: 0 auto auto;
     max-width: 400px;
 }
@@ -18,4 +18,72 @@
 
 body > .container > * > [class*=col-] {
     padding-bottom: 20px;
+}
+
+.nw .checkbox {
+    margin-top: 0;
+}
+
+.seti {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 15px;
+}
+
+.ai .input-group {
+    vertical-align: middle;
+}
+
+.ai .input-group .input-group-addon {
+    position: relative;
+    font-size: 0;
+    white-space: nowrap;
+    padding: initial;
+    border: initial;
+}
+
+.ai .input-group-addon > .btn {
+    z-index: 2;
+    margin-left: -1px;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    position: relative;
+}
+
+.seti .input-group {
+    display: inline-table;
+}
+
+
+.seti .input-group .input-group-addon {
+	width: auto;
+}
+
+.seti > label {
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+
+.seti .input-group .form-control {
+	width: 62px;
+}
+
+.mb15 {
+    margin-bottom: 15px;
+}
+
+.dropup {
+    width: 50%;
+}
+
+.dropup > .datetime-picker-dropdown {
+    min-width: 200px;
+}
+
+.ib {
+    display: inline-block;
+}
+
+.angular-google-map-container {
+    height: 300px;
 }

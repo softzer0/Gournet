@@ -14,6 +14,10 @@ import datetime, re
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from django.contrib.gis.db.models import PointField, GeoManager
+from geopy.geocoders import GoogleV3
+from django.contrib.gis.geos import fromstr
+from multiselectfield import MultiSelectField
 
 CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
 SUPPORTED_PLACES = ((0, "Serbia, Vranje"),)
@@ -21,8 +25,7 @@ SUPPORTED_PLACES = ((0, "Serbia, Vranje"),)
 alphabet_only = RegexValidator(r'^[^\W\d_]+$', "Only letters from the alphabet are allowed.")
 user_short_name = RegexValidator(
                     r'^[\w.-]+$',
-                    ('Enter a valid shortname. This value may contain only letters from the English alphabet, numbers and ./-/_ characters.'),
-                    re.ASCII
+                    code=re.ASCII
                 )
 
 class MyUserManager(UserManager):
@@ -43,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         'username',
         max_length=30,
         unique=True,
-        help_text='Maximum 30 characters. English letters (case-insensitive), digits and ./-/_ only.',
+        help_text="Maximum 30 characters."+' '+"English letters (case-insensitive), digits and ./-/_ only.",
         validators=[user_short_name],
         error_messages={
             'unique': "A user with that username already exists.",
@@ -63,6 +66,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=0)
     birthdate = models.DateField('birthdate')
     location = models.IntegerField(choices=SUPPORTED_PLACES)
+
+    recent = GenericRelation('Recent')
 
     # Added custom fields [END]
 
@@ -88,7 +93,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'
-        ordering = ('username', 'first_name', 'last_name')
+        ordering = ['username', 'first_name', 'last_name']
         verbose_name = 'user'
         verbose_name_plural = 'users'
 
@@ -113,6 +118,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
 
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -163,20 +169,20 @@ def relationship_delete_notification(instance, **kwargs):
         instance.notification.delete()
 
 
-CURRENCY = (('RSD', "Serbian dinars"), ('EUR', "Euros"))
-
-class Currency(models.Model):
-    name = models.CharField(choices=CURRENCY, validators=[MinLengthValidator(3)], max_length=3)
-
-    def __str__(self):
-        return self.name
-
-
 def not_forbidden(value):
-    if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'media']:
+    if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'your-business']: # important
         raise ValidationError('"%s" is not permitted as a shortname.' % value)
 
+class BusinessManager(models.Manager):
+    def get_by_natural_key(self, shortname):
+        return self.get(shortname__iexact=shortname)
+
+    def filter_by_natural_key(self, shortname):
+        return self.filter(shortname__iexact=shortname)
+
+CURRENCY = (('RSD', "Serbian dinars (RSD)"), ('EUR', "Euros (EUR)"))
 BUSINESS_TYPE = ((0, "Restaurant"), (1, "Tavern"), (2, "Bistro"), (3, "Cafe"), (4, "Pub"), (5, "Bar"), (6, "Nightclub"), (7, "Fast food"))
+
 settings.CONTENT_TYPES['business'] = ContentType.objects.get(model='business')
 
 class Business(models.Model):
@@ -184,38 +190,52 @@ class Business(models.Model):
         'shortname',
         max_length=30,
         unique=True,
-        help_text='Maximum 30 characters. English letters, digits and ./-/_ only.',
+        help_text="The people could access your business by putting its shortname after the site address, e.g"+': <u>http://gournet.co/shortname</u>. ' +\
+                  "Maximum 30 characters."+' '+"English letters (case-insensitive), digits and ./-/_ only.",
         validators=[
             user_short_name,
             not_forbidden,
-        ],
-        error_messages={
-            'unique': "A business with that shortname already exists.",
-        },
+        ]
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)
-    type = models.IntegerField(choices=BUSINESS_TYPE)
+    type = models.IntegerField(choices=BUSINESS_TYPE, default=0)
     name = models.CharField(max_length=60, validators=[
             RegexValidator(
-                r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`"\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$',
+                r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$',
                 ('Enter a valid business name.')
             ),
         ])
-    phone = PhoneNumberField(blank=True)
-    opened = models.TimeField(default=datetime.time(8, 0))
-    opened_sat = models.TimeField(null=True, blank=True)
-    opened_sun = models.TimeField(null=True, blank=True)
-    closed = models.TimeField(default=datetime.time(0, 0))
-    closed_sat = models.TimeField(null=True, blank=True)
-    closed_sun = models.TimeField(null=True, blank=True)
-    currency = models.CharField(choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
-    supported_curr = models.ManyToManyField(Currency, blank=True)
-    # geoloc = ...
-    # ...
+    phone = PhoneNumberField("Phone number", help_text="In national format, e.g"+': 017448739.')
+    opened = models.TimeField("Opening time", default=datetime.time(8, 0))
+    opened_sat = models.TimeField("Opening time on Saturday", null=True, blank=True)
+    opened_sun = models.TimeField("Opening time on Sunday", null=True, blank=True)
+    closed = models.TimeField("Closing time", default=datetime.time(0, 0))
+    closed_sat = models.TimeField("Closing time on Saturday", null=True, blank=True)
+    closed_sun = models.TimeField("Closing time on Sunday", null=True, blank=True)
+    currency = models.CharField("Default currency", choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
+    supported_curr = MultiSelectField("Other supported currencies (if any)", choices=CURRENCY, null=True, blank=True, max_length=3)
+    location = PointField("Longitude/latitude", blank=True, error_messages={'invalid': "Enter valid coordinates."})
+    address = models.CharField(max_length=130, blank=True)
     likes = GenericRelation('Like')
+    recent = GenericRelation('Recent')
+
+    gis = GeoManager()
+    objects = BusinessManager()
 
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
+
+@receiver(pre_save, sender=Business, dispatch_uid='business_fill_locaddr')
+def business_fill_locaddr(instance, **kwargs):
+    geocoder = GoogleV3()
+    try:
+        if instance.location and not instance.address:
+            instance.address = geocoder.reverse('%s %s' % (instance.location.x, instance.location.y))[0].address
+        elif instance.address and not instance.location:
+            loc = geocoder.geocode(instance.address)
+            instance.location = fromstr('POINT(%s %s)' % (loc.latitude, loc.longitude))
+    except:
+        pass
 
 @receiver(pre_delete, sender=Business, dispatch_uid='business_review_delete')
 def business_review_delete(instance, **kwargs):
@@ -271,7 +291,8 @@ CATEGORY = (
             ('juice', "Juice"),
             ('tea', "Tea"),
             ('hot_chocolate', "Hot chocolate"),
-            ('water', "Water")
+            ('water', "Water"),
+            ('drinks_other', "Other")
         )
     ),
     ("Food", (
@@ -282,7 +303,8 @@ CATEGORY = (
             ('barbecue', "Barbecue"),
             ('seafood', "Seafood"),
             ('salad', "Salad"),
-            ('dessert', "Dessert")
+            ('dessert', "Dessert"),
+            ('food_other', "Other")
         )
     )
 )
@@ -337,15 +359,16 @@ class Comment(models.Model):
         #verbose_name_plural = "reviews"
 
     def __str__(self):
-        return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type.model != 'comment' else 'review', self.object_id)
+        return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != settings.CONTENT_TYPE['comment'] else 'review', self.object_id)
+
+def increment(model, filter):
+    obj, created = model.objects.get_or_create(**filter)
+    if not created:
+        obj.count = models.F('count') + 1
+        obj.save()
 
 def create_notif(from_person, ct, obj_pk, to_person, typ):
-    if EventNotification.objects.filter(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person, comment_type=typ).exists():
-        obj = EventNotification.objects.get(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person, comment_type=typ)
-        obj.count += 1
-        obj.save()
-    else:
-        EventNotification.objects.create(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person, comment_type=typ)
+    increment(EventNotification, {'from_person': from_person, 'content_type': ct, 'object_id': obj_pk, 'to_person': to_person, 'comment_type': typ})
 
 @receiver(post_save, sender=Comment, dispatch_uid='comment_save_notification')
 def comment_save_notification(instance, created, **kwargs):
@@ -365,15 +388,8 @@ def comment_save_notification(instance, created, **kwargs):
         create_notif(instance.person, ct, obj_pk, instance.content_object.person, 0)
 
 def del_notif(from_person, ct, obj_pk, to_person):
-    try:
-        obj = EventNotification.objects.get(from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person)
-    except:
-        return
-    obj.count -= 1
-    if obj.count == 0:
-        obj.delete()
-    else:
-        obj.save()
+    EventNotification.objects.filter(count__gt=0, from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person).update(count=models.F('count') - 1)
+    EventNotification.objects.filter(count=0).delete()
 
 @receiver(pre_delete, sender=Comment, dispatch_uid='comment_cascade_delete')
 def comment_cascade_delete(instance, **kwargs):
@@ -415,6 +431,18 @@ class EventNotification(models.Model):
     class Meta:
         unique_together = (('from_person', 'to_person', 'content_type', 'object_id', 'comment_type'),)
         ordering = ['comment_type', 'content_type', 'from_person', 'object_id', 'when']
+
+
+class Recent(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    date = models.DateTimeField(auto_now=True)
+    count = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ['-date', '-count']
 
 
 """TESTING:

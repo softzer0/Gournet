@@ -18,19 +18,8 @@ app
             $scope.picker.options.minDate = $rootScope.currTime;
             eventService.new(el.val(), $scope.picker.date).then(function () { el.val('') });
         };
-        $scope.submitItem = function () {
-            var el = angular.element('[name="forms.item"] [name="name"]'), cond;
-            cond = el.val().length < 2 ? 1 : 0;
-            if ($scope.forms.item.price === undefined) cond += 2;
-            if (cond > 0) {
-                $scope.forms.item.alert = cond;
-                if (cond == 1 || cond == 3) el.focus();
-                if (cond == 2 || cond == 3) angular.element('[name="forms.item"] [name="price"]').focus();
-                return;
-            } else $scope.forms.item.alert = 0;
-            menuService.new(el.val(), $scope.forms.item.price, angular.element('[name="forms.item"] [name="cat"]').val()).then(function () { el.val('') });
-        };
     })
+
     .controller('ItemCtrl', function($rootScope, $scope, $timeout, eventService, menuService) {
         $scope.submitItem = function () {
             var el = angular.element('[name="forms.item"] [name="name"]');

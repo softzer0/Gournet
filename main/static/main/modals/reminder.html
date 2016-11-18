@@ -3,7 +3,7 @@
 </ul>
 <p class="mb4">before, or:</p>
 <div class="input-group" style="width: 175px;">
-    <input type="hidden" name="when" class="form-control" datetime-picker="dd.MM.yyyy HH:mm" datepicker-options="picker.options" ng-model="picker.date" is-open="picker.open" />
+    <input type="hidden" datetime-picker="dd.MM.yyyy HH:mm" datepicker-options="picker.options" ng-model="picker.date" is-open="picker.open">
     <input type="text" class="form-control" datetime="dd.MM.yyyy HH:mm" ng-model="picker.date" min="{{ picker.options.minDate.toUTCString() }}" max="{{ picker.options.maxDate.toUTCString() }}">
     <span class="input-group-btn">
         <button type="button" class="btn btn-default" ng-click="picker.open = true"><i class="fa fa-calendar"></i></button>

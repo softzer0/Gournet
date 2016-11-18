@@ -1,0 +1,45 @@
+{% extends 'base/home.html' %}
+{% load i18n %}
+
+{% block head %}{{ block.super }}
+    {% include 'base/home_extra.html' %}
+    {% load staticfiles %}<script src="https://cdnjs.cloudflare.com/ajax/libs/speakingurl/10.0.0/speakingurl.min.js"></script>
+    <script src="{% static 'main/js/angular-speakingurl.js' %}"></script>
+    <script src="{% static 'main/js/custom/create.js' %}"></script>{% endblock %}
+
+{% block container %}
+        <div class="row">
+            <div class="col-sm-12">
+                <form action="{{ request.path }}" method="post" ng-controller="CreateCtrl" class="well bs-component nw ai" style="max-width: 500px;">{% csrf_token %}
+                    <legend>{% trans "Create Your Business" %}</legend>
+                    {% load bootstrap3 %}{% bootstrap_field form.type %}
+                    {% bootstrap_field form.name %}
+                    {% bootstrap_field form.shortname %}
+                    {% bootstrap_field form.phone %}
+                    {% bootstrap_field form.currency %}
+                    {% bootstrap_field form.supported_curr %}
+                    <hr>
+                    {% bootstrap_field form.address addon_after='<button class="btn btn-default" type="button" ng-click="geocode()"><i class="fa fa-map-marker"></i></button>' %}
+                    {% bootstrap_field form.location addon_after='<button class="btn btn-default" type="button" ng-click="refresh()"><i class="fa fa-refresh"></i></button>' %}
+                    <ui-gmap-google-map ng-if="map !== undefined" control="map.control" center="map.center" zoom="map.zoom" draggable="true">
+                        <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
+                    </ui-gmap-google-map>
+                    <div class="loa loa-c" ng-if="map === undefined"><i class="fa fa-spinner fa-2x"></i></div>
+                    <hr>{% with before='<span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="date[{i}]" enable-date="false" is-open="isOpen[{i}]"></span>' class='form-group seti' button='<button class="btn btn-default" type="button" ng-click="isOpen[{i}] = true"><i class="fa fa-clock-o"></i></button>' %}
+                    {{ before|r_i:0|safe }}{% bootstrap_field form.opened form_group_class=class addon_after=button|r_i:0 %}
+                    <div class="ib">{{ before|r_i:1|safe }}{% bootstrap_field form.closed form_group_class=class addon_after=button|r_i:1 %}</div>
+                    <div class="checkbox"><label><input name="t" type="checkbox" ng-init="work[0] = {% load getextend %}{% if request.POST|get_item:'t' == 'on' %}true{% else %}false{% endif %}" ng-model="work[0]"> My business also works on <strong>Saturday</strong>.</label></div>
+                    <div ng-show="work[0]">
+                        {{ before|r_i:2|safe }}{% bootstrap_field form.opened_sat form_group_class=class addon_after=button|r_i:2 %}
+                        <div class="ib">{{ before|r_i:3|safe }}{% bootstrap_field form.closed_sat form_group_class=class addon_after=button|r_i:3 %}</div>
+                    </div>
+                    <div class="checkbox" ng-class="{'mb15': !work[1]}"><label><input name="t1" type="checkbox" ng-init="work[1] = {% if request.POST|get_item:'on' == '1' %}true{% else %}false{% endif %}" ng-model="work[1]"> And on <strong>Sunday</strong>, too.</label></div>
+                    <div ng-show="work[1]">
+                        {{ before|r_i:4|safe }}{% bootstrap_field form.opened_sun form_group_class=class addon_after=button|r_i:4 %}
+                        <div class="ib">{{ before|r_i:5|safe }}{% bootstrap_field form.closed_sun form_group_class=class addon_after=button|r_i:5 %}</div>{% endwith %}
+                    </div>
+                    <input class="f1 btn btn-primary btn-block" type="submit" value="Create">
+                </form>
+            </div>
+        </div>
+{% endblock %}

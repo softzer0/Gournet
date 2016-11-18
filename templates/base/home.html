@@ -7,6 +7,7 @@
 
 {% block head %}<link rel="stylesheet" href="{% static 'main/css/angular-aside.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/nya-bs-select.min.css' %}">
+    {% url 'create_business' as create_url %}{% if request.path == create_url %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">{% endif %}
     <link rel="stylesheet" href="{% static 'main/css/home.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/sett.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/dtpicker.css' %}">
@@ -26,7 +27,8 @@
     <script src="{% static 'main/js/datetime-picker.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'main/js/angular-css.min.js' %}"></script>{% endcomment %}
-    <script src="{% static 'main/js/custom/base_home.js' %}"></script>
+    <script src="{% static 'main/js/custom/main.js' %}"></script>
+    {% url 'account_login' as home_url %}{% if request.path == home_url or request.path == create_url %}<script src="{% static 'main/js/custom/main_extras.js' %}"></script>{% endif %}
     <script>app.constant('BASE_MODAL', '{{ settings.STATIC_URL }}main/modals/base.html')
             .constant('COMMENT_PAGE_SIZE', {{ settings.COMMENT_PAGE_SIZE }})
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
@@ -37,28 +39,27 @@
 
 {% block begin %}<script type="text/ng-template" id="offcanvas">
     <div class="navmenu navmenu-default navmenu-fixed-right">
-        <a class="n" ng-click="c()" href="{% if request.path == "/user/"|add:request.user.username|add:"/" %}javascript:{% else %}/user/{{ request.user.username }}/{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+        <a class="n" ng-click="c()" href="{% url 'user_profile' request.user.username as user_url %}{% if request.path == user_url %}javascript:{% else %}{{ user_url }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
         <ul class="nav navmenu-nav">
             {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
+            <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url %}javascript:{% else %}{{ create_url }}{% endif %}">Your business</a></li>
             {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
             <li uib-dropdown><a href="javascript:" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>Favourites <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="favourites">
                     <li><a href="/#/filter=favourites" ng-click="c()">News feed</a></li>
                     <li><a href="javascript:" ng-click="showFavouritesModal(null)">Show list</a></li>
-                    <li class="divider"></li>
+                    {% if favs.exists %}<li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
-                    <li><a href="javascript:">Kafana "Stara kuća"</a></li>
-                    <li><a href="javascript:">Каfana "Stara Srbija"</a></li>
+                    {% for fav in favs %}<li><a ng-click="c()" href="{% url 'business_profile' fav.shortname as fav_url %}{% if request.path == fav_url %}javascript:{% else %}{{ fav_url }}{% endif %}">{{ fav.get_type_display|add:' "'|add:fav.name|add:'"'|truncatechars:39 }}</a></li>{% endfor %}{% endif %}
                 </ul>
             </li>
             <li uib-dropdown><a href="javascript:" id="friends" class="dropdown-toggle" uib-dropdown-toggle>Friends <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="friends">
                     <li><a href="/#/filter=friends" ng-click="c()">News feed</a></li>
                     <li><a href="javascript:" ng-click="showFriendsModal(null)">Show list</a></li>
-                    <li class="divider"></li>
+                    {% if friends.exists %}<li class="divider"></li>
                     <li class="dropdown-header">Recent</li>
-                    <li><a href="javascript:">Miloš Simić</a></li>
-                    <li><a href="javascript:">Милош Трајковић</a></li>
+                    {% for friend in friends %}<li><a ng-click="c()" href="{% url 'user_profile' friend.username as friend_url %}{% if request.path == friend_url %}javascript:{% else %}{{ friend_url }}{% endif %}">{{ friend.first_name|add:' '|add:friend.last_name|truncatechars:39 }}</a></li>{% endfor %}{% endif %}
                 </ul>
             </li>
             {% comment %}<li><a href="javascript:" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
@@ -69,7 +70,8 @@
             </li>{% endcomment %}
             <li><a href="{% url 'account_logout' %}">Logout</a></li>
         </ul>
-    </div></script>{% endblock %}
+    </div>
+</script>{% endblock %}
 
 {% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}
 {% block navbar %}<form class="navbar-form navbar-left" role="search">

@@ -73,7 +73,7 @@
     margin-bottom: 10px;
 }
 
-.datetime-picker-dropdown {
+*:not(".seti") .datetime-picker-dropdown {
     min-width: 290px;
 }
 

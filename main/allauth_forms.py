@@ -28,6 +28,8 @@ class BaseSignupForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].help_text = get_user_model()._meta.get_field('username').help_text
+        self.fields['username'].widget.attrs['title'] = ''
+        self.fields['password2'].widget.attrs['title'] = ''
 
 class SignupForm(BaseSignupForm, DefaultSignupForm):
     pass

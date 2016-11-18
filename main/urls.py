@@ -54,6 +54,7 @@ urlpatterns = [
 
     # Custom
 
+    url(r'^your-business/$', main_views.create_business, name="create_business"),
     url(r"^user/(?P<username>[\w.-]+)/$", main_views.show_profile, name="user_profile"),
     url(r"^images/(?P<username_id>[\w.-]+)/avatar/(?:(?P<size>(32|48|64))/)?$", main_views.return_avatar, name="avatar"),
     url(r"^(?P<shortname>[\w.-]+)/$", main_views.show_business, name="business_profile"),

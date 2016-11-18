@@ -1,6 +1,7 @@
 {% extends 'base/home.html' %}
 
 {% block head %}{{ block.super }}
+    {% include 'base/home_extra.html' %}
     {% load staticfiles %}<script src="{% static 'main/js/custom/home.js' %}"></script>
     <script>app.constant('SEARCH_PAGE_SIZE', {{ settings.SEARCH_PAGE_SIZE }})</script>{% endblock %}
 {% block title %}Home - Gournet{% endblock %}

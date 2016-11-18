@@ -6,6 +6,7 @@ import requests
 from django.core.files.base import ContentFile
 from .thumbs import saveimgwiththumbs
 
+
 class AccountAdapter(DefaultAccountAdapter):
     def save_user(self, request, user, form, commit=True):
         data = form.cleaned_data
