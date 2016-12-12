@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^api/notifications/read/$', main_views.notifs_set_all_read),
     url(r'^api/users/(?:(?P<pk>\d+)/)?$', main_views.UserAPIView.as_view()),
     url(r'^api/businesses/$', main_views.BusinessAPIView.as_view()),
+    url(r'^api/home/$', main_views.HomeAPIView.as_view()),
     url(r'^api/emails/$', main_views.EmailAPIView.as_view()),
     #url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
 

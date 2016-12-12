@@ -1,13 +1,28 @@
 from django import forms
 from .models import CATEGORY, Business
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
+from geopy.geocoders import GoogleV3
 from django.contrib.gis.geos import fromstr
+
+def clean_loc(self, cleaned_data):
+    geocoder = GoogleV3()
+    loc = cleaned_data.get('location', False)
+    try:
+        if loc and not cleaned_data['address']:
+            cleaned_data['address'] = geocoder.reverse(cleaned_data['location'])[0].address
+        elif cleaned_data['address'] and not loc:
+            loc = geocoder.geocode(cleaned_data['address'])
+            cleaned_data['location'] = fromstr('POINT(%s %s)' % (loc.latitude, loc.longitude))
+    except:
+        pass
+    if not loc:
+        self.add_error('address' if 'username' in cleaned_data else 'location', forms.ValidationError("Coordinates for specified address are not found.", code='required'))
 
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)
 
 class BusinessForm(forms.ModelForm):
-    location = forms.RegexField(r'^-?[0-9]+(\.[0-9]+)?(,|,? )-?[0-9]+(\.?[0-9]+)?$', label="Longitude/latitude")
+    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$', label="Latitude/longitude")
 
     class Meta:
         fields = '__all__'
@@ -63,3 +78,4 @@ class BusinessForm(forms.ModelForm):
             self.add_error('shortname', forms.ValidationError("A business with that shortname already exists.", code='unique'))
         if 'location' in cleaned_data:
             cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(', ', ' ').replace(',', ' ')+')')
+        clean_loc(self, cleaned_data)

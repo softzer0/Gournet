@@ -1,0 +1,33 @@
+.angular-google-map {
+    height: 100%;
+    position: relative;
+    right: 0;
+    top: 0;
+}
+
+.angular-google-map-container {
+    height: 100%;
+}
+
+.marker_label {
+    opacity: 0.8;
+    font-family: 'Arimo', sans-serif;
+    font-size: 11px;
+    height: 18px;
+    line-height: 18px;
+    overflow: visible !important;
+}
+
+.marker_label > span {
+    color: #333;
+    background-color: white;
+    margin-left: -50%;
+    text-align: center;
+    padding: 0 5px 0 5px;
+    height: 18px;
+    width: auto;
+    display: inline-block;
+    border: 1px solid #009be0;
+    white-space: nowrap;
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.15);
+}

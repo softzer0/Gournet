@@ -1,4 +1,4 @@
-<div ng-class="'objs'+r+'_'+t+(modal_loaded ? ' um' : '')" dynamic-controller="t+'sOnlyCtrl'">
+<div ng-class="'objs'+r+'_'+t+(modal_loaded ? ' um' : '')" dynamic-controller="t+'sOnlyCtrl'" ng-cloak>
     <script type="text/ng-template" id="likes"
         ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 1}" ng-click="giveDisLike(o[1], false, o[2])"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</a
         ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-plus-square"></i> {{ o[0].likestars_count }}</span
@@ -55,7 +55,7 @@
         </div>
         <div class="well bs-component clearfix pb18">
             <div ng-if="!nobusiness && (first_name !== undefined || id === undefined) || e.person !== undefined" ng-init="obj = e.business !== undefined ? e.business : e.target !== undefined ? e.target : e.person != undefined ? e.person : e.content_object !== undefined ? e.content_object : e">
-                <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person != undefined && e.content_object !== undefined">, to: <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span></legend>
+                <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person != undefined && e.content_object !== undefined">, to: <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span><small ng-if="e.distance !== undefined" class="text-muted">&mdash; {{ e.distance.value+e.distance.unit }} away</small></legend>
                 <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ e.price !== undefined ? '/images/'+e.id+'/avatar/64/?item=1' : '/images/'+obj.id+'/avatar/64/'+(obj.shortname !== undefined ? '?business=1' : '') }}"></a></div>
             </div>
             <div ng-if="e.text !== undefined">

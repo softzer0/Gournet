@@ -5,6 +5,7 @@
     {% include 'base/home_extra.html' %}
     {% load staticfiles %}<script src="https://cdnjs.cloudflare.com/ajax/libs/speakingurl/10.0.0/speakingurl.min.js"></script>
     <script src="{% static 'main/js/angular-speakingurl.js' %}"></script>
+    <script src="{% static 'main/js/custom/map.js' %}"></script>
     <script src="{% static 'main/js/custom/create.js' %}"></script>{% endblock %}
 
 {% block container %}
@@ -19,9 +20,9 @@
                     {% bootstrap_field form.currency %}
                     {% bootstrap_field form.supported_curr %}
                     <hr>
-                    {% bootstrap_field form.address addon_after='<button class="btn btn-default" type="button" ng-click="geocode()"><i class="fa fa-map-marker"></i></button>' %}
-                    {% bootstrap_field form.location addon_after='<button class="btn btn-default" type="button" ng-click="refresh()"><i class="fa fa-refresh"></i></button>' %}
-                    <ui-gmap-google-map ng-if="map !== undefined" control="map.control" center="map.center" zoom="map.zoom" draggable="true">
+                    {% bootstrap_field form.address addon_after='<button class="btn btn-default" type="button" ng-click="geocode()" ng-disabled="geocoder == undefined"><i class="fa fa-map-marker"></i></button>' %}
+                    {% bootstrap_field form.location addon_after='<button class="btn btn-default" type="button" ng-click="refresh()" ng-disabled="map == undefined"><i class="fa fa-refresh"></i></button>' %}
+                    <ui-gmap-google-map ng-if="map !== undefined" control="map.control" center="map.center" zoom="map.zoom">
                         <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
                     </ui-gmap-google-map>
                     <div class="loa loa-c" ng-if="map === undefined"><i class="fa fa-spinner fa-2x"></i></div>

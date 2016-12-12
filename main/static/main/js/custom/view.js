@@ -2,7 +2,7 @@ app
     .factory('menuService', function ($q, APIService){
         var itemService = APIService.init(8), menu; //, category
 
-        function chngmenu() { if (!menu[0].hascontent) menu[1].name = "Drinks"; else menu[1].name = "Other drinks"; /*menu[0].name == "Other drinks" / if (menu.length)*/ }
+        function chngmenu() { if (!menu[0].hascontent) menu[1].name = "Drinks"; else menu[1].name = "Other drinks" } //menu[0].name == "Other drinks" / if (menu.length)
 
         /*name = {
             'cider': menu[0].content[0].content,
@@ -35,26 +35,34 @@ app
         };*/
 
         function add(item) {
-            var c;
+            var c = false, f;
             for (var i = 0; i < menu.length; i++) {
-                for (var j = 0; j < menu[i].content.length; j++) {
+                if (c === false) for (var j = 0; j < menu[i].content.length; j++) {
                     if (menu[i].content[j].category == item.category) {
                         menu[i].content[j].content.push(item);
                         c = true;
                         break;
                     }
                 }
-                if (c) {
-                    if (!menu[i].hascontent) menu[i].hascontent = true;
+                if (menu[i].first) if (f) {
+                    menu[i].first = false;
                     break;
+                } else f = true;
+                if (c === true) {
+                    if (!menu[i].hascontent) menu[i].hascontent = true;
+                    if (!f) {
+                        menu[i].first = true;
+                        f = true;
+                    } else break;
+                    c = undefined;
                 }
             }
         }
 
         return {
             init: function (){
-                menu = [
-                    {hascontent: false, name: "Alcoholic beverages", content: [
+                menu = [ // important
+                    {first: false, hascontent: false, name: "Alcoholic beverages", content: [
                         {category: 'cider', name: "Ciders", content: []},
                         {category: 'whiskey', name: "Whiskeys", content: []},
                         {category: 'wine', name: "Wines", content: []},
@@ -67,7 +75,7 @@ app
                         {category: 'gin', name: "Gin", content: []},
                         {category: 'rum', name: "Rum", content: []}
                     ]},
-                    {hascontent: false, name: "Other drinks", content: [
+                    {first: false, hascontent: false, name: "Other drinks", content: [
                         {category: 'coffee', name: "Coffee", content: []},
                         {category: 'soft_drink', name: "Soft drinks", content: []},
                         {category: 'juice', name: "Juices", content: []},
@@ -76,8 +84,10 @@ app
                         {category: 'water', name: "Water", content: []},
                         {category: 'drinks_other', name: "Other", content: []}
                     ]},
-                    {hascontent: false, name: "Food", content: [
+                    {first: false, hascontent: false, name: "Food", content: [
                         {category: 'fast_food', name: "Fast food", content: []},
+                        {category: 'pizza', name: "Pizza", content: []},
+                        {category: 'pasta', name: "Pasta", content: []},
                         {category: 'appetizer', name: "Appetizers", content: []},
                         {category: 'soup', name: "Soups", content: []},
                         {category: 'meal', name: "Meals", content: []},
@@ -113,29 +123,37 @@ app
             },
             del: function (cat, id){
                 if (menu === undefined) return;
-                var d = false, h = false;
+                var d = 0;
                 for (var i = 0; i < menu.length; i++) {
-                    for (var j = 0; j < menu[i].content.length; j++) {
-                        if (!d && menu[i].content[j].category == cat) for (var k = 0; k < menu[i].content[j].content.length; k++) {
-                            if (menu[i].content[j].content[k].id == id) {
-                                menu[i].content[j].content.splice(k, 1);
-                                d = true;
-                                break;
+                    if (d !== null) {
+                        for (var j = 0; j < menu[i].content.length; j++) {
+                            if (!d && menu[i].content[j].category == cat) for (var k = 0; k < menu[i].content[j].content.length; k++) {
+                                if (menu[i].content[j].content[k].id == id) {
+                                    menu[i].content[j].content.splice(k, 1);
+                                    d++;
+                                    break;
+                                }
                             }
+                            if (d < 2 && menu[i].content[j].content.length > 0) d += 2;
+                            if (d == 3) break; /*&& !menu[i].content[j].content.length) {
+                             menu[i].content.splice(j, 1);
+                             break;
+                             }*/
                         }
-                        if (!h && menu[i].content[j].content.length > 0) h = true;
-                        if (h && d) break; /*&& !menu[i].content[j].content.length) {
-                            menu[i].content.splice(j, 1);
-                            break;
-                        }*/
+                        if (d == 1 || d == 3) {
+                            menu[i].hascontent = d == 3;
+                            if (d == 3) break; else if (menu[i].first) {
+                                menu[i].first = false;
+                                d = null;
+                            } else break;
+                        } else d = 0; /*&& !menu[i].content.length) {
+                         menu.splice(i, 1);
+                         break;
+                         }*/
+                    } else if (menu[i].hascontent) {
+                        menu[i].first = true;
+                        break;
                     }
-                    if (d) {
-                        menu[i].hascontent = h;
-                        break;
-                    } else h = false; /*&& !menu[i].content.length) {
-                        menu.splice(i, 1);
-                        break;
-                    }*/
                 }
                 chngmenu();
             },
@@ -144,7 +162,7 @@ app
                     function (result) {
                         add(result);
                         chngmenu();
-                     }
+                    }
                 ).$promise;
             }
         }
@@ -194,12 +212,12 @@ app
         $scope.submitReview = function () {
             var el = angular.element('[name="forms.review"] [name="text"]'), cond;
             cond = el.val().length < $scope.minchar ? 1 : 0;
-            if ($scope.forms.review.stars == 0) cond += 2;
+            if ($scope.forms.review_stars == 0) cond += 2;
             if (cond > 0) {
                 $scope.forms.review.alert = cond;
                 if (cond == 1 || cond == 3) el.focus();
                 return;
             } else $scope.forms.review.alert = 0;
-            reviewService.new(el.val(), $scope.forms.review.stars, $scope.$parent.id).then(function () { $scope.showrevf = false });
+            reviewService.new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () { $scope.showrevf = false });
         };
     });

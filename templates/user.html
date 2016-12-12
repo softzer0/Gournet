@@ -2,7 +2,8 @@
 
 {% block title %}{{ user.first_name }} {{ user.last_name }} - Gournet{% endblock %}
 {% block head %}{{ block.super }}
-    {% load staticfiles %}<script src="{% static 'main/js/custom/user.js' %}"></script>{% endblock %}
+    {% load staticfiles %}<script src="{% static 'main/js/custom/home_extra.js' %}"></script>
+    <script src="{% static 'main/js/custom/user.js' %}"></script>{% endblock %}
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ user.pk }}; first_name = '{{ user.first_name }}'; u = {rel_state: {{ rel_state }}, friend_count: {{ friend_count }}}"{% endblock %}
 

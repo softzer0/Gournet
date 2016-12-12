@@ -6,8 +6,8 @@
     </div>
     <div ng-show="has_next_page">
         <hr>
-        <a ng-show="!loading" href="javascript:" class="lm text-center" ng-click="getNotifs(true)">Load more</a>
-        <div class="loa loa-c" ng-if="loading"><i class="fa fa-spinner"></i></div>
+        <a ng-show="!notif_loading" href="javascript:" class="lm text-center" ng-click="getNotifs(true)">Load more</a>
+        <div class="loa loa-c" ng-if="notif_loading"><i class="fa fa-spinner"></i></div>
     </div>
 </div>
 <div class="dt" ng-if="!notifs.length">You don't have any notifications yet.</div>

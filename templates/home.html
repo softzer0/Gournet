@@ -2,35 +2,20 @@
 
 {% block head %}{{ block.super }}
     {% include 'base/home_extra.html' %}
-    {% load staticfiles %}<script src="{% static 'main/js/custom/home.js' %}"></script>
+    {% load staticfiles %}<link rel="stylesheet" href="{% static 'main/css/home_extra.css' %}">
+    <script src="{% static 'main/js/custom/map.js' %}"></script>
+    <script src="{% static 'main/js/custom/home_extra.js' %}"></script>
+    <script src="{% static 'main/js/custom/home.js' %}"></script>
     <script>app.constant('SEARCH_PAGE_SIZE', {{ settings.SEARCH_PAGE_SIZE }})</script>{% endblock %}
+
 {% block title %}Home - Gournet{% endblock %}
 {% block container %}
-        <div id="map" class="bor" style="height: 250px; margin-bottom: 40px;"></div>
-        <script>
-        function initMap() {
-            var myLatLng = {lat: 42.5567616, lng: 21.8621273};
-
-            var map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 9,
-                streetViewControl: false,
-                center: myLatLng
-            });
-
-            google.maps.event.addDomListener(window, "resize", function() {
-                var center = map.getCenter();
-                google.maps.event.trigger(map, "resize");
-                map.setCenter(center);
-            });
-
-            var marker = new google.maps.Marker({
-                position: myLatLng,
-                map: map/*,
-                draggable: true*/
-            });
-        }
-        </script>
-        <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+        <div ng-controller="MapCtrl" class="bor" id="home_map" style="position: relative; height: 250px; margin-bottom: 40px;">
+            <ui-gmap-google-map ng-if="map !== undefined && map.options !== undefined" control="map.control" options="map.options" center="map.center" zoom="map.zoom">
+                <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
+                <ui-gmap-markers models="markers" coords="'self'" options="'options'" click="click" icon="{url: '//chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|37455C|FFFFFF'}"></ui-gmap-markers>
+            </ui-gmap-google-map>
+        </div>
 
         <script type="text/ng-template" id="search">
             <p><i class="fa fa-search"></i> Searching <strong>{% verbatim %}{{ t == 'user' ? "users" : t == "business" ? "businesses" : t == 'item' ? "items" : "events" }}{% endverbatim %}</strong>, with keyword(s): <strong>{% verbatim %}{{ keywords }}{% endverbatim %}</strong>. <a href="#/"><i class="fa fa-chevron-left"></i> Go to main page.</a></p>

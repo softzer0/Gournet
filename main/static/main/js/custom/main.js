@@ -165,10 +165,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         if (loading) return;
                         loading = true;
                         scope.$parent.$eval(scope.onChange + '(' + p + ', value)', angular.extend({}, scope.funcParams, {value: scope.userRating != i + 1 ? i + 1 : 0})).then(function () { loading = false });
-                    } else if (scope.userRating !== undefined) {
-                        scope.userRating = scope.userRating != i + 1 ? i + 1 : 0;
-                        scope.ratingValue = scope.userRating;
-                    }
+                    } else if (scope.userRating !== undefined) scope.userRating = scope.userRating != i + 1 ? i + 1 : 0; //scope.ratingValue = scope.userRating;
                 };
                 scope.show = function () { scope.$parent.$eval(scope.onClickStats+'('+p+')', scope.funcParams) };
                 if (scope.userRating !== undefined && scope.ratingValue !== undefined) scope.$watch('userRating', function (status, old_status) { if (status != old_status) scope.ratingValue = scope.ratingValue != 0 && scope.userNumber != 0 ? (((status != 0 && old_status == 0) ? (scope.userNumber - 1) : (status == 0 && old_status != 0) ? (scope.userNumber + 1) : scope.userNumber) * scope.ratingValue - old_status + status) / scope.userNumber : status });
@@ -263,7 +260,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             var t = angular.copy(d);
             if (i === undefined) i = 0;
             if ($scope.loaded !== undefined) {
-                if (st) if (stars) t.stars = $scope.tabs[i].value; else t.is_dislike = $scope.tabs[i].value == 1;
+                if (st) if (stars) t.stars = $scope.tabs[i].value; else t.is_dislike = $scope.tabs[i].value;
                 $scope.loaded = false;
                 t.page = $scope.tabs[i].next_page;
             } else if (st) t.init = 1;
@@ -286,7 +283,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                                     load();
                                 }
                             } else {
-                                for (; i < 1; i++) if (result[i].results.length > 0) {
+                                for (i = 0; i < 2; i++) if (result[i].results.length > 0) {
                                     $scope.tabs[t] = {elems: [], value: i + 1, heading: i == 0 ? "Liked by" : "Disiked by"};
                                     load();
                                 }
@@ -351,6 +348,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         break;
                     case 10:
                         n = 'feed';
+                        break;
+                    case 11:
+                        n = 'home';
                         break;
                     default: n = 'users'
                 }
@@ -424,7 +424,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     })
 
     .factory('uniService', function ($q, $timeout, $injector, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES, dialogService){
-        var u = false, ld = {}, likeService = APIService.init(3), commentService = APIService.init(7), SEARCH_PAGE_SIZE, menuService; //, rs = false
+        var u = false, ld = {}, likeService = APIService.init(3), commentService = APIService.init(7), SEARCH_PAGE_SIZE, menuService, markerService; //, rs = false
 
         function UniObj(t){
             this.objs = [[],[], t];
@@ -475,14 +475,15 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     this.page_offset = 1;
                     delete this.objs[0].has_next_page;
                     ld = {};
+                    if (markerService !== undefined) markerService.markers.length = 0;
                 }
             }
             this.unloaded[t ? 1 : 0] = n === null;
-            if (n !== null) return e;
+            return n !== null ? e : $q.when();
         };
 
         UniObj.prototype.load = function (b, rel_state, nob) {
-            var ids = null, self = this;
+            var ids = null, self = this, d, i, j;
             if (b !== undefined) if (angular.isArray(b)) {
                 function showc(i) {
                     if (self.objs[1][i].showcomm === undefined) {
@@ -490,16 +491,16 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         self.loadComments(i, true).then(function l() { if (!self.unloaded[1]) $timeout(function () { if (!self.unloaded[1]) self.objs[1][i].showcomm[0][0] = true }) });
                     } else self.objs[1][i].showcomm[1] = true;
                 }
-                var p, i;
+                var p;
                 ids = '';
                 for (i = 0; i < b.length && b[i] !== undefined; i++) {
                     p = false;
-                    for (var j = i + 1; j < b.length; j++) if (b[j] == b[i]) {
+                    for (j = i + 1; j < b.length; j++) if (b[j] == b[i]) {
                         delete b[i];
                         p = true;
                     }
                     if (!p) { // && /^\d+$/.test(b[i])
-                        for (var d in this.objs[0]) if (this.objs[0][d].id == b[i]) {
+                        for (d in this.objs[0]) if (this.objs[0][d].id == b[i]) {
                             var ev = angular.copy(this.objs[0][d]);
                             /*delete ev.comments;
                             delete ev.user_comments;
@@ -517,6 +518,14 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 ids = ids.slice(1);
             }
             if (ids == '') return $q.when(); else if (ids == null) {
+                if (nob !== undefined)
+                    ld.position = nob.latitude+','+nob.longitude;{
+                    if (this.page_offset > 1) {
+                        this.page_offset = 1;
+                        nob = null;
+                    }
+                }
+                this.unloaded[0] = false;
                 if (this.objs[0].has_next_page !== undefined) if (SEARCH_PAGE_SIZE !== undefined) ld.offset = this.page_offset; else ld.page = this.page_offset;
                 if (b !== undefined) if (typeof(b) == 'string') ld.search = b; else ld.id = b;
                 if (rel_state !== undefined) {
@@ -526,11 +535,32 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         //rs = true;
                     } else ld.favourites = 1;
                 }
-                if (this.objs[2] == 'comment') ld.content_type = CONTENT_TYPES['business'];
-                return (this.s || this.u.feed).get(ld,
+                if (this.page_offset == 1 && this.objs[2] == 'comment') ld.content_type = CONTENT_TYPES['business'];
+                function appendResults(results) {
+                    if (nob === null) {
+                        if (results.length > 0) for (i = self.objs[0].length - 1; i >= 0; i--) {
+                            if (self.objs[0][i].distance !== undefined) for (j = results.length - 1; j >= 0; j--) {
+                                if (self.objs[0][i].id == results[j].id) {
+                                    self.objs[0][i].distance.value = results[j].distance.value;
+                                    self.objs[0][i].distance.unit = results[j].distance.unit;
+                                    results.splice(j, 1);
+                                    ids = true;
+                                    break;
+                                }
+                                if (ids) {
+                                    if (results.length == 0) break;
+                                    ids = false;
+                                } else self.objs[0].splice(i, 1);
+                            }
+                        } else self.objs[0].length = 0;
+                    }
+                    self.objs[0].push.apply(self.objs[0], results);
+                    if (nob === null && self.u === undefined) self.objs[0].sort(dynamicSortMultiple('-distance.unit', 'distance.value'));
+                }
+                if (this.page_offset > 1 || b !== undefined || rel_state !== undefined || this.u !== undefined) d = (this.s || this.u.feed).get(ld,
                     function (result) {
                         if (self.unloaded[0]) return;
-                        self.objs[0].push.apply(self.objs[0], result.results);
+                        appendResults(result.results);
                         if (result.count !== undefined) {
                             if (SEARCH_PAGE_SIZE === undefined) {
                                 SEARCH_PAGE_SIZE = $injector.get('SEARCH_PAGE_SIZE');
@@ -542,9 +572,26 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             self.objs[0].has_next_page = result.page_count > self.page_offset;
                             self.page_offset++;
                         }
-                    }).$promise
+                        if (result.results.length > 0 && (ld.favourites == 1 || self.u !== undefined || result.count !== undefined && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) {
+                            if (markerService === undefined) markerService = $injector.get('markerService');
+                            markerService.load(result.results, true, self.u !== undefined);
+                        }
+                }); else {
+                    d = APIService.init(11).query(ld,
+                        function (result) {
+                            if (self.unloaded[0]) return;
+                            if (result[0].results.length > 0) {
+                                if (markerService === undefined) markerService = $injector.get('markerService');
+                                markerService.load(result[0].results, null);
+                            }
+                            appendResults(result[1].results);
+                            self.objs[0].has_next_page = result[1].has_more;
+                            self.page_offset++;
+                        });
+                }
+                return d.$promise;
             } else {
-                var d = this;
+                d = this;
                 return this.s.query({ids: ids, no_business: nob || null}, function (result) {
                     if (d.unloaded[1]) return;
                     d.objs[1].push.apply(d.objs[1], result);
@@ -774,10 +821,23 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     .controller('BaseCtrl', function ($rootScope, $scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
         $scope.r = $scope.$parent.objs !== undefined;
         $scope.objs = $scope.r ? $scope.$parent.objs : objService[0].getobjs(false, false);
+        var t = objService[0].getobjs();
         if (!$scope.r) { // && $scope.objs.length == 0
-            $scope.loading = true;
-            var l = function() { $timeout(function() { $scope.loading = false }) };
-            objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state : $scope.is_fav).then(function() { l(); if (objService.length == 2) objService[1](); } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
+            var l = function() { $timeout(function() { $scope.loading = false })};
+            function load(s) { $timeout(function() {
+                if (!s) {
+                    if ($scope.loading) {
+                        $timeout(load, 100 + Math.floor(Math.random() * 10));
+                        return;
+                    }
+                    $scope.loading = true;
+                }
+                objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state : $scope.is_fav, t != 'user' ? $scope.coords : undefined).then(function() {
+                    l();
+                    if (objService.length == 2) objService[1]();
+                } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
+            })}
+            if (t == 'user' || angular.element('#home_map').length == 0 || $scope.coords) load();
             $scope.load_page = function (){
                 $scope.loading = true;
                 objService[0].load().then(l, l);
@@ -786,7 +846,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         $scope.$on('$destroy', function() { objService[0].getobjs($scope.r, null) });
 
-        if (objService[0].getobjs() == 'user') return;
+        if (t == 'user') return;
+
+        if (angular.element('#home_map').length == 1) $scope.load = load;
 
         $scope.showDisLikes = function (index, par_ind) { if (par_ind === undefined) usersModalService.setAndOpen($scope.objs[index].id, $scope.objs[index].type || objService[0].getobjs()); else if (index != null) usersModalService.setAndOpen($scope.objs[par_ind].comments[index].id, 'comment'); else usersModalService.setAndOpen($scope.objs[par_ind].main_comment.id, 'comment') };
 
@@ -800,13 +862,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             return objService[0].setLikeStatus(index, $scope.r, dislike, par_ind).then(l, l);
         };
 
-        if (objService[0].getobjs() == 'business') return;
+        if (t == 'business') return;
 
         $scope.checkAnim = function () { if (!angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave').length) return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave-prepare').length; else return true };
 
         $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1]() }) }; //... > 1)
 
-        $scope.com = [['older', 'comments', 0], ['newer', 'user_comments', 1]];
+        $scope.com = [["older", 'comments', 0], ["newer", 'user_comments', 1]];
 
         function load_comments(index, m){
             function l() { $timeout(function (){ $scope.objs[index].showcomm[0][m || 0] = true }) }
@@ -1076,12 +1138,12 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         var notifService = APIService.init(4);
 
-        $scope.loading = false;
+        $scope.notif_loading = false;
         $scope.notifs = [];
         var ids = '', frse, u = 0;
         ($scope.getNotifs = function (notick) {
             if (notick) {
-                $scope.loading = true;
+                $scope.notif_loading = true;
                 var page_num = Math.floor(($scope.notifs.length - u) / NOTIF_PAGE_SIZE) + 1;
             }
             var ret;
@@ -1114,7 +1176,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         } else markAllAsRead();
                     } else $scope.notifs.push.apply($scope.notifs, res);
                     if ($scope.opened) $scope.setSize(true);
-                    if ($scope.loading) $timeout(function() { $scope.loading = false });
+                    if ($scope.notif_loading) $timeout(function() { $scope.notif_loading = false });
                 }
                 if (frse === undefined) {
                     frse = false;

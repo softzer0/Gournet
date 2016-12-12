@@ -29,7 +29,10 @@ app
                 return;
             }
             menuService.new(el.val(), angular.element('[name="forms.item"] [name="price"]').val(), angular.element('[name="forms.item"] [name="cat"]').val()).then(
-                function () { el.val('') },
+                function () {
+                    el.val('');
+                    if (angular.element('#unpub').length == 1) angular.element('#unpub').remove();
+                },
                 function (result) {
                     if (result.data !== undefined && result.data.non_field_errors !== undefined) {
                         $scope.forms.item.alert = false;

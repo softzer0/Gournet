@@ -14,19 +14,57 @@ import datetime, re
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from functools import lru_cache
 from django.contrib.gis.db.models import PointField, GeoManager
-from geopy.geocoders import GoogleV3
-from django.contrib.gis.geos import fromstr
 from multiselectfield import MultiSelectField
+from sys import argv
+
+IS_SERVER = len(argv) == 1 or argv[1] not in ['makemigrations', 'migrate']
+
+@lru_cache()
+def get_content_types():
+    res = {}
+    if not IS_SERVER:
+        class t:
+            pk = None
+        o = t()
+    for r in ['business', 'event', 'item', 'comment']:
+        res[r] = ContentType.objects.get(model=r) if IS_SERVER else o
+    return res
+
+@lru_cache()
+def get_user_ct_pk():
+    return ContentType.objects.get(model='user').pk
+
+@lru_cache()
+def get_has_stars():
+    return {get_content_types()['item'].pk: 'item'}
+
+@lru_cache()
+def get_content_types_pk():
+    return [get_content_types()[ct].pk for ct in get_content_types()] if IS_SERVER else []
+
 
 CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
-SUPPORTED_PLACES = ((0, "Serbia, Vranje"),)
 
 alphabet_only = RegexValidator(r'^[^\W\d_]+$', "Only letters from the alphabet are allowed.")
 user_short_name = RegexValidator(
                     r'^[\w.-]+$',
                     code=re.ASCII
                 )
+
+class Loc(models.Model):
+    location = PointField("latitude/longitude", geography=True, blank=True, error_messages={'invalid': "Enter valid coordinates."})
+    loc_projected = PointField(srid=3857) # if PostGIS - remove
+    address = models.CharField(max_length=130, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs): # if PostGIS - remove
+        self.loc_projected = self.location.transform(3857, True)
+        super().save(*args, **kwargs)
+
 
 class MyUserManager(UserManager):
     """def create_user(self, username, email=None, password=None, **extra_fields):
@@ -37,13 +75,13 @@ class MyUserManager(UserManager):
     def get_by_natural_key(self, username):
         return self.get(username__iexact=username)
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, Loc, PermissionsMixin):
     """
     An class implementing a fully featured User model with
     admin-compliant permissions.
     """
     username = models.CharField(
-        'username',
+        "username",
         max_length=30,
         unique=True,
         help_text="Maximum 30 characters."+' '+"English letters (case-insensitive), digits and ./-/_ only.",
@@ -52,9 +90,9 @@ class User(AbstractBaseUser, PermissionsMixin):
             'unique': "A user with that username already exists.",
         },
     )
-    first_name = models.CharField('first name', max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
-    last_name = models.CharField('last name', max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
-    email = models.EmailField('email address', unique=True) # Changed from "blank" to "unique" attribute
+    first_name = models.CharField("first name", max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
+    last_name = models.CharField("last name", max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
+    email = models.EmailField("email address", unique=True) # Changed from "blank" to "unique" attribute
 
     # Added custom fields [BEGIN]
 
@@ -63,28 +101,27 @@ class User(AbstractBaseUser, PermissionsMixin):
     #favourites = models.ManyToManyField('Business', blank=True, related_name='favoured_by')
     #comments = models.ManyToManyField('Event', blank=True, symmetrical=False, through='Comment', related_name='commented_by')
 
-    gender = models.IntegerField('gender', choices=CHOICE_GENDER, default=0)
-    birthdate = models.DateField('birthdate')
-    location = models.IntegerField(choices=SUPPORTED_PLACES)
+    gender = models.IntegerField("gender", choices=CHOICE_GENDER, default=0)
+    birthdate = models.DateField("birthdate")
 
     recent = GenericRelation('Recent')
 
     # Added custom fields [END]
 
     is_staff = models.BooleanField(
-        'staff status',
+        "staff status",
         default=False,
-        help_text='Designates whether the user can log into this admin site.',
+        help_text="Designates whether the user can log into this admin site.",
     )
     is_active = models.BooleanField(
-        'active',
+        "active",
         default=True,
         help_text=(
-            'Designates whether this user should be treated as active. '
-            'Unselect this instead of deleting accounts.'
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
         ),
     )
-    date_joined = models.DateTimeField('date joined', default=timezone.now)
+    date_joined = models.DateTimeField("date joined", default=timezone.now)
 
     objects = MyUserManager()
 
@@ -94,8 +131,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         swappable = 'AUTH_USER_MODEL'
         ordering = ['username', 'first_name', 'last_name']
-        verbose_name = 'user'
-        verbose_name_plural = 'users'
+        verbose_name = "user"
+        #verbose_name_plural = "users"
 
     def save(self, *args, **kwargs):
         self.first_name = self.first_name.capitalize()
@@ -173,7 +210,7 @@ def not_forbidden(value):
     if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'your-business']: # important
         raise ValidationError('"%s" is not permitted as a shortname.' % value)
 
-class BusinessManager(models.Manager):
+class BusinessManager(GeoManager):
     def get_by_natural_key(self, shortname):
         return self.get(shortname__iexact=shortname)
 
@@ -183,11 +220,9 @@ class BusinessManager(models.Manager):
 CURRENCY = (('RSD', "Serbian dinars (RSD)"), ('EUR', "Euros (EUR)"))
 BUSINESS_TYPE = ((0, "Restaurant"), (1, "Tavern"), (2, "Bistro"), (3, "Cafe"), (4, "Pub"), (5, "Bar"), (6, "Nightclub"), (7, "Fast food"))
 
-settings.CONTENT_TYPES['business'] = ContentType.objects.get(model='business')
-
-class Business(models.Model):
+class Business(Loc):
     shortname = models.CharField(
-        'shortname',
+        "shortname",
         max_length=30,
         unique=True,
         help_text="The people could access your business by putting its shortname after the site address, e.g"+': <u>http://gournet.co/shortname</u>. ' +\
@@ -198,52 +233,37 @@ class Business(models.Model):
         ]
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)
-    type = models.IntegerField(choices=BUSINESS_TYPE, default=0)
+    type = models.SmallIntegerField(choices=BUSINESS_TYPE, default=0)
     name = models.CharField(max_length=60, validators=[
             RegexValidator(
                 r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$',
                 ('Enter a valid business name.')
             ),
         ])
-    phone = PhoneNumberField("Phone number", help_text="In national format, e.g"+': 017448739.')
-    opened = models.TimeField("Opening time", default=datetime.time(8, 0))
-    opened_sat = models.TimeField("Opening time on Saturday", null=True, blank=True)
-    opened_sun = models.TimeField("Opening time on Sunday", null=True, blank=True)
-    closed = models.TimeField("Closing time", default=datetime.time(0, 0))
-    closed_sat = models.TimeField("Closing time on Saturday", null=True, blank=True)
-    closed_sun = models.TimeField("Closing time on Sunday", null=True, blank=True)
-    currency = models.CharField("Default currency", choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
-    supported_curr = MultiSelectField("Other supported currencies (if any)", choices=CURRENCY, null=True, blank=True, max_length=3)
-    location = PointField("Longitude/latitude", blank=True, error_messages={'invalid': "Enter valid coordinates."})
-    address = models.CharField(max_length=130, blank=True)
+    phone = PhoneNumberField("phone number", help_text="In national format, e.g"+': 017448739.')
+    opened = models.TimeField("opening time", default=datetime.time(8, 0))
+    opened_sat = models.TimeField("opening time on Saturday", null=True, blank=True)
+    opened_sun = models.TimeField("opening time on Sunday", null=True, blank=True)
+    closed = models.TimeField("closing time", default=datetime.time(0, 0))
+    closed_sat = models.TimeField("closing time on Saturday", null=True, blank=True)
+    closed_sun = models.TimeField("closing time on Sunday", null=True, blank=True)
+    currency = models.CharField("default currency", choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
+    supported_curr = MultiSelectField("other supported currencies (if any)", choices=CURRENCY, null=True, blank=True, max_length=3)
+    is_published = models.BooleanField(default=False)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
 
-    gis = GeoManager()
     objects = BusinessManager()
 
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
-@receiver(pre_save, sender=Business, dispatch_uid='business_fill_locaddr')
-def business_fill_locaddr(instance, **kwargs):
-    geocoder = GoogleV3()
-    try:
-        if instance.location and not instance.address:
-            instance.address = geocoder.reverse('%s %s' % (instance.location.x, instance.location.y))[0].address
-        elif instance.address and not instance.location:
-            loc = geocoder.geocode(instance.address)
-            instance.location = fromstr('POINT(%s %s)' % (loc.latitude, loc.longitude))
-    except:
-        pass
-
 @receiver(pre_delete, sender=Business, dispatch_uid='business_review_delete')
 def business_review_delete(instance, **kwargs):
-    Comment.objects.filter(content_type=settings.CONTENT_TYPES['business'], object_id=instance.pk).delete()
+    Comment.objects.filter(content_type=get_content_types()['business'], object_id=instance.pk).delete()
 
 
 EVENT_MIN_CHAR = 15
-settings.CONTENT_TYPES['event'] = ContentType.objects.get(model='event')
 
 class Event(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
@@ -251,6 +271,8 @@ class Event(models.Model):
     when = models.DateTimeField()
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
+
+    objects = GeoManager()
 
     class Meta:
         ordering = ['-when', '-pk']
@@ -262,7 +284,7 @@ class Event(models.Model):
 
 def cascade_delete(type, pk):
     for model in [EventNotification, Comment]:
-        qs = model.objects.filter(content_type=settings.CONTENT_TYPES[type], object_id=pk)
+        qs = model.objects.filter(content_type=get_content_types()[type], object_id=pk)
         qs._raw_delete(qs.db)
 
 @receiver(pre_delete, sender=Event, dispatch_uid='event_cascade_delete')
@@ -297,6 +319,8 @@ CATEGORY = (
     ),
     ("Food", (
             ('fast_food', "Fast food"),
+            ('pizza', "Pizza"),
+            ('pasta', "Pasta"),
             ('appetizer', "Appetizer"),
             ('soup', "Soup"),
             ('meal', "Meal"),
@@ -309,9 +333,6 @@ CATEGORY = (
     )
 )
 ITEM_MIN_CHAR = 2
-
-settings.CONTENT_TYPES['item'] = ContentType.objects.get(model='item')
-settings.HAS_STARS[settings.CONTENT_TYPES['item'].pk] = 'item'
 
 class Item(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
@@ -335,22 +356,31 @@ class Item(models.Model):
 def item_cascade_delete(instance, **kwargs):
     cascade_delete('item', instance.pk)
 
+@receiver(post_save, sender=Item, dispatch_uid='item_set_b_published')
+def item_set_b_published(instance, **kwargs):
+    if instance.business.item_set.count() == 1:
+        instance.business.is_published = True
+        instance.business.save()
+
+
+class CT(models.Model):
+    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': get_content_types_pk()})
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        abstract = True
+
 
 REVIEW_STATUS = ((0, "Started"), (1, "Closed"), (2, "Completed"), (3, "Declined"), (4, "Under review"), (5, "Planned"), (6, "Archived"), (7, "Need feedback"))
 
-settings.CONTENT_TYPES['comment'] = ContentType.objects.get(model='comment')
-CONTENT_TYPES_PK = [ct.pk for ct in settings.CONTENT_TYPES.values()]
-
-class Comment(models.Model):
+class Comment(CT):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
     text = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     stars = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)], null=True, blank=True)
     main_comment = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
-    status = models.IntegerField(choices=REVIEW_STATUS, null=True, blank=True)
+    status = models.SmallIntegerField(choices=REVIEW_STATUS, null=True, blank=True)
     likes = GenericRelation('Like')
 
     class Meta:
@@ -378,7 +408,7 @@ def comment_save_notification(instance, created, **kwargs):
     if bc == 1 and instance.status is not None:
         instance.content_object.main_comment = instance
         instance.content_object.save()
-    ct = settings.CONTENT_TYPES['comment'] if bc == 2 else instance.content_type
+    ct = get_content_types()['comment'] if bc == 2 else instance.content_type
     obj_pk = instance.pk if bc == 2 else instance.object_id
     # noinspection PyUnresolvedReferences
     manager = instance.content_object.manager if bc == 2 else instance.content_object.content_object.manager if bc == 1 else instance.content_object.business.manager
@@ -401,11 +431,8 @@ def comment_cascade_delete(instance, **kwargs):
         cascade_delete('comment', instance.pk)
 
 
-class Like(models.Model):
+class Like(CT):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
     is_dislike = models.BooleanField(default=False)
     stars = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)], null=True, blank=True)
     date = models.DateTimeField(auto_now=True)
@@ -415,15 +442,12 @@ class Like(models.Model):
         ordering = ['-date']
 
     def __str__(self):
-        return 'User %s, %s on %s #%d' % (self.person.username, 'dislike' if self.is_dislike else 'like' if self.content_type_id not in settings.HAS_STARS else str(self.stars)+' stars', self.content_type.model, self.object_id)
+        return 'User %s, %s on %s #%d' % (self.person.username, 'dislike' if self.is_dislike else 'like' if self.content_type_id not in get_has_stars() else str(self.stars)+' stars', self.content_type.model, self.object_id)
 
 
-class EventNotification(models.Model):
+class EventNotification(CT):
     from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person", blank=True, null=True)
     to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_to_person")
-    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
     comment_type = models.PositiveSmallIntegerField(blank=True, null=True)
     when = models.DateTimeField(auto_now_add=True)
     count = models.PositiveSmallIntegerField(default=1)
@@ -433,11 +457,8 @@ class EventNotification(models.Model):
         ordering = ['comment_type', 'content_type', 'from_person', 'object_id', 'when']
 
 
-class Recent(models.Model):
+class Recent(CT):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': CONTENT_TYPES_PK})
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
     date = models.DateTimeField(auto_now=True)
     count = models.PositiveIntegerField(default=1)
 

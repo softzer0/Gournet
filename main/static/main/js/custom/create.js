@@ -24,67 +24,32 @@ app
         }
     })
 
-    .controller('CreateCtrl', function ($scope, uiGmapGoogleMapApi, $speakingurl) {
+    .controller('CreateCtrl', function ($scope, $controller, $timeout, $speakingurl) {
         $scope.work = [];
         $scope.isOpen = [false, false, false, false, false, false];
         $scope.date = [];
         $scope.genshort = function () { $scope.shortname = $speakingurl.getSlug($scope.name) };
 
-        function geocodeAddress(maps, address, callback) {
-            new maps.Geocoder().geocode({address: address, componentRestrictions: {country: 'RS'}}, function (results, status) {
-                if (status == maps.GeocoderStatus.OK) {
-                    callback(results[0].geometry.location);
-                } else {
-                    console.log("Geocode was not successful for the following reason: " + status);
-                }
-            });
-        }
-        function setCoords(coords, nom) {
-            if (!nom) {
-                $scope.map.marker.coords.latitude = coords.lat();
-                $scope.map.marker.coords.longitude = coords.lng();
-            }
-            $scope.map.center.latitude = coords.lat();
-            $scope.map.center.longitude = coords.lng();
-            $scope.location = $scope.map.center.latitude+','+$scope.map.center.longitude;
-        }
-        uiGmapGoogleMapApi.then(function(maps) {
-            geocodeAddress(maps, $scope.address || "Vranje, Serbia", function (coords){
-                $scope.map = {
-                    zoom: 15,
-                    //options: {scrollwheel: false},
-                    center: {latitude: coords.lat(), longitude: coords.lng()},
-                    marker: {
-                        id: 0,
-                        coords: {latitude: coords.lat(), longitude: coords.lng()}, //{latitude: 42.5567616, longitude: 21.8621273}
-                        options: {draggable: true},
-                        events: {dragend: function (marker) { setCoords(marker.getPosition(), true) }}
-                    },
-                    /*events: {
-                        resize: function() {
-                            $scope.map.center.latitude = $scope.map.marker.coords.latitude;
-                            $scope.map.center.latitude = $scope.map.marker.coords.longitude;
-                        }
-                    },*/
-                    //search: {places_changed: function (){ $scope.geocode(true) }},
-                    control: {}
-                };
-            });
-            maps.event.addDomListener(window, 'resize', function() {
-                if ($scope.map.control.length == 0) return;
-                var map = $scope.map.control.getGMap(), center = map.getCenter();
-                google.maps.event.trigger(map, 'resize');
-                map.setCenter(center);
-            });
-        });
+        angular.extend(this, $controller('BaseMapCtrl', {$scope: $scope, funcs: [
+            function (init){
+                if ($scope.location != '') { // && /^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$/.test($scope.location)
+                    $scope.location = $scope.location.replace(' ','');
+                    init({latitude: $scope.location.split(',')[1], longitude: $scope.location.split(',')[0]});
+                } else if ($scope.address != '') $scope.geocodeAddress($scope.address, init); else init({latitude: 42.5450345, longitude: 21.90027120000002}); //Vranje, Serbia
+            },
+            function (){ $scope.location = $scope.map.center.latitude+','+$scope.map.center.longitude }
+        ]}));
 
         var l = true;
         $scope.geocode = function (f) {
-            if ($scope.map === undefined) return;
+            if ($scope.map === undefined) {
+                $timeout(function() { $scope.geocode(true) }, 1000);
+                return;
+            }
             if ($scope.address != '' && (!f || l)) {
-                geocodeAddress($scope.address, setCoords);
+                $scope.geocodeAddress($scope.address, setCoords);
                 l = false;
             } else if (f) l = $scope.address == '';
         };
-        $scope.refresh = function () { setCoords($scope.map.control.getGMap().getCenter()) };
+        $scope.refresh = function () { $scope.setCoords($scope.map.control.getGMap().getCenter()) };
     });

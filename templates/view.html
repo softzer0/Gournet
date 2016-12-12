@@ -57,7 +57,9 @@
                             </ul>
                         </li>{% endblock %}
 
-{% block content %}<uib-tab index="0" heading="Events">
+{% block content %}{% if not business.is_published %}                    <uib-alert id="unpub" type="warning">Your business won't be visible to others until you add some items to it.</uib-alert>
+
+                    {% endif %}<uib-tab index="0" heading="Events">
 {% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="EventCtrl">
 							<form name="forms.event" ng-submit="submitEvent()" class="frm form-vertical">
                                 <uib-alert class="mpd" type="danger" close="forms.event.alert = false" ng-if="forms.event.alert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
@@ -96,6 +98,7 @@
 
 {% endif %}                        <div class="mn">
                             <div class="angular-animate" ng-if="objloaded[1] && c.hascontent" ng-repeat="c in menu" ng-cloak>
+                                <hr ng-if="!c.first">
                                 <h4 ng-bind="c.name"></h4>
                                 <div class="angular-animate" ng-repeat="sc in c.content" ng-if="sc.content.length > 0">
                                     <h5 class="text-center">{% verbatim %}{{ sc.name }}{% endverbatim %}</h5>
@@ -114,7 +117,6 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <hr ng-if="!$last">
                             </div>
                             <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && !objloaded[1]"><i class="fa fa-spinner fa-2x"></i></div>
                         </div>
@@ -127,7 +129,7 @@
                                 <div class="form-group" ng-class="{'has-error': forms.review.alert == 1 || forms.review.alert == 3}">
 								    <textarea name="text" class="form-control" rows="3" required></textarea>
                                 </div>
-                                <div class="mpd" star-rating user-rating="forms.review.stars"></div>
+                                <div class="mpd" star-rating rating-value="forms.review_stars" user-rating="forms.review_stars"></div>
 								<input type="submit" class="btn btn-primary" value="Submit">
 							</form>
 						</div>

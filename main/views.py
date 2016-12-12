@@ -24,8 +24,8 @@ from drf_multiple_model.mixins import Query
 from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers
 from rest_framework.serializers import ValidationError
-from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Item, Event, Recent, EVENT_MIN_CHAR, CONTENT_TYPES_PK, increment
-import os.path
+from .models import Relationship, Notification, EventNotification, Business, Like, Comment, Item, Event, Recent, EVENT_MIN_CHAR, increment, get_content_types, get_content_types_pk, get_user_ct_pk, get_has_stars
+from os import path
 # from . import permissions
 from . import forms
 # from .decorators import login_forbidden
@@ -33,6 +33,9 @@ from . import forms
 # from decorator_include import decorator_include
 # from stronghold.views import StrongholdPublicMixin
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.measure import D
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import fromstr
 from .serializers import NOT_MANAGER_MSG, gen_where, sort_related, friends_from
 
 User = get_user_model()
@@ -82,11 +85,13 @@ def show_business(request, shortname):
         data = {'business': Business.objects.get_by_natural_key(shortname)}
     except Business.DoesNotExist:
         return redirect('/')
+    if not data['business'].is_published and data['business'].manager != request.user:
+        return redirect('/')
     if data['business'].likes.filter(person=request.user).exists():
         increase_recent(request, data['business'])
-    data['fav_count'] = Like.objects.filter(content_type=settings.CONTENT_TYPES['business'], object_id=data['business'].pk).count()
+    data['fav_count'] = Like.objects.filter(content_type=get_content_types()['business'], object_id=data['business'].pk).count()
     if request.user != data['business'].manager:
-        if Like.objects.filter(content_type=settings.CONTENT_TYPES['business'], object_id=data['business'].pk, person=request.user).exists():
+        if Like.objects.filter(content_type=get_content_types()['business'], object_id=data['business'].pk, person=request.user).exists():
             data['fav_state'] = 1
         else:
             data['fav_state'] = 0
@@ -135,10 +140,10 @@ def return_avatar(request, username_id, size):
     if size:
         s += size+'x'+size+'.'
     mimeext = 'png'
-    if os.path.isfile(avatar+s+'jpg'):
+    if path.isfile(avatar+s+'jpg'):
         avatar += s+'jpg'
         mimeext = 'jpeg'
-    elif os.path.isfile(avatar+s+'png'):
+    elif path.isfile(avatar+s+'png'):
         avatar += s+'png'
     else:
         avatar = img_folder+'avatar'+s+'png'
@@ -170,11 +175,30 @@ class EmailAPIView(generics.ListAPIView):
         return EmailAddress.objects.filter(user=self.request.user).order_by('-primary', '-verified')
 
 
+def get_loc(self, qs, f='business', loc=False, store=False):
+    if f:
+        f += '__'
+    else:
+        f = ''
+    if 'pos' not in self.kwargs:
+        try:
+            pos = fromstr('POINT('+self.request.query_params['position'].replace(',', ' ')+')', srid=4326)
+            pos.transform(3857) #if PostGIS - remove
+        except:
+            pos = self.request.user.loc_projected #if PostGIS - replace "_projected" with "ation"
+        if store:
+            self.kwargs['pos'] = pos
+    else:
+        pos = self.kwargs['pos']
+    if loc:
+        qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=self.request.query_params.get('distance', 5)))})  #if PostGIS - replace "_projected" with "ation"
+    return qs.annotate(distance=Distance(f+'loc_projected', pos)).order_by('distance', *qs.model._meta.ordering) if loc is not None else qs
+
 class SearchAPIView(generics.ListAPIView):
     filter_backends = (SearchFilter,)
 
     def paginate_queryset(self, queryset):
-        if self.request.query_params.get('limit', '').isdigit():
+        if self.request.query_params.get('search', False):
             self.pagination_class = pagination.SearchPagination
         return super().paginate_queryset(queryset)
 
@@ -186,8 +210,16 @@ class SearchAPIView(generics.ListAPIView):
 
 class BusinessAPIView(SearchAPIView):
     serializer_class = serializers.BusinessSerializer
-    queryset = Business.objects.all().defer('manager', 'phone') #, ...
     search_fields = ('name', 'shortname')
+
+    def get_queryset(self):
+        ins = not isinstance(self, BusinessAPIView)
+        return get_loc(self, Business.objects.filter(is_published=True).defer('manager', 'phone', 'address', 'is_published'), None, ins, ins)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['home'] = None
+        return context
 
 def get_object(pk, cl=User):
     """
@@ -199,6 +231,7 @@ def get_object(pk, cl=User):
         raise NotFound(cl.__name__+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
 
 class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView):
+    filter_backends = (SearchFilter,)
     search_fields = ('first_name', 'last_name', 'username')
 
     def get_serializer_class(self):
@@ -213,7 +246,7 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView
         qs = friends_from(person, True)
         if person != self.request.user:
             return sort_related(qs, self.request.user)
-        return qs #modify for sorting by recent
+        return sort_related(qs, where=gen_where('user', self.request.user.pk, 'recent', 'user', ct=get_user_ct_pk()))
 
     def delete(self, request, *args, **kwargs):
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
@@ -248,7 +281,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
 
     def add_notif(self, curr, created):
         if curr['typ'] is not None:
-            txt = [(self.gen_person(curr['persons'][0])+" has" if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have")+' '+("commented on" if curr['typ'] != 2 else "reviewed")+' '+(("your" if curr['typ'] != 1 else "a")+' '+(curr['ct'].model_class()._meta.verbose_name.lower() if curr['typ'] != 2 else "business") if len(curr['pks']) == 1 else str(len(curr['pks']))+' '+curr['ct'].model_class()._meta.verbose_name_plural.lower())+(" on your business" if curr['typ'] == 1 else '')+'.', (curr['ct'].model if curr['ct'] != settings.CONTENT_TYPES['comment'] else 'review')+('&showcomments' if curr['typ'] != 2 and len(curr['pks']) == 1 else '')]
+            txt = [(self.gen_person(curr['persons'][0])+" has" if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have")+' '+("commented on" if curr['typ'] != 2 else "reviewed")+' '+(("your" if curr['typ'] != 1 else "a")+' '+(curr['ct'].model_class()._meta.verbose_name.lower() if curr['typ'] != 2 else "business") if len(curr['pks']) == 1 else str(len(curr['pks']))+' '+curr['ct'].model_class()._meta.verbose_name_plural.lower())+(" on your business" if curr['typ'] == 1 else '')+'.', (curr['ct'].model if curr['ct'] != get_content_types()['comment'] else 'review')+('&showcomments' if curr['typ'] != 2 and len(curr['pks']) == 1 else '')]
         else:
             txt = [self.gen_person(curr['persons'][0])+" notifies you about "+("one event" if len(curr['pks']) == 1 else str(len(curr['pks']))+" events"), 'event']
         self.create_notif(txt, curr['pks'], created)
@@ -334,8 +367,8 @@ def send_notifications(request, pk):
             if not notxt:
                 cnt = 0
             for person in persons:
-                if request.user != person and not EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=settings.CONTENT_TYPES['event'], object_id=event.pk).exists():
-                    EventNotification.objects.create(from_person=request.user, to_person=person, content_type=settings.CONTENT_TYPES['event'], object_id=event.pk)
+                if request.user != person and not EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=get_content_types()['event'], object_id=event.pk).exists():
+                    EventNotification.objects.create(from_person=request.user, to_person=person, content_type=get_content_types()['event'], object_id=event.pk)
                     if not notxt:
                         # noinspection PyUnboundLocalVariable
                         cnt += 1
@@ -345,6 +378,16 @@ def send_notifications(request, pk):
         return status, text
     return base_view(request, t, cont, pk=pk)
 
+
+def filter_published(model, ct_f='business'):
+    if not ct_f:
+        ct_f = ''
+    elif isinstance(ct_f, str):
+        ct_f += '__'
+    if isinstance(ct_f, int):
+        return model.objects.filter(content_type__pk=ct_f).extra(where=[gen_where(model.__name__.lower(), 1, column='is_published', target='business', ct=ct_f)])
+    return model.objects.filter(**{ct_f+'is_published': True})
+
 class FeedAPIView(MultipleModelAPIView):
     sorting_field = '-sort_field'
     flat = True
@@ -352,16 +395,23 @@ class FeedAPIView(MultipleModelAPIView):
 
     def get_queryList(self):
         def get_friends_qs(model, filter='business__manager', ct=None):
-            qs = model.objects.filter(content_type__pk=ct) if ct else model.objects
+            """
+            @type model: django.db.models.Model
+            """
+            if not ct:
+                f = None if filter is None else 'business'
+            qs = filter_published(model, ct or f)
             if filter:
-                return qs.filter(Q(**{filter + '__in': friends}) | Q(likes__person__in=friends)).annotate(is_liked=Max(Case(When(likes__person__in=friends, then=1), default=0, output_field=IntegerField())), sort_field=Max(Case(When(likes__person__in=friends, then=F('likes__date')), default=F('created'))))[:self.max] #.distinct('pk')
-            return qs.filter(likes__person__in=friends).annotate(sort_field=F('likes__date'))[:self.max]
+                qs = qs.filter(Q(**{filter + '__in': friends}) | Q(likes__person__in=friends)).annotate(is_liked=Max(Case(When(likes__person__in=friends, then=1), default=0, output_field=IntegerField())), sort_field=Max(Case(When(likes__person__in=friends, then=F('likes__date')), default=F('created')))) #.distinct('pk')
+            else:
+                qs = qs.filter(likes__person__in=friends).annotate(sort_field=F('likes__date'))
+            return get_loc(self, qs, f, store=True)[:self.max] if not ct else qs[:self.max]
 
         friends = list(friends_from(self.request.user).values_list('pk', flat=True))
-        return [(get_friends_qs(Business, ''), serializers.BusinessSerializer),
+        return [(get_friends_qs(Business, None), serializers.BusinessSerializer),
                 (get_friends_qs(Event), serializers.EventSerializer),
                 (get_friends_qs(Item), serializers.ItemSerializer),
-                (get_friends_qs(Comment, 'person', settings.CONTENT_TYPES['business'].pk), serializers.CommentSerializer),
+                (get_friends_qs(Comment, 'person', get_content_types()['business'].pk), serializers.CommentSerializer),
                 (Relationship.objects.filter(Q(from_person__in=friends) | Q(to_person__in=friends)).filter(symmetric=True).exclude(to_person=self.request.user).exclude(from_person=self.request.user).annotate(rev_dir=Case(When(to_person__in=friends, then=1), default=0, output_field=IntegerField()), sort_field=F('notification__created')).defer('notification', 'symmetric')[:self.max], serializers.RelationshipSerializer, 'user')]
 
     def get_serializer_context(self):
@@ -378,9 +428,10 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     def __init__(self):
         super().__init__()
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
+        self.main_f = self.ct or 'business'
 
     def get_person_qs(self, person):
-        qs = (self.model.objects.filter(content_type__pk=self.ct) if self.ct else self.model.objects).filter(Q(**{self.filter: person}) | Q(likes__person=person))
+        qs = filter_published(self.model, self.main_f).filter(Q(**{self.filter: person}) | Q(likes__person=person))
         return qs.order_by(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)).desc(), *self.model._meta.ordering) if self.order_by else qs
 
     def get_qs_pk(self):
@@ -389,6 +440,9 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def order_qs(self, qs):
         return qs
+
+    def getnopk(self):
+        return filter_published(self.model, self.main_f)
 
     def get_queryset(self):
         if self.request.query_params.get('ids', False):
@@ -419,8 +473,9 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if 'person' in self.kwargs:
-            context['person'] = self.kwargs['person']
+        for f in ['person', 'home', 'search']:
+            if f in self.kwargs:
+                context[f] = None
         if self.request.query_params.get('no_business', False):
             context['hiddenbusiness'] = None
         return context
@@ -436,8 +491,8 @@ def get_t_pk(obj, dic):
     pk = obj.kwargs['ct_pk']
     if pk:
         if int(pk) in dic:
-            return pk if dic != settings.HAS_STARS else True
-        return False if dic != settings.HAS_STARS else int(pk)
+            return pk if dic != get_has_stars() else True
+        return False if dic != get_has_stars() else int(pk)
     return None
 
 def get_type(obj):
@@ -445,7 +500,7 @@ def get_type(obj):
     @type obj: django.views.generic.base.View
     """
     if 'ct' not in obj.kwargs:
-        pk = get_t_pk(obj, CONTENT_TYPES_PK)
+        pk = get_t_pk(obj, get_content_types_pk())
         if pk:
             res = ContentType.objects.get(pk=pk)
         elif pk is False:
@@ -462,16 +517,16 @@ def get_qs(obj_v, model):
     """
     ct = get_type(obj_v)
     obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else Event)
-    return model.objects.filter(content_type=ct if ct else settings.CONTENT_TYPES['event'], object_id=obj.pk)
+    return model.objects.filter(content_type=ct if ct else get_content_types()['event'], object_id=obj.pk)
 
 def set_t(obj_v, context):
     """
     @type obj_v: django.views.generic.base.View
     """
-    pk = get_t_pk(obj_v, settings.HAS_STARS)
+    pk = get_t_pk(obj_v, get_has_stars())
     if pk is True:
         context['stars'] = None
-    elif pk == settings.CONTENT_TYPES['business'].pk:
+    elif pk == get_content_types()['business'].pk:
         context['business'] = None
     else:
         return False
@@ -481,7 +536,7 @@ class CommentAPIView(BaseAPIView):
     serializer_class = serializers.CommentSerializer
     model = Comment
     filter = 'person'
-    ct = settings.CONTENT_TYPES['business'].pk
+    ct = get_content_types()['business'].pk
 
     def getnopk(self):
         return self.order_qs(self.get_person_qs(self.request.user))
@@ -519,7 +574,7 @@ class CommentAPIView(BaseAPIView):
         if obj.status is not None and obj.content_object.main_comment == obj:
             co = obj.content_object
             obj.delete()
-            co.main_comment = Comment.objects.filter(content_type=settings.CONTENT_TYPES['comment'], object_id=co.pk, status__isnull=False).last()
+            co.main_comment = Comment.objects.filter(content_type=get_content_types()['comment'], object_id=co.pk, status__isnull=False).last()
             if co.main_comment:
                 co.save()
                 return Response(data=serializers.CommentSerializer(co.main_comment, context=self.get_serializer_context()).data)
@@ -534,9 +589,16 @@ class EventAPIView(BaseAPIView):
     search_fields = ('text',) #'business__name'
 
     def getnopk(self):
+        if not isinstance(self, EventAPIView):
+            self.model = Event
+            self.main_f = 'business'
+            qs = BaseAPIView.getnopk(self)
+        else:
+            qs = super().getnopk()
+            self.kwargs['search'] = None
         if get_param_bool(self.request.query_params.get('favourites', False)):
-            return Event.objects.extra(where=[gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=settings.CONTENT_TYPES['business'].pk)])
-        return Event.objects.all() # change from all to filter current surrounding events
+            return get_loc(self, qs.extra(where=[gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=get_content_types()['business'].pk)]))
+        return get_loc(self, qs, loc=not self.request.query_params.get('search', False)) #, store=not isinstance(self, EventAPIView)
 
 def get_b_from(user):
     try:
@@ -551,9 +613,11 @@ class ItemAPIView(BaseAPIView):
     search_fields = ('name',)
 
     def getnopk(self):
+        qs = super().getnopk()
         if self.request.query_params.get('search', False):
-            return Item.objects.all()
-        return Item.objects.filter(business=get_b_from(self.request.user))
+            self.kwargs['search'] = None
+            return get_loc(self, qs)
+        return qs.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -583,7 +647,41 @@ class ItemAPIView(BaseAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class LikeAPIView(MultipleModelAPIView, generics.CreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
+class MultiBaseAPIView(MultipleModelAPIView):
+    def prep_chk(self, page_size=None):
+        self.kwargs['page_size'] = page_size or self.pagination_class.page_size
+        self.request.query_params._mutable = True
+        def chk(queryset, request, *args, **kwargs):
+            if queryset.count() >= self.kwargs['page_size']:
+                request.query_params[None] = queryset.count() == self.kwargs['page_size'] + 1
+            return queryset[:self.kwargs['page_size']]
+        self.kwargs['chk_fn'] = chk
+
+    def gen_qli(self, qs, ser, page_size=None):
+        if page_size:
+            self.prep_chk(page_size)
+        return Query(qs[:self.kwargs['page_size'] + 1], ser, filter_fn=self.kwargs['chk_fn'])
+
+    def format_data(self, new_data, query, results):
+        if self.flat:
+            return super().format_data(new_data, query, results)
+        new_data = {'results': new_data}
+        hm = self.request.query_params.pop(None, None)
+        if hm is not None:
+            new_data['has_more'] = hm
+        results.append(new_data)
+        return results
+
+class HomeAPIView(MultiBaseAPIView):
+    def get_queryList(self):
+        return [(BusinessAPIView.get_queryset(self), serializers.BusinessSerializer), self.gen_qli(EventAPIView.getnopk(self), serializers.EventSerializer, pagination.EventPagination.page_size)]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['home'] = None
+        return context
+
+class LikeAPIView(MultiBaseAPIView, generics.CreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
     serializer_class = serializers.LikeSerializer
     flat = True
     add_model_type = False
@@ -594,14 +692,10 @@ class LikeAPIView(MultipleModelAPIView, generics.CreateAPIView, generics.UpdateA
 
     def gen_qs(self, qs, filter, range):
         self.flat = False
-        self.request.query_params._mutable = True
-        def chk(queryset, request, *args, **kwargs):
-            if queryset.count() >= self.pagination_class.page_size:
-                request.query_params[None] = queryset.count() == self.pagination_class.page_size + 1
-            return queryset[:self.pagination_class.page_size]
+        self.prep_chk()
         ret = []
         for v in range:
-            ret.append(Query(sort_related(qs.filter(**{filter: v}), self.request.user)[:self.pagination_class.page_size + 1], serializers.LikeSerializer, filter_fn=chk))
+            ret.append(self.gen_qli(sort_related(qs.filter(**{filter: v}), self.request.user), serializers.LikeSerializer))
         return ret
 
     def format_data(self, new_data, query, results):
@@ -615,22 +709,22 @@ class LikeAPIView(MultipleModelAPIView, generics.CreateAPIView, generics.UpdateA
         return results
 
     def get_queryList(self):
-        if not self.kwargs['pk'] or get_type(self) and self.kwargs['ct'] == settings.CONTENT_TYPES['business']:
+        if not self.kwargs['pk'] or get_type(self) and self.kwargs['ct'] == get_content_types()['business']:
             pk = self.kwargs['pk']
             is_user = get_param_bool(self.request.query_params.get('is_person', False))
             if is_user:
-                if get_type(self) and self.kwargs['ct'] == settings.CONTENT_TYPES['business']:
+                if get_type(self) and self.kwargs['ct'] == get_content_types()['business']:
                     self.kwargs['notype'] = None
                 if pk and pk != self.request.user.pk:
                     person = get_object(pk)
-                    return [(sort_related(Business.objects.filter(likes__person=person), Business.objects.filter(manager=self.request.user).first(), gen_where('business', self.request.user.pk, 'like', 'person', ct=settings.CONTENT_TYPES['business'].pk)), serializers.BusinessSerializer)]
-                return [(Business.objects.filter(likes__person=self.request.user), serializers.BusinessSerializer)] #modify for sorting by recent
+                    return [(sort_related(Business.objects.filter(likes__person=person), Business.objects.filter(manager=self.request.user).first(), gen_where('business', self.request.user.pk, 'like', 'person', ct=get_content_types()['business'].pk)), serializers.BusinessSerializer)]
+                return [(sort_related(Business.objects.filter(likes__person=self.request.user), where=gen_where('business', self.request.user.pk, 'recent', 'user', ct=get_content_types()['business'].pk)), serializers.BusinessSerializer)]
             business = get_object(pk, Business) if pk else get_b_from(self.request.user)
-            return [(sort_related(User.objects.filter(like__content_type=settings.CONTENT_TYPES['business'], like__object_id=business.pk), self.request.user, gen_where('user', business.pk, 'like', 'object', ct=settings.CONTENT_TYPES['business'].pk)), serializers.UserSerializer)]
+            return [(sort_related(User.objects.filter(like__content_type=get_content_types()['business'], like__object_id=business.pk), self.request.user, gen_where('user', business.pk, 'like', 'object', ct=get_content_types()['business'].pk)), serializers.UserSerializer)]
         qs = get_qs(self, Like)
         if 'stars' not in self.get_serializer_context(True):
             if get_param_bool(self.request.query_params.get('init', False)):
-                return self.gen_qs(qs, 'is_dislike', [True, False])
+                return self.gen_qs(qs, 'is_dislike', [False, True])
             if self.request.query_params.get('is_dislike', False):
                 qs = qs.filter(is_dislike=get_param_bool(self.request.query_params['is_dislike']))
             else:
@@ -647,7 +741,7 @@ class LikeAPIView(MultipleModelAPIView, generics.CreateAPIView, generics.UpdateA
 
     def get_object(self):
         ct = get_type(self)
-        return get_object_or_404(Like, content_type=ct if ct else settings.CONTENT_TYPES['event'], object_id=self.kwargs['pk'], person=self.request.user)
+        return get_object_or_404(Like, content_type=ct if ct else get_content_types()['event'], object_id=self.kwargs['pk'], person=self.request.user)
 
     def get_serializer_context(self, kw=False):
         if 'context' not in self.kwargs:
