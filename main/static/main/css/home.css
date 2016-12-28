@@ -23,8 +23,8 @@
 legend {
     font-size: 20px;
     margin: -5px 0 15px 0;
-    float: right;
 }
+
 .media-object {
     float: left;
     margin: -10px 15px -5px 0;
@@ -97,7 +97,7 @@ legend {
     color: inherit !important;
 }
 
-[class*=objs] p {
+legend, [class*=objs] p, .ww {
     word-wrap: break-word;
 }
 
@@ -137,7 +137,7 @@ legend {
     padding-bottom: 7px;
 }
 
-.lh {
+.lhin > *, .lh {
     line-height: 2.2;
 }
 

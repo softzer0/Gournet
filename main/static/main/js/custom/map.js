@@ -9,13 +9,14 @@ app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
             });
         };
         $scope.setCoords = function(coords, nom) {
-            if (!nom) {
-                $scope.map.marker.coords.latitude = coords.lat();
-                $scope.map.marker.coords.longitude = coords.lng();
+            var is_f = coords.latitude === undefined;
+            function setC(obj) {
+                obj.latitude = is_f ? coords.lat() : coords.latitude;
+                obj.longitude = is_f ? coords.lng() : coords.longitude;
             }
-            $scope.map.center.latitude = coords.lat();
-            $scope.map.center.longitude = coords.lng();
-            funcs[1](); //if (funcs.length > 1)
+            if (!nom) setC($scope.map.marker.coords);
+            setC($scope.map.center);
+            funcs[1](jQuery.makeArray(arguments).splice(1)); //if (funcs.length > 1)
         };
         uiGmapGoogleMapApi.then(function(maps) {
             $scope.geocoder = [new maps.Geocoder(), maps.GeocoderStatus.OK];
@@ -44,7 +45,7 @@ app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
                     maps.event.addDomListener(window, 'resize', function() {
                         if ($scope.map.control.length == 0) return;
                         var map = $scope.map.control.getGMap(), center = map.getCenter();
-                        google.maps.event.trigger(map, 'resize');
+                        maps.event.trigger(map, 'resize');
                         map.setCenter(center);
                     });
                     return $q.when();

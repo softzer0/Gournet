@@ -122,9 +122,7 @@ def show_profile(request, username):
 
 
 def get_param_bool(param):
-    if param and param in ['1', 'true', 'True', 'TRUE']:
-        return True
-    return False
+    return param and param in ['1', 'true', 'True', 'TRUE']
 
 def return_avatar(request, username_id, size):
     if get_param_bool(request.GET.get('business', False)):
@@ -176,22 +174,22 @@ class EmailAPIView(generics.ListAPIView):
 
 
 def get_loc(self, qs, f='business', loc=False, store=False):
-    if f:
-        f += '__'
-    else:
-        f = ''
     if 'pos' not in self.kwargs:
         try:
             pos = fromstr('POINT('+self.request.query_params['position'].replace(',', ' ')+')', srid=4326)
-            pos.transform(3857) #if PostGIS - remove
+            pos.transform(3857)
         except:
-            pos = self.request.user.loc_projected #if PostGIS - replace "_projected" with "ation"
+            pos = self.request.user.loc_projected
         if store:
             self.kwargs['pos'] = pos
     else:
         pos = self.kwargs['pos']
+    if f:
+        f += '__'
+    else:
+        f = ''
     if loc:
-        qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=self.request.query_params.get('distance', 5)))})  #if PostGIS - replace "_projected" with "ation"
+        qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=self.request.query_params.get('distance', 5)))})
     return qs.annotate(distance=Distance(f+'loc_projected', pos)).order_by('distance', *qs.model._meta.ordering) if loc is not None else qs
 
 class SearchAPIView(generics.ListAPIView):
@@ -241,7 +239,7 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView
 
     def get_queryset(self):
         if self.request.query_params.get('search', False):
-            return User.objects.exclude(pk=self.request.user.pk)
+            return User.objects.exclude(pk=self.request.user.pk).order_by(Case(When(location=self.request.user.location, then=Value(0)), output_field=IntegerField()), *User._meta.ordering)
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
         qs = friends_from(person, True)
         if person != self.request.user:
@@ -380,13 +378,9 @@ def send_notifications(request, pk):
 
 
 def filter_published(model, ct_f='business'):
-    if not ct_f:
-        ct_f = ''
-    elif isinstance(ct_f, str):
-        ct_f += '__'
     if isinstance(ct_f, int):
         return model.objects.filter(content_type__pk=ct_f).extra(where=[gen_where(model.__name__.lower(), 1, column='is_published', target='business', ct=ct_f)])
-    return model.objects.filter(**{ct_f+'is_published': True})
+    return model.objects.filter(**{(ct_f+'__' if ct_f else '')+'is_published': True})
 
 class FeedAPIView(MultipleModelAPIView):
     sorting_field = '-sort_field'
@@ -405,7 +399,7 @@ class FeedAPIView(MultipleModelAPIView):
                 qs = qs.filter(Q(**{filter + '__in': friends}) | Q(likes__person__in=friends)).annotate(is_liked=Max(Case(When(likes__person__in=friends, then=1), default=0, output_field=IntegerField())), sort_field=Max(Case(When(likes__person__in=friends, then=F('likes__date')), default=F('created')))) #.distinct('pk')
             else:
                 qs = qs.filter(likes__person__in=friends).annotate(sort_field=F('likes__date'))
-            return get_loc(self, qs, f, store=True)[:self.max] if not ct else qs[:self.max]
+            return (get_loc(self, qs, f, store=True) if not ct else qs)[:self.max]
 
         friends = list(friends_from(self.request.user).values_list('pk', flat=True))
         return [(get_friends_qs(Business, None), serializers.BusinessSerializer),
@@ -473,9 +467,11 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        for f in ['person', 'home', 'search']:
+        for f in ['home', 'search']:
             if f in self.kwargs:
                 context[f] = None
+        if 'person' in self.kwargs:
+            context['person'] = self.kwargs['person']
         if self.request.query_params.get('no_business', False):
             context['hiddenbusiness'] = None
         return context

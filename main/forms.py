@@ -1,22 +1,26 @@
 from django import forms
 from .models import CATEGORY, Business
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
-from geopy.geocoders import GoogleV3
+from geopy import GoogleV3
 from django.contrib.gis.geos import fromstr
 
-def clean_loc(self, cleaned_data):
-    geocoder = GoogleV3()
-    loc = cleaned_data.get('location', False)
+GOOGLEV3_OBJ = GoogleV3() #api=
+
+def clean_loc(self, cleaned_data, noloc=False, retraw=False):
+    loc = cleaned_data.get('location', False) if not noloc else False
     try:
         if loc and not cleaned_data['address']:
-            cleaned_data['address'] = geocoder.reverse(cleaned_data['location'])[0].address
+            cleaned_data['address'] = GOOGLEV3_OBJ.reverse(cleaned_data['location'])[0].address
         elif cleaned_data['address'] and not loc:
-            loc = geocoder.geocode(cleaned_data['address'])
+            loc = GOOGLEV3_OBJ.geocode(cleaned_data['address'])
             cleaned_data['location'] = fromstr('POINT(%s %s)' % (loc.latitude, loc.longitude))
     except:
+        loc = None
         pass
     if not loc:
-        self.add_error('address' if 'username' in cleaned_data else 'location', forms.ValidationError("Coordinates for specified address are not found.", code='required'))
+        self.add_error('address' if 'username' in cleaned_data else 'location', forms.ValidationError("Either coordinates for specified address are not found, or there's some internal error.", code='required'))
+    if retraw and loc:
+        return loc.raw
 
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)

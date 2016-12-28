@@ -1,7 +1,6 @@
 #from django.contrib.auth import update_session_auth_hash
 #from rest_framework.fields import Field
 from django.utils import timezone
-from datetime import time
 from django.core.validators import MinLengthValidator
 from datetime import timedelta
 from rest_framework import serializers
@@ -15,6 +14,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Avg
 import os.path
 from django.db.models import Case, When, Value, IntegerField
+from django.core.cache import caches
+from requests import get as req_get
+from decimal import Decimal, ROUND_HALF_UP
 
 User = get_user_model()
 NOT_MANAGER_MSG = "You're not a manager of any business."
@@ -497,6 +499,7 @@ class ItemSerializer(BaseSerializer):
         super().__init__(*args, **kwargs)
         self.fields.pop('created')
         self.fields.pop('dislike_count')
+        self.fields['converted'] = serializers.SerializerMethodField()
         if 'hiddenbusiness' in self.context:
             self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
         else:
@@ -517,6 +520,14 @@ class ItemSerializer(BaseSerializer):
 
     def get_distance(self, obj):
         return gen_distance(obj)
+
+    def get_converted(self, obj):
+        if obj.business.currency != self.context['request'].user.currency and self.context['request'].user.currency in obj.business.supported_curr:
+            try:
+                rate = caches['rates'].get_or_set(obj.business.currency+self.context['request'].user.currency, Decimal(req_get('https://download.finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s='+obj.business.currency+self.context['request'].user.currency+'=X').text.split(',')[1]))
+                return str((Decimal(obj.price) * rate).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
+            except:
+                pass
 
 
 def exists(attrs):

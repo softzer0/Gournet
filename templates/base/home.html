@@ -28,12 +28,12 @@
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'main/js/angular-css.min.js' %}"></script>{% endcomment %}
     <script src="{% static 'main/js/custom/main.js' %}"></script>
-    {% url 'account_login' as home_url %}{% if request.path == home_url or request.path == create_url %}<script src="{% static 'main/js/custom/main_extra.js' %}"></script>{% endif %}
     <script>app.constant('BASE_MODAL', '{% static 'main/modals/base.html' %}')
             .constant('COMMENT_PAGE_SIZE', {{ settings.COMMENT_PAGE_SIZE }})
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
             .constant('CONTENT_TYPES', {% load getextend %}{{ '{' }}{% for ct in content_types %}{{ ct }}: {{ content_types|get_item:ct|get_attr:'pk' }}{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
-            .constant('HAS_STARS', {{ '{' }}{% for ct in has_stars %}{{ has_stars|get_item:ct }}: true{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})</script>{% endblock %}
+            .constant('HAS_STARS', {{ '{' }}{% for ct in has_stars %}{{ has_stars|get_item:ct }}: true{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
+            .constant('USER', {currency: '{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url %}, home: {latitude: {{ request.user.location.coords.0 }}, longitude: {{ request.user.location.coords.1 }}{{ '}' }}{% endif %}{{ '}' }})</script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 

@@ -11,7 +11,7 @@
 
 .marker_label {
     opacity: 0.8;
-    font-family: 'Arimo', sans-serif;
+    font-family: Roboto, Arial, sans-serif;
     font-size: 11px;
     height: 18px;
     line-height: 18px;
@@ -31,3 +31,53 @@
     white-space: nowrap;
     box-shadow: 3px 3px 5px rgba(0,0,0,0.15);
 }
+
+.angular-google-map-container .form-control {
+    top: 10px !important;
+    height: 32px;
+    width: 245px;
+    padding: 3px 9px;
+    font-size: 12px;
+}
+
+@media (max-width: 416px) {
+    .angular-google-map-container .form-control {
+        width: 205px;
+    }
+}
+
+@media (max-width: 376px) {
+    .angular-google-map-container .form-control {
+        width: 175px;
+    }
+}
+
+@media (max-width: 345px) {
+    .angular-google-map-container .form-control {
+        width: 141px;
+    }
+}
+
+.angular-google-map-container button {
+    background-color: #fff;
+    border: 2px solid #fff;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    cursor: pointer;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.angular-google-map-container button:hover {
+    background-color: #e8e8e8;
+}
+
+.angular-google-map-container button > i {
+    color: rgb(25, 25, 25);
+    /*font-family: Roboto, Arial, sans-serif;*/
+    font-size: 14px;
+    line-height: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+

@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'stronghold',
     'captcha',
     'django_settings_export',
+    'timezone_field',
     'main'
 ]
 
@@ -78,6 +79,13 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stronghold.middleware.LoginRequiredMiddleware'
 ]
+
+from django.conf.global_settings import CACHES
+CACHES['rates'] = {
+    'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+    'LOCATION': '/var/tmp/django_cache_rates',
+    'TIMEOUT': 43200
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'main.pagination.PageNumberPagination',
@@ -122,6 +130,10 @@ EVENT_PAGE_SIZE = 15
 NOTIFICATION_PAGE_SIZE = 5
 COMMENT_PAGE_SIZE = 4
 SEARCH_PAGE_SIZE = 10
+
+from django.conf.global_settings import gettext_noop
+LANGUAGES = (('en-us', gettext_noop('English')),
+             ('sr-latn', gettext_noop('Serbian')))
 
 # End custom
 

@@ -1,5 +1,7 @@
-app.requires.push('angular-speakingurl');
+app.requires.push('angular-speakingurl', 'uiGmapgoogle-maps');
 app
+    .config(function(uiGmapGoogleMapApiProvider) { uiGmapGoogleMapApiProvider.configure({libraries: 'visualization'}) }) //, api: 'APIKEY'
+
     .directive('ngInitial', function($parse) {
         return {
             restrict: 'A',
@@ -24,7 +26,7 @@ app
         }
     })
 
-    .controller('CreateCtrl', function ($scope, $controller, $timeout, $speakingurl) {
+    .controller('CreateCtrl', function ($scope, $controller, $timeout, $speakingurl, USER) {
         $scope.work = [];
         $scope.isOpen = [false, false, false, false, false, false];
         $scope.date = [];
@@ -35,7 +37,7 @@ app
                 if ($scope.location != '') { // && /^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$/.test($scope.location)
                     $scope.location = $scope.location.replace(' ','');
                     init({latitude: $scope.location.split(',')[1], longitude: $scope.location.split(',')[0]});
-                } else if ($scope.address != '') $scope.geocodeAddress($scope.address, init); else init({latitude: 42.5450345, longitude: 21.90027120000002}); //Vranje, Serbia
+                } else if ($scope.address != '') $scope.geocodeAddress($scope.address, init); else init(USER.home);
             },
             function (){ $scope.location = $scope.map.center.latitude+','+$scope.map.center.longitude }
         ]}));

@@ -2,7 +2,7 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 # from allauth.account.adapter import get_adapter
 from datetime import datetime
-import requests
+from requests import get
 from django.core.files.base import ContentFile
 from .thumbs import saveimgwiththumbs
 
@@ -50,9 +50,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         user = super().save_user(request, sociallogin, form)
         response = None
         if sociallogin.account.provider == 'facebook':
-            response = requests.get('https://graph.facebook.com/v2.6/'+sociallogin.account.extra_data['id']+'/picture?width=128&height=128')
+            response = get('https://graph.facebook.com/v2.6/'+sociallogin.account.extra_data['id']+'/picture?width=128&height=128')
         elif sociallogin.account.provider == 'google':
-            response = requests.get(sociallogin.account.extra_data['picture']+'?sz=128')
+            response = get(sociallogin.account.extra_data['picture']+'?sz=128')
         if response and response.status_code == 200:
             t = response.headers['content-type']
             if t in ['image/jpeg', 'image/png', 'image/gif']:

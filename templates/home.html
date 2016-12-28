@@ -9,12 +9,19 @@
     <script>app.constant('SEARCH_PAGE_SIZE', {{ settings.SEARCH_PAGE_SIZE }})</script>{% endblock %}
 
 {% block title %}Home - Gournet{% endblock %}
-{% block container %}
-        <div ng-controller="MapCtrl" class="bor" id="home_map" style="position: relative; height: 250px; margin-bottom: 40px;">
-            <ui-gmap-google-map ng-if="map !== undefined && map.options !== undefined" control="map.control" options="map.options" center="map.center" zoom="map.zoom">
-                <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
-                <ui-gmap-markers models="markers" coords="'self'" options="'options'" click="click" icon="{url: '//chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|37455C|FFFFFF'}"></ui-gmap-markers>
-            </ui-gmap-google-map>
+{% block container %}<div ng-controller="MapCtrl">
+            <uib-alert type="warning" ng-show="map !== undefined && map.options !== undefined && (warn !== undefined || wid === undefined)" ng-cloak>{% verbatim %}{{ isCoord() ? "Location information is too inaccurate" : warn == 0 ? "You have denied the permission to use the location service. Please enable it or clear the setting, and refresh this page" : wid === undefined ? "Location service is disabled" : "Location information is currently unavailable" }}. {{ isCoord() && warn.is_init || warn == 2 ? "Using your home location."+' ' : wid === undefined || isCoord() || warn == 1 ? "Using your last position."+' ' : '' }}{% endverbatim %}<a href="javascript:" ng-if="isCoord() || wid === undefined" ng-click="doUseEnable()">{% verbatim %}{{ isCoord() ? "Use the detected location, regardlessly" : "Enable" }}{% endverbatim %}.</a></uib-alert>
+
+            <script type="text/ng-template" id="searchbox"><input class="form-control" type="text" placeholder="Search" select-on-click></script>
+            <div class="bor" id="home_map" style="position: relative; height: 250px; margin-bottom: 40px;">
+                <ui-gmap-google-map ng-if="map !== undefined && map.options !== undefined" control="map.control" options="map.options" center="map.center" zoom="map.zoom">
+                    <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
+                    <ui-gmap-markers models="markers" coords="'self'" options="'options'" click="click" icon="{url: '//chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|37455C|FFFFFF'}"></ui-gmap-markers>
+                    <ui-gmap-search-box template="'searchbox'" events="map.events"></ui-gmap-search-box>
+                    <ui-gmap-map-control position="bottom-center"><button ng-click="setCenterHome()" title="Move marker to the center"><i class="fa fa-dot-circle-o"></i></button></ui-gmap-map-control>
+                    <ui-gmap-map-control position="bottom-left"><button ng-click="setCenterHome(true)" title="Set marker to the home location"><i class="fa fa-home"></i></button></ui-gmap-map-control>
+                </ui-gmap-google-map>
+            </div>
         </div>
 
         <script type="text/ng-template" id="search">

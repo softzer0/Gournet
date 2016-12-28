@@ -19,11 +19,11 @@
             <p>You have currently {{ emails.length }} email {{ emails.length > 1 ? 'addresses' : 'address' }} associated with your account:</p>
             <div ng-if="sent.length" class="alert alert-success alert-dismissable">
                 <button class="close" type="button" ng-click="sent.length = 0">&times;</button>
-                <p class="def">Confirmation e-mail has been sent to <span ng-repeat="e in sent">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>.</p>
+                <p class="ww">Confirmation e-mail has been sent to <span ng-repeat="e in sent">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>.</p>
             </div>
             <div ng-repeat="e in emails" style="white-space: nowrap;">
                 <input type="radio" ng-model="obj.selected" ng-value="$index" ng-change="EmailSelected()" id="email_{{ $index }}" name="email">
-                <label for="email_{{ $index }}" class="btr" ng-bind="e.email"></label> <span ng-if="e.verified" class="label label-success btr">Verified</span> <span ng-if="e.primary" class="label label-info btr">Primary</span>
+                <label for="email_{{ $index }}" class="btr">{{ e.email | limitTo:52 }}{{ e.email.length > 52 ? '...' : '' }}</label> <span ng-if="e.verified" class="label label-success btr">Verified</span> <span ng-if="e.primary" class="label label-info btr">Primary</span>
             </div>
             <div class="bt3">
                 <button ng-disabled="emails[obj.selected].primary || !emails[obj.selected].verified" class="btn btn-info btr" ng-click="makePrimaryEmail()">Make Primary</button>
@@ -32,8 +32,8 @@
             </div>
         </div>
         <form>
-            <input class="form-control" type="email" ng-model="obj.email" placeholder="Email" required>
-            <input type="submit" class="btn btn-warning" ng-click="addEmail()" value="Add Email Address">
+            <input type="email" ng-disabled="obj.adding" class="form-control" ng-model="obj.email" placeholder="Email" required>
+            <input type="submit" ng-disabled="obj.adding" class="btn btn-warning" ng-click="addEmail()" value="Add Email Address">
         </form>
     </uib-tab>
     <uib-tab index="1" heading="Internationalization"><!-- ng-click="enableAnimation()"-->

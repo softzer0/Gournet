@@ -16,15 +16,15 @@
         ></a
         ><span ng-if="m.obj.created === undefined || m.obj.manager_stars.status === undefined"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="Manager">M</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="Stars">{{ m.obj.manager_stars }} <i class="fa fa-star"></i></span></span
         ><span ng-if="m.obj.created !== undefined && m.obj.manager_stars.status !== undefined"
-            ><span ng-switch="m.obj.manager_stars.status" uib-tooltip="Status"
-                ><span ng-switch-when="0" class="label label-primary lh">Started</span
-                ><span ng-switch-when="1" class="label label-warning lh">Closed</span
-                ><span ng-switch-when="2" class="label label-success lh">Completed</span
-                ><span ng-switch-when="3" class="label label-danger lh">Declined</span
-                ><span ng-switch-when="4" class="label label-info lh">Under review</span
-                ><span ng-switch-when="5" class="label planned lh">Planned</span
-                ><span ng-switch-when="6" class="label label-default lh">Archived</span
-                ><span ng-switch-when="7" class="label feedback lh">Need feedback</span
+            ><span ng-switch="m.obj.manager_stars.status" uib-tooltip="Status" class="lhin"
+                ><span ng-switch-when="0" class="label label-primary">Started</span
+                ><span ng-switch-when="1" class="label label-warning">Closed</span
+                ><span ng-switch-when="2" class="label label-success">Completed</span
+                ><span ng-switch-when="3" class="label label-danger">Declined</span
+                ><span ng-switch-when="4" class="label label-info">Under review</span
+                ><span ng-switch-when="5" class="label planned">Planned</span
+                ><span ng-switch-when="6" class="label label-default">Archived</span
+                ><span ng-switch-when="7" class="label feedback">Need feedback</span
             ></span
             ><span ng-include="'likes'" new-scope ng-init="o = [m.obj.manager_stars, k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index]"></span
         ></span
@@ -62,7 +62,7 @@
                 <p>{{ e.text }} <small class="text-muted">&mdash; {{ (e.when || e.created) | timeAgo }}</small></p>
             </div>
             <div ng-if="e.price !== undefined">
-                <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ e.price }} {{ e.business.currency || e.currency }}</p>
+                <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ (e.converted || e.price)|currency:'' }} {{ e.converted ? user_curr : e.business.currency || e.currency }}</p>
             </div>
             <div ng-if="e.is_opened !== undefined">
                 <p>Currently <strong>{{ e.is_opened ? "opened" : "closed" }}</strong>; {{ e.item_count }} {{ e.item_count > 1 ? "items" : "item" }}; supported {{ e.supported_curr.length == 0 ? "currency" : "currencies" }}: <strong>{{ e.currency }}</strong><span ng-repeat="c in e.supported_curr">, <strong>{{ c }}</strong></span></p>
@@ -123,7 +123,7 @@
         </div>
         <hr ng-if="toggleHr(first_name !== undefined || !t, $last && !r)" class="mpd">
     </div>
-    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="objs.has_next_page && !loading" ng-click="load_page()">Load more</a>
+    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="props.has_next_page && !loading" ng-click="load_page()">Load more</a>
     <div class="loa mb13 loa-c" ng-if="!r && loading"><i class="fa fa-spinner fa-2x"></i></div>
     <div class="nev" ng-if="!objs.length && !loading"><span ng-hide="checkAnim()">No results.</span></div>
 </div>

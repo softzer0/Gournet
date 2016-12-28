@@ -1,6 +1,6 @@
-//app.requires.push('ct.ui.router.extras');
+app.requires.push('uiGmapgoogle-maps'); //, 'ct.ui.router.extras'
 app
-    .config(function ($stateProvider) {
+    .config(function ($stateProvider, uiGmapGoogleMapApiProvider) {
         function gentemp(g, t) { return (g ? '<p><a href="#/"><i class="fa fa-chevron-left"></i> Go to main page.</a></p>' : '')+'<div ng-init="t = \''+(t !== undefined ? t : '\'')+'" ng-include="\'/static/main/events.html\'"></div>' }
 
         $stateProvider.state('main', {
@@ -31,6 +31,8 @@ app
             url: '*path',
             template: gentemp(false, 'event\'')
         });
+
+        uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places'}); //, api: 'APIKEY'
     })
 
     .run(function ($rootScope, $state, $timeout) {
@@ -61,8 +63,8 @@ app
                         if (!j) {
                             markers.push({
                                 id: markers.length,
-                                longitude: obj.location.lng,
                                 latitude: obj.location.lat,
+                                longitude: obj.location.lng,
                                 options: {
                                     labelClass: 'marker_label',
                                     labelAnchor: '0 54',
@@ -75,7 +77,7 @@ app
                     }
                 }
             },
-            click: function (i, n, o) { window.location.href = '/'+o.shortname }
+            click: function (i, n, o) { window.location.href = '/'+o.shortname+'/' }
         }
     })
 
@@ -83,29 +85,75 @@ app
     .factory('userService', function (uniService) { return uniService.getInstance('user') })
     .factory('mixedService', function (uniService) { return uniService.getInstance() })
 
-    .controller('MapCtrl', function ($scope, $controller, markerService) {
+    .controller('MapCtrl', function ($scope, $controller, markerService, USER) {
         $scope.$parent.loading = true;
         $scope.markers = markerService.markers;
         $scope.click = markerService.click;
-        var unregister = $scope.$watch(function (){ return angular.element('[class*=\'objsfalse\']').length }, function (val) {
+        $scope.isCoord = function (){ return typeof($scope.warn) == 'object' };
+        function getObjs() { return angular.element('[class*=\'objsfalse\']') }
+        function disableWatch() {
+            if ($scope.wid === undefined) return;
+            navigator.geolocation.clearWatch($scope.wid);
+            $scope.$parent.wid = undefined;
+        }
+        function setWarnPos(position, isinit) {
+            disableWatch();
+            $scope.warn = {latitude: position.coords.latitude, longitude: position.coords.longitude};
+            if (isinit) $scope.warn.is_init = true;
+        }
+        function initPos(init, position) {
+            var obj;
+            if (position === undefined || position.coords.accuracy > 100) {
+                if (position !== undefined) setWarnPos(position, true);
+                obj = USER.home;
+            } else obj = position.coords;
+            init({latitude: obj.latitude, longitude: obj.longitude}).then(function () {
+                $scope.$parent.coords = $scope.map.marker.coords;
+                $scope.map.options = {clickableIcons: false, styles: [{featureType: 'poi', stylers: [{visibility: 'simplified'}]}, {featureType: 'poi.business', stylers: [{visibility: 'off'}]}]};
+                $scope.map.events = {places_changed: function (searchBox){ $scope.geocodeAddress(searchBox.gm_accessors_.places.Kc.j, function (coords){ $scope.setCoords(coords, false) }) }};
+                var ctrl = getObjs();
+                if (ctrl[0].className.indexOf('user') == -1) ctrl.scope().load(true);
+            });
+        }
+        function enableWatch(init) {
+            //if (init === undefined) navigator.geolocation.getCurrentPosition(s, e, o);
+            $scope.$parent.wid = navigator.geolocation.watchPosition(
+                function (position){
+                    if ($scope.map === undefined) initPos(init, position);
+                    else if (position.coords.accuracy < 100) {
+                        if ($scope.warn !== undefined) $scope.warn = undefined;
+                        if (position.coords.latitude != $scope.map.marker.latitude || position.coords.longitude != $scope.map.marker.longitude) $scope.setCoords(position.coords);
+                    } else setWarnPos(position);
+                },
+                function (error) {
+                    console.log(error.message);
+                    var l = 0;
+                    if ($scope.map === undefined) {
+                        if (error.code == error.PERMISSION_DENIED) $scope.warn = 0;
+                        initPos(init);
+                        l++;
+                    }
+                    if ($scope.warn === undefined) $scope.warn = 1 + l;
+                },
+            {enableHighAccuracy: true, maximumAge: 600000, timeout: 27000});
+        }
+        var unregister = $scope.$watch(function (){ return getObjs().length }, function (val) {
             if (val == 0) return;
             unregister();
             angular.extend(this, $controller('BaseMapCtrl', {$scope: $scope, funcs: [
-                function (init) {
-                    //...
-                    init({latitude: 42.5450345, longitude: 21.90027120000002} /*Vranje, Serbia*/).then(function () {
-                        $scope.$parent.coords = $scope.map.marker.coords;
-                        $scope.map.options = {clickableIcons: false, styles: [{featureType: 'poi', stylers: [{visibility: 'simplified'}]}, {featureType: 'poi.business', stylers: [{visibility: 'off'}]}]};
-                        var ctrl = angular.element('[class*=\'objsfalse\']');
-                        if (ctrl[0].className.indexOf('user') == -1) ctrl.scope().load(true);
-                    });
-                },
-                function () {
-                    var ctrl = angular.element('[class*=\'objsfalse\']'), state = ctrl.injector().get('$state');
+                function (init) { enableWatch(init) },
+                function (args) {
+                    var ctrl = getObjs(), state = ctrl.injector().get('$state');
                     if (ctrl[0].className.indexOf('user') == -1 && (state.current.name == 'main.main' || ctrl.scope().objs.length > 0)) ctrl.scope().load(); else state.go('main.main');
+                    if (args.length) disableWatch();
                 }
             ]}));
         });
+        $scope.doUseEnable = function (){
+            if ($scope.isCoord()) $scope.setCoords($scope.warn); else enableWatch();
+            $scope.warn = undefined;
+        };
+        $scope.setCenterHome = function (home){ $scope.setCoords(home ? USER.home : $scope.map.control.getGMap().getCenter(), false) };
     })
 
     .controller('UsersCtrl', function ($scope, makeFriendService) { $scope.doFriendRequestAction = function (index) { makeFriendService.run($scope.objs[index]) } })
@@ -114,4 +162,4 @@ app
 
     .controller('businesssOnlyCtrl', function($scope, $controller, businessService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [businessService]})) })
 
-    .controller('sOnlyCtrl', function($scope, $controller, mixedService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [mixedService]}), $controller('EventsCtrl', {$scope: $scope}), $controller('ReviewsCtrl', {$scope: $scope}), $controller('UsersCtrl', {$scope: $scope})) });
+    .controller('sOnlyCtrl', function($scope, $controller, mixedService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [mixedService]}), $controller('EventsCtrl', {$scope: $scope}), $controller('ItemsCtrl', {$scope: $scope}), $controller('ReviewsCtrl', {$scope: $scope}), $controller('UsersCtrl', {$scope: $scope})) });

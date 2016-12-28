@@ -112,7 +112,7 @@
                                         <tbody>
                                             <tr class="angular-animate" ng-repeat="i in sc.content" such-href="#/show={% verbatim %}{{ i.id }}{% endverbatim %}&type=item&nobusiness">
                                                 <td><img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1"><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div></td>
-                                                <td><div>{% verbatim %}{{ i.price }}{% endverbatim %} {{ business.currency }}</div></td>
+                                                <td><div>{% verbatim %}{{ (i.converted || i.price)|currency:'' }}{% endverbatim %} {% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}</div></td>
                                             </tr>
                                         </tbody>
                                     </table>

@@ -32,14 +32,17 @@ angular.module('ui.router.modal', ['ui.router'])
 						}
 					}
 
-					$previousState.memo('modalInvoker');
+					var prev = $previousState.get();
+					if (prev !== null && prev.state.name.indexOf('showObjs') == -1) $previousState.memo('main');
 					var thisModal = openModal = $uibModal.open(options);
 
 					openModal.result['finally'](function() {
 						if (thisModal === openModal) {
 							// Dialog was closed via $uibModalInstance.close/dismiss, go to our previous/parent state
-							if ($previousState.get('modalInvoker').state != null) $previousState.go('modalInvoker'); else $state.go($state.get('^', stateName).name);
-							$previousState.forget('modalInvoker');
+							if ($previousState.get('main') != null) {
+								$previousState.go('main');
+								$previousState.forget('main');
+							} else $state.go($state.get('^', stateName).name);
 						}
 					});
 				};

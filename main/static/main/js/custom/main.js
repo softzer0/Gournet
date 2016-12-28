@@ -32,10 +32,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 $scope.file = '../events';
 
                 $scope.close = function() {
-                    $uibModalInstance.dismiss('cancel');
                     delete $scope.close;
+                    $uibModalInstance.dismiss('cancel');
                 };
-                $scope.$on('$stateChangeStart', function(evt, toState) { if ($scope.close !== undefined && !toState.$$state().includes[name]) $scope.close() });
+                $scope.$on('$stateChangeStart', function(evt, toState) {
+                    if ($scope.close !== undefined && toState.name != name) $scope.close();
+                    objService.getobjs(true, null);
+                });
 
                 $scope.objs = objService.getobjs(true, false);
                 objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.nobusiness).then(function () {
@@ -73,8 +76,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         return {
             show: function (message, OkCancel) {
                 return $uibModal.open({
-                    windowTopClass: 'modal-confirm',
-                    template: '<div class="modal-body">' + message + '</div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(OkCancel === undefined ? 'Yes' : 'OK')+'</button>'+((OkCancel || OkCancel === undefined) ? '<button class="btn btn-warning" ng-click="cancel()">'+(OkCancel === undefined ? 'No' : 'Cancel')+'</button></div>':''),
+                    windowClass: 'modal-confirm',
+                    template: '<div class="modal-body"><span class="ww">' + message + '</span></div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(OkCancel === undefined ? 'Yes' : 'OK')+'</button>'+((OkCancel || OkCancel === undefined) ? '<button class="btn btn-warning" ng-click="cancel()">'+(OkCancel === undefined ? 'No' : 'Cancel')+'</button></div>':''),
                     controller: function($scope, $uibModalInstance) {
                         $scope.ok = function() { $uibModalInstance.close() };
                         $scope.cancel = function() { $uibModalInstance.dismiss('cancel') };
@@ -473,7 +476,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 e.length = 0;
                 if (!t) {
                     this.page_offset = 1;
-                    delete this.objs[0].has_next_page;
+                    delete this.props.has_next_page;
                     ld = {};
                     if (markerService !== undefined) markerService.markers.length = 0;
                 }
@@ -481,6 +484,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             this.unloaded[t ? 1 : 0] = n === null;
             return n !== null ? e : $q.when();
         };
+        UniObj.prototype.props = {};
 
         UniObj.prototype.load = function (b, rel_state, nob) {
             var ids = null, self = this, d, i, j;
@@ -526,7 +530,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     }
                 }
                 this.unloaded[0] = false;
-                if (this.objs[0].has_next_page !== undefined) if (SEARCH_PAGE_SIZE !== undefined) ld.offset = this.page_offset; else ld.page = this.page_offset;
+                if (this.props.has_next_page !== undefined) if (SEARCH_PAGE_SIZE !== undefined) ld.offset = this.page_offset; else ld.page = this.page_offset;
                 if (b !== undefined) if (typeof(b) == 'string') ld.search = b; else ld.id = b;
                 if (rel_state !== undefined) {
                     if (typeof(rel_state) == 'number') {
@@ -567,9 +571,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                                 self.page_offset = 0;
                             }
                             self.page_offset += SEARCH_PAGE_SIZE;
-                            self.objs[0].has_next_page = result.count > self.page_offset;
+                            self.props.has_next_page = result.count > self.page_offset;
                         } else {
-                            self.objs[0].has_next_page = result.page_count > self.page_offset;
+                            self.props.has_next_page = result.page_count > self.page_offset;
                             self.page_offset++;
                         }
                         if (result.results.length > 0 && (ld.favourites == 1 || self.u !== undefined || result.count !== undefined && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) {
@@ -585,7 +589,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                                 markerService.load(result[0].results, null);
                             }
                             appendResults(result[1].results);
-                            self.objs[0].has_next_page = result[1].has_more;
+                            self.props.has_next_page = result[1].has_more;
                             self.page_offset++;
                         });
                 }
@@ -797,13 +801,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     if (self.unloaded[r ? 1 : 0]) return;
                     if (e.user_comments === undefined) e.user_comments = [];
                     e.user_comments.push(result);
-                    if (angular.isObject(result.manager_stars)) if (e.main_comment == null) e.main_comment = angular.copy(result); else angular.copy(result, e.main_comment);
+                    if (result.manager_stars.status !== undefined) if (e.main_comment == null) e.main_comment = angular.copy(result); else angular.copy(result, e.main_comment);
                     e.offset++;
                     e.comment_count++;
                     if (r) for (var i = 0; i < objs.length; i++) if (objs[i].id == e.id) {
                         if (objs[i].user_comments !== undefined) {
                             objs[i].user_comments.push(result);
-                            if (angular.isObject(result.manager_stars)) if (objs[i].main_comment == null) objs[i].main_comment = angular.copy(result); else angular.copy(result, objs[i].main_comment);
+                            if (result.manager_stars.status !== undefined) if (objs[i].main_comment == null) objs[i].main_comment = angular.copy(result); else angular.copy(result, objs[i].main_comment);
                             objs[i].offset++;
                         }
                         objs[i].comment_count = e.comment_count;
@@ -818,33 +822,37 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     .factory('itemService', function (uniService) { return uniService.getInstance('item') })
     .factory('reviewService', function (uniService) { return uniService.getInstance('comment') })
 
-    .controller('BaseCtrl', function ($rootScope, $scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
+    .controller('BaseCtrl', function ($scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
         $scope.r = $scope.$parent.objs !== undefined;
         $scope.objs = $scope.r ? $scope.$parent.objs : objService[0].getobjs(false, false);
         var t = objService[0].getobjs();
         if (!$scope.r) { // && $scope.objs.length == 0
-            var l = function() { $timeout(function() { $scope.loading = false })};
-            function load(s) { $timeout(function() {
-                if (!s) {
-                    if ($scope.loading) {
-                        $timeout(load, 100 + Math.floor(Math.random() * 10));
-                        return;
-                    }
-                    $scope.loading = true;
+            $scope.props = objService[0].props;
+            function l() { $timeout(function() { $scope.loading = false })}
+            function load(s) { //$timeout(function() {
+                if (s || t == 'user') $scope.$parent.$parent.$parent.$parent.loading = undefined;
+                else if ($scope.loading) {
+                    $timeout(load, 100 + Math.floor(Math.random() * 10));
+                    return;
                 }
+                $scope.loading = true;
                 objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state : $scope.is_fav, t != 'user' ? $scope.coords : undefined).then(function() {
                     l();
                     if (objService.length == 2) objService[1]();
                 } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
-            })}
-            if (t == 'user' || angular.element('#home_map').length == 0 || $scope.coords) load();
+            /*})*/}
+            if (t == 'user' || $scope.$parent.$parent.$parent.$parent.loading === undefined) load();
             $scope.load_page = function (){
+                if ($scope.wid !== undefined) {
+                    navigator.geolocation.clearWatch($scope.wid);
+                    $scope.$parent.$parent.$parent.$parent.wid = undefined;
+                }
                 $scope.loading = true;
                 objService[0].load().then(l, l);
             };
         }
 
-        $scope.$on('$destroy', function() { objService[0].getobjs($scope.r, null) });
+        if (!$scope.r) $scope.$on('$destroy', function() { objService[0].getobjs($scope.r, null) });
 
         if (t == 'user') return;
 
@@ -1056,11 +1064,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         };
     })
 
+    .controller('ItemsCtrl', function($scope, USER) { $scope.user_curr = USER.currency })
+
     .controller('ReviewsCtrl', function($scope) {  $scope.choices = [{name: "(None)", value: null}, {name: "Started", value: 0}, {name: "Closed", value: 1}, {name: "Completed", value: 2}, {name: "Declined", value: 3}, {name: "Under review", value: 4}, {name: "Planned", value: 5}, {name: "Archived", value: 6}, {name: "Need feedback", value: 7}] })
 
     .controller('eventsOnlyCtrl', function ($scope, $controller, eventService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [eventService]}), $controller('EventsCtrl', {$scope: $scope})) })
 
-    .controller('itemsOnlyCtrl', function($scope, $controller, itemService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [itemService]})) })
+    .controller('itemsOnlyCtrl', function($scope, $controller, itemService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [itemService]}), $controller('ItemsCtrl', {$scope: $scope})) })
 
     .controller('reviewsOnlyCtrl', function ($scope, $controller, reviewService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [reviewService, function (){ if (!$scope.r && $scope.$parent.$parent.$parent.$parent.$parent.fav_state !== undefined && $scope.$parent.$parent.$parent.$parent.$parent.fav_state != -1) $scope.$parent.$parent.$parent.$parent.$parent.showrevf = $scope.objs[0] === undefined || $scope.objs[0].curruser_status != -1 }]}), $controller('ReviewsCtrl', {$scope: $scope})); /*, function (index) { if ($scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0] }*/ })
 
@@ -1080,7 +1090,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         $uibModal.open({
                             size: 'lg',
                             templateUrl: BASE_MODAL,
-                            windowTopClass: 'sett',
+                            windowClass: 'sett',
                             controller: 'SettModalCtrl',
                             resolve: { index: function (){ return index || 0 } }
                         });
@@ -1284,10 +1294,12 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             $scope.addEmail = function () {
                 if ($scope.obj.email === undefined) return;
                 for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
+                $scope.obj.adding = true;
                 emailService.add($scope.obj.email).then(function (){
                     $scope.sent.push($scope.obj.email);
                     $scope.obj.email = '';
-                });
+                    $scope.obj.adding = false;
+                }, function (){ $scope.obj.adding = false });
             };
             $scope.removeEmail = function () {
                 emailService.remove().then(function (e) {

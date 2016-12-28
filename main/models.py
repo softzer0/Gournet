@@ -17,6 +17,7 @@ from django.conf import settings
 from functools import lru_cache
 from django.contrib.gis.db.models import PointField, GeoManager
 from multiselectfield import MultiSelectField
+from timezone_field import TimeZoneField
 from sys import argv
 
 IS_SERVER = len(argv) == 1 or argv[1] not in ['makemigrations', 'migrate']
@@ -45,6 +46,7 @@ def get_content_types_pk():
     return [get_content_types()[ct].pk for ct in get_content_types()] if IS_SERVER else []
 
 
+CURRENCY = (('RSD', "Serbian dinars (RSD)"), ('EUR', "Euros (EUR)"))
 CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
 
 alphabet_only = RegexValidator(r'^[^\W\d_]+$', "Only letters from the alphabet are allowed.")
@@ -54,15 +56,22 @@ user_short_name = RegexValidator(
                 )
 
 class Loc(models.Model):
-    location = PointField("latitude/longitude", geography=True, blank=True, error_messages={'invalid': "Enter valid coordinates."})
-    loc_projected = PointField(srid=3857) # if PostGIS - remove
+    location = PointField("latitude/longitude", geography=True, blank=True, error_messages={'invalid': "Enter valid coordinates."}) #, geography=True
+    loc_projected = PointField(srid=3857)
     address = models.CharField(max_length=130, blank=True)
 
     class Meta:
         abstract = True
 
-    def save(self, *args, **kwargs): # if PostGIS - remove
-        self.loc_projected = self.location.transform(3857, True)
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        new = super().from_db(db, field_names, values)
+        new._loaded_location = new.location
+        return new
+
+    def save(self, *args, **kwargs):
+        if self._loaded_location != self.location:
+            self.loc_projected = self.location.transform(3857, True)
         super().save(*args, **kwargs)
 
 
@@ -86,9 +95,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         unique=True,
         help_text="Maximum 30 characters."+' '+"English letters (case-insensitive), digits and ./-/_ only.",
         validators=[user_short_name],
-        error_messages={
-            'unique': "A user with that username already exists.",
-        },
+        error_messages={'unique': "A user with that username already exists."},
     )
     first_name = models.CharField("first name", max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
     last_name = models.CharField("last name", max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
@@ -103,6 +110,10 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
 
     gender = models.IntegerField("gender", choices=CHOICE_GENDER, default=0)
     birthdate = models.DateField("birthdate")
+
+    currency = models.CharField("default currency", choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
+    tz = TimeZoneField(default=settings.TIME_ZONE)
+    language = models.CharField(choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
 
     recent = GenericRelation('Recent')
 
@@ -180,7 +191,7 @@ class Relationship(models.Model):
     def __str__(self):
         return '%s with %s' % (self.from_person.get_username(), self.to_person.get_username())
 
-@receiver(pre_save, sender=Relationship, dispatch_uid='relationship_save_notification')
+@receiver(pre_save, sender=Relationship)
 def relationship_save_notification(instance, **kwargs):
     """if instance.from_person == instance.to_person:
         raise FieldError("You can't make a relationship with yourself.")"""
@@ -200,7 +211,7 @@ def relationship_save_notification(instance, **kwargs):
             rel.notification.save()
     instance.notification = instance.to_person.notification_set.create(text=text+'.', link='/user/'+instance.from_person.username+'/')
 
-@receiver(post_delete, sender=Relationship, dispatch_uid='relationship_delete_notification')
+@receiver(post_delete, sender=Relationship)
 def relationship_delete_notification(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
@@ -217,7 +228,6 @@ class BusinessManager(GeoManager):
     def filter_by_natural_key(self, shortname):
         return self.filter(shortname__iexact=shortname)
 
-CURRENCY = (('RSD', "Serbian dinars (RSD)"), ('EUR', "Euros (EUR)"))
 BUSINESS_TYPE = ((0, "Restaurant"), (1, "Tavern"), (2, "Bistro"), (3, "Cafe"), (4, "Pub"), (5, "Bar"), (6, "Nightclub"), (7, "Fast food"))
 
 class Business(Loc):
@@ -258,7 +268,7 @@ class Business(Loc):
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
-@receiver(pre_delete, sender=Business, dispatch_uid='business_review_delete')
+@receiver(pre_delete, sender=Business)
 def business_review_delete(instance, **kwargs):
     Comment.objects.filter(content_type=get_content_types()['business'], object_id=instance.pk).delete()
 
@@ -287,7 +297,7 @@ def cascade_delete(type, pk):
         qs = model.objects.filter(content_type=get_content_types()[type], object_id=pk)
         qs._raw_delete(qs.db)
 
-@receiver(pre_delete, sender=Event, dispatch_uid='event_cascade_delete')
+@receiver(pre_delete, sender=Event)
 def event_cascade_delete(instance, **kwargs):
     cascade_delete('event', instance.pk)
 
@@ -352,11 +362,11 @@ class Item(models.Model):
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
 
-@receiver(pre_delete, sender=Item, dispatch_uid='item_cascade_delete')
+@receiver(pre_delete, sender=Item)
 def item_cascade_delete(instance, **kwargs):
     cascade_delete('item', instance.pk)
 
-@receiver(post_save, sender=Item, dispatch_uid='item_set_b_published')
+@receiver(post_save, sender=Item)
 def item_set_b_published(instance, **kwargs):
     if instance.business.item_set.count() == 1:
         instance.business.is_published = True
@@ -400,7 +410,7 @@ def increment(model, filter):
 def create_notif(from_person, ct, obj_pk, to_person, typ):
     increment(EventNotification, {'from_person': from_person, 'content_type': ct, 'object_id': obj_pk, 'to_person': to_person, 'comment_type': typ})
 
-@receiver(post_save, sender=Comment, dispatch_uid='comment_save_notification')
+@receiver(post_save, sender=Comment)
 def comment_save_notification(instance, created, **kwargs):
     if not created:
         return
@@ -421,7 +431,7 @@ def del_notif(from_person, ct, obj_pk, to_person):
     EventNotification.objects.filter(count__gt=0, from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person).update(count=models.F('count') - 1)
     EventNotification.objects.filter(count=0).delete()
 
-@receiver(pre_delete, sender=Comment, dispatch_uid='comment_cascade_delete')
+@receiver(pre_delete, sender=Comment)
 def comment_cascade_delete(instance, **kwargs):
     del_notif(instance.person, instance.content_type, instance.object_id, instance.content_object.manager if isinstance(instance.content_object, Business) else instance.content_object.content_object.manager if isinstance(instance.content_object, Comment) else instance.content_object.business.manager)
     if isinstance(instance.content_object, Comment):

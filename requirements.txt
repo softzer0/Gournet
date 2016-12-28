@@ -11,3 +11,5 @@ django-settings-export==1.1.0
 django-stronghold==0.2.7
 djangorestframework==3.3.3
 geopy==1.11.0
+django-timezone-field==2.0
+timezonefinder==1.5.7
