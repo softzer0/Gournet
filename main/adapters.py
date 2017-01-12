@@ -53,13 +53,6 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             response = get('https://graph.facebook.com/v2.6/'+sociallogin.account.extra_data['id']+'/picture?width=128&height=128')
         elif sociallogin.account.provider == 'google':
             response = get(sociallogin.account.extra_data['picture']+'?sz=128')
-        if response and response.status_code == 200:
-            t = response.headers['content-type']
-            if t in ['image/jpeg', 'image/png', 'image/gif']:
-                t = t[6:]
-                if t == 'jpeg':
-                    t = 'jpg'
-                elif t == 'gif':
-                    t = 'png'
-                saveimgwiththumbs(type=0, username_id=user.username, imgname='avatar.'+t, content=ContentFile(response.content))
+        if response and response.status_code == 200 and response.headers['content-type'] in ['image/jpeg', 'image/png', 'image/gif']:
+            saveimgwiththumbs(0, user.pk, response.headers['content-type'][6:], ContentFile(response.content))
         return user

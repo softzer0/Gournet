@@ -1,7 +1,5 @@
 {% extends 'base/view.html' %}
 
-{% block title %}{{ business.get_type_display }} "{{ business.name }}" - Gournet{% endblock %}
-
 {% block head %}{{ block.super }}
     {% comment %}<style>
         .remp {
@@ -16,7 +14,18 @@
 
 {% block rowatt %}ng-controller="BusinessCtrl" ng-init="fav_count = {{ fav_count }}; fav_state = {{ fav_state }}; minchar = {{ minchar }}"{% endblock %}
 
-{% block name %}{{ business.get_type_display }} "{{ business.name }}"{% endblock %}
+{% block name_content %}{% if business.manager == request.user %}<div class="inline namef" ng-cloak click-outside="clickOutside(0)" in-scope="documentClick">
+                        <a class="n lead text-center" ng-init="{% load getextend %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = [{value: [{{ business.type }}, '{{ business.name }}', '{{ business.shortname }}'], form: [{{ business.type }}, '{{ business.name }}', '{{ business.shortname }}'], disabled: true}]" ng-show="edit[0].disabled" ng-click="edit[0].disabled = false">{% verbatim %}{{ types[edit[0].value[0]] }} "{{ edit[0].value[1] }}"{% endverbatim %}</a>
+                        <div ng-hide="edit[0].disabled"><ul class="nya-bs-select" ng-model="edit[0].form[0]">
+                            <li nya-bs-option="t in types" data-value="$index"><a>{% verbatim %}{{ t }}{% endverbatim %}</a></li>
+                        </ul><div ng-show="edit[0].disabled == null"></div></div
+                        ><input type="text" class="form-control" ng-hide="edit[0].disabled" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[1]">
+                        <fieldset ng-hide="edit[0].disabled">
+                            <label for="shortname">Shortname:</label>
+                            <span><input name="shortname" type="text" pattern="^[\w.-]+$" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[2]"></span>
+                        </fieldset>
+                        <a class="fa fa-2x fa-check n text-center" ng-show="edit[0].disabled === false" ng-click="doChangeName()"></a>
+                    </div>{% else %}<p class="lead text-center br2 ww">{% block name %}{{ business.get_type_display }} "{{ business.name }}"{% endblock %}</p>{% endif %}{% endblock %}
 
 {% block img %}{{ business.pk }}/avatar/?business=1{% endblock %}
 

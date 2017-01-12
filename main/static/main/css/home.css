@@ -97,7 +97,7 @@ legend {
     color: inherit !important;
 }
 
-legend, [class*=objs] p, .ww {
+legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
     word-wrap: break-word;
 }
 
@@ -213,7 +213,7 @@ body, .mb3 p, *:not(".nw") .form-group, .nmb, .well.cmn > p {
     }
 }
 
-.clickable {
+.clickable, .namef > a {
     cursor: pointer;
 }
 
@@ -359,7 +359,7 @@ body, .mb3 p, *:not(".nw") .form-group, .nmb, .well.cmn > p {
     max-width: 175px;
 }
 
-.fri .us a, .fri .fa-ellipsis-v, .lm {
+.fri .us a, .fri .fa-ellipsis-v, .lm, .namef > a {
     display: block !important;
 }
 

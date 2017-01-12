@@ -21,11 +21,10 @@ BIRTHDATE_YEARS = ('2015','2014','2013','2012','2011','2010','2009','2008','2007
 
 class BaseSignupForm(UserCreationForm):
     birthdate = forms.DateField(widget=extras.SelectDateWidget(years=BIRTHDATE_YEARS))
-    captcha = ReCaptchaField(attrs={'lang': get_language()})
 
     class Meta:
         model = get_user_model()
-        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'location', 'captcha', 'currency', 'tz')
+        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'location', 'currency', 'tz')
         widgets = {'location': forms.HiddenInput, 'currency': forms.HiddenInput, 'tz': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
@@ -47,10 +46,10 @@ class BaseSignupForm(UserCreationForm):
                     if a['short_name'] == 'RS': #for c in CURRENCY_COUNTRY:
                         cleaned_data['currency'] = 'RSD' #if a['short_name'] in c:
                             #= c[1]
-            cleaned_data['tz'] = TF_OBJ.timezone_at(lat=cleaned_data['location'].coords[0], lng=cleaned_data['location'].coords[1])
+            cleaned_data['tz'] = TF_OBJ.timezone_at(lat=cleaned_data['location'].coords[1], lng=cleaned_data['location'].coords[0])
 
 class SignupForm(BaseSignupForm, DefaultSignupForm):
-    pass
+    captcha = ReCaptchaField(attrs={'lang': get_language()})
 
 class SocialSignupForm(DefaultSocialSignupForm, BaseSignupForm):
     def __init__(self, *args, **kwargs):

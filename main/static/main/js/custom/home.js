@@ -50,32 +50,38 @@ app
 
         return {
             markers: markers,
-            load: function (objs, del, each) {
-                if (!each) var nested = objs[0].location === undefined, obj;
-                var j, c = del === null && markers.length > 0;
-                for (var i = 0; i < objs.length; i++) {
-                    if (!each || objs[i].location !== undefined || objs[i].business !== undefined) {
-                        obj = (each ? objs[i].location === undefined : nested) ? objs[i].business : objs[i];
-                        if (objs[i].location === undefined || c) for (j = 0; j < markers.length; j++) if (markers[j].shortname == obj.shortname) {
+            load: function (objs, del_each) {
+                if (del_each !== undefined && !del_each && objs.length > 0) var nested = objs[0].location === undefined;
+                //var s = [];
+                function objloop(func_name, del) {
+                    var r, obj, str = typeof(func_name) == 'string'; //, j
+                    for (var i = objs.length - 1; i >= 0; i--) if (!del_each || objs[i].location !== undefined || objs[i].business !== undefined) {
+                        obj = (del_each === undefined || del_each ? objs[i].location === undefined : nested) ? objs[i].business : objs[i];
+                        /*if (!str && del_each !== null && (!nested || objs[i].location !== undefined)) for (j = 0; j < s.length; j++) if (s[j] == obj) {
                             j = true;
                             break;
                         }
-                        if (!j) {
-                            markers.push({
-                                id: markers.length,
-                                latitude: obj.location.lat,
-                                longitude: obj.location.lng,
-                                options: {
-                                    labelClass: 'marker_label',
-                                    labelAnchor: '0 54',
-                                    labelContent: '<span>' + obj.type_display + ' "' + obj.name + '"</span>'
-                                },
-                                shortname: obj.shortname
-                            });
-                            if (del) delete obj.location;
-                        } else j = false;
+                        if (j === false) {*/
+                        r = str ? func_name == obj.shortname : func_name(obj);
+                        if (del && r || !str && del_each !== undefined /*|| r === null*/) if (del_each && objs[i].location === undefined || nested) delete obj.location; else /*if (del_each === null)*/ objs.splice(i, 1); //else s.push(obj);
+                        if (r) return true; //|| r === null
+                        //}
                     }
                 }
+                if (del_each !== undefined) for (var i = markers.length - 1; i >= 0; i--) if (!objloop(markers[i].shortname, true)) markers.splice(i, 1);
+                objloop(function (obj){
+                    markers.push({
+                        id: markers.length,
+                        latitude: obj.location.lat,
+                        longitude: obj.location.lng,
+                        options: {
+                            labelClass: 'marker_label',
+                            labelAnchor: '0 54',
+                            labelContent: '<span>' + obj.type_display + ' "' + obj.name + '"</span>'
+                        },
+                        shortname: obj.shortname
+                    });
+                });
             },
             click: function (i, n, o) { window.location.href = '/'+o.shortname+'/' }
         }

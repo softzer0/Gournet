@@ -2,18 +2,18 @@ from django import forms
 from .models import CATEGORY, Business
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 from geopy import GoogleV3
-from django.contrib.gis.geos import fromstr
+from django.contrib.gis.geos import fromstr, Point
 
 GOOGLEV3_OBJ = GoogleV3() #api=
 
 def clean_loc(self, cleaned_data, noloc=False, retraw=False):
     loc = cleaned_data.get('location', False) if not noloc else False
     try:
-        if loc and not cleaned_data['address']:
+        if loc and not cleaned_data.get('address', False):
             cleaned_data['address'] = GOOGLEV3_OBJ.reverse(cleaned_data['location'])[0].address
-        elif cleaned_data['address'] and not loc:
+        elif cleaned_data.get('address', False) and not loc:
             loc = GOOGLEV3_OBJ.geocode(cleaned_data['address'])
-            cleaned_data['location'] = fromstr('POINT(%s %s)' % (loc.latitude, loc.longitude))
+            cleaned_data['location'] = Point(loc.longitude, loc.latitude, srid=4326)
     except:
         loc = None
         pass
@@ -26,7 +26,13 @@ class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)
 
 class BusinessForm(forms.ModelForm):
-    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$', label="Latitude/longitude")
+    address = forms.CharField(required=False, max_length=130, widget=forms.TextInput({
+       'ng-model': 'address',
+       'ng-initial': '',
+       'ng-change': 'geocode(true)',
+       'ng-model-options': '{updateOn: \'default blur\', debounce: {default: 1000, blur: 0}}'
+    }))
+    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$', label="Longitude/latitude")
 
     class Meta:
         fields = '__all__'
@@ -47,10 +53,6 @@ class BusinessForm(forms.ModelForm):
         self.fields['shortname'].widget.attrs['ng-model'] = 'shortname'
         self.fields['shortname'].widget.attrs['ng-initial'] = ''
         self.fields['phone'].widget.attrs['title'] = ''
-        self.fields['address'].widget.attrs['ng-model'] = 'address'
-        self.fields['address'].widget.attrs['ng-initial'] = ''
-        self.fields['address'].widget.attrs['ng-change'] = 'geocode(true)'
-        self.fields['address'].widget.attrs['ng-model-options'] = '{updateOn: \'default blur\', debounce: {default: 1000, blur: 0}}'
         self.fields['location'].widget.attrs['geom_type'] = ''
         self.fields['location'].widget.attrs['ng-model'] = 'location'
         self.fields['location'].widget.attrs['ng-initial'] = ''
@@ -71,15 +73,15 @@ class BusinessForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if 'name' in cleaned_data:
+        if cleaned_data.get('name', False):
             cleaned_data['name'] = cleaned_data['name'].replace('"', '\'')
-        if 'supported_curr' in cleaned_data and 'currency' in cleaned_data:
+        if cleaned_data.get('supported_curr', False) and cleaned_data.get('currency', False):
             try:
                 cleaned_data['supported_curr'].remove(cleaned_data['currency'])
             except:
                 pass
-        if 'shortname' in cleaned_data and Business.objects.filter_by_natural_key(cleaned_data['shortname']).exists():
+        if cleaned_data.get('shortname', False) and Business.objects.filter_by_natural_key(cleaned_data['shortname']).exists():
             self.add_error('shortname', forms.ValidationError("A business with that shortname already exists.", code='unique'))
-        if 'location' in cleaned_data:
-            cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(', ', ' ').replace(',', ' ')+')')
+        if cleaned_data.get('location', False):
+            cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(',', ' ')+')')
         clean_loc(self, cleaned_data)

@@ -1,5 +1,49 @@
+app.requires.push('ngFileUpload');
 app
-    .controller('BaseViewCtrl', function($scope, $timeout, $state, tabs) {
+    .controller('BaseViewCtrl', function($scope, $timeout, $state, $q, tabs, Upload, dialogService) {
+        $scope.clickOutside = function (i){ if ($scope.edit[i].disabled === false) $scope.edit[i].disabled = true };
+
+        $scope.upload = function (file, pk) {
+            var deferred = $q.defer();
+            Upload.upload({
+                url: '/upload/' + (pk ? pk + '/' : ''),
+                file: file
+            }).then(function (resp) {
+                deferred.resolve();
+                console.log('Success ' + resp.config.file.name + ' uploaded.');
+            }, function (resp) {
+                deferred.reject();
+                console.log('Error status: ' + resp.status);
+            /*}, function (evt) {
+                console.log('Progress: ' + parseInt(100.0 * evt.loaded / evt.total) + '% (' + evt.config.file.name + ')');
+            */});
+            return deferred.promise;
+        };
+
+        var disupl = $scope.$watch('file', function (){
+            //console.log($scope.file);
+            if ($scope.file != undefined) {
+                function reset() { $scope.file = null }
+                if ($scope.file.size <= 2000000) {
+                    $scope.upload($scope.file, $scope.u === undefined ? 'business' : undefined).then(function (){
+                        $scope.img = $scope.img.split('?')[0]+'?'+(+ new Date());
+                        $timeout(reset);
+                    }, reset);
+                } else {
+                    reset();
+                    dialogService.show("You can't upload image larger than 2MB!", false);
+                }
+            } else if ($scope.file === undefined) disupl();
+        });
+
+        $scope.gend = function (){
+            var d = {};
+            for (var i = 0; i < arguments.length; i++) if ($scope.edit[0].form[i] != $scope.edit[0].value[i]) d[arguments[i]] = $scope.edit[0].form[i];
+            return d;
+        };
+
+        // Tabs
+
         var chng = false, init = null;
 
         function setCurr() {

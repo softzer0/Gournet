@@ -11,16 +11,13 @@ from PIL import Image, ImageOps
 from django.core.files.base import ContentFile
 from django.conf import settings
 import os
+from glob import glob
 #from django_thumbs.settings import THUMBS_GENERATE_THUMBNAILS
 
 THUMB_SUFFIX = '%s.%sx%s.%s'
+FILENAME = 'avatar'
 
-
-def gen_path(type, username_id):
-    return settings.MEDIA_ROOT+'images/'+type+'/'+username_id+'/'
-
-
-def save_img(original, preserve_ratio=True, image_format='JPEG', size=None):
+def save_img(image, preserve_ratio=True, image_format='JPEG', size=None):
     """Generates a thumbnail image and returns a ContentFile object with the thumbnail
 
     :param original: The image being resized as `File`.
@@ -29,67 +26,66 @@ def save_img(original, preserve_ratio=True, image_format='JPEG', size=None):
     :param image_format: Format of the original image ('JPEG', 'PNG', ...) The thumbnail will be generated using this same image_format.
     :returns: ContentFile object with the thumbnail
     """
-    original.seek(0)  # see http://code.djangoproject.com/ticket/8222 for details
-    image = Image.open(original)
+    if not isinstance(image, Image.Image):
+        #if isinstance(original, ContentFile):
+        image.seek(0) # see http://code.djangoproject.com/ticket/8222 for details
+        image = Image.open(image)
     if image.mode not in ['L', 'RGB', 'RGBA']:
         if image.mode == 'P':
             image = image.convert('RGBA')
         else:
             image = image.convert('RGB')
     if size:
-        if preserve_ratio:
+        if not preserve_ratio:
             image.thumbnail(size, Image.ANTIALIAS)
         else:
             image = ImageOps.fit(image, size, Image.ANTIALIAS)
     zo = io.BytesIO()
-    if image_format.upper() == 'JPG':
-        image_format = 'JPEG'
     image.save(zo, image_format)
     return ContentFile(zo.getvalue())
 
-
-def save(type, username_id, filename, image):
-    path = gen_path(type, username_id)
+def save(type, pk, filename, image):
+    path = settings.MEDIA_ROOT+'images/'+type+'/'+str(pk)+'/'
     try:
         os.makedirs(path)
     except:
-        pass
+        for f in glob(path+'*.'+('jpg' if filename.split('.')[-1] == 'png' else 'png')):
+            os.remove(f)
     path += filename
     fout = open(path, 'wb+')
     for chunk in image.chunks():
         fout.write(chunk)
     fout.close()
 
-
-def generate_thumb(type, username_id, imgname, image, size, preserve_ratio):
+def generate_thumb(type, pk, format, ext, image, size, preserve_ratio):
     """Generates a thumbnail of `size`.
     :param image: An `File` object with the image in its original size.
     :param size: A tuple with the desired width and height. Example: (100, 100)
     """
-    base, extension = imgname.rsplit('.', 1)
-    thumb_name = THUMB_SUFFIX % (base, size[0], size[1], extension)
-    thumbnail = save_img(image, preserve_ratio, extension, size)
-    save(type, username_id, thumb_name, thumbnail)
+    #base, ext = filename.rsplit('.', 1)
+    thumb_name = THUMB_SUFFIX % (FILENAME, size[0], size[1], ext)
+    thumbnail = save_img(image, preserve_ratio, format, size)
+    save(type, pk, thumb_name, thumbnail)
 
-
-def saveimgwiththumbs(type, username_id, imgname, content, preserve_ratio=True, sizes=None):
-    if type in [0, 1]:
+def saveimgwiththumbs(type, pk, format, content, thumb_preserve_ratio=True):
+    if type in ['user', 'business', 0]:
         if type == 0:
+            size = None
             type = 'user'
         else:
-            type = 'business'
-        size = None
-        if not sizes:
-            sizes = [(32,32), (48,48), (64,64)]
+            size = (128,128)
+        sizes = [(32,32), (48,48), (64,64)]
     else:
-        type = 'item'
         size = (256,256)
         sizes = [(32,32), (64,64)]
-    save(type, username_id, imgname, save_img(content, preserve_ratio, imgname.split('.')[-1], size))
-    if sizes:
-        for size in sizes:
-            try:
-                generate_thumb(type, username_id, imgname, content, size, preserve_ratio)
-            except Exception:
-                if settings.DEBUG:
-                    raise
+    if format.lower() == 'jpeg':
+        ext = 'jpg'
+    else:
+        ext = 'png'
+    save(type, pk, FILENAME+'.'+ext, save_img(content, image_format=format, size=size))
+    for size in sizes:
+        try:
+            generate_thumb(type, pk, format, ext, content, size, thumb_preserve_ratio)
+        except Exception:
+            if settings.DEBUG:
+                raise

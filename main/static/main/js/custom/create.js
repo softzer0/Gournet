@@ -39,7 +39,7 @@ app
                     init({latitude: $scope.location.split(',')[1], longitude: $scope.location.split(',')[0]});
                 } else if ($scope.address != '') $scope.geocodeAddress($scope.address, init); else init(USER.home);
             },
-            function (){ $scope.location = $scope.map.center.latitude+','+$scope.map.center.longitude }
+            function (){ $scope.location = $scope.map.center.longitude+','+$scope.map.center.latitude }
         ]}));
 
         var l = true;
@@ -49,7 +49,7 @@ app
                 return;
             }
             if ($scope.address != '' && (!f || l)) {
-                $scope.geocodeAddress($scope.address, setCoords);
+                $scope.geocodeAddress($scope.address, $scope.setCoords);
                 l = false;
             } else if (f) l = $scope.address == '';
         };

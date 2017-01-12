@@ -11,7 +11,7 @@
     ></script>
     <script type="text/ng-template" id="comment">
         <a class="prf" ng-href="/user/{{ m.obj.person.username }}/">
-            <div class="pb7 pull-left"><img class="bor media-object" ng-src="/images/{{ m.obj.person.username }}/avatar/32/"></div>
+            <div class="pb7 pull-left"><img class="bor media-object" ng-src="/images/{{ m.obj.person.id }}/avatar/32/"></div>
             <strong>{{ m.obj.person.first_name }} {{ m.obj.person.last_name }}</strong
         ></a
         ><span ng-if="m.obj.created === undefined || m.obj.manager_stars.status === undefined"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="Manager">M</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="Stars">{{ m.obj.manager_stars }} <i class="fa fa-star"></i></span></span
@@ -34,7 +34,9 @@
     <div class="angular-animate" ng-repeat="e in objs" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ objs_animation ? 'angular-animate' : '' }}"-->
         <div ng-if="e.person_status !== undefined || e.friend !== undefined" class="mb3">
             <span ng-if="e.friend === undefined || e.friend.count === undefined"
-                ><span ng-if="first_name !== undefined" ng-bind="first_name"></span><a ng-if="first_name === undefined" ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a>
+                ><span ng-if="first_name !== undefined" ng-bind="first_name"></span
+                ><a ng-if="u === undefined && first_name === undefined" ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a
+                ><span ng-if="u !== undefined && first_name === undefined">You</span>
                 <span ng-if="(e.person_status[0] || e.friend.status) == -1 || e.target !== undefined || e.is_opened !== undefined"
                     ><span ng-if="e.when !== undefined">posted</span
                     ><span ng-if="e.price !== undefined">added</span

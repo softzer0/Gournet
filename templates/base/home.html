@@ -33,13 +33,13 @@
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
             .constant('CONTENT_TYPES', {% load getextend %}{{ '{' }}{% for ct in content_types %}{{ ct }}: {{ content_types|get_item:ct|get_attr:'pk' }}{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
             .constant('HAS_STARS', {{ '{' }}{% for ct in has_stars %}{{ has_stars|get_item:ct }}: true{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
-            .constant('USER', {currency: '{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url %}, home: {latitude: {{ request.user.location.coords.0 }}, longitude: {{ request.user.location.coords.1 }}{{ '}' }}{% endif %}{{ '}' }})</script>{% endblock %}
+            .constant('USER', {currency: '{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% endif %}})</script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
 {% block begin %}<script type="text/ng-template" id="offcanvas">
     <div class="navmenu navmenu-default navmenu-fixed-right">
-        <a class="n" ng-click="c()" href="{% url 'user_profile' request.user.username as user_url %}{% if request.path == user_url %}javascript:{% else %}{{ user_url }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.username }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+        <a class="n" ng-click="c()" href="{% url 'user_profile' request.user.username as user_url %}{% if request.path == user_url %}javascript:{% else %}{{ user_url }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.pk }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
         <ul class="nav navmenu-nav">
             {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
             <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url %}javascript:{% else %}{{ create_url }}{% endif %}">Your business</a></li>
@@ -65,7 +65,7 @@
             {% comment %}<li><a href="javascript:" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav">{% endcomment %}
             <li><a href="javascript:" ng-click="showSettModal()">Change password/email(s)</a></li>
-            <li><a href="javascript:" ng-click="showSettModal(1)">Internationalization</a></li>
+            <li><a href="javascript:" ng-click="showSettModal(1)">Localization</a></li>
             {% comment %}    </ul>
             </li>{% endcomment %}
             <li><a href="{% url 'account_logout' %}">Logout</a></li>

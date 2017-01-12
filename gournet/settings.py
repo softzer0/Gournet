@@ -77,7 +77,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'stronghold.middleware.LoginRequiredMiddleware'
+    'stronghold.middleware.LoginRequiredMiddleware',
+    'main.middleware.TimezoneMiddleware'
 ]
 
 from django.conf.global_settings import CACHES
@@ -168,8 +169,9 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/password/reset/',
     r'/email/confirm/',
     r'/logout/',
-    #r'/static/',
-    #r'/admin/'
+    r'/static/',
+    r'/media/',
+    r'/admin/'
 )
 
 TEMPLATES = [

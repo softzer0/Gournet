@@ -9,7 +9,7 @@
 .br1 {
 	margin-bottom: -5px;
 }
-.br2, .frm > *:not(.mpd):not(:last-child), .frm > *:not(.input-group) > *:not(:last-child) {
+.br2, .frm > *:not(.mpd):not(:last-child), .frm > *:not(.input-group) > *:not(:last-child), .namef > :not([style*="display: none"]) {
 	margin-bottom: 11px;
 }
 
@@ -174,4 +174,74 @@
         height: 30px;
         left: 0;
     }
+}
+
+.img_p {
+	position: relative;
+	border: 0;
+	padding: 0;
+}
+
+.img_l {
+	position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.img_l > .loa {
+	margin-top: 50px;
+	margin-left: 50px;
+}
+
+.img_p > .tooltip {
+	left: -32px !important;
+	width: 193px;
+}
+
+.inline > input, .inline > div {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.namef > div, .namef > input {
+	width: 50% !important;
+}
+
+.namef > div {
+	position: relative;
+}
+
+.namef > div > ul {
+	width: 100% !important;
+}
+
+.namef > div > div {
+	position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.namef > fieldset {
+	margin-top: -4px;
+}
+
+.namef > fieldset > span {
+	display: block;
+    overflow: hidden;
+    padding-left: 10px;
+}
+
+.namef > fieldset > label {
+	float: left;
+	margin-top: 7px;
+}
+
+.namef > a:last-child {
+	margin-top: -5px;
 }

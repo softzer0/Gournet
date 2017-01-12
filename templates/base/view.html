@@ -1,21 +1,25 @@
 {% extends 'base/home.html' %}
 {% load staticfiles %}
 
+{% block title %}{% block name %}{% endblock %} - Gournet{% endblock %}
 {% block head %}{{ block.super }}
     <link rel="stylesheet" href="{% static 'main/css/view.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/danialfarid-angular-file-upload/12.2.13/ng-file-upload.min.js"></script>
     <script src="{% static 'main/js/custom/base_view.js' %}"></script>{% endblock %}
 
 {% block container %}
         <div class="row" {% block rowatt %}{% endblock %}>
             <div class="col-md-3">
                 <div class="well bs-sidebar affix">
-                    <p class="lead text-center br2">{% block name %}{% endblock %}</p>
-                    <img class="img-thumbnail margin-center prof" src="/images/{% block img %}{% endblock %}">
+                    {% block name_content %}{% endblock %}
+                    <div class="img_p img-thumbnail margin-center prof" ng-init="img = '/images/{% block img %}{% endblock %}'">
+                        <img ng-src="{% verbatim %}{{ img }}{% endverbatim %}" class="img-thumbnail margin-center prof"{% if business and business.manager == request.user or usr == request.user %} ng-init="file = null" uib-tooltip="You can also drag an new image here" ngf-drop ngf-select ng-model="file" ng-disabled="file" ng-class="{'clickable': !file}" accept="image/jpeg,image/png,image/gif" ngf-pattern="'image/jpeg,image/png,image/gif'">
+                        <div class="img_l" ng-show="file"><div class="loa loa-c"><i class="fa fa-spinner fa-2x"></i></div></div{% endif %}>
+                    </div>
                     <ul class="br1 list-unstyled text-center ls" ng-cloak>
                         {% block other %}{% endblock %}
                     </ul>
                 </div>
-
             </div>
 
             <div class="col-md-9">

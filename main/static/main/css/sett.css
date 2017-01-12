@@ -73,3 +73,13 @@
 .rmn + .popover ul, .comb {
     width: initial !important;
 }
+
+.locp {
+    margin-top: -9px;
+}
+
+.locp > span {
+    display: inline-block;
+    padding-right: 5px;
+    padding-bottom: 5px;
+}

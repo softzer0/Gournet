@@ -6,12 +6,12 @@
                 <p class="def">{{ pass_err == 0 ? 'Your password has been changed.' : pass_err_txt }}</p>
             </div>
             <p>Enter your current password before changing:</p>
-            <div ng-class="{'has-error': pass_err == 1 || pass_err == 3}"><input class="form-control" type="password" ng-model="obj.pass[0]" placeholder="Current password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
+            <div ng-class="{'has-error': pass_err == 1 || pass_err == 3}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[0]" placeholder="Current password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
             <p>Enter new password:</p>
-            <div ng-class="{'has-error': pass_err == 2 || pass_err == 3}"><input class="form-control" type="password" ng-model="obj.pass[1]" placeholder="New password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
+            <div ng-class="{'has-error': pass_err == 2 || pass_err == 3}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[1]" placeholder="New password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
             <p>Repeat new password:</p>
-            <div ng-class="{'has-error': pass_err == 4}"><input class="form-control" type="password" ng-model="obj.pass[2]" placeholder="New password (again)" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
-            <input type="submit" ng-click="changePassword()" class="btn btn-success" value="Save">
+            <div ng-class="{'has-error': pass_err == 4}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[2]" placeholder="New password (again)" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
+            <input type="submit" ng-disabled="obj.changing" ng-click="changePassword()" class="btn btn-success" value="Save">
         </form>
         <hr class="hor">
         <div class="loa" ng-if="!loaded && obj.active == 0"><i class="fa fa-spinner"></i></div>
@@ -36,13 +36,7 @@
             <input type="submit" ng-disabled="obj.adding" class="btn btn-warning" ng-click="addEmail()" value="Add Email Address">
         </form>
     </uib-tab>
-    <uib-tab index="1" heading="Internationalization"><!-- ng-click="enableAnimation()"-->
-        <p>Language:</p>
-        <input class="form-control" type="text" placeholder="Language">
-        <p>Currency:</p>
-        <input class="form-control" type="text" placeholder="Currency">
-        <p>Time zone:</p>
-        <input class="form-control" type="text" placeholder="Time zone">
-        <button class="btn btn-success">Save</button>
+    <uib-tab index="1" heading="Localization"><!-- ng-click="enableAnimation()"-->
+        <div ng-if="obj.active == 1 && set_modal_loaded !== undefined || setD !== undefined" ng-include="'/localization/'" onload="set_modal_loaded(true)"></div>
     </uib-tab>
 </uib-tabset>

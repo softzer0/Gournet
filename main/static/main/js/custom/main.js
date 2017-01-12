@@ -176,11 +176,15 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 		};
 	})
 
-    .directive('clickOutside', function ($document) {
+    .directive('clickOutside', function ($document, $parse) {
         return {
            restrict: 'A',
-           scope: {clickOutside: '&'},
-           link: function (scope, el) { $document.on('click', function (e) { if (el !== e.target && !el[0].contains(e.target)) { scope.$apply(function () { scope.$eval(scope.clickOutside) }) } }) }
+           scope: {clickOutside: '&', inScope: '@?'},
+           link: function (scope, el) {
+               function documentClick(e) { if (el.css('display') != 'none' && e.currentTarget.body.className.indexOf('modal') == -1 && el !== e.target && !el[0].contains(e.target)) scope.$apply(function () { scope.$eval(scope.clickOutside) }) };
+               $document.on('click', documentClick);
+               if (scope.inScope) $parse(scope.inScope).assign(scope.$parent, documentClick);
+           }
         }
     })
 
@@ -230,6 +234,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 if (value > 0) {
                     unregister();
                     $scope.modal_loaded = true;
+                    delete $scope.set_modal_loaded;
                 }
             });
         };
@@ -355,6 +360,12 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     case 11:
                         n = 'home';
                         break;
+                    case 12:
+                        n = 'account';
+                        break;
+                    case 13:
+                        n = 'manager';
+                        break;
                     default: n = 'users'
                 }
                 return $resource('/api/'+n+'/:id/?format=json:m', {id: '@object_id'},
@@ -370,6 +381,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         params: {m: '@m'}
                     },
                     'update': {method: 'PUT'},
+                    'partial_update': {method: 'PATCH'},
                     'delete': {method: 'DELETE'}
                 });
             }
@@ -426,8 +438,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .factory('uniService', function ($q, $timeout, $injector, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES, dialogService){
-        var u = false, ld = {}, likeService = APIService.init(3), commentService = APIService.init(7), SEARCH_PAGE_SIZE, menuService, markerService; //, rs = false
+    .factory('uniService', function ($q, $timeout, $injector, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES, dialogService, USER){
+        var u = false, ld = {}, likeService = APIService.init(3), commentService = APIService.init(7), services = {}; //, rs = false
+
+        function getService(name, func) {
+            if (services[name] === undefined) services[name] = $injector.get(name);
+            if (func !== undefined) func(); else return services[name];
+        }
 
         function UniObj(t){
             this.objs = [[],[], t];
@@ -460,10 +477,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     this.objs[0].splice(i, 1);
                     break;
                 }
-            } else {
-                if (menuService === undefined) menuService = $injector.get('menuService');
-                menuService.del(e[index].category, e[index].id);
-            }
+            } else getService('menuService').del(e[index].category, e[index].id);
             if (l) this.remids.push(e[index].id);
             if (!r || !u) e.splice(index, 1);
         };
@@ -478,7 +492,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     this.page_offset = 1;
                     delete this.props.has_next_page;
                     ld = {};
-                    if (markerService !== undefined) markerService.markers.length = 0;
+                    if (services.markerService !== undefined) services.markerService.markers.length = 0;
                 }
             }
             this.unloaded[t ? 1 : 0] = n === null;
@@ -522,22 +536,20 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 ids = ids.slice(1);
             }
             if (ids == '') return $q.when(); else if (ids == null) {
-                if (nob !== undefined)
-                    ld.position = nob.latitude+','+nob.longitude;{
+                if (nob !== undefined) {
+                    ld.position = nob.longitude+','+nob.latitude;
                     if (this.page_offset > 1) {
-                        this.page_offset = 1;
+                        this.page_offset = 1 - (services.SEARCH_PAGE_SIZE !== undefined);
                         nob = null;
                     }
                 }
                 this.unloaded[0] = false;
-                if (this.props.has_next_page !== undefined) if (SEARCH_PAGE_SIZE !== undefined) ld.offset = this.page_offset; else ld.page = this.page_offset;
+                if (this.props.has_next_page !== undefined) if (services.SEARCH_PAGE_SIZE !== undefined) ld.offset = this.page_offset; else ld.page = this.page_offset;
                 if (b !== undefined) if (typeof(b) == 'string') ld.search = b; else ld.id = b;
-                if (rel_state !== undefined) {
-                    if (typeof(rel_state) == 'number') {
-                        u = rel_state == -1;
-                        ld.is_person = 1;
-                        //rs = true;
-                    } else ld.favourites = 1;
+                if (rel_state === true) ld.favourites = 1; else if (rel_state !== undefined) {
+                    u = rel_state == null;
+                    ld.is_person = 1;
+                    //rs = true;
                 }
                 if (this.page_offset == 1 && this.objs[2] == 'comment') ld.content_type = CONTENT_TYPES['business'];
                 function appendResults(results) {
@@ -566,30 +578,22 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         if (self.unloaded[0]) return;
                         appendResults(result.results);
                         if (result.count !== undefined) {
-                            if (SEARCH_PAGE_SIZE === undefined) {
-                                SEARCH_PAGE_SIZE = $injector.get('SEARCH_PAGE_SIZE');
-                                self.page_offset = 0;
-                            }
-                            self.page_offset += SEARCH_PAGE_SIZE;
+                            getService('SEARCH_PAGE_SIZE', function (){ self.page_offset = 0 });
+                            self.page_offset += services.SEARCH_PAGE_SIZE;
                             self.props.has_next_page = result.count > self.page_offset;
                         } else {
                             self.props.has_next_page = result.page_count > self.page_offset;
                             self.page_offset++;
                         }
-                        if (result.results.length > 0 && (ld.favourites == 1 || self.u !== undefined || result.count !== undefined && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) {
-                            if (markerService === undefined) markerService = $injector.get('markerService');
-                            markerService.load(result.results, true, self.u !== undefined);
-                        }
+                        if ((services.markerService !== undefined || result.results.length > 0) && (ld.favourites == 1 || self.u !== undefined || result.count !== undefined && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, self.u !== undefined);
                 }); else {
                     d = APIService.init(11).query(ld,
                         function (result) {
                             if (self.unloaded[0]) return;
-                            if (result[0].results.length > 0) {
-                                if (markerService === undefined) markerService = $injector.get('markerService');
-                                markerService.load(result[0].results, null);
-                            }
-                            appendResults(result[1].results);
-                            self.props.has_next_page = result[1].has_more;
+                            USER.deftz = result[0];
+                            if (services.markerService !== undefined || result[1].results.length > 0) getService('markerService').load(result[1].results, null);
+                            appendResults(result[2].results);
+                            self.props.has_next_page = result[2].has_more;
                             self.page_offset++;
                         });
                 }
@@ -651,7 +655,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 return (this.s || this.u[e[index].type]).delete({id: e[index].id}, function (){
                     if (!self.unloaded[r ? 1 : 0]) self.remove(e, index, r);
                 }, function (result){
-                    if (is_item && result.data !== undefined && result.data.non_field_errors !== undefined) dialogService.show("You can't delete the last remaining item!", false)
+                    if (is_item && result.data !== undefined && result.data.non_field_errors !== undefined) dialogService.show("You can't delete the last remaining item!", false);
                 }).$promise;
             }
         };
@@ -836,7 +840,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     return;
                 }
                 $scope.loading = true;
-                objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state : $scope.is_fav, t != 'user' ? $scope.coords : undefined).then(function() {
+                objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state !== undefined ? false : null : $scope.is_fav, t != 'user' ? $scope.coords : undefined).then(function() {
                     l();
                     if (objService.length == 2) objService[1]();
                 } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
@@ -1272,122 +1276,136 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
     })
 
-    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, emailService) { //, $animate
+    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, emailService, USER) { //, $animate
         $scope.close = function() { $uibModalInstance.dismiss('cancel') };
-        $scope.set_modal_loaded = function (){ $timeout(function() { $scope.modal_loaded = true }) };
+        $scope.set_modal_loaded = function (s){ if ($scope.obj.active == 0 || s) $timeout(function() { $scope.modal_loaded = true; if (s) delete $scope.set_modal_loaded }) };
         $scope.title = "Settings";
         $scope.file = 'settings';
-        $scope.obj = {active: index, pass: null, email: null, selected: 0};
+        $scope.obj = {active: index, pass: [], email: null, selected: 0};
+        $scope.user = USER;
         //$scope.enableAnimation = function (){ console.log(angular.element('.nji')[0]); $animate.enabled(angular.element('.nji')[0], true) };
 
         // Email
 
         //var load;
         $scope.sent = [];
-        $scope.$watch('obj.active', function (value) {
-            if (value == 1 || $scope.emails !== undefined) return;
-            //$scope.obj.selected = 0;
-            $scope.emails = emailService.emails;
-            //if ($scope.emails.length == 0) {
-                //load = true;
-            emailService.load().then(function (){ $timeout(function() { $scope.loaded = true; /*load = false*/ }) });
-            $scope.addEmail = function () {
-                if ($scope.obj.email === undefined) return;
-                for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
-                $scope.obj.adding = true;
-                emailService.add($scope.obj.email).then(function (){
-                    $scope.sent.push($scope.obj.email);
-                    $scope.obj.email = '';
-                    $scope.obj.adding = false;
-                }, function (){ $scope.obj.adding = false });
-            };
-            $scope.removeEmail = function () {
-                emailService.remove().then(function (e) {
-                    for (var i = 0; i < $scope.sent.length; i++) {
-                        if ($scope.sent[i]==e) {
-                            $scope.sent.splice(i, 1);
-                            break
-                        }
-                    }
-                })
-            };
-            $scope.resendConfirmationEmail = function () {
-                var t = $scope.emails[$scope.obj.selected].email;
-                emailService.resend().then(function (){
-                    for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) t = null;
-                    if (t != null) $scope.sent.push(t);
-                });
-            };
-            var loading;
-            $scope.makePrimaryEmail = function () {
-                if (loading) return;
-                loading = true;
-                emailService.primary().then(function (){
-                    /*$scope.obj.selected = 0;
-                    $scope.EmailSelected();*/
-                    $timeout(function() { loading = false });
-                });
-            };
-            $scope.EmailSelected = function () {
-                emailService.setCurrent($scope.obj.selected);
-            };
-
-            $scope.$watch('emails.length', function () {
-                if ($scope.emails === undefined) return; //load
-                $scope.obj.selected = $scope.emails.length-1;
-                $scope.EmailSelected();
-            });
-
-            $scope.$on('$destroy', function() { $scope.emails.length = 0 });
-
-            // Password
-
-            $scope.dismissError = function (){
-                delete $scope.pass_err;
-                delete $scope.pass_err_txt;
-            };
-            $scope.changePassword = function () {
-                var i = 0;
-                for (; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
-                var pw_fields = angular.element('input[type="password"]');
-                if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
-                    //if ($scope.pass_err != 4) {
-                    $scope.pass_err_txt = "New password fields don't match.";
-                    $scope.pass_err = 4;
-                    pw_fields[2].focus();
-                    //}
-                    return;
-                }
-                if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
-                    /*var t = "Your new password matches the current password, enter a different one.";
-                    if ($scope.pass_err_txt != t) {*/
-                    $scope.pass_err_txt = "Your new password matches the current password, enter a different one."; //t
-                    $scope.pass_err = 2;
-                    pw_fields[1].focus();
-                    //}
-                    return;
-                }
-                $scope.dismissError();
-                $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
-                    $scope.pass_err = 0;
-                    for (i = 0; i < 3; i++) $scope.obj.pass[i] = '';
-                }, function (response){
-                    if (response.data !== undefined && response.data.form_errors !== undefined) {
-                        var err = 0;
-                        $scope.pass_err_txt = '';
-                        for (var e in response.data.form_errors) {
-                            //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
-                            if (e == 'oldpassword') err += 1; else err += 2;
-                            for (i = 0; i < response.data.form_errors[e].length; i++) {
-                                if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
-                                $scope.pass_err_txt += response.data.form_errors[e][i];
+        var deact = $scope.$watch('obj.active', function (value) {
+            if (value == 0 && $scope.emails === undefined) {
+                //$scope.obj.selected = 0;
+                $scope.emails = emailService.emails;
+                //if ($scope.emails.length == 0) {
+                    //load = true;
+                emailService.load().then(function (){ $timeout(function() { $scope.loaded = true; /*load = false*/ }) });
+                $scope.addEmail = function () {
+                    if ($scope.obj.email === undefined) return;
+                    for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
+                    $scope.obj.adding = true;
+                    emailService.add($scope.obj.email).then(function (){
+                        $scope.sent.push($scope.obj.email);
+                        $scope.obj.email = '';
+                        delete $scope.obj.adding;
+                    }, function (){ delete $scope.obj.adding });
+                };
+                $scope.removeEmail = function () {
+                    emailService.remove().then(function (e) {
+                        for (var i = 0; i < $scope.sent.length; i++) {
+                            if ($scope.sent[i]==e) {
+                                $scope.sent.splice(i, 1);
+                                break
                             }
                         }
-                        $scope.pass_err = err;
-                        if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
-                    }
+                    })
+                };
+                $scope.resendConfirmationEmail = function () {
+                    var t = $scope.emails[$scope.obj.selected].email;
+                    emailService.resend().then(function (){
+                        for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) t = null;
+                        if (t != null) $scope.sent.push(t);
+                    });
+                };
+                var loading;
+                $scope.makePrimaryEmail = function () {
+                    if (loading) return;
+                    loading = true;
+                    emailService.primary().then(function (){
+                        /*$scope.obj.selected = 0;
+                        $scope.EmailSelected();*/
+                        $timeout(function() { loading = false });
+                    });
+                };
+                $scope.EmailSelected = function () {
+                    emailService.setCurrent($scope.obj.selected);
+                };
+
+                $scope.$watch('emails.length', function () {
+                    if ($scope.emails === undefined) return; //load
+                    $scope.obj.selected = $scope.emails.length-1;
+                    $scope.EmailSelected();
                 });
-            };
-            //} else { $scope.loaded = true }
+
+                $scope.$on('$destroy', function() { $scope.emails.length = 0 });
+
+                // Password
+
+                $scope.dismissError = function (){
+                    delete $scope.pass_err;
+                    delete $scope.pass_err_txt;
+                };
+                $scope.changePassword = function () {
+                    var i = 0;
+                    for (; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
+                    var pw_fields = angular.element('input[type="password"]');
+                    if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
+                        //if ($scope.pass_err != 4) {
+                        $scope.pass_err_txt = "New password fields don't match.";
+                        $scope.pass_err = 4;
+                        pw_fields[2].focus();
+                        //}
+                        return;
+                    }
+                    /*if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
+                        //var t = "Your new password matches the current password, enter a different one.";
+                        //if ($scope.pass_err_txt != t) {
+                        $scope.pass_err_txt = "Your new password matches the current entered password, so use a different one."; //t
+                        $scope.pass_err = 2;
+                        pw_fields[1].focus();
+                        //}
+                        return;
+                    }*/
+                    $scope.dismissError();
+                    $scope.obj.changing = true;
+                    $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
+                        $scope.pass_err = 0;
+                        for (i = 0; i < 3; i++) $scope.obj.pass[i] = '';
+                        delete $scope.obj.changing;
+                    }, function (response){
+                        if (response.data !== undefined && response.data.form_errors !== undefined) {
+                            var err = 0;
+                            $scope.pass_err_txt = '';
+                            for (var e in response.data.form_errors) {
+                                //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
+                                if (e == 'oldpassword') err += 1; else err += 2;
+                                for (i = 0; i < response.data.form_errors[e].length; i++) {
+                                    if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
+                                    $scope.pass_err_txt += response.data.form_errors[e][i];
+                                }
+                            }
+                            $scope.pass_err = err;
+                            if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
+                            delete $scope.obj.changing;
+                        }
+                    });
+                };
+            } else if (value == 1 && $scope.setD === undefined) {
+                $scope.modal_loaded = false;
+                $scope.submitLocal = function (){
+                    $scope.obj.saving = true;
+                    $rootScope.sendreq('localization/', 'language='+USER.language+'&currency='+USER.currency+'&tz='+USER.tz).then(function (response){
+                        delete $scope.obj.saving;
+                        if (response.data.altered.length > 0) $scope.$parent.refresh = true;
+                    }, function (){ delete $scope.obj.saving });
+                };
+                $scope.setD = function (p, v) { if (USER[p] === undefined) USER[p] = v }
+            } else deact();
         });
     });

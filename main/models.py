@@ -49,16 +49,15 @@ def get_content_types_pk():
 CURRENCY = (('RSD', "Serbian dinars (RSD)"), ('EUR', "Euros (EUR)"))
 CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
 
-alphabet_only = RegexValidator(r'^[^\W\d_]+$', "Only letters from the alphabet are allowed.")
 user_short_name = RegexValidator(
                     r'^[\w.-]+$',
                     code=re.ASCII
                 )
 
 class Loc(models.Model):
-    location = PointField("latitude/longitude", geography=True, blank=True, error_messages={'invalid': "Enter valid coordinates."}) #, geography=True
+    location = PointField("longitude/latitude", geography=True, error_messages={'invalid': "Enter valid coordinates."}) #, geography=True
     loc_projected = PointField(srid=3857)
-    address = models.CharField(max_length=130, blank=True)
+    address = models.CharField(max_length=130)
 
     class Meta:
         abstract = True
@@ -97,11 +96,13 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         validators=[user_short_name],
         error_messages={'unique': "A user with that username already exists."},
     )
-    first_name = models.CharField("first name", max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
-    last_name = models.CharField("last name", max_length=30, validators=[alphabet_only]) # Removed "blank" attribute
+    first_name = models.CharField("first name", max_length=30, validators=[RegexValidator(r'^[^\W\d_]+$', "Invalid first name.")]) # Removed "blank" attribute
+    last_name = models.CharField("last name", max_length=30, validators=[RegexValidator(r'^[^\W\d_]+(\-[^\W\d_]+)?$', "Invalid last name.")]) # Removed "blank" attribute
     email = models.EmailField("email address", unique=True) # Changed from "blank" to "unique" attribute
 
     # Added custom fields [BEGIN]
+
+    #name_changed = models.BooleanField(default=False) #enable
 
     #avatar = ImageWithThumbsField(upload_to=upload_to, blank=True, sizes=((48,48),(64,64)))
     friends = models.ManyToManyField('self', blank=True, symmetrical=False, through='Relationship')
@@ -216,9 +217,9 @@ def relationship_delete_notification(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
 
-
+FORBIDDEN = ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'your-business', 'localization', 'upload'] # important
 def not_forbidden(value):
-    if value in ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'your-business']: # important
+    if value in FORBIDDEN:
         raise ValidationError('"%s" is not permitted as a shortname.' % value)
 
 class BusinessManager(GeoManager):
@@ -237,19 +238,11 @@ class Business(Loc):
         unique=True,
         help_text="The people could access your business by putting its shortname after the site address, e.g"+': <u>http://gournet.co/shortname</u>. ' +\
                   "Maximum 30 characters."+' '+"English letters (case-insensitive), digits and ./-/_ only.",
-        validators=[
-            user_short_name,
-            not_forbidden,
-        ]
+        validators=[user_short_name, not_forbidden]
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)
     type = models.SmallIntegerField(choices=BUSINESS_TYPE, default=0)
-    name = models.CharField(max_length=60, validators=[
-            RegexValidator(
-                r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$',
-                ('Enter a valid business name.')
-            ),
-        ])
+    name = models.CharField(max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', ("Enter a valid business name."))])
     phone = PhoneNumberField("phone number", help_text="In national format, e.g"+': 017448739.')
     opened = models.TimeField("opening time", default=datetime.time(8, 0))
     opened_sat = models.TimeField("opening time on Saturday", null=True, blank=True)

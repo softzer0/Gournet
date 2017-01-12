@@ -20,8 +20,8 @@
                     {% bootstrap_field form.currency %}
                     {% bootstrap_field form.supported_curr %}
                     <hr>
-                    {% bootstrap_field form.address addon_after='<button class="btn btn-default" type="button" ng-click="geocode()" ng-disabled="geocoder == undefined"><i class="fa fa-map-marker"></i></button>' %}
-                    {% bootstrap_field form.location addon_after='<button class="btn btn-default" type="button" ng-click="refresh()" ng-disabled="map == undefined"><i class="fa fa-refresh"></i></button>' %}
+                    {% bootstrap_field form.address addon_after='<button class="btn btn-default" type="button" ng-click="geocode()" ng-disabled="geocoder == undefined"><i class="fa fa-refresh"></i></button>' %}
+                    {% bootstrap_field form.location addon_after='<button class="btn btn-default" type="button" ng-click="refresh()" ng-disabled="map == undefined"><i class="fa fa-dot-circle-o"></i></button>' %}
                     <ui-gmap-google-map ng-if="map !== undefined" control="map.control" center="map.center" zoom="map.zoom">
                         <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
                     </ui-gmap-google-map>
