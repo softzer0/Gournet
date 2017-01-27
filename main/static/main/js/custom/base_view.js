@@ -1,47 +1,6 @@
 app.requires.push('ngFileUpload');
 app
-    .controller('BaseViewCtrl', function($scope, $timeout, $state, $q, tabs, Upload, dialogService) {
-        $scope.clickOutside = function (i){ if ($scope.edit[i].disabled === false) $scope.edit[i].disabled = true };
-
-        $scope.upload = function (file, pk) {
-            var deferred = $q.defer();
-            Upload.upload({
-                url: '/upload/' + (pk ? pk + '/' : ''),
-                file: file
-            }).then(function (resp) {
-                deferred.resolve();
-                console.log('Success ' + resp.config.file.name + ' uploaded.');
-            }, function (resp) {
-                deferred.reject();
-                console.log('Error status: ' + resp.status);
-            /*}, function (evt) {
-                console.log('Progress: ' + parseInt(100.0 * evt.loaded / evt.total) + '% (' + evt.config.file.name + ')');
-            */});
-            return deferred.promise;
-        };
-
-        var disupl = $scope.$watch('file', function (){
-            //console.log($scope.file);
-            if ($scope.file != undefined) {
-                function reset() { $scope.file = null }
-                if ($scope.file.size <= 2000000) {
-                    $scope.upload($scope.file, $scope.u === undefined ? 'business' : undefined).then(function (){
-                        $scope.img = $scope.img.split('?')[0]+'?'+(+ new Date());
-                        $timeout(reset);
-                    }, reset);
-                } else {
-                    reset();
-                    dialogService.show("You can't upload image larger than 2MB!", false);
-                }
-            } else if ($scope.file === undefined) disupl();
-        });
-
-        $scope.gend = function (){
-            var d = {};
-            for (var i = 0; i < arguments.length; i++) if ($scope.edit[0].form[i] != $scope.edit[0].value[i]) d[arguments[i]] = $scope.edit[0].form[i];
-            return d;
-        };
-
+    .controller('BaseViewCtrl', function($scope, $timeout, $state, $q, $document, tabs, Upload, dialogService) {
         // Tabs
 
         var chng = false, init = null;
@@ -96,4 +55,83 @@ app
             if (init !== undefined) init = undefined;
             $timeout(function () { chng = false });
         });
+
+        // Owner
+        if (angular.element('.img_p').length == 0) return;
+
+        $scope.documentClick = {};
+        $scope.co = function (i){ if ($scope.edit[i].disabled === false) $scope.edit[i].disabled = true };
+
+        $scope.edit = [];
+        $scope.setE = function (val){ $scope.edit.push({value: arguments.length > 1 ? jQuery.makeArray(arguments) : arguments[0], form: arguments.length > 1 ? jQuery.makeArray(arguments) : arguments[0], disabled: true}) };
+        $scope.disableE = function (i){ $scope.edit[i].disabled = true };
+        function checkfield(i, j, o) {
+            var v = j !== undefined ? $scope.edit[i].form[j] : $scope.edit[i].form, n = v !== undefined && v !== '';
+            if (o) if (n) if (j !== undefined) $scope.edit[i].value[j] = $scope.edit[i].form[j]; else $scope.edit[i].value = $scope.edit[i].form; else if (j !== undefined) $scope.edit[i].form[j] = $scope.edit[i].value[j]; else $scope.edit[i].form = $scope.edit[i].value;
+            return !o ? n && v != (j !== undefined ? $scope.edit[i].value[j] : $scope.edit[i].value) : n;
+        }
+        $scope.execA = function (i, params, del, success, error, before) {
+            var j;
+            if (params.constructor != Object) {
+                var d = {};
+                if (typeof(params) != 'string') for (j = 0; j < params.length; j++) { if (checkfield(i, j)) d[params[j]] = $scope.edit[i].form[j] } else if (checkfield(i)) d[params] = $scope.edit[i].form;
+                if (success === undefined && Object.keys(d).length == 0) {
+                    $scope.disableE(i);
+                    return;
+                }
+            }
+            function f() {
+                if (before !== undefined) if (before()) return;
+                $scope.edit[i].disabled = null;
+                $scope.s.partial_update(params.constructor == Object ? params : d, function (result) {
+                    if (success === undefined) if (typeof(params) != 'string') for (j = 0; j < params.length; j++) checkfield(i, j, true); else checkfield(i, undefined, true); else success(result);
+                    if (del !== undefined) {
+                        $document.off('click', $scope.documentClick[del[1]]);
+                        if (Object.keys($scope.documentClick).length > 1) delete $scope.documentClick[del[1]]; else delete $scope.documentClick;
+                        delete $scope.edit[i].disabled;
+                        delete $scope.edit[i].form;
+                    } else $scope.disableE(i);
+                }, function (result) {
+                    if (error !== undefined) error(result);
+                    $scope.disableE(i);
+                });
+            }
+            if (del !== undefined) dialogService.show("After changing the "+del[0]+" for the first time, you won't be able to do that again."+'<br>'+"Are you sure that you want to continue?").then(f); else f();
+        };
+
+        $scope.upload = function (file, pk) {
+            var deferred = $q.defer();
+            Upload.upload({
+                url: '/upload/' + (pk ? pk + '/' : ''),
+                file: file
+            }).then(function (resp) {
+                deferred.resolve();
+                console.log('Success ' + resp.config.file.name + ' uploaded.');
+            }, function (resp) {
+                deferred.reject();
+                console.log('Error status: ' + resp.status);
+            /*}, function (evt) {
+                console.log('Progress: ' + parseInt(100.0 * evt.loaded / evt.total) + '% (' + evt.config.file.name + ')');
+            */});
+            return deferred.promise;
+        };
+
+        ($scope.setW = function (i, a) {
+            var w = $scope.$watch('img[\''+i+'\'].file', function () {
+                //console.log($scope.file);
+                if ($scope.img !== undefined && $scope.img[i] !== undefined && $scope.img[i].file != undefined) {
+                    function reset() { $scope.img[i].file = null }
+                    if ($scope.img[i].file.size <= 2000000) {
+                        $scope.upload($scope.img[i].file, a || i).then(function () {
+                            $scope.img[i].ts = '&' + (+new Date());
+                            $timeout(reset);
+                        }, reset);
+                    } else {
+                        reset();
+                        dialogService.show("You can't upload image larger than 2MB!", false);
+                    }
+                } else if ($scope.img === undefined) w();
+            });
+            if ($scope.img !== undefined && typeof(i) == 'number') $scope.img[i] = {w: w};
+        })('a', $scope.u === undefined ? 'business' : undefined);
     });

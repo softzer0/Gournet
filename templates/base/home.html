@@ -39,10 +39,10 @@
 
 {% block begin %}<script type="text/ng-template" id="offcanvas">
     <div class="navmenu navmenu-default navmenu-fixed-right">
-        <a class="n" ng-click="c()" href="{% url 'user_profile' request.user.username as user_url %}{% if request.path == user_url %}javascript:{% else %}{{ user_url }}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.pk }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+        <a class="n" ng-click="c()" href="{% if usr == request.user %}javascript:{% else %}{% url 'user_profile' request.user.username %}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.pk }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
         <ul class="nav navmenu-nav">
             {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
-            <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url %}javascript:{% else %}{{ create_url }}{% endif %}">Your business</a></li>
+            <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url or business and business.manager == request.user %}javascript:{% else %}{{ create_url }}{% endif %}">My business</a></li>
             {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
             <li uib-dropdown><a href="javascript:" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>Favourites <b class="caret"></b></a>
                 <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="favourites">
@@ -71,6 +71,38 @@
             <li><a href="{% url 'account_logout' %}">Logout</a></li>
         </ul>
     </div>
+</script>
+<script type="text/ng-template" id="likes"
+    ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 1}" ng-click="giveDisLike(o[1], false, o[2])"><i class="fa fa-plus-square"></i> {% verbatim %}{{ o[0].likestars_count }}{% endverbatim %}</a
+    ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-plus-square"></i> {% verbatim %}{{ o[0].likestars_count }}{% endverbatim %}</span
+
+    ><a href="javascript:" ng-if="o[0].likestars_count - (o[0].dislike_count || 0) != 0" ng-click="o[0].is_opened === undefined ? showDisLikes(o[1], o[2]) : $parent.showFavouritesModal(o[0].id)" class="badge label-primary">{% verbatim %}{{ o[0].likestars_count - (o[0].dislike_count || 0) }}{% endverbatim %}</a
+    ><span ng-if="o[0].likestars_count - (o[0].dislike_count || 0) == 0" class="badge">0</span
+
+    ><a href="javascript:" ng-if="o[0].is_opened === undefined && o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 2}" ng-click="giveDisLike(o[1], true, o[2])"><i class="fa fa-minus-square"></i> {% verbatim %}{{ o[0].dislike_count }}{% endverbatim %}</a
+    ><span ng-if="o[0].is_opened === undefined && o[0].curruser_status == -1"><i class="fa fa-minus-square"></i> {% verbatim %}{{ o[0].dislike_count }}{% endverbatim %}</span
+></script>
+<script type="text/ng-template" id="comment">
+    <a class="prf" ng-href="/user/{% verbatim %}{{ m.obj.person.username }}{% endverbatim %}/">
+        <div class="pb7 pull-left"><img class="bor media-object" ng-src="/images/{% verbatim %}{{ m.obj.person.id }}{% endverbatim %}/avatar/32/"></div>
+        <strong>{% verbatim %}{{ m.obj.person.first_name }}{% endverbatim %} {% verbatim %}{{ m.obj.person.last_name }}{% endverbatim %}</strong
+    ></a
+    ><span ng-if="m.obj.created === undefined || m.obj.manager_stars.status === undefined"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="Manager">M</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="Stars">{% verbatim %}{{ m.obj.manager_stars }}{% endverbatim %} <i class="fa fa-star"></i></span></span
+    ><span ng-if="m.obj.created !== undefined && m.obj.manager_stars.status !== undefined"
+        ><span ng-switch="m.obj.manager_stars.status" uib-tooltip="Status" class="lhin"
+            ><span ng-switch-when="0" class="label label-primary">Started</span
+            ><span ng-switch-when="1" class="label label-warning">Closed</span
+            ><span ng-switch-when="2" class="label label-success">Completed</span
+            ><span ng-switch-when="3" class="label label-danger">Declined</span
+            ><span ng-switch-when="4" class="label label-info">Under review</span
+            ><span ng-switch-when="5" class="label planned">Planned</span
+            ><span ng-switch-when="6" class="label label-default">Archived</span
+            ><span ng-switch-when="7" class="label feedback">Need feedback</span
+        ></span
+        ><span ng-include="'likes'" new-scope ng-init="o = [m.obj.manager_stars, k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index]"></span
+    ></span
+    ><span ng-if="m.obj.can_delete"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this comment?" ng-dialog-click="delete(k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index, k[1])"><i class="fa fa-times"></i> Obriši</a></span>
+    <p>{% verbatim %}{{ m.obj.text }}{% endverbatim %} <small class="text-muted">&mdash; {% verbatim %}{{ m.obj.created | timeAgo }}{% endverbatim %}</small></p>
 </script>{% endblock %}
 
 {% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}

@@ -19,7 +19,9 @@ from django.contrib.gis.db.models import PointField, GeoManager
 from multiselectfield import MultiSelectField
 from timezone_field import TimeZoneField
 from sys import argv
+from timezonefinder import TimezoneFinder
 
+TF_OBJ = TimezoneFinder()
 IS_SERVER = len(argv) == 1 or argv[1] not in ['makemigrations', 'migrate']
 
 @lru_cache()
@@ -58,6 +60,7 @@ class Loc(models.Model):
     location = PointField("longitude/latitude", geography=True, error_messages={'invalid': "Enter valid coordinates."}) #, geography=True
     loc_projected = PointField(srid=3857)
     address = models.CharField(max_length=130)
+    #tz = TimeZoneField(default=settings.TIME_ZONE) #enable
 
     class Meta:
         abstract = True
@@ -71,6 +74,7 @@ class Loc(models.Model):
     def save(self, *args, **kwargs):
         if self._loaded_location != self.location:
             self.loc_projected = self.location.transform(3857, True)
+            self.tz = TF_OBJ.timezone_at(lat=self.location.coords[1], lng=self.location.coords[0])
         super().save(*args, **kwargs)
 
 
@@ -102,8 +106,6 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
 
     # Added custom fields [BEGIN]
 
-    #name_changed = models.BooleanField(default=False) #enable
-
     #avatar = ImageWithThumbsField(upload_to=upload_to, blank=True, sizes=((48,48),(64,64)))
     friends = models.ManyToManyField('self', blank=True, symmetrical=False, through='Relationship')
     #favourites = models.ManyToManyField('Business', blank=True, related_name='favoured_by')
@@ -112,9 +114,13 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     gender = models.IntegerField("gender", choices=CHOICE_GENDER, default=0)
     birthdate = models.DateField("birthdate")
 
+    """name_changed = models.BooleanField(default=False)
+    gender_changed = models.BooleanField(default=False)
+    birthdate_changed = models.BooleanField(default=False)""" #enable
+
     currency = models.CharField("default currency", choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
-    tz = TimeZoneField(default=settings.TIME_ZONE)
     language = models.CharField(choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
+    tz = TimeZoneField(default=settings.TIME_ZONE) #del
 
     recent = GenericRelation('Recent')
 
@@ -217,7 +223,7 @@ def relationship_delete_notification(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
 
-FORBIDDEN = ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'your-business', 'localization', 'upload'] # important
+FORBIDDEN = ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'localization', 'upload'] # important
 def not_forbidden(value):
     if value in FORBIDDEN:
         raise ValidationError('"%s" is not permitted as a shortname.' % value)
@@ -343,6 +349,7 @@ class Item(models.Model):
     name = models.CharField(validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
     price = models.DecimalField(max_digits=7, decimal_places=2)
     created = models.DateTimeField(auto_now_add=True)
+    #has_image = models.BooleanField(default=False)
     likes = GenericRelation('Like')
 
     class Meta:

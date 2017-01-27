@@ -1,6 +1,6 @@
 app
     .factory('menuService', function ($q, APIService){
-        var itemService = APIService.init(8), menu; //, category
+        var itemService = APIService.init(8), menu, defer = $q.defer(); //, category
 
         function chngmenu() { if (!menu[0].hascontent) menu[1].name = "Drinks"; else menu[1].name = "Other drinks" } //menu[0].name == "Other drinks" / if (menu.length)
 
@@ -59,6 +59,11 @@ app
             }
         }
 
+        function end(p){
+            chngmenu();
+            defer.notify(p);
+        }
+
         return {
             init: function (){
                 menu = [ // important
@@ -103,8 +108,8 @@ app
             load: function (id){
                 return itemService.query({id: id, menu: 1},
                     function (result){
-                        var i;
-                        for (i = 0; i < result.length; i++) add(result[i]);
+                        //var i;
+                        for (var i = 0; i < result.length; i++) add(result[i]);
                         /*for (i = 0; i < menu.length; i++) {
                             for (c = 0; c < menu[i].content.length; c++) {
                                 if (!menu[i].content[c].content.length) {
@@ -117,7 +122,7 @@ app
                                 i--;
                             }
                         }*/
-                        chngmenu();
+                        end(result);
                     }
                 ).$promise;
             },
@@ -127,12 +132,10 @@ app
                 for (var i = 0; i < menu.length; i++) {
                     if (d !== null) {
                         for (var j = 0; j < menu[i].content.length; j++) {
-                            if (!d && menu[i].content[j].category == cat) for (var k = 0; k < menu[i].content[j].content.length; k++) {
-                                if (menu[i].content[j].content[k].id == id) {
-                                    menu[i].content[j].content.splice(k, 1);
-                                    d++;
-                                    break;
-                                }
+                            if ((!d || d == 2) && menu[i].content[j].category == cat) for (var k = 0; k < menu[i].content[j].content.length; k++) if (menu[i].content[j].content[k].id == id) {
+                                menu[i].content[j].content.splice(k, 1);
+                                d++;
+                                break;
                             }
                             if (d < 2 && menu[i].content[j].content.length > 0) d += 2;
                             if (d == 3) break; /*&& !menu[i].content[j].content.length) {
@@ -155,20 +158,21 @@ app
                         break;
                     }
                 }
-                chngmenu();
+                end(id);
             },
+            observe: defer.promise,
             new: function (name, price, cat) {
                 return itemService.save({name: name, price: price, category: cat, m: '&menu=1'},
                     function (result) {
                         add(result);
-                        chngmenu();
+                        end(result);
                     }
                 ).$promise;
             }
         }
     })
 
-    .controller('BusinessCtrl', function($scope, $timeout, $controller, $injector, APIService, menuService, CONTENT_TYPES, reviewService, itemService) {
+    .controller('BusinessCtrl', function($scope, $timeout, $controller, $injector, $state, APIService, menuService, CONTENT_TYPES, reviewService, itemService, dialogService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope,
@@ -176,8 +180,15 @@ app
                 {name: 'menu', func: function () {
                     if ($scope.menu === undefined) {
                         $scope.menu = menuService.init();
+                        itemService.menu = $scope.fav_state !== undefined;
+                        //if (itemService.menu) itemService.bu = $scope.fav_state == -1;
+                        if ($scope.img !== undefined) menuService.observe.then(null, null, function (result){
+                            if (typeof(result) == 'number') {
+                                $scope.img[result].w();
+                                delete $scope.img[result];
+                            } else if (result.constructor == Array) for (var i = 0; i < result.length; i++) $scope.setW(result[i].id); else $scope.setW(result.id);
+                        });
                         menuService.load($scope.id).then(function () { $scope.objloaded[1] = true });
-                        itemService.bu = $scope.fav_state == -1;
                     }
                 }},
                 {name: 'reviews', func: function(){ $scope.objloaded[2] = true }}]}));
@@ -218,6 +229,37 @@ app
                 if (cond == 1 || cond == 3) el.focus();
                 return;
             } else $scope.forms.review.alert = 0;
-            reviewService.new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () { $scope.showrevf = false });
+            reviewService.new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
+                $scope.showrevf = false;
+                $scope.rating.user = reviewService.getobjs(false, false)[0].stars;
+            });
+        };
+
+        $scope.showItem = function (id){ $state.go('main.showObjs', {ids: id, type: 'item', ts: $scope.img !== undefined ? $scope.img[id].ts || 0 : 0}) };
+
+        // Manager
+        if (angular.element('.img_p').length == 0) return;
+
+        //$rootScope.$watch('currTime', function (val){ if (val !== undefined) });
+        $scope.s = APIService.init(13);
+        $scope.doAction = function (i){
+            switch (i) {
+                default:
+                    $scope.execA(0, ['type', 'name', 'shortname'], undefined, undefined, function (result){
+                        if ($scope.edit[0].form[2] && $scope.edit[0].form[2] != $scope.edit[0].value[2]) for (var k in result.data) if (k == 'shortname') {
+                            dialogService.show("Specified shortname is already taken.", false);
+                            return true;
+                        }
+                    }, function () {
+                        /*if (!/^[\w.-]+$/.test($scope.edit[0].form[2])) {
+                            dialogService.show("Specified shortname is invalid.", false);
+                            return true;
+                        }*/
+                        if ($scope.edit[0].form[2] && $scope.edit[0].form[2] != $scope.edit[0].value[2]) for (var k = 0; k < $scope.forbidden.length; k++) if ($scope.edit[0].form[2] == $scope.forbidden[k]) {
+                            dialogService.show("Specified shortname is not permitted.", false);
+                            return true;
+                        }
+                    });
+            }
         };
     });

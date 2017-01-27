@@ -17,6 +17,7 @@ from django.db.models import Case, When, Value, IntegerField
 from django.core.cache import caches
 from requests import get as req_get
 from decimal import Decimal, ROUND_HALF_UP
+from .forms import clean_loc, business_clean_data
 
 User = get_user_model()
 NOT_MANAGER_MSG = "You're not a manager of any business."
@@ -65,14 +66,34 @@ class AccountSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name', 'last_name', 'gender', 'birthdate', 'address')
 
-    """def validate(self, attrs):
-        if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
+    def validate(self, attrs):
+        if 'birthdate' in attrs and (attrs['birthdate'].year > 2015 or attrs['birthdate'].year < 1927):
+            raise serializers.ValidationError({'birthdate': ["Invalid birthdate."]})
+        """if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
             raise serializers.ValidationError({'non_field_errors': ["Your name was already changed once."]})
+        for f in [['gender', "gender"], ['birthdate', "birthdate"]]:
+            if f[0] in attrs and getattr(self.context['request'].user, f[0]+'_changed') and attrs[f[0]] != getattr(self.context['request'].user, f[0]):
+                raise serializers.ValidationError({'non_field_errors': ["Your +f[1]+ was already changed once."]})""" #enable
+        return attrs
 
     def update(self, instance, validated_data):
-        if not self.context['request'].user.name_changed:
+        if 'address' in validated_data:
+            instance.location = clean_loc(self, validated_data, True)
+        """if not self.context['request'].user.name_changed:
             instance.name_change = 'first_name' in validated_data and validated_data['first_name'] != instance.first_name or 'last_name' in validated_data and validated_data['last_name'] != instance.last_name
-        return super().update(instance, validated_data)""" #enable
+        for f in ['gender', 'birthdate']:
+            if not getattr(instance, f+'_changed'):
+                setattr(instance, f+'_changed', f in validated_data and validated_data[f] != getattr(instance, f))""" #enable
+        return super().update(instance, validated_data)
+
+def get_rate(f, t):
+    try:
+        return caches['rates'].get_or_set(f+t, Decimal(req_get('https://download.finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s='+f+t+'=X').text.split(',')[1]))
+    except:
+        pass
+
+def curr_convert(v, f, t=None):
+    return (Decimal(v) * (get_rate(f, t) if t else f)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
 
 class ManagerSerializer(serializers.ModelSerializer):
     supported_curr = serializers.MultipleChoiceField(choices=models.CURRENCY)
@@ -80,6 +101,22 @@ class ManagerSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Business
         exclude = ('id', 'manager', 'loc_projected', 'is_published')
+        extra_kwargs = {'tz': {'read_only': True}}
+
+    def validate(self, attrs):
+        business_clean_data(self, attrs)
+        return attrs
+
+    def update(self, instance, validated_data):
+        if 'currency' in validated_data:
+            rate = get_rate(instance.currency, validated_data['currency'])
+            if not rate:
+                raise serializers.ValidationError({'non_field_errors': ["There was some internal error with getting currency rate."]})
+            qs = models.Item.objects.filter(business=instance.pk)
+            for i in qs:
+                i.price = curr_convert(i.price, rate)
+                i.save()
+        return super().update(instance, validated_data)
 
 
 class DateTimeFieldWihTZ(serializers.DateTimeField):
@@ -260,14 +297,15 @@ class BusinessSerializer(serializers.ModelSerializer):
         return gen_distance(obj)
 
     def get_is_opened(self, obj):
-        day = timezone.now().weekday()
+        now = obj.tz.normalize(timezone.now())
+        day = now.weekday()
         opened = obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened
         closed = obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed
         if opened >= closed:
-            if opened > timezone.now().time():
-                return timezone.now().time() < closed
+            if opened > now.time():
+                return now.time() < closed
             return True
-        return opened <= timezone.now().time() < closed
+        return opened <= now.time() < closed
 
     def get_curruser_status(self, obj):
         return -1 if self.context['request'].user == obj.manager else 1 if obj.likes.filter(person=self.context['request'].user).exists() else 0
@@ -513,6 +551,7 @@ class ItemSerializer(BaseSerializer):
     class Meta:
         model = models.Item
         exclude = ('business', 'created')
+        #extra_kwargs = {'has_image': {'read_only': True}}
         validators = [
             UniqueTogetherValidator(
                 queryset=models.Item.objects.all(),
@@ -535,6 +574,7 @@ class ItemSerializer(BaseSerializer):
             self.fields.pop('curruser_status')
             self.fields.pop('likestars_count')
             self.fields.pop('comment_count')
+            #self.fields.pop('has_image')
             #self.fields.pop('stars_avg')
         else:
             if 'ids' not in self.context:
@@ -550,11 +590,7 @@ class ItemSerializer(BaseSerializer):
 
     def get_converted(self, obj):
         if obj.business.currency != self.context['request'].user.currency and self.context['request'].user.currency in obj.business.supported_curr:
-            try:
-                rate = caches['rates'].get_or_set(obj.business.currency+self.context['request'].user.currency, Decimal(req_get('https://download.finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s='+obj.business.currency+self.context['request'].user.currency+'=X').text.split(',')[1]))
-                return str((Decimal(obj.price) * rate).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
-            except:
-                pass
+            return str(curr_convert(obj.price, obj.business.currency, self.context['request'].user.currency))
 
 
 def exists(attrs):

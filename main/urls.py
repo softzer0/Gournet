@@ -58,7 +58,7 @@ urlpatterns = [
     # Other
     url(r"^upload/(?:(?P<pk_b>([\d]+|business))/)?$", main_views.upload_view, name="upload"),
     url(r"^localization/$", main_views.localization_view, name="localization"),
-    url(r'^your-business/$', main_views.create_business, name="create_business"),
+    url(r'^my-business/$', main_views.create_business, name="create_business"),
     url(r"^images/(?P<pk>[\d]+)/avatar/(?:(?P<size>(32|48|64))/)?$", main_views.return_avatar, name="avatar"),
     url(r"^user/(?P<username>[\w.-]+)/$", main_views.show_profile, name="user_profile"),
     url(r"^(?P<shortname>[\w.-]+)/$", main_views.show_business, name="business_profile"),

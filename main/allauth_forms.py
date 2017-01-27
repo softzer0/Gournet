@@ -7,9 +7,7 @@ from django.contrib.auth import get_user_model
 from captcha.fields import ReCaptchaField
 from django.utils.translation import get_language
 from .forms import clean_loc
-from timezonefinder import TimezoneFinder
 
-TF_OBJ = TimezoneFinder()
 BIRTHDATE_YEARS = ('2015','2014','2013','2012','2011','2010','2009','2008','2007','2006','2005','2004','2003','2002',
                     '2001','2000','1999','1998','1997','1996','1995','1994','1993','1992','1991','1990','1989','1988',
                     '1987','1986','1985','1984','1983','1982','1981','1980','1979','1978','1977','1976','1975','1974',
@@ -21,11 +19,12 @@ BIRTHDATE_YEARS = ('2015','2014','2013','2012','2011','2010','2009','2008','2007
 
 class BaseSignupForm(UserCreationForm):
     birthdate = forms.DateField(widget=extras.SelectDateWidget(years=BIRTHDATE_YEARS))
+    location = forms.CharField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = get_user_model()
         fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'location', 'currency', 'tz')
-        widgets = {'location': forms.HiddenInput, 'currency': forms.HiddenInput, 'tz': forms.HiddenInput}
+        widgets = {'currency': forms.HiddenInput, 'tz': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,12 +32,13 @@ class BaseSignupForm(UserCreationForm):
         self.fields['username'].widget.attrs['title'] = ''
         self.fields['password2'].widget.attrs['title'] = ''
         self.fields['address'].widget.attrs['required'] = ''
-        self.fields['address'].required = True
         self.fields['address'].label = "City"
         self.fields['address'].help_text = "Enter city from where are you from, e.g"+': Vranje, Serbia.'
 
     def clean(self):
         cleaned_data = super().clean()
+        if cleaned_data['birthdate'].year > 2015 or cleaned_data['birthdate'].year < 1927:
+            self.add_error('birthdate', forms.ValidationError("Invalid birthdate.", code='invalid'))
         resp = clean_loc(self, cleaned_data, True, True)
         if resp:
             for a in reversed(resp['address_components']):
@@ -46,7 +46,6 @@ class BaseSignupForm(UserCreationForm):
                     if a['short_name'] == 'RS': #for c in CURRENCY_COUNTRY:
                         cleaned_data['currency'] = 'RSD' #if a['short_name'] in c:
                             #= c[1]
-            cleaned_data['tz'] = TF_OBJ.timezone_at(lat=cleaned_data['location'].coords[1], lng=cleaned_data['location'].coords[0])
 
 class SignupForm(BaseSignupForm, DefaultSignupForm):
     captcha = ReCaptchaField(attrs={'lang': get_language()})

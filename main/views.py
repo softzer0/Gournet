@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Case, When, Value, IntegerField, F, Q, Max
+from django.db.models import Case, When, Value, IntegerField, F, Q, Max, Avg, Count
 # from django.conf.urls.static import static
 # from django.shortcuts import get_object_or_404
 # from django.db.models.functions import Coalesce
@@ -34,8 +34,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.measure import D
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import fromstr
-from .serializers import NOT_MANAGER_MSG, gen_where, sort_related, friends_from
-from .allauth_forms import TF_OBJ
 from pytz import common_timezones
 from json import dumps
 from PIL import Image
@@ -87,11 +85,13 @@ def upload_view(request, pk_b=None):
             try:
                 business = models.Business.objects.get(manager=request.user)
             except:
-                return HttpResponse(NOT_MANAGER_MSG, status=status.HTTP_400_BAD_REQUEST)
+                return HttpResponse(serializers.NOT_MANAGER_MSG, status=status.HTTP_400_BAD_REQUEST)
             t = pk_b
-        elif not models.Item.objects.filter(pk=pk_b, business__manager=request.user).exists():
-            return HttpResponse("Item isn't found, or it's not yours.", status=status.HTTP_400_BAD_REQUEST)
         else:
+            try:
+                pk_b = models.Item.objects.get(pk=pk_b, business__manager=request.user)
+            except:
+                return HttpResponse("Item isn't found, or it's not yours.", status=status.HTTP_400_BAD_REQUEST)
             t = 'item'
     else:
         t = 'user'
@@ -102,7 +102,10 @@ def upload_view(request, pk_b=None):
         image.verify()
     except:
         return HttpResponse("Invalid image.", status=status.HTTP_400_BAD_REQUEST)
-    saveimgwiththumbs(t, business.shortname if pk_b == 'business' else pk_b if pk_b else request.user.pk, image.format, Image.open(request.FILES['file']))
+    saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.FILES['file']))
+    """if pk_b and pk_b != 'business' and pk_b.has_image:
+        pk_b.has_image = True
+        pk_b.save()""" #enable
     return HttpResponse(status=status.HTTP_200_OK)
 
 
@@ -143,18 +146,23 @@ def show_business(request, shortname):
     if data['business'].likes.filter(person=request.user).exists():
         increase_recent(request, data['business'])
     data['fav_count'] = models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).count()
+    data['rating'] = models.Comment.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
+    data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
     if request.user != data['business'].manager:
         if models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk, person=request.user).exists():
             data['fav_state'] = 1
         else:
             data['fav_state'] = 0
         data['minchar'] = serializers.REVIEW_MIN_CHAR
+        try:
+            data['rating'].append(models.Comment.objects.get(content_type=models.get_content_types()['business'], object_id=data['business'].pk, person=request.user).stars)
+        except:
+            data['rating'].append(0)
     else:
         data['fav_state'] = -1
-        data['minchar'] = models.EVENT_MIN_CHAR
         data['form'] = forms.DummyCategory()
-    if data['business'].manager == request.user:
         data['edit_data'] = {'types': models.BUSINESS_TYPE, 'forbidden': models.FORBIDDEN}
+    data['minchar'] = models.EVENT_MIN_CHAR
     return render(request, 'view.html', data)
 
 def show_profile(request, username):
@@ -162,15 +170,17 @@ def show_profile(request, username):
         data = {'usr': User.objects.get_by_natural_key(username)}
     except User.DoesNotExist:
         return redirect('/')
-    if friends_from(request.user).filter(pk=data['usr'].pk).exists():
+    if serializers.friends_from(request.user).filter(pk=data['usr'].pk).exists():
         increase_recent(request, data['usr'])
-    data['friend_count'] = friends_from(data['usr']).count()
+    data['friend_count'] = serializers.friends_from(data['usr']).count()
     if request.user != data['usr']:
         data['rel_state'] = 0
         if models.Relationship.objects.filter(from_person=request.user, to_person=data['usr']).exists():
             data['rel_state'] = 1
         if models.Relationship.objects.filter(from_person=data['usr'], to_person=request.user).exists():
             data['rel_state'] += 2
+        data['born'] = timezone.now()
+        data['born'] = data['born'].year - data['usr'].birthdate.year - ((data['born'].month, data['born'].day) < (data['usr'].birthdate.month, data['usr'].birthdate.day))
     else:
         data['rel_state'] = -1
     return render(request, 'user.html', data)
@@ -238,7 +248,7 @@ def get_b_from(user):
     try:
         return models.Business.objects.get(manager=user)
     except:
-        raise NotFound(NOT_MANAGER_MSG)
+        raise NotFound(serializers.NOT_MANAGER_MSG)
 
 class ManagerAPIView(generics.RetrieveUpdateAPIView):
     permission_classes = ()
@@ -323,10 +333,10 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView
         if self.request.query_params.get('search', False):
             return User.objects.exclude(pk=self.request.user.pk).order_by(Distance('loc_projected', self.request.user.loc_projected), *User._meta.ordering)
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
-        qs = friends_from(person, True)
+        qs = serializers.friends_from(person, True)
         if person != self.request.user:
-            return sort_related(qs, self.request.user)
-        return sort_related(qs, where=gen_where('user', self.request.user.pk, 'recent', 'user', ct=models.get_user_ct_pk()))
+            return serializers.sort_related(qs, self.request.user)
+        return serializers.sort_related(qs, where=serializers.gen_where('user', self.request.user.pk, 'recent', 'user', ct=models.get_user_ct_pk()))
 
     def delete(self, request, *args, **kwargs):
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
@@ -461,7 +471,7 @@ def send_notifications(request, pk):
 
 def filter_published(model, ct_f='business'):
     if isinstance(ct_f, int):
-        return model.objects.filter(content_type__pk=ct_f).extra(where=[gen_where(model.__name__.lower(), 1, column='is_published', target='business', ct=ct_f)])
+        return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model.__name__.lower(), 1, column='is_published', target='business', ct=ct_f)])
     return model.objects.filter(**{(ct_f+'__' if ct_f else '')+'is_published': True})
 
 class FeedAPIView(MultipleModelAPIView):
@@ -481,7 +491,7 @@ class FeedAPIView(MultipleModelAPIView):
                 qs = qs.filter(likes__person__in=friends).annotate(sort_field=F('likes__date'))
             return (get_loc(self, qs, filter is not None, store=True) if not ct else qs)[:self.max]
 
-        friends = list(friends_from(self.request.user).values_list('pk', flat=True))
+        friends = list(serializers.friends_from(self.request.user).values_list('pk', flat=True))
         return [(get_friends_qs(models.Business, None), serializers.BusinessSerializer),
                 (get_friends_qs(models.Event), serializers.EventSerializer),
                 (get_friends_qs(models.Item), serializers.ItemSerializer),
@@ -672,7 +682,7 @@ class EventAPIView(BaseAPIView):
             qs = super().getnopk()
             self.kwargs['search'] = None
         if get_param_bool(self.request.query_params.get('favourites', False)):
-            return get_loc(self, qs.extra(where=[gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=models.get_content_types()['business'].pk)]))
+            return get_loc(self, qs.extra(where=[serializers.gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=models.get_content_types()['business'].pk)]))
         return get_loc(self, qs, loc=not self.request.query_params.get('search', False)) #, store=not isinstance(self, EventAPIView)
 
 class ItemAPIView(BaseAPIView):
@@ -688,11 +698,11 @@ class ItemAPIView(BaseAPIView):
             return get_loc(self, qs, deford=False).order_by(Case(When(Q(business__currency=self.request.user.currency) | Q(business__supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
         return qs.filter(business=get_b_from(self.request.user))
 
-    """def get_queryset(self):
+    def get_queryset(self):
         qs = super().get_queryset()
         if get_param_bool(self.request.query_params.get('menu', False)):
-            qs = qs.order_by('name', 'category')
-        return qs"""
+            qs = qs.order_by() #'name', 'category'
+        return qs
 
     def paginate_queryset(self, queryset):
         if not get_param_bool(self.request.query_params.get('menu', False)):
@@ -743,7 +753,7 @@ class MultiBaseAPIView(MultipleModelAPIView):
 class HomeAPIView(MultiBaseAPIView):
     def get_queryList(self):
         get_loc(self, None, store=True)
-        self.request.session['timezone'] = TF_OBJ.timezone_at(lat=self.kwargs['pos'].coords[1], lng=self.kwargs['pos'].coords[0])
+        self.request.session['timezone'] = models.TF_OBJ.timezone_at(lat=self.kwargs['pos'].coords[1], lng=self.kwargs['pos'].coords[0])
         return [(BusinessAPIView.get_queryset(self), serializers.BusinessSerializer), self.gen_qli(EventAPIView.getnopk(self), serializers.EventSerializer, pagination.EventPagination.page_size)]
 
     def get_serializer_context(self):
@@ -770,7 +780,7 @@ class LikeAPIView(MultiBaseAPIView, generics.CreateAPIView, generics.UpdateAPIVi
         self.prep_chk()
         ret = []
         for v in range:
-            ret.append(self.gen_qli(sort_related(qs.filter(**{filter: v}), self.request.user), serializers.LikeSerializer))
+            ret.append(self.gen_qli(serializers.sort_related(qs.filter(**{filter: v}), self.request.user), serializers.LikeSerializer))
         return ret
 
     def format_data(self, new_data, query, results):
@@ -792,10 +802,10 @@ class LikeAPIView(MultiBaseAPIView, generics.CreateAPIView, generics.UpdateAPIVi
                     self.kwargs['notype'] = None
                 if pk and pk != self.request.user.pk:
                     person = get_object(pk)
-                    return [(sort_related(models.Business.objects.filter(likes__person=person), models.Business.objects.filter(manager=self.request.user).first(), gen_where('business', self.request.user.pk, 'like', 'person', ct=models.get_content_types()['business'].pk)), serializers.BusinessSerializer)]
-                return [(sort_related(models.Business.objects.filter(likes__person=self.request.user), where=gen_where('business', self.request.user.pk, 'recent', 'user', ct=models.get_content_types()['business'].pk)), serializers.BusinessSerializer)]
+                    return [(serializers.sort_related(models.Business.objects.filter(likes__person=person), models.Business.objects.filter(manager=self.request.user).first(), serializers.gen_where('business', self.request.user.pk, 'like', 'person', ct=models.get_content_types()['business'].pk)), serializers.BusinessSerializer)]
+                return [(serializers.sort_related(models.Business.objects.filter(likes__person=self.request.user), where=serializers.gen_where('business', self.request.user.pk, 'recent', 'user', ct=models.get_content_types()['business'].pk)), serializers.BusinessSerializer)]
             business = get_object(pk, models.Business) if pk else get_b_from(self.request.user)
-            return [(sort_related(User.objects.filter(like__content_type=models.get_content_types()['business'], like__object_id=business.pk), self.request.user, gen_where('user', business.pk, 'like', 'object', ct=models.get_content_types()['business'].pk)), serializers.UserSerializer)]
+            return [(serializers.sort_related(User.objects.filter(like__content_type=models.get_content_types()['business'], like__object_id=business.pk), self.request.user, serializers.gen_where('user', business.pk, 'like', 'object', ct=models.get_content_types()['business'].pk)), serializers.UserSerializer)]
         qs = get_qs(self, models.Like)
         if 'stars' not in self.get_serializer_context(True):
             if get_param_bool(self.request.query_params.get('init', False)):
@@ -812,7 +822,7 @@ class LikeAPIView(MultiBaseAPIView, generics.CreateAPIView, generics.UpdateAPIVi
                 qs = qs.filter(stars=stars)
             else:
                 self.kwargs['context']['showtype'] = None
-        return [(sort_related(qs, self.request.user), serializers.LikeSerializer)]
+        return [(serializers.sort_related(qs, self.request.user), serializers.LikeSerializer)]
 
     def get_object(self):
         ct = get_type(self)

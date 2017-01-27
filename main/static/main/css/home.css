@@ -213,7 +213,7 @@ body, .mb3 p, *:not(".nw") .form-group, .nmb, .well.cmn > p {
     }
 }
 
-.clickable, .namef > a {
+.clickable, .namef a {
     cursor: pointer;
 }
 
@@ -346,11 +346,11 @@ body, .mb3 p, *:not(".nw") .form-group, .nmb, .well.cmn > p {
   }
 }
 
-.prof {
+/*img.prof, .prof > img {
     width: 128px;
-}
+}*/
 
-.prof, .nw hr {
+img.prof, .prof > img, .nw hr {
     margin-bottom: 12px !important;
 }
 
@@ -359,7 +359,7 @@ body, .mb3 p, *:not(".nw") .form-group, .nmb, .well.cmn > p {
     max-width: 175px;
 }
 
-.fri .us a, .fri .fa-ellipsis-v, .lm, .namef > a {
+.fri .us a, .fri .fa-ellipsis-v, .lm, .namef > a, .namef > div > a {
     display: block !important;
 }
 

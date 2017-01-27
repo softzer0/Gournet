@@ -1,51 +1,51 @@
-.datetime-picker-dropdown .btn-default {
-  color: #333;
-  background-color: #fff;
-  border-color: #ccc;
+.datetime-picker-dropdown .btn-default, .uib-datepicker .btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
 }
-.datetime-picker-dropdown .btn-default:focus,
-.datetime-picker-dropdown .btn-default.focus {
-  color: #333;
-  background-color: #e6e6e6;
-  border-color: #8c8c8c;
+.datetime-picker-dropdown .btn-default:focus, .uib-datepicker .btn-default:focus,
+.datetime-picker-dropdown .btn-default.focus, .uib-datepicker .btn-default.focus {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #8c8c8c;
 }
-.datetime-picker-dropdown .btn-default:hover {
-  color: #333;
-  background-color: #e6e6e6;
-  border-color: #adadad;
+.datetime-picker-dropdown .btn-default:hover, .uib-datepicker .btn-default:hover {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #adadad;
 }
-.datetime-picker-dropdown .btn-default:active,
-.datetime-picker-dropdown .btn-default.active {
-  color: #333;
-  background-color: #e6e6e6;
-  border-color: #adadad;
+.datetime-picker-dropdown .btn-default:active, .uib-datepicker .btn-default:active,
+.datetime-picker-dropdown .btn-default.active, .uib-datepicker .btn-default.active {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #adadad;
 }
-.datetime-picker-dropdown .btn-default:active:hover,
-.datetime-picker-dropdown .btn-default.active:hover,
-.datetime-picker-dropdown .btn-default:active:focus,
-.datetime-picker-dropdown .btn-default.active:focus,
-.datetime-picker-dropdown .btn-default:active.focus,
-.datetime-picker-dropdown .btn-default.active.focus {
-  color: #333;
-  background-color: #d4d4d4;
-  border-color: #8c8c8c;
+.datetime-picker-dropdown .btn-default:active:hover, .uib-datepicker .btn-default:active:hover,
+.datetime-picker-dropdown .btn-default.active:hover, .uib-datepicker .btn-default.active:hover,
+.datetime-picker-dropdown .btn-default:active:focus, .uib-datepicker .btn-default:active:focus,
+.datetime-picker-dropdown .btn-default.active:focus, .uib-datepicker .btn-default.active:focus,
+.datetime-picker-dropdown .btn-default:active.focus, .uib-datepicker .btn-default:active.focus,
+.datetime-picker-dropdown .btn-default.active.focus, .uib-datepicker .btn-default.active.focus {
+    color: #333;
+    background-color: #d4d4d4;
+    border-color: #8c8c8c;
 }
-.datetime-picker-dropdown .btn-default:active,
-.datetime-picker-dropdown .btn-default.active {
-  background-image: none;
+.datetime-picker-dropdown .btn-default:active, .uib-datepicker .btn-default:active,
+.datetime-picker-dropdown .btn-default.active, .uib-datepicker .btn-default.active {
+    background-image: none;
 }
-.datetime-picker-dropdown .btn-default.disabled:hover,
-.datetime-picker-dropdown .btn-default[disabled]:hover,
-.datetime-picker-dropdown .btn-default.disabled:focus,
-.datetime-picker-dropdown .btn-default[disabled]:focus,
-.datetime-picker-dropdown .btn-default.disabled.focus,
-.datetime-picker-dropdown .btn-default[disabled].focus {
-  background-color: #fff;
-  border-color: #ccc;
+.datetime-picker-dropdown .btn-default.disabled:hover, .uib-datepicker .btn-default.disabled:hover,
+.datetime-picker-dropdown .btn-default[disabled]:hover, .uib-datepicker .btn-default[disabled]:hover,
+.datetime-picker-dropdown .btn-default.disabled:focus, .uib-datepicker .btn-default.disabled:focus,
+.datetime-picker-dropdown .btn-default[disabled]:focus, .uib-datepicker .btn-default[disabled]:focus,
+.datetime-picker-dropdown .btn-default.disabled.focus, .uib-datepicker .btn-default.disabled.focus,
+.datetime-picker-dropdown .btn-default[disabled].focus, .uib-datepicker .btn-default[disabled].focus {
+    background-color: #fff;
+    border-color: #ccc;
 }
-.datetime-picker-dropdown .btn-default .badge {
-  color: #fff;
-  background-color: #333;
+.datetime-picker-dropdown .btn-default .badge, .uib-datepicker .btn-default .badge {
+    color: #fff;
+    background-color: #333;
 }
 .glyphicon {
     display: inline-block;
@@ -73,7 +73,7 @@
     margin-bottom: 10px;
 }
 
-*:not(".seti") .datetime-picker-dropdown {
+*:not(".seti") .datetime-picker-dropdown .uib-datepicker {
     min-width: 290px;
 }
 

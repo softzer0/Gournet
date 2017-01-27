@@ -76,7 +76,7 @@ def saveimgwiththumbs(type, pk, format, content, thumb_preserve_ratio=True):
             size = (128,128)
         sizes = [(32,32), (48,48), (64,64)]
     else:
-        size = (256,256)
+        size = (512,512)
         sizes = [(32,32), (64,64)]
     if format.lower() == 'jpeg':
         ext = 'jpg'

@@ -12,10 +12,10 @@
             <div class="col-md-3">
                 <div class="well bs-sidebar affix">
                     {% block name_content %}{% endblock %}
-                    <div class="img_p img-thumbnail margin-center prof" ng-init="img = '/images/{% block img %}{% endblock %}'">
-                        <img ng-src="{% verbatim %}{{ img }}{% endverbatim %}" class="img-thumbnail margin-center prof"{% if business and business.manager == request.user or usr == request.user %} ng-init="file = null" uib-tooltip="You can also drag an new image here" ngf-drop ngf-select ng-model="file" ng-disabled="file" ng-class="{'clickable': !file}" accept="image/jpeg,image/png,image/gif" ngf-pattern="'image/jpeg,image/png,image/gif'">
-                        <div class="img_l" ng-show="file"><div class="loa loa-c"><i class="fa fa-spinner fa-2x"></i></div></div{% endif %}>
-                    </div>
+                    {% if business and business.manager == request.user or usr == request.user %}<div class="img_p margin-center prof"{% if business and business.manager == request.user %} ng-init="drag_txt = 'You can also drag an new image here'"{% endif %}>
+                        {% endif %}<img ng-src="/images/{% block img %}{% endblock %}{% verbatim %}{{ img.a.ts || '' }}{% endverbatim %}" class="img-thumbnail margin-center{% if business and business.manager == request.user or usr == request.user %}" ng-init="img = {a: {file: null}}" uib-tooltip="{% if business %}{% verbatim %}{{ drag_txt }}{% endverbatim %}{% else %}You can also drag an new image here{% endif %}" ngf-drop ngf-select ng-model="img.a.file" ng-disabled="img.a.file" ng-class="{'clickable': !img.a.file}" accept="image/jpeg,image/png,image/gif" ngf-pattern="'image/jpeg,image/png,image/gif'">
+                        <div class="img_l" ng-show="img.a.file"><div class="loa loa-c"><i class="fa fa-spinner fa-2x"></i></div></div>
+                    </div{% else %} prof"{% endif %}>
                     <ul class="br1 list-unstyled text-center ls" ng-cloak>
                         {% block other %}{% endblock %}
                     </ul>

@@ -10,13 +10,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         for (var k in CONTENT_TYPES) t += '|'+(k != 'comment' ? k : 'review');
         if (window.location.pathname != '/') $stateProvider.state('main', {url: '/'}); else if (window.location.hash == '' || window.location.hash == '#') window.location.hash = '#/';
         $stateProvider.state(name, {
-            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:'+t.slice(1)+')}{nobusiness:(?:&nobusiness)?}{showcomments:(?:&showcomments)?}',
+            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:'+t.slice(1)+')}{showcomments:(?:&showcomments)?}',
+            params: {ts: null},
             modal: true,
             templateUrl: BASE_MODAL,
             size: 'lg',
             controller: function ($scope, $uibModalInstance, $stateParams, $timeout, $injector) {
                 $scope.loading = true;
-                $scope.nobusiness = $stateParams.nobusiness == '&nobusiness';
                 $scope.t = $stateParams.type;
                 var objService = $injector.get($scope.t+'Service');
                 switch ($scope.t) {
@@ -25,6 +25,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         break;
                     case 'item':
                         $scope.title = "Item(s)";
+                        if ($stateParams.ts !== null) $scope.ts = $stateParams.ts;
                         break;
                     case 'review':
                         $scope.title = "Review(s)";
@@ -41,7 +42,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 });
 
                 $scope.objs = objService.getobjs(true, false);
-                objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.nobusiness).then(function () {
+                objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.menu).then(function () { //, $scope.nobusiness
                     $timeout(function () {
                         $scope.loading = false;
                         $scope.modal_loaded = true;
@@ -132,35 +133,41 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             restrict: 'A',
             template:
                 '<span class="star-rating" ng-if="readonly">' +
-                '    <i ng-repeat="a in max track by $index" class="fa" ng-class="(floor(ratingValue) > $index + 1 || ratingValue == $index + 1 ? \'fa-star\' : floor(ratingValue) == $index + 1 && ratingValue % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\')+($last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats)) ? \' last-star\' : \'\')"></i' +
+                '    <i ng-repeat="_ in max track by $index" class="fa" ng-class="(floor(starRating) > $index + 1 || starRating == $index + 1 ? \'fa-star\' : floor(starRating) == $index + 1 && starRating % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\')+($last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats)) ? \' last-star\' : \'\')"></i' +
                 '></span>' +
                 '<span class="star-rating" ng-if="!readonly">' +
-                '    <a href="javascript:" ng-repeat="a in max track by $index" ng-class="{\'last-star\': $last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats))}" ng-click="toggle($index)" ng-mouseover="hoverIn($index)" ng-mouseleave="hoverOut()"><i class="fa" ng-class="(hover > 0 && hover >= $index + 1 ? \'fa-star\' : hover == 0 ? floor(ratingValue) > $index + 1 || ratingValue == $index + 1 ? \'fa-star\' : floor(ratingValue) == $index + 1 && ratingValue % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\' : \'fa-star-o\')+(userRating >= $index + 1 ? \' text-warning\' : \'\')"></i></a' +
-                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || showStats)">|<a href="javascript:" ng-if="onClickStats !== undefined" ng-click="show()" class="ml3">{{ ratingValue | number:1 }} ({{ userNumber }})</a><span ng-if="showStats && onClickStats === undefined" class="ml3">{{ ratingValue | number:1 }} ({{ userNumber }})</span></span>',
+                '    <a href="javascript:" ng-repeat="a in max track by $index" ng-class="{\'last-star\': $last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats))}" ng-click="toggle($index)" ng-mouseover="hoverIn($index)" ng-mouseleave="hoverOut()"><i class="fa" ng-class="(hover > 0 && hover >= $index + 1 ? \'fa-star\' : hover == 0 ? floor(starRating) > $index + 1 || starRating == $index + 1 ? \'fa-star\' : floor(starRating) == $index + 1 && starRating % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\' : \'fa-star-o\')+(userRating >= $index + 1 ? \' text-warning\' : \'\')"></i></a' +
+                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || showStats)">|<a href="javascript:" ng-if="onClickStats !== undefined" ng-click="show()" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</a><span ng-if="showStats && onClickStats === undefined" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</span></span>',
             scope: {
-                ratingValue: '=?',
+                starRating: '=?',
                 userNumber: '=?',
                 userRating: '=',
-                max: '=?', //optional: default is 5
+                readonly: '@?',
+                //max: '&?', //optional: default is 5
                 onChange: '@?', //must return a promise
                 showStats: '=?',
                 onClickStats: '@?',
                 funcParams: '=?'
             },
-            link: function(scope, elem, attrs) {
+            link: function(scope) {
                 scope.floor = Math.floor;
-                if (attrs.max === undefined) scope.max = new Array(5); else scope.max = new Array(attrs.max);
-                scope.readonly = scope.userRating === undefined || scope.userRating == -1;
-                if (!scope.readonly) {
-                    scope.hover = 0;
-                    scope.hoverIn = function (i) { scope.hover = i + 1 };
-                    scope.hoverOut = function () { scope.hover = 0 };
-                }
-                if (scope.funcParams !== undefined) {
+                /*if (scope.max === undefined)*/ scope.max = new Array(5); //else scope.max = new Array(attrs.max);
+                if (scope.readonly === undefined) scope.readonly = scope.userRating === undefined || scope.userRating == -1;
+                if (scope.userRating !== undefined && scope.starRating !== undefined) scope.$watch('userRating', function (status, old_status) {
+                    if (status == old_status) return;
+                    if (status != 0 && old_status == 0) scope.userNumber++; else if (status == 0 && old_status != 0) scope.userNumber--;
+                    scope.starRating = scope.starRating != 0 && scope.userNumber != 0 ? (((status != 0 && old_status == 0) ? (scope.userNumber - 1) : (status == 0 && old_status != 0) ? (scope.userNumber + 1) : scope.userNumber) * scope.starRating - old_status + status) / scope.userNumber : status;
+                });
+                if (scope.funcParams !== undefined && (scope.onClickStats !== undefined || !scope.readonly && scope.onChange !== undefined)) {
                     var p = '';
                     for (var k in scope.funcParams) p += ',' + k;
                     p = p.slice(1);
                 } else scope.funcParams = {};
+                if (scope.onClickStats !== undefined) scope.show = function () { scope.$parent.$eval(scope.onClickStats+'('+p+')', scope.funcParams) };
+                if (scope.readonly) return;
+                scope.hover = 0;
+                scope.hoverIn = function (i) { scope.hover = i + 1 };
+                scope.hoverOut = function () { scope.hover = 0 };
                 if (scope.onChange !== undefined) var loading;
                 scope.toggle = function (i) { //$event,
                     scope.hoverOut(); //$event.stopPropagation();
@@ -168,10 +175,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         if (loading) return;
                         loading = true;
                         scope.$parent.$eval(scope.onChange + '(' + p + ', value)', angular.extend({}, scope.funcParams, {value: scope.userRating != i + 1 ? i + 1 : 0})).then(function () { loading = false });
-                    } else if (scope.userRating !== undefined) scope.userRating = scope.userRating != i + 1 ? i + 1 : 0; //scope.ratingValue = scope.userRating;
+                    } else if (scope.userRating !== undefined) scope.userRating = scope.userRating != i + 1 ? i + 1 : 0; //scope.starRating = scope.userRating;
                 };
-                scope.show = function () { scope.$parent.$eval(scope.onClickStats+'('+p+')', scope.funcParams) };
-                if (scope.userRating !== undefined && scope.ratingValue !== undefined) scope.$watch('userRating', function (status, old_status) { if (status != old_status) scope.ratingValue = scope.ratingValue != 0 && scope.userNumber != 0 ? (((status != 0 && old_status == 0) ? (scope.userNumber - 1) : (status == 0 && old_status != 0) ? (scope.userNumber + 1) : scope.userNumber) * scope.ratingValue - old_status + status) / scope.userNumber : status });
 			}
 		};
 	})
@@ -181,7 +186,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
            restrict: 'A',
            scope: {clickOutside: '&', inScope: '@?'},
            link: function (scope, el) {
-               function documentClick(e) { if (el.css('display') != 'none' && e.currentTarget.body.className.indexOf('modal') == -1 && el !== e.target && !el[0].contains(e.target)) scope.$apply(function () { scope.$eval(scope.clickOutside) }) };
+               function documentClick(e) { if (el.children('div').is(':visible') && e.currentTarget.body.className.indexOf('modal') == -1 && e.target.parentElement.className.indexOf('uib-day') == -1 && el !== e.target && !el[0].contains(e.target)) scope.$apply(function () { scope.$eval(scope.clickOutside) }) }
                $document.on('click', documentClick);
                if (scope.inScope) $parse(scope.inScope).assign(scope.$parent, documentClick);
            }
@@ -472,7 +477,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
 
         UniObj.prototype.remove = function (e, index, r, l) {
-            if (r) if (!this.bu) {
+            if (r) if (!this.menu) {
                 for (var i = 0; i < this.objs[0].length; i++) if (this.objs[0][i].id == e[index].id) {
                     this.objs[0].splice(i, 1);
                     break;
@@ -500,7 +505,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         };
         UniObj.prototype.props = {};
 
-        UniObj.prototype.load = function (b, rel_state, nob) {
+        UniObj.prototype.load = function (b, rel_state, cn) {
             var ids = null, self = this, d, i, j;
             if (b !== undefined) if (angular.isArray(b)) {
                 function showc(i) {
@@ -536,11 +541,11 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 ids = ids.slice(1);
             }
             if (ids == '') return $q.when(); else if (ids == null) {
-                if (nob !== undefined) {
-                    ld.position = nob.longitude+','+nob.latitude;
+                if (cn !== undefined) {
+                    ld.position = cn.longitude+','+cn.latitude;
                     if (this.page_offset > 1) {
                         this.page_offset = 1 - (services.SEARCH_PAGE_SIZE !== undefined);
-                        nob = null;
+                        cn = null;
                     }
                 }
                 this.unloaded[0] = false;
@@ -553,7 +558,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 }
                 if (this.page_offset == 1 && this.objs[2] == 'comment') ld.content_type = CONTENT_TYPES['business'];
                 function appendResults(results) {
-                    if (nob === null) {
+                    if (cn === null) {
                         if (results.length > 0) for (i = self.objs[0].length - 1; i >= 0; i--) {
                             if (self.objs[0][i].distance !== undefined) for (j = results.length - 1; j >= 0; j--) {
                                 if (self.objs[0][i].id == results[j].id) {
@@ -571,7 +576,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                         } else self.objs[0].length = 0;
                     }
                     self.objs[0].push.apply(self.objs[0], results);
-                    if (nob === null && self.u === undefined) self.objs[0].sort(dynamicSortMultiple('-distance.unit', 'distance.value'));
+                    if (cn === null && self.u === undefined) self.objs[0].sort(dynamicSortMultiple('-distance.unit', 'distance.value'));
                 }
                 if (this.page_offset > 1 || b !== undefined || rel_state !== undefined || this.u !== undefined) d = (this.s || this.u.feed).get(ld,
                     function (result) {
@@ -600,7 +605,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 return d.$promise;
             } else {
                 d = this;
-                return this.s.query({ids: ids, no_business: nob || null}, function (result) {
+                return this.s.query({ids: ids, no_business: cn ? this.menu || null : null}, function (result) {
                     if (d.unloaded[1]) return;
                     d.objs[1].push.apply(d.objs[1], result);
                     if (rel_state) for (i = 0; i < d.objs[1].length; i++) showc(i);
@@ -696,12 +701,12 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                                 e[index].dislike_count++;
                                 if (old_status == 1) e[index].likestars_count--;
                             }
-                        } else if (old_status == 0) e[index].likestars_count++;
+                        }
                         if (!r && u) {
                             e[index].person_status[0] = status;
                             e[index].person_status[1] = new Date();
                         }
-                    } else if (par_ind !== undefined || r || !u) if (isl) { if (old_status == 1) e[index].likestars_count--; else if (old_status == 2) e[index].dislike_count--; } else if (old_status != 0 && status == 0) e[index].likestars_count--;
+                    } else if ((par_ind !== undefined || r || !u) && isl) if (old_status == 1) e[index].likestars_count--; else if (old_status == 2) e[index].dislike_count--;
                     if (par_ind !== undefined || r || !u || status != 0) e[index].curruser_status = status;
                     var i;
                     if (self.objs[0] !== undefined && (r || par_ind !== undefined)) {
@@ -724,7 +729,6 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                                         break;
                                     }
                                 } else if (par_ind === undefined || objs[t][i].main_comment === undefined) obj = objs[t][i]; else break;
-                                obj.likestars_count = e[index].likestars_count;
                                 if (isl) obj.dislike_count = e[index].dislike_count;
                                 obj.curruser_status = status;
                                 if (u) {
@@ -876,9 +880,9 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         if (t == 'business') return;
 
-        $scope.checkAnim = function () { if (!angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave').length) return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' .ng-leave-prepare').length; else return true };
+        $scope.checkAnim = function () { return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' > [class*=\'ng-leave\']').length };
 
-        $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1]() }) }; //... > 1)
+        $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1](true) }) }; //... > 1)
 
         $scope.com = [["older", 'comments', 0], ["newer", 'user_comments', 1]];
 
@@ -1076,7 +1080,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
     .controller('itemsOnlyCtrl', function($scope, $controller, itemService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [itemService]}), $controller('ItemsCtrl', {$scope: $scope})) })
 
-    .controller('reviewsOnlyCtrl', function ($scope, $controller, reviewService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [reviewService, function (){ if (!$scope.r && $scope.$parent.$parent.$parent.$parent.$parent.fav_state !== undefined && $scope.$parent.$parent.$parent.$parent.$parent.fav_state != -1) $scope.$parent.$parent.$parent.$parent.$parent.showrevf = $scope.objs[0] === undefined || $scope.objs[0].curruser_status != -1 }]}), $controller('ReviewsCtrl', {$scope: $scope})); /*, function (index) { if ($scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0] }*/ })
+    .controller('reviewsOnlyCtrl', function ($scope, $controller, reviewService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [reviewService, function (del){
+        var p = $scope.$parent.$parent.$parent.$parent.$parent;
+        if (!$scope.r && p.fav_state !== undefined && p.fav_state != -1) {
+            p.showrevf = $scope.objs.length == 0 || $scope.objs[0].curruser_status != -1;
+            if (del) p.rating.user = 0;
+        }
+    }]}), $controller('ReviewsCtrl', {$scope: $scope})); /*, function (index) { if ($scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0] }*/ })
 
     .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, usersModalService, APIService, NOTIF_PAGE_SIZE) { //, $interval
         $rootScope.title = $window.document.title;

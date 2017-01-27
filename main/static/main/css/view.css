@@ -9,7 +9,7 @@
 .br1 {
 	margin-bottom: -5px;
 }
-.br2, .frm > *:not(.mpd):not(:last-child), .frm > *:not(.input-group) > *:not(:last-child), .namef > :not([style*="display: none"]) {
+.br2, .frm > *:not(.mpd):not(:last-child), .frm > *:not(.input-group) > *:not(:last-child) {
 	margin-bottom: 11px;
 }
 
@@ -23,7 +23,7 @@
 	padding-top: 15px;
 }
 
-.mn1:not(.vi) {
+.mn1:not(.vi), .namef > div > a {
 	padding-top: 5px;
 }
 
@@ -33,6 +33,8 @@
 
 .tb > tbody > tr > td:first-of-type > div {
 	display: inline-block;
+}
+.tb > tbody > tr > td:first-of-type > div:not(.img_p) {
 	margin-top: 6px;
 }
 .tb > tbody > tr > td:nth-of-type(2) > div {
@@ -83,7 +85,7 @@
 	margin-top: -1px;
 }
 
-.tb img {
+.tb .img_p, .tb td > img {
 	margin-top: -2px;
 	margin-right: 7px;
 }
@@ -191,34 +193,29 @@
     background-color: rgba(255, 255, 255, 0.8);
 }
 
-.img_l > .loa {
+.prof > .img_l > .loa {
 	margin-top: 50px;
 	margin-left: 50px;
 }
 
 .img_p > .tooltip {
-	left: -32px !important;
+	/*left: -32px !important;*/
 	width: 193px;
 }
 
-.inline > input, .inline > div {
-	display: inline-block;
-	vertical-align: middle;
-}
-
-.namef > div, .namef > input {
-	width: 50% !important;
-}
-
-.namef > div {
-	position: relative;
-}
-
-.namef > div > ul {
+.namef > div, .namef .ulh > ul {
 	width: 100% !important;
 }
 
-.namef > div > div {
+.namef > .lead, .namef p {
+	margin-bottom: 0;
+}
+
+.namef .ulh {
+	position: relative;
+}
+
+.namef .ulh > div {
 	position: absolute;
     top: 0;
     left: 0;
@@ -227,21 +224,39 @@
     background-color: rgba(255, 255, 255, 0.5);
 }
 
-.namef > fieldset {
-	margin-top: -4px;
+.inline > div > div {
+	width: 100%;
+	border-collapse: collapse;
+	display: table;
 }
 
-.namef > fieldset > span {
-	display: block;
-    overflow: hidden;
-    padding-left: 10px;
+.inline > div > div + div, .tb .img_l > .loa {
+	margin-top: 5px;
 }
 
-.namef > fieldset > label {
-	float: left;
-	margin-top: 7px;
+.inline > div > div > div {
+	display: table-row;
 }
 
-.namef > a:last-child {
-	margin-top: -5px;
+.inline > div > div > div > * {
+	display: table-cell;
+	border: 0 solid transparent;
+	background-clip: padding-box;
+	vertical-align: middle;
+}
+
+.inline > div > div > div > * + * {
+	border-left-width: 5px;
+}
+
+.inline > div > div > div > a, .inline > div > div > div > label {
+	width: 1%;
+}
+
+.inline > div > div > div > a {
+	border-left-width: 10px;
+}
+
+.namef > div {
+	margin: 5px 0;
 }
