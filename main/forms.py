@@ -54,15 +54,47 @@ def business_clean_data(self, cleaned_data):
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)
 
-class BusinessForm(forms.ModelForm):
+class BaseForm(forms.ModelForm):
     address = forms.CharField(required=False, max_length=130, widget=forms.TextInput({
-       'ng-model': 'address',
-       'ng-initial': '',
        'ng-change': 'geocode(true)',
        'ng-model-options': '{updateOn: \'default blur\', debounce: {default: 1000, blur: 0}}'
     }))
     location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$', label="Longitude/latitude")
 
+    class Meta:
+        fields = ('phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun')
+        model = Business
+        widgets = {'phone': PhoneNumberInternationalFallbackWidget, 'supported_curr': forms.SelectMultiple}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        not_b = not isinstance(self, BusinessForm)
+        if not_b:
+            self.fields['phone'].widget.attrs['ng-model'] = 'data.form[1]'
+            self.fields['supported_curr'].widget.attrs['ng-model'] = 'data.form[2]'
+        else:
+            self.fields['location'].widget.attrs['ng-initial'] = ''
+        self.fields['phone'].widget.attrs['title'] = ''
+        self.fields['address'].widget.attrs['ng-model'] = 'data.form[3]' if not_b else 'address'
+        self.fields['location'].widget.attrs['geom_type'] = ''
+        self.fields['location'].widget.attrs['ng-model'] = 'data.form[4]' if not_b else 'location'
+        self.fields['location'].widget.attrs['readonly'] = True
+        self.fields['location'].widget.attrs['title'] = ''
+        self.fields['location'].help_text = "You have to adjust the exact location using the map with a marker below."
+        for i, f in enumerate(['opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun']):
+            self.fields[f].widget.attrs['value'] = ''
+            self.fields[f].widget.attrs['ng-model'] = ('data.form[0]' if not_b else 'date')+'['+str(i)+']'
+            if not not_b:
+                self.fields[f].widget.attrs['ng-initial'] = i
+            self.fields[f].widget.attrs['datetime'] = 'HH:mm'
+            self.fields[f].widget.format = '%H:%M'
+            if i > 1:
+                if i % 2 == 0:
+                    self.fields[f].label = "Opening time"
+                else:
+                    self.fields[f].label = "Closing time"
+
+class BusinessForm(BaseForm):
     class Meta:
         fields = '__all__'
         model = Business
@@ -81,24 +113,7 @@ class BusinessForm(forms.ModelForm):
         self.fields['shortname'].widget.attrs['title'] = ''
         self.fields['shortname'].widget.attrs['ng-model'] = 'shortname'
         self.fields['shortname'].widget.attrs['ng-initial'] = ''
-        self.fields['phone'].widget.attrs['title'] = ''
-        self.fields['location'].widget.attrs['geom_type'] = ''
-        self.fields['location'].widget.attrs['ng-model'] = 'location'
-        self.fields['location'].widget.attrs['ng-initial'] = ''
-        self.fields['location'].widget.attrs['readonly'] = True
-        self.fields['location'].widget.attrs['title'] = ''
-        self.fields['location'].help_text = "You have to adjust the exact location using the map with a marker below."
-        for i, f in enumerate(['opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun']):
-            self.fields[f].widget.attrs['value'] = ''
-            self.fields[f].widget.attrs['ng-model'] = 'date['+str(i)+']'
-            self.fields[f].widget.attrs['ng-initial'] = i
-            self.fields[f].widget.attrs['datetime'] = 'HH:mm'
-            self.fields[f].widget.format = '%H:%M'
-            if i > 1:
-                if i % 2 == 0:
-                    self.fields[f].label = "Opening time"
-                else:
-                    self.fields[f].label = "Closing time"
+        self.fields['address'].widget.attrs['ng-initial'] = ''
 
     def clean(self):
         business_clean_data(self, super().clean())

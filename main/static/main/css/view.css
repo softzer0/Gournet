@@ -9,7 +9,7 @@
 .br1 {
 	margin-bottom: -5px;
 }
-.br2, .frm > *:not(.mpd):not(:last-child), .frm > *:not(.input-group) > *:not(:last-child) {
+.br2, .frm > *:not(.mpd):not(:last-child), .frm > *:not(.input-group):not(fieldset) > *:not(:last-child) {
 	margin-bottom: 11px;
 }
 
@@ -34,10 +34,7 @@
 .tb > tbody > tr > td:first-of-type > div {
 	display: inline-block;
 }
-.tb > tbody > tr > td:first-of-type > div:not(.img_p) {
-	margin-top: 6px;
-}
-.tb > tbody > tr > td:nth-of-type(2) > div {
+.tb > tbody > tr > td:first-of-type > div:not(.img_p), .tb > tbody > tr > td:not(.esh) + td:nth-of-type(2) > div {
 	margin-top: 6px;
 }
 
@@ -195,7 +192,6 @@
 
 .prof > .img_l > .loa {
 	margin-top: 50px;
-	margin-left: 50px;
 }
 
 .img_p > .tooltip {
@@ -224,36 +220,36 @@
     background-color: rgba(255, 255, 255, 0.5);
 }
 
-.inline > div > div {
+.inline > div:not(.mpd):not(.form-group) > div {
 	width: 100%;
 	border-collapse: collapse;
 	display: table;
 }
 
-.inline > div > div + div, .tb .img_l > .loa {
+.inline > div:not(.mpd):not(.form-group) > div + div, .tb .img_l > .loa {
 	margin-top: 5px;
 }
 
-.inline > div > div > div {
+.inline > div:not(.mpd):not(.form-group) > div > div {
 	display: table-row;
 }
 
-.inline > div > div > div > * {
+.inline > div:not(.mpd):not(.form-group) > div > div > * {
 	display: table-cell;
 	border: 0 solid transparent;
 	background-clip: padding-box;
 	vertical-align: middle;
 }
 
-.inline > div > div > div > * + * {
+.inline > div:not(.mpd):not(.form-group) > div > div > * + * {
 	border-left-width: 5px;
 }
 
-.inline > div > div > div > a, .inline > div > div > div > label {
+.inline > div:not(.mpd):not(.form-group) > div > div > a, .inline > div:not(.mpd):not(.form-group) > div > div > label, .inline > div:not(.mpd):not(.form-group) > div > div > .onep {
 	width: 1%;
 }
 
-.inline > div > div > div > a {
+:not(td) > .inline > div:not(.mpd):not(.form-group) > div > div > a {
 	border-left-width: 10px;
 }
 

@@ -1,0 +1,132 @@
+.seti {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 15px;
+}
+
+.ai .input-group {
+    vertical-align: middle;
+}
+
+.ai .input-group .input-group-addon {
+    position: relative;
+    font-size: 0;
+    white-space: nowrap;
+    padding: initial;
+    border: initial;
+}
+
+.ai .input-group-addon > * {
+    z-index: 2;
+    margin-left: -1px;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    position: relative;
+}
+
+.seti .input-group {
+    display: inline-table;
+}
+
+.seti .input-group .input-group-addon {
+	width: auto;
+}
+
+.seti > label {
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+
+.seti .input-group .form-control {
+	width: 62px;
+}
+
+.nw .checkbox {
+    margin-top: 0;
+}
+
+.mb15 {
+    margin-bottom: 15px;
+}
+
+.ai .dropup > .datetime-picker-dropdown {
+    min-width: 200px;
+}
+
+.ib {
+    display: inline-block;
+}
+
+.angular-google-map-container {
+    height: 300px;
+}
+
+fieldset {
+    width: 100%;
+    overflow: hidden;
+}
+
+fieldset > :first-child {
+    float: right;
+    width: auto;
+}
+
+fieldset > span {
+    display: block;
+    overflow: hidden;
+    padding-right: 10px;
+}
+
+fieldset > span > * {
+    width: 100%;
+}
+
+@media (max-width: 424px) {
+    fieldset > :first-child {
+        width: 50%;
+    }
+}
+
+td > .inline > div > div > div > a {
+	font-size: 1.5em;
+}
+
+.tb > tbody > tr > td.esh {
+	width: 80%;
+}
+
+@media (max-width: 1200px) {
+	.tb > tbody > tr > td.esh {
+		width: 76%;
+	}
+}
+
+@media (max-width: 750px) {
+	.tb > tbody > tr > td.esh {
+		width: 72%;
+	}
+}
+
+@media (max-width: 630px) {
+    .tb > tbody > tr > td.esh {
+        width: 67%;
+    }
+}
+
+@media (max-width: 530px) {
+	.tb > tbody > tr > td.esh {
+		width: 62%;
+	}
+}
+
+@media (max-width: 465px) {
+	.tb > tbody > tr > td.esh {
+		width: 53%;
+	}
+}
+
+@media (max-width: 380px) {
+	.tb > tbody > tr > td.esh {
+		width: 45%;
+	}
+}

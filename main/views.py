@@ -34,6 +34,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.measure import D
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import fromstr
+from django.utils.formats import time_format
 from pytz import common_timezones
 from json import dumps
 from PIL import Image
@@ -57,6 +58,9 @@ class IndexPageView(LoginView):
 def get_param_bool(param):
     return param and param in ['1', 'true', 'True', 'TRUE']
 
+def edit_view(request):
+    return render(request, 'base/create_extra.html', {'form': forms.BaseForm(), 'f': 'data.form[0]'})
+
 @csrf_protect
 def localization_view(request):
     st = None
@@ -78,8 +82,8 @@ def localization_view(request):
 
 @csrf_protect
 def upload_view(request, pk_b=None):
-    if 'file' not in request.FILES:
-        return HttpResponse("Image is missing, or it's not under 'file' parameter.", status=status.HTTP_400_BAD_REQUEST)
+    if not any(request.FILES):
+        return HttpResponse("Image is missing.", status=status.HTTP_400_BAD_REQUEST)
     if pk_b:
         if pk_b == 'business':
             try:
@@ -96,13 +100,13 @@ def upload_view(request, pk_b=None):
     else:
         t = 'user'
     try:
-        image = Image.open(request.FILES['file'])
+        image = Image.open(request.FILES[next(iter(request.FILES))])
         if image.format not in ['JPEG', 'PNG', 'GIF']:
             return HttpResponse("Image format not supproted.", status=status.HTTP_403_FORBIDDEN)
         image.verify()
     except:
         return HttpResponse("Invalid image.", status=status.HTTP_400_BAD_REQUEST)
-    saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.FILES['file']))
+    saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.FILES[next(iter(request.FILES))]))
     """if pk_b and pk_b != 'business' and pk_b.has_image:
         pk_b.has_image = True
         pk_b.save()""" #enable
@@ -130,7 +134,7 @@ def create_business(request):
             return redirect('/'+form.cleaned_data['shortname']+'/')
     else:
         form = forms.BusinessForm()
-    return render(request, 'create.html', {'form': form})
+    return render(request, 'create.html', {'form': form, 'f': 'date'})
 
 
 def increase_recent(request, obj):
@@ -148,6 +152,10 @@ def show_business(request, shortname):
     data['fav_count'] = models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).count()
     data['rating'] = models.Comment.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
     data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
+    data['workh'] = []
+    for f in ['opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun']:
+        if getattr(data['business'], f) is not None:
+            data['workh'].append(time_format(getattr(data['business'], f), 'H:i'))
     if request.user != data['business'].manager:
         if models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk, person=request.user).exists():
             data['fav_state'] = 1
@@ -162,6 +170,7 @@ def show_business(request, shortname):
         data['fav_state'] = -1
         data['form'] = forms.DummyCategory()
         data['edit_data'] = {'types': models.BUSINESS_TYPE, 'forbidden': models.FORBIDDEN}
+        data['curr'] = models.CURRENCY
     data['minchar'] = models.EVENT_MIN_CHAR
     return render(request, 'view.html', data)
 
@@ -519,7 +528,10 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         return qs.order_by(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)).desc(), *self.model._meta.ordering) if self.order_by else qs
 
     def get_qs_pk(self):
-        return self.model.objects.filter(business=get_object(self.kwargs['pk'], models.Business))
+        b = get_object(self.kwargs['pk'], models.Business)
+        if 'business' in self.kwargs:
+            self.kwargs['business'] = b
+        return self.model.objects.filter(business=b)
 
     def order_qs(self, qs):
         return qs
@@ -685,7 +697,7 @@ class EventAPIView(BaseAPIView):
             return get_loc(self, qs.extra(where=[serializers.gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=models.get_content_types()['business'].pk)]))
         return get_loc(self, qs, loc=not self.request.query_params.get('search', False)) #, store=not isinstance(self, EventAPIView)
 
-class ItemAPIView(BaseAPIView):
+class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     serializer_class = serializers.ItemSerializer
     model = models.Item
     filter_backends = (SearchFilter,)
@@ -699,23 +711,41 @@ class ItemAPIView(BaseAPIView):
         return qs.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):
+        self.kwargs['business'] = None
         qs = super().get_queryset()
-        if get_param_bool(self.request.query_params.get('menu', False)):
+        if not self.request.query_params.get('ids', False) and ('currency' in self.kwargs or get_param_bool(self.request.query_params.get('menu', False))):
             qs = qs.order_by() #'name', 'category'
+            if 'currency' in self.kwargs:
+                serializers.mass_convert(qs, self.kwargs['business'] or qs[0].business, self.kwargs['currency'])
         return qs
 
     def paginate_queryset(self, queryset):
-        if not get_param_bool(self.request.query_params.get('menu', False)):
+        if 'currency' not in self.kwargs and not get_param_bool(self.request.query_params.get('menu', False)):
             return super().paginate_queryset(queryset)
         return None
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if not get_param_bool(self.request.query_params.get('is_person', False)) and get_param_bool(self.request.query_params.get('menu', False)):
-            context['menu'] = None
+        if 'currency' in self.kwargs:
+            context['currency'] = None
+            self.kwargs.pop('currency')
+        elif self.request.method in ['PUT', 'PATCH']:
+            context['edit'] = None
         elif self.request.query_params.get('ids', False):
             context['ids'] = None
+        elif not get_param_bool(self.request.query_params.get('is_person', False)) and get_param_bool(self.request.query_params.get('menu', False)):
+            context['menu'] = None
         return context
+
+    def update(self, request, *args, **kwargs):
+        if hasattr(request.data, '_mutable'):
+            request.data._mutable = True
+        if not self.request.query_params.get('ids', False) and 'currency' in request.data and request.data['currency'] in [i[0] for i in models.CURRENCY]:
+            self.kwargs['currency'] = request.data.pop('currency')[0] if hasattr(request.data, '_mutable') else request.data.pop('currency')
+            request.method = 'GET'
+            return super().list(request, *args, **kwargs)
+        request.data.pop('name', False)
+        return super().update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()

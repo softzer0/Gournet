@@ -62,9 +62,11 @@ class EmailSerializer(serializers.ModelSerializer):
 
 
 class AccountSerializer(serializers.ModelSerializer):
+    tz = serializers.CharField()
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'gender', 'birthdate', 'address')
+        fields = ('first_name', 'last_name', 'gender', 'birthdate', 'address', 'currency', 'language', 'tz')
 
     def validate(self, attrs):
         if 'birthdate' in attrs and (attrs['birthdate'].year > 2015 or attrs['birthdate'].year < 1927):
@@ -92,30 +94,50 @@ def get_rate(f, t):
     except:
         pass
 
+ZERO_DECIMAL = Decimal(0)
 def curr_convert(v, f, t=None):
-    return (Decimal(v) * (get_rate(f, t) if t else f)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+    return (Decimal(v) * (get_rate(f, t) if t else f)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP) if Decimal(v) != ZERO_DECIMAL else 0
+
+def mass_convert(qs_pk, obj, to_curr):
+    if obj.currency == to_curr:
+        return #True
+    if isinstance(qs_pk, int):
+        qs_pk = models.Item.objects.filter(business=qs_pk)
+    if not qs_pk.exists():
+        return
+    rate = get_rate(obj.currency, to_curr)
+    if not rate:
+        raise serializers.ValidationError({'non_field_errors': ["There was some internal error with getting currency rate."]})
+    rem = None
+    try:
+        obj.supported_curr.remove(to_curr)
+    except:
+        pass
+    else:
+        rem = True
+    for i in qs_pk:
+        i.price = curr_convert(i.price, rate)
+        i.save()
+    if not isinstance(qs_pk, int) or rem:
+        if not isinstance(qs_pk, int):
+            obj.currency = to_curr
+        obj.save()
 
 class ManagerSerializer(serializers.ModelSerializer):
     supported_curr = serializers.MultipleChoiceField(choices=models.CURRENCY)
+    tz = serializers.CharField(read_only=True)
 
     class Meta:
         model = models.Business
         exclude = ('id', 'manager', 'loc_projected', 'is_published')
-        extra_kwargs = {'tz': {'read_only': True}}
 
     def validate(self, attrs):
         business_clean_data(self, attrs)
         return attrs
 
     def update(self, instance, validated_data):
-        if 'currency' in validated_data:
-            rate = get_rate(instance.currency, validated_data['currency'])
-            if not rate:
-                raise serializers.ValidationError({'non_field_errors': ["There was some internal error with getting currency rate."]})
-            qs = models.Item.objects.filter(business=instance.pk)
-            for i in qs:
-                i.price = curr_convert(i.price, rate)
-                i.save()
+        if 'currency' in validated_data and validated_data['currency'] in [i[0] for i in models.CURRENCY]:
+            mass_convert(instance.pk, instance, validated_data['currency'])
         return super().update(instance, validated_data)
 
 
@@ -357,7 +379,7 @@ class BaseSerializer(serializers.ModelSerializer):
             self.fields['friend'] = serializers.SerializerMethodField()
         if 'person' in self.context:
             self.fields['person_status'] = serializers.SerializerMethodField()
-        if self.stars and 'menu' not in self.context:
+        if self.stars and 'menu' not in self.context and 'currency' not in self.context:
             self.fields['stars_avg'] = serializers.SerializerMethodField()
         #elif self.context['person_business'] == True:
         #    self.fields.pop('business')
@@ -551,7 +573,7 @@ class ItemSerializer(BaseSerializer):
     class Meta:
         model = models.Item
         exclude = ('business', 'created')
-        #extra_kwargs = {'has_image': {'read_only': True}}
+        extra_kwargs = {'has_image': {'read_only': True}}
         validators = [
             UniqueTogetherValidator(
                 queryset=models.Item.objects.all(),
@@ -566,16 +588,18 @@ class ItemSerializer(BaseSerializer):
         super().__init__(*args, **kwargs)
         self.fields.pop('dislike_count')
         self.fields['converted'] = serializers.SerializerMethodField()
-        if 'hiddenbusiness' in self.context or 'menu' in self.context:
+        if 'hiddenbusiness' in self.context or 'menu' in self.context or 'currency' in self.context:
             self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
         else:
             self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault(), currency=True, location='search' in self.context or 'feed' in self.context)
-        if 'menu' in self.context:
+        if 'menu' in self.context or 'currency' in self.context:
             self.fields.pop('curruser_status')
             self.fields.pop('likestars_count')
             self.fields.pop('comment_count')
-            #self.fields.pop('has_image')
+            #self.fields.pop('has_image') #enable
             #self.fields.pop('stars_avg')
+            if 'currency' in self.context:
+                self.fields.pop('name')
         else:
             if 'ids' not in self.context:
                 self.fields['category'].write_only = True
@@ -583,6 +607,8 @@ class ItemSerializer(BaseSerializer):
                 self.fields['currency'] = serializers.CharField(source='business.currency', read_only=True)
             elif 'home' in self.context or 'search' in self.context or 'feed' in self.context:
                 self.fields['distance'] = serializers.SerializerMethodField()
+            if 'edit' in self.context:
+                self.fields['name'].read_only = True
             self.fields['category_display'] = serializers.CharField(source='get_category_display', read_only=True)
 
     def get_distance(self, obj):
