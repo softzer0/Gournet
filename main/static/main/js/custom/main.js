@@ -232,17 +232,22 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         }
     })
 
-    .controller('UsersModalCtrl', function ($rootScope, $scope, $timeout, $resource, $uibModalInstance, file, event, usersModalService, APIService, CONTENT_TYPES, HAS_STARS) { //, $window
+    .controller('ModalCtrl', function ($scope, $uibModalInstance){
         $scope.close = function() { $uibModalInstance.dismiss('cancel') };
         $scope.set_modal_loaded = function (){
             var unregister = $scope.$watch(function() { return angular.element('.loaded').length }, function(value) {
                 if (value > 0) {
                     unregister();
-                    $scope.modal_loaded = true;
                     delete $scope.set_modal_loaded;
+                    $scope.modal_loaded = true;
                 }
             });
         };
+    })
+
+    .controller('UsersModalCtrl', function ($rootScope, $scope, $timeout, $resource, $uibModalInstance, $controller, file, event, usersModalService, APIService, CONTENT_TYPES, HAS_STARS) { //, $window
+        angular.extend(this, $controller('ModalCtrl', {$scope: $scope, $uibModalInstance: $uibModalInstance}));
+
         $scope.file = file;
         $scope.event = event;
         if ($scope.event !== undefined) $scope.sel_cnt = 0;
@@ -387,6 +392,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     },
                     'update': {method: 'PUT'},
                     'partial_update': {method: 'PATCH'},
+                    'partial_update_a': {method: 'PATCH', isArray: true},
                     'delete': {method: 'DELETE'}
                 });
             }
@@ -590,7 +596,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             self.props.has_next_page = result.page_count > self.page_offset;
                             self.page_offset++;
                         }
-                        if ((services.markerService !== undefined || result.results.length > 0) && (ld.favourites == 1 || self.u !== undefined || result.count !== undefined && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, self.u !== undefined);
+                        if ((services.markerService !== undefined || result.results.length > 0) && (ld.favourites == 1 || self.u !== undefined || result.count > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, self.u !== undefined);
                 }); else {
                     d = APIService.init(11).query(ld,
                         function (result) {
@@ -1121,6 +1127,8 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         $scope.showFavouritesModal = function (id, t){ usersModalService.setAndOpen(id === null ? null : (id || $scope.id), t ? 2 : 1) };
         $scope.showFriendsModal = function (id){ usersModalService.setAndOpen(id === null ? null : (id || $scope.id), 0) };
+
+        $scope.co = function (e, k, r){ if (e[k] === (r ? true : false)) e[k] = r ? false : true };
 
         // Search
 

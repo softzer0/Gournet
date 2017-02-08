@@ -223,7 +223,7 @@ def relationship_delete_notification(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
 
-FORBIDDEN = ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'localization', 'upload'] # important
+FORBIDDEN = ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'localization', 'upload', 'edit.html'] # important
 def not_forbidden(value):
     if value in FORBIDDEN:
         raise ValidationError('"%s" is not permitted as a shortname.' % value)
@@ -349,7 +349,7 @@ class Item(models.Model):
     name = models.CharField(validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
     price = models.DecimalField(max_digits=7, decimal_places=2)
     created = models.DateTimeField(auto_now_add=True)
-    #has_image = models.BooleanField(default=False)
+    #has_image = models.BooleanField(default=False) #enable
     likes = GenericRelation('Like')
 
     class Meta:

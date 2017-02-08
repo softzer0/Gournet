@@ -172,7 +172,7 @@ app
         }
     })
 
-    .controller('BusinessCtrl', function($scope, $timeout, $controller, $injector, $state, APIService, menuService, CONTENT_TYPES, reviewService, itemService, dialogService) {
+    .controller('BusinessCtrl', function($rootScope, $scope, $timeout, $controller, $injector, $state, APIService, menuService, CONTENT_TYPES, reviewService, itemService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope,
@@ -186,6 +186,7 @@ app
                             if (typeof(result) == 'number') {
                                 $scope.img[result].w();
                                 delete $scope.img[result];
+                                delete $scope.edit_i[result];
                             } else if (result.constructor == Array) for (var i = 0; i < result.length; i++) $scope.setW(result[i].id); else $scope.setW(result.id);
                         });
                         menuService.load($scope.id).then(function () { $scope.objloaded[1] = true });
@@ -237,29 +238,68 @@ app
 
         $scope.showItem = function (id){ $state.go('main.showObjs', {ids: id, type: 'item', ts: $scope.img !== undefined ? $scope.img[id].ts || 0 : 0}) };
 
+        var workh;
+        $scope.set_data = function (h){
+            delete $scope.set_data;
+            if ($scope.data.form !== undefined) {
+                for (var i = 0; i < h.length; i++) $scope.data.form[0][i] = moment(h[i], 'HH:mm').toDate();
+                for (; i < 7; i++) $scope.data.form[0][i] = new Date(0, 0, 0, i % 2 ? 0 : 8, 0);
+                $scope.$watch('data.tz', function (val, oldval){ if (val != oldval) $scope.ref_is_opened() });
+                workh = ['value', 'form'];
+                for (i = 0; i < 2; i++) {
+                    $scope.data[workh[i]][1] = arguments[1];
+                    $scope.data[workh[i]][3] = arguments[2];
+                }
+                $scope.data.form[4] = arguments[3];
+                $scope.data.form[2] = arguments[4];
+                workh = $scope.data.value[0];
+            } else workh = $scope.data.value;
+            workh.push.apply(workh, h);
+            $rootScope.$watch('currTime', $scope.ref_is_opened);
+        };
+        $scope.ref_is_opened = function (){
+            var now = moment().tz($scope.data.tz), day = now.weekday(), opened = moment.tz(day == 6 && workh.length >= 4 ? workh[2] : day == 7 && workh.length == 6 ? workh[4] : workh[0], 'HH:mm', $scope.data.tz).toDate(), closed = moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz).toDate();
+            now = now.toDate();
+            if (opened >= closed) if (opened > now) $scope.is_opened = now < closed; else $scope.is_opened = true; else $scope.is_opened = opened <= now && now < closed;
+        };
+
         // Manager
-        if (angular.element('.img_p').length == 0) return;
+        if (angular.element('.img_p').length == 0) {
+            $scope.data = {value: [], tz: undefined};
+            return;
+        }
+        $scope.data = $injector.get('editData');
+        var services = [$injector.get('dialogService'), $injector.get('$uibModal'), $injector.get('BASE_MODAL')];
 
         //$rootScope.$watch('currTime', function (val){ if (val !== undefined) });
         $scope.s = APIService.init(13);
-        $scope.doAction = function (i){
-            switch (i) {
-                default:
-                    $scope.execA(0, ['type', 'name', 'shortname'], undefined, undefined, function (result){
-                        if ($scope.edit[0].form[2] && $scope.edit[0].form[2] != $scope.edit[0].value[2]) for (var k in result.data) if (k == 'shortname') {
-                            dialogService.show("Specified shortname is already taken.", false);
-                            return true;
-                        }
-                    }, function () {
-                        /*if (!/^[\w.-]+$/.test($scope.edit[0].form[2])) {
-                            dialogService.show("Specified shortname is invalid.", false);
-                            return true;
-                        }*/
-                        if ($scope.edit[0].form[2] && $scope.edit[0].form[2] != $scope.edit[0].value[2]) for (var k = 0; k < $scope.forbidden.length; k++) if ($scope.edit[0].form[2] == $scope.forbidden[k]) {
-                            dialogService.show("Specified shortname is not permitted.", false);
-                            return true;
-                        }
-                    });
-            }
+        $scope.doAction = function (){
+            $scope.execA(null, ['type', 'name', 'shortname'], undefined, undefined, function (result){
+                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k in result.data) if (k == 'shortname') {
+                    services[0].show("Specified shortname is already taken.", false);
+                    return true;
+                }
+            }, function () {
+                /*if (!/^[\w.-]+$/.test($scope.edit.form[2])) {
+                    services[0].show("Specified shortname is invalid.", false);
+                    return true;
+                }*/
+                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k = 0; k < $scope.forbidden.length; k++) if ($scope.edit.form[2] == $scope.forbidden[k]) {
+                    services[0].show("Specified shortname is not permitted.", false);
+                    return true;
+                }
+            });
+        };
+        $scope.openEdit = function (){
+            services[1].open({size: 'md', windowClass: 'ai', templateUrl: services[2], controller: function ($scope, $controller, $uibModalInstance, editData){
+                $scope.data = editData;
+                $scope.title = "Edit business info";
+                $scope.file = '../../../edit';
+                angular.extend(this, $controller('ModalCtrl', {$scope: $scope, $uibModalInstance: $uibModalInstance}), $controller('CreateCtrl', {$scope: $scope}));
+
+                $scope.doSave = function (){
+                    //...
+                };
+            }});
         };
     });

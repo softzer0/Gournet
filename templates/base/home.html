@@ -33,7 +33,7 @@
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
             .constant('CONTENT_TYPES', {% load getextend %}{{ '{' }}{% for ct in content_types %}{{ ct }}: {{ content_types|get_item:ct|get_attr:'pk' }}{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
             .constant('HAS_STARS', {{ '{' }}{% for ct in has_stars %}{{ has_stars|get_item:ct }}: true{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
-            .constant('USER', {currency: '{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% endif %}})</script>{% endblock %}
+            .constant('USER', {currency: '{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url or fav_state == -1 %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% endif %}})</script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
@@ -107,7 +107,7 @@
 
 {% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}
 {% block navbar %}<form class="navbar-form navbar-left" role="search">
-                <div class="form-group" click-outside="search.show = false">
+                <div class="form-group" click-outside="co(search, 'show', true)">
                     <input type="text" class="form-control" id="sr" placeholder="Search" select-on-click ng-model="search.keywords" ng-change="search.func()" ng-focus="search.show = search.keywords != ''; search.chngl()" ng-model-options="{updateOn: 'default blur', debounce: {default: 1000, blur: 0}}">
                     <div id="quicks" ng-show="search.show" ng-cloak>
                         <div class="bu" ng-repeat="b in search.results" such-href="/{% verbatim %}{{ b.shortname }}{% endverbatim %}/">

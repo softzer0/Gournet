@@ -23,8 +23,8 @@ class BaseSignupForm(UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'location', 'currency', 'tz')
-        widgets = {'currency': forms.HiddenInput, 'tz': forms.HiddenInput}
+        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'location', 'currency')
+        widgets = {'currency': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -565,3 +565,9 @@ img.prof, .prof > img, .nw hr {
 #quicks > .bu:hover {
     background-color: #fffccc;
 }
+
+.angular-google-map-container .form-control, td > .inline > div > div > div > div > div > * {
+    height: 32px;
+    padding: 3px 9px;
+    font-size: 12px;
+}

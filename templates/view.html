@@ -7,29 +7,33 @@
         }
         .hrm {
             margin: 13px;
-        }</style>{% endcomment %}{% load staticfiles %}<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
-    <script src="{% static 'main/js/custom/view.js' %}"></script>
-    {% if fav_state == -1 %}<script src="{% static 'main/js/custom/manager.js' %}"></script>{% endif %}{% endblock %}
+        }</style>{% endcomment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.11/moment-timezone-with-data-2010-2020.min.js"></script>
+    {% load staticfiles %}<script src="{% static 'main/js/custom/view.js' %}"></script>
+{% if fav_state == -1 %}{% include 'base/home_extra.html' %}
+    <script src="{% static 'main/js/custom/manager.js' %}"></script>
+    <script src="{% static 'main/js/custom/map.js' %}"></script>
+    <script src="{% static 'main/js/custom/create.js' %}"></script>{% endif %}{% endblock %}
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ business.id }}"{% endblock %}
 
-{% block rowatt %}ng-controller="BusinessCtrl" ng-init="fav_count = {{ fav_count }}; fav_state = {{ fav_state }}; minchar = {{ minchar }}; tz = '{{ business.tz }}'"{% endblock %}
+{% block rowatt %}ng-controller="BusinessCtrl" ng-init="fav_count = {{ fav_count }}; fav_state = {{ fav_state }}; minchar = {{ minchar }}"{% endblock %}
 
-{% block name_content %}{% if business.manager == request.user %}<div class="inline namef br2" ng-cloak click-outside="co(0)" ng-init="{% load getextend %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}setE({{ business.type }}, '{{ business.name }}', '{{ business.shortname }}')">
-                        <a class="n lead text-center" ng-show="edit[0].disabled" ng-click="edit[0].disabled = false">{% verbatim %}{{ types[edit[0].value[0]] }} "{{ edit[0].value[1] }}"{% endverbatim %}</a>
-                        <div ng-hide="edit[0].disabled">
+{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% load getextend %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened({{ business.type }}, '{{ business.name }}', '{{ business.shortname }}')">
+                        <a class="n lead text-center" ng-show="edit.disabled" ng-click="edit.disabled = false">{% verbatim %}{{ types[edit.value[0]] }} "{{ edit.value[1] }}"{% endverbatim %}</a>
+                        <div ng-hide="edit.disabled">
                             <div>
                                 <div>
-                                    <div class="ulh"><ul class="nya-bs-select" ng-model="edit[0].form[0]">
+                                    <div class="ulh"><ul class="nya-bs-select" ng-model="edit.form[0]">
                                         <li nya-bs-option="t in types" data-value="$index"><a>{% verbatim %}{{ t }}{% endverbatim %}</a></li>
-                                    </ul><div ng-show="edit[0].disabled == null"></div></div>
-                                    <div><input type="text" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[1]"></div>
+                                    </ul><div ng-show="edit.disabled == null"></div></div>
+                                    <div><input type="text" class="form-control" ng-disabled="edit.disabled == null" ng-model="edit.form[1]"></div>
                                 </div>
                             </div>
                             <div>
                                 <div>
                                     <label for="shortname">Shortname:</label>
-                                    <div><input name="shortname" type="text" pattern="^[\w.-]+$" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[2]"></div>
+                                    <div><input name="shortname" type="text" pattern="^[\w.-]+$" class="form-control" ng-disabled="edit.disabled == null" ng-model="edit.form[2]"></div>
                                 </div>
                             </div>
                             <a class="fa fa-2x fa-check n text-center" ng-click="doAction()"></a>
@@ -57,21 +61,19 @@
                         ></li>
                         {% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>{% endcomment %}
                         {% endif %}<li>
-                            <hr style="margin: 8px 13px 13px;">
-                            <ul class="list-unstyled">
+                            <hr style="margin: 8px 13px 13px;">{% if fav_state == -1 %}
+                                <a href="javascript:" ng-click="openEdit()"><i class="fa fa-pencil"></i> Edit</a></li>
+                            <li>{% endif %}
+                            <ul class="list-unstyled" ng-init="data.tz = 'Europe/Belgrade{% comment %}{{ business.tz }}{% endcomment %}'; set_data([{% for n in workh %}'{{ n }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% if fav_state == -1 %}, '{{ business.phone }}', '{{ business.address }}', '{{ business.location.coords.0 }},{{ business.location.coords.1 }}'{% if business.supported_curr %}, [{% for c in business.supported_curr %}'{{ c }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% endif %}{% endif %})">
                                 <li><b ng-class="is_opened ? 'text-success' : 'text-danger'">{% verbatim %}{{ is_opened ? 'Trenutno otvoreno' : 'Trenutno zatvoreno' }}{% endverbatim %}</b></li>
-                                <li><i class="fa fa-sign-in"></i> Radnim danima od 8h do 20h</li>
-                                <li><i class="fa fa-sign-in"></i> Subotom od 8h do 15h</li>
+                                <li><i class="fa fa-sign-in"></i> Radnim danima od {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][0] }}{% endverbatim %}{% else %}{{ workh.0 }}{% endif %} do {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][1] }}{% endverbatim %}{% else %}{{ workh.1 }}{% endif %}</li>{% if fav_state == -1 or workh.length >= 4 %}
+                                <li{% if fav_state == -1 %} ng-if="data.value[0].length >= 4"{% endif %}><i class="fa fa-sign-in"></i> Subotom od {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][2] }}{% endverbatim %}{% else %}{{ workh.2 }}{% endif %} do {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][3] }}{% endverbatim %}{% else %}{{ workh.3 }}{% endif %}</li>{% endif %}{% if fav_state == -1 or workh.length == 6 %}
+                                <li{% if fav_state == -1 %} ng-if="data.value[0].length == 6"{% endif %}><i class="fa fa-sign-in"></i> Nedeljom od {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][4] }}{% endverbatim %}{% else %}{{ workh.4 }}{% endif %} do {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][5] }}{% endverbatim %}{% else %}{{ workh.5 }}{% endif %}</li>{% endif %}
                             </ul>
                         </li>
                         <li><ul class="list-unstyled">
-                                <li><a href="https://maps.google.com/maps?q=Vojvode Mišića 79, Niš"><i class="fa fa-map-marker"></i> Vojvode Mišića 79, Niš</a></li>
-                                <li><i class="fa fa-phone"></i> +381 18/756-235</li>
-                            </ul>
-                        </li>
-                        <li><ul class="list-unstyled">
-                                <li><a href="https://maps.google.com/maps?q=Kraljevića Marka 34, Vranje"><i class="fa fa-map-marker"></i> Kraljevića Marka 34, Vranje</a></li>
-                                <li><i class="fa fa-phone"></i> +381 64/22-59-137</li>
+                                <li><a href="https://maps.google.com/?q={{ business.address }}" target="_blank"><i class="fa fa-map-marker"></i> {% if fav_state == -1 %}{% verbatim %}{{ data.value[3] }}{% endverbatim %}{% else %}{{ business.address }}{% endif %}</a></li>
+                                <li><a {% if fav_state == -1 %}ng-href="tel:{% verbatim %}{{ data.value[1] }}{% endverbatim %}"{% else %}href="tel:{{ business.phone }}"{% endif %}><i class="fa fa-phone"></i> {% if fav_state == -1 %}{% verbatim %}{{ data.value[1] }}{% endverbatim %}{% else %}{{ business.phone }}{% endif %}</a></li>
                             </ul>
                         </li>{% endblock %}
 
@@ -105,44 +107,61 @@
                                 <div class="form-group" ng-class="{'has-error': forms.item.alert !== undefined}">
                                     <input name="name" type="text" class="form-control" required>
                                 </div>
-                                <div class="input-group">
-                                    <input type="number" name="price" step="0.01" min="0" class="form-control" required>
-                                    <span class="input-group-addon">{{ business.currency }}</span>
-                                </div>
+                                <fieldset ng-init="$parent.curr = ['{{ business.currency }}', '{{ business.currency }}', '{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}']">
+                                    <select class="form-control" ng-model="$parent.curr[1]" ng-change="changedCurr()">{% for c in curr %}
+                                        <option value="{{ c.0 }}">{{ c.1 }}</option>{% endfor %}
+                                    </select>
+                                    <span><input type="number" name="price" step="0.01" min="0" class="form-control" required></span>
+                                </fieldset>
                                 {% load bootstrap3 %}{% bootstrap_field form.cat %}
 								<input type="submit" class="btn btn-primary" value="Submit">
 							</form>
 						</div>
 
-{% endif %}                        <div class="mn">
+{% endif %}                        <div class="mn"{% if fav_state == -1 %} ng-init="edit_i = {}"{% endif %}>
                             <div class="angular-animate" ng-if="objloaded[1] && c.hascontent" ng-repeat="c in menu" ng-cloak>
                                 <hr ng-if="!c.first">
                                 <h4 ng-bind="c.name"></h4>
                                 <div class="angular-animate" ng-repeat="sc in c.content" ng-if="sc.content.length > 0">
                                     <h5 class="text-center">{% verbatim %}{{ sc.name }}{% endverbatim %}</h5>
-                                    <table class="table table-hover tb">
-                                        {% comment %}<thead>
+                                    <table class="table table-hover tb">{% comment %}
+                                        <thead>
                                             <tr>
                                                 <th>Ime proizvoda</th>
                                                 <th>Cena</th>
                                             </tr>
-                                            </thead>{% endcomment %}
+                                        </thead>{% endcomment %}
                                         <tbody>
-                                            <tr class="angular-animate clickable" ng-repeat="i in sc.content" ng-click="showItem(i.id)">
-                                                <td>
-                                                    {% if business.manager == request.user %}<div class="img_p">
-                                                        {% endif %}<img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1{% if business.manager == request.user %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}" accept="image/jpeg,image/png,image/gif" ngf-pattern="'image/jpeg,image/png,image/gif'"
+                                            <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state > -1 %}clickable" ng-click="showItem(i.id){% endif %}">
+                                                <td{% if fav_state == -1 %} class="clickable" ng-class="{'esh': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% endif %}>
+                                                    {% if fav_state == -1 %}<div class="img_p">
+                                                        {% endif %}<img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"
                                                         ><div class="img_l" ng-show="img[i.id].file"><div class="loa loa-c"><i class="fa fa-spinner"></i></div></div
                                                     ></div{% else %}"{% endif %}
                                                     ><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div>
                                                 </td>
-                                                <td><div>{% verbatim %}{{ (i.converted || i.price)|currency:'' }}{% endverbatim %} {% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}</div></td>
+                                                <td><div{% if fav_state == -1 %} class="inline" ng-init="edit_i[i.id] = {form: i.price, disabled: true}" click-outside="co(edit_i[i.id], 'disabled')">
+                                                    <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="edit_i[i.id].disabled = false"{% endif %}>{% verbatim %}{{ (i.converted || i.price)|currency:'' }}{% endverbatim %} {% if fav_state == -1 %}{% verbatim %}{{ curr[2] }}{% endverbatim %}</a>
+                                                    <div ng-hide="edit_i[i.id].disabled">
+                                                        <div>
+                                                            <div>
+                                                                <div>
+                                                                    <div class="input-group">
+                                                                        <input type="number" step="0.01" min="0" class="form-control" string-to-number ng-model="edit_i[i.id].form" ng-disabled="edit_i[i.id].disabled == null">
+                                                                        <span class="input-group-addon" ng-bind="curr[0]"></span>
+                                                                    </div>
+                                                                </div>
+                                                                <a class="fa fa-check n clickable text-center" ng-show="edit_i[i.id].disabled === false" ng-click="doIAction(i)"></a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% else %}{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{% endif %}</div></td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                            <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && !objloaded[1]"><i class="fa fa-spinner fa-2x"></i></div>
+                            <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && (!objloaded[1] || refreshing)"><i class="fa fa-spinner fa-2x"></i></div>
                         </div>
 					</uib-tab>
 

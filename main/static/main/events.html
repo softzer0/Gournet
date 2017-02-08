@@ -32,7 +32,7 @@
                 <p>{{ e.text }} <small class="text-muted">&mdash; {{ (e.when || e.created) | timeAgo }}</small></p>
             </div>
             <div ng-if="e.price !== undefined">
-                <img class="img-responsive bor prof margin-center" ng-if="$parent.ts != undefined" ng-src="/images/{{ e.id }}/avatar/?item=1{{ $parent.ts != 0 ? $parent.ts : '' }}">
+                <img class="img-responsive bor prof margin-center" ng-if="$parent.ts != undefined" ng-src="/images/{{ e.id }}/avatar/?item=1{{ $parent.ts != 0 ? $parent.ts : '' }}"><!-- ng-if="... && e.has_image" -->
                 <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ (e.converted || e.price)|currency:'' }} {{ e.converted === undefined ? e.business.currency || e.currency : user_curr }}</p>
             </div>
             <div ng-if="e.is_opened !== undefined">
