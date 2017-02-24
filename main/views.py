@@ -39,6 +39,7 @@ from pytz import common_timezones
 from json import dumps
 from PIL import Image
 from .thumbs import saveimgwiththumbs
+from django.utils.translation import ungettext as _p, ugettext as _
 
 User = get_user_model()
 
@@ -48,25 +49,19 @@ def home_index(request):
         return TemplateView.as_view(template_name='home.html')(request) # HomePageView.as_view()(request)
     return views.LoginView.as_view(template_name='index.html')(request) # IndexPageView.as_view()(request)
 
-"""class HomePageView(TemplateView):
-     template_name = "home.html"
-
-class IndexPageView(LoginView):
-     template_name = "index.html"""
-
 
 def get_param_bool(param):
-    return param and param in ['1', 'true', 'True', 'TRUE']
+    return param and param in ('1', 'true', 'True', 'TRUE')
 
 def edit_view(request):
-    return render(request, 'base/create_extra.html', {'form': forms.BaseForm(), 'f': 'data.form[0]'})
+    return render(request, 'create_extra.html', {'form': forms.BaseForm(), 'f': ['data.form[0]', ' || data.disabled', ' ng-disabled="data.disabled"']})
 
 @csrf_protect
-def localization_view(request):
+def i18n_view(request):
     st = None
     if request.method == 'POST':
         c = []
-        for f in ['tz', 'language', 'currency']:
+        for f in ('tz', 'language', 'currency'):
             if f in request.POST and f == 'tz' and request.user.tz.zone != request.POST[f] or f != 'tz' and getattr(request.user, f) != request.POST[f]:
                 setattr(request.user, f, request.POST[f])
                 c.append(f)
@@ -77,7 +72,7 @@ def localization_view(request):
                 st = status.HTTP_400_BAD_REQUEST
         #if get_param_bool(request.GET.get('nohtml', False)):
         return HttpResponse(dumps({'altered': c}), status=st)
-    return render(request, 'localization.html', {'timezones': common_timezones, 'langs': settings.LANGUAGES, 'currencies': models.CURRENCY}, status=st)
+    return render(request, 'i18n.html', {'timezones': common_timezones, 'langs': settings.LANGUAGES, 'currencies': models.CURRENCY}, status=st)
 
 
 @csrf_protect
@@ -101,11 +96,11 @@ def upload_view(request, pk_b=None):
         t = 'user'
     try:
         image = Image.open(request.FILES[next(iter(request.FILES))])
-        if image.format not in ['JPEG', 'PNG', 'GIF']:
-            return HttpResponse("Image format not supproted.", status=status.HTTP_403_FORBIDDEN)
+        if image.format not in ('JPEG', 'PNG', 'GIF'):
+            return HttpResponse(_("Image format not supproted."), status=status.HTTP_403_FORBIDDEN)
         image.verify()
     except:
-        return HttpResponse("Invalid image.", status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse(_("Invalid image."), status=status.HTTP_400_BAD_REQUEST)
     saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.FILES[next(iter(request.FILES))]))
     """if pk_b and pk_b != 'business' and pk_b.has_image:
         pk_b.has_image = True
@@ -123,7 +118,7 @@ def create_business(request):
         return redirect('/'+b.shortname+'/')
     if request.method == 'POST':
         request.POST._mutable = True
-        for s in [['t', 'sat'], ['t1', 'sun']]:
+        for s in (('t', 'sat'), ('t1', 'sun')):
             if request.POST.get(s[0], False) != 'on':
                 request.POST.pop('opened_'+s[1], None)
                 request.POST.pop('closed_'+s[1], None)
@@ -134,12 +129,13 @@ def create_business(request):
             return redirect('/'+form.cleaned_data['shortname']+'/')
     else:
         form = forms.BusinessForm()
-    return render(request, 'create.html', {'form': form, 'f': 'date'})
+    return render(request, 'create.html', {'form': form, 'f': ['date', '', '']})
 
 
 def increase_recent(request, obj):
     models.increment(models.Recent, {'user': request.user, 'content_type': ContentType.objects.get_for_model(obj), 'object_id': obj.pk})
 
+WORKH = ['{{ data.value[0]['+str(i)+'] }}' for i in range(0, 6)]
 def show_business(request, shortname):
     try:
         data = {'business': models.Business.objects.get_by_natural_key(shortname)}
@@ -152,10 +148,10 @@ def show_business(request, shortname):
     data['fav_count'] = models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).count()
     data['rating'] = models.Comment.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
     data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
-    data['workh'] = []
-    for f in ['opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun']:
+    data['workh'] = {'value': []}
+    for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
         if getattr(data['business'], f) is not None:
-            data['workh'].append(time_format(getattr(data['business'], f), 'H:i'))
+            data['workh']['value'].append(time_format(getattr(data['business'], f), 'H:i'))
     if request.user != data['business'].manager:
         if models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk, person=request.user).exists():
             data['fav_state'] = 1
@@ -166,11 +162,13 @@ def show_business(request, shortname):
             data['rating'].append(models.Comment.objects.get(content_type=models.get_content_types()['business'], object_id=data['business'].pk, person=request.user).stars)
         except:
             data['rating'].append(0)
+        data['workh']['display'] = data['workh']['value']
     else:
         data['fav_state'] = -1
         data['form'] = forms.DummyCategory()
         data['edit_data'] = {'types': models.BUSINESS_TYPE, 'forbidden': models.FORBIDDEN}
         data['curr'] = models.CURRENCY
+        data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
     return render(request, 'view.html', data)
 
@@ -327,7 +325,7 @@ def get_object(pk, cl=User):
     try:
         return cl.objects.get(pk=pk)
     except:
-        raise NotFound(cl.__name__+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
+        raise NotFound(cl._meta.verbose_name.capitalize()+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
 
 class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView):
     filter_backends = (SearchFilter,)
@@ -376,53 +374,89 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
         self.request.user.notification_set.add(models.Notification(text=txt[0], link='#/show='+','.join(str(v) for v in pks)+'&type='+txt[1], created=created), bulk=False)
 
     def gen_person(self, person):
-        return '<a href="/user/%s/"><i>%s %s</i></a>' % (person.username, person.first_name, person.last_name)
+        return
 
     def add_notif(self, curr, created):
+        txt = {}
+        if len(curr['persons']) == 1:
+            txt['name'] = '<a href="/user/%s/"><i>%s %s</i></a>' % (curr['persons'][0].username, curr['persons'][0].first_name, curr['persons'][0].last_name)
+        if curr['typ'] is not None or curr['typ'] != 2 and len(curr['pks']) > 1:
+            txt['count'] = len(curr['pks'])
         if curr['typ'] is not None:
-            txt = [(self.gen_person(curr['persons'][0])+" has" if len(curr['persons']) == 1 else str(len(curr['persons']))+" persons have")+' '+("commented on" if curr['typ'] != 2 else "reviewed")+' '+(("your" if curr['typ'] != 1 else "a")+' '+(curr['ct'].model_class()._meta.verbose_name.lower() if curr['typ'] != 2 else "business") if len(curr['pks']) == 1 else str(len(curr['pks']))+' '+curr['ct'].model_class()._meta.verbose_name_plural.lower())+(" on your business" if curr['typ'] == 1 else '')+'.', (curr['ct'].model if curr['ct'] != models.get_content_types()['comment'] else 'review')+('&showcomments' if curr['typ'] != 2 and len(curr['pks']) == 1 else '')]
+            if curr['typ'] != 1:
+                txt['target'] = curr['ct'].model_class()._meta.verbose_name if curr['typ'] != 2 else models.Business._meta.verbose_name
+            if len(curr['persons']) == 1:
+                if curr['typ'] != 2:
+                    if len(curr['pks']) == 1:
+                        if curr['typ'] == 1:
+                            txt = _("%(name)s has commented on a review on your business.") % txt
+                        else:
+                            txt = _("%(name)s has commented on your %(target)s.") % txt
+                    else:
+                        if curr['typ'] == 1:
+                            txt = _p("%(name)s has commented on %(count)d reviews on your business.", "%(name)s has commented on %(count)d reviews on your business.", txt['count']) % txt
+                        else:
+                            txt = _p("%(name)s has commented on your %(count)d %(target)s.", "%(name)s has commented on your %(count)d %(target)s.", txt['count']) % txt
+                else:
+                    txt = _("%(name)s has reviewed your business.") % txt
+            else:
+                txt['person_count'] = len(curr['persons'])
+                if curr['typ'] != 2:
+                    if len(curr['pks']) == 1:
+                        if curr['typ'] == 1:
+                            txt = _("%(person_count)d have commented on a review on your business.") % txt
+                        else:
+                            txt = _("%(person_count)d have commented on your %(target)s.") % txt
+                    else:
+                        if curr['typ'] == 1:
+                            txt = _p("%(person_count)d have commented on %(count)d reviews on your business.", "%(person_count)d have commented on %(count)d reviews on your business.", txt['count']) % txt
+                        else:
+                            txt = _p("%(person_count)d have commented on your %(count)d %(target)s.", "%(person_count)d have commented on your %(count)d %(target)s.", txt['count']) % txt
+                else:
+                    txt = _("%(person_count)d have reviewed your business.") % txt
+            txt = [txt, (curr['ct'].model if curr['ct'] != models.get_content_types()['comment'] else 'review')+('&showcomments' if curr['typ'] != 2 and len(curr['pks']) == 1 else '')]
         else:
-            txt = [self.gen_person(curr['persons'][0])+" notifies you about "+("one event" if len(curr['pks']) == 1 else str(len(curr['pks']))+" events"), 'event']
+            txt['target'] = models.Event._meta.verbose_name
+            txt = [_p("%(name)s notifies you about %(count)d %(target)s.", "%(name)s notifies you about %(count)d %(target)s.", txt['count']) % txt, 'event']
         self.create_notif(txt, curr['pks'], created)
 
     def get_queryset(self):
         if self.request.query_params.get('page', False):
             return self.request.user.notification_set.filter(unread=False)
-        else:
-            notifies = models.EventNotification.objects.filter(to_person=self.request.user)
+        notifies = models.EventNotification.objects.filter(to_person=self.request.user)
+        if notifies.count() > 0:
+            rems = notifies.filter(from_person=None, when__lte=timezone.now())
+            if rems.count() > 0:
+                curr = []
+                for i in range(rems.count()):
+                    if rems[i].object_id not in curr:
+                        curr.append(rems[i].object_id)
+                self.create_notif([_p("You have %d reminder.", "You have %d reminders.", len(curr)) % len(curr), 'event'], curr, rems.last().when)
+                rems._raw_delete(rems.db)
+            notifies = notifies.exclude(from_person=None)
             if notifies.count() > 0:
-                rems = notifies.filter(from_person=None, when__lte=timezone.now())
-                if rems.count() > 0:
-                    curr = []
-                    for i in range(rems.count()):
-                        if rems[i].object_id not in curr:
-                            curr.append(rems[i].object_id)
-                    self.create_notif(["You have "+("one reminder" if len(curr) == 1 else str(len(curr))+" reminders")+'.', 'event'], curr, rems.last().when)
-                    rems._raw_delete(rems.db)
-                notifies = notifies.exclude(from_person=None)
-                if notifies.count() > 0:
-                    curr = {'pks': [], 'persons': [notifies.first().from_person], 'typ': notifies.first().comment_type, 'ct': notifies.first().content_type}
-                    for notif in notifies:
-                        if curr['typ'] != notif.comment_type or curr['ct'] != notif.content_type:
-                            self.add_notif(curr, notif.when)
-                            curr['pks'][:] = [notif.object_id]
-                            curr['persons'][:] = [notif.from_person]
-                            if curr['typ'] != notif.comment_type:
-                                curr['typ'] = notif.comment_type
-                            else:
-                                curr['ct'] = notif.content_type
-                        if notif.object_id not in curr['pks']:
-                            curr['pks'].append(notif.object_id)
-                        if notif.from_person != curr['persons'][-1]:
-                            curr['persons'].append(notif.from_person)
-                    # noinspection PyUnboundLocalVariable
-                    self.add_notif(curr, notif.when)
-                    notifies._raw_delete(notifies.db)
+                curr = {'pks': [], 'persons': [notifies.first().from_person], 'typ': notifies.first().comment_type, 'ct': notifies.first().content_type}
+                for notif in notifies:
+                    if curr['typ'] != notif.comment_type or curr['ct'] != notif.content_type:
+                        self.add_notif(curr, notif.when)
+                        curr['pks'][:] = [notif.object_id]
+                        curr['persons'][:] = [notif.from_person]
+                        if curr['typ'] != notif.comment_type:
+                            curr['typ'] = notif.comment_type
+                        else:
+                            curr['ct'] = notif.content_type
+                    if notif.object_id not in curr['pks']:
+                        curr['pks'].append(notif.object_id)
+                    if notif.from_person != curr['persons'][-1]:
+                        curr['persons'].append(notif.from_person)
+                # noinspection PyUnboundLocalVariable
+                self.add_notif(curr, notif.when)
+                notifies._raw_delete(notifies.db)
 
-            last = self.request.query_params.get('last', False)
-            if last and last.isdigit():
-                return self.request.user.notification_set.filter(pk__gt=last, unread=True)
-            return self.request.user.notification_set.filter(unread=True)
+        last = self.request.query_params.get('last', False)
+        if last and last.isdigit():
+            return self.request.user.notification_set.filter(pk__gt=last, unread=True)
+        return self.request.user.notification_set.filter(unread=True)
 
 def base_view(request, t, cont, **kwargs):
     notxt = get_param_bool(request.GET.get('notxt', False))
@@ -568,7 +602,7 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        for f in ['home', 'search']:
+        for f in ('home', 'search'):
             if f in self.kwargs:
                 context[f] = None
         if 'person' in self.kwargs:
@@ -729,7 +763,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         if 'currency' in self.kwargs:
             context['currency'] = None
             self.kwargs.pop('currency')
-        elif self.request.method in ['PUT', 'PATCH']:
+        elif self.request.method in ('PUT', 'PATCH'):
             context['edit'] = None
         elif self.request.query_params.get('ids', False):
             context['ids'] = None
@@ -740,7 +774,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         if hasattr(request.data, '_mutable'):
             request.data._mutable = True
-        if not self.request.query_params.get('ids', False) and 'currency' in request.data and request.data['currency'] in [i[0] for i in models.CURRENCY]:
+        if not self.request.query_params.get('ids', False) and 'currency' in request.data and request.data['currency'] in tuple(i[0] for i in models.CURRENCY):
             self.kwargs['currency'] = request.data.pop('currency')[0] if hasattr(request.data, '_mutable') else request.data.pop('currency')
             request.method = 'GET'
             return super().list(request, *args, **kwargs)

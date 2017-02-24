@@ -1,4 +1,5 @@
 {% extends 'base/main.html' %}
+{% load i18n %}
 
-{% block title %}Signup on Gournet{% endblock %}
+{% block title %}{% trans "Signup on Gournet" %}{% endblock %}
 {% block head %}{% load staticfiles %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">{% endblock %}

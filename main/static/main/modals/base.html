@@ -9,5 +9,5 @@
 </div>
 
 <div class="modal-footer" ng-if="event !== undefined">
-    <button ng-if="!working" class="btn btn-primary" ng-click="sendNotify()" ng-disabled="sel_cnt == 0">Notify ({{ sel_cnt }})</button><b ng-if="working">Working...</b>
+    <button ng-if="!working" class="btn btn-primary" ng-click="sendNotify()" ng-disabled="sel_cnt == 0">{{ "Notify (%s)" | translate:sel_cnt }}</button><b ng-if="working">{{ "Working..." | translate }}</b>
 </div>

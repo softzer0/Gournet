@@ -4,7 +4,7 @@ app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
                 if (status == $scope.geocoder[1]) {
                     callback(results[0].geometry.location);
                 } else {
-                    console.log("Geocode was not successful for the following reason: " + status);
+                    console.log('Geocode was not successful for the following reason: ' + status);
                 }
             });
         };

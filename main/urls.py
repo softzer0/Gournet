@@ -57,7 +57,7 @@ urlpatterns = [
 
     # Other
     url(r"^edit\.html$", main_views.edit_view, name="edit"),
-    url(r"^localization/$", main_views.localization_view, name="localization"),
+    url(r"^i18n/$", main_views.i18n_view, name="i18n"),
     url(r"^upload/(?:(?P<pk_b>([\d]+|business))/)?$", main_views.upload_view, name="upload"),
     url(r'^my-business/$', main_views.create_business, name="create_business"),
     url(r"^images/(?P<pk>[\d]+)/avatar/(?:(?P<size>(32|48|64))/)?$", main_views.return_avatar, name="avatar"),

@@ -2,30 +2,21 @@
     <div class="angular-animate" ng-repeat="e in objs" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ objs_animation ? 'angular-animate' : '' }}"-->
         <div ng-if="e.person_status !== undefined || e.friend !== undefined" class="mb3">
             <span ng-if="e.friend === undefined || e.friend.count === undefined"
-                ><span ng-if="first_name !== undefined" ng-bind="first_name"></span
-                ><a ng-if="u === undefined && first_name === undefined" ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a
-                ><span ng-if="u !== undefined && first_name === undefined">You</span>
-                <span ng-if="(e.person_status[0] || e.friend.status) == -1 || e.target !== undefined || e.is_opened !== undefined"
-                    ><span ng-if="e.when !== undefined">posted</span
-                    ><span ng-if="e.price !== undefined">added</span
-                    ><span ng-if="e.created !== undefined">reviewed</span
-                    ><span ng-if="e.target !== undefined">became a friend to</span
-                    ><span ng-if="e.is_opened !== undefined">favoured</span
-                ></span
-                ><span ng-if="(e.person_status[0] || e.friend.status) !== undefined && (e.person_status[0] || e.friend.status) != -1"
-                    ><span ng-if="e.stars_avg === undefined">gave {{ (e.person_status[0] || e.friend.status) == 1 ? "like" : "dislike" }} to</span
-                    ><span ng-if="e.stars_avg !== undefined">gave {{ e.person_status[0] || e.friend.status }} {{ (e.person_status[0] || e.friend.status) == 1 ? "star" : "stars" }} to</span
-                ></span
+                ><span ng-if="e.friend === undefined && e.person_status[0] == -1" translate>{{ first_name || 'You' }} {{ e.when !== undefined ? 'posted' : e.price !== undefined ? 'added' : 'reviewed' }}:</span
+                ><span ng-if="e.friend === undefined && e.person_status[0] != -1 && e.stars_avg === undefined" translate>{{ first_name || 'You' }} gave {{ e.person_status[0] == 1 ? 'like' : 'dislike' }} to:</span
+                ><span ng-if="e.friend === undefined && e.person_status[0] != -1 && e.stars_avg !== undefined" translate="e.person_status[0]">{{ first_name || 'You' }} gave {{ e.person_status[0] }} star to:<br plural>{{ first_name || 'You' }} gave {{ e.person_status[0] }} stars to:</span
+                ><span ng-if="e.friend !== undefined && (e.friend.status == -1 || e.target !== undefined || e.is_opened !== undefined)" translate><a ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> {{ e.when !== undefined ? 'posted' : e.price !== undefined ? 'added' : e.created !== undefined ? 'reviewed' : e.target !== undefined ? 'became a friend to' : 'favored' }}:</span
+                ><span ng-if="e.friend !== undefined && e.friend.status !== undefined && e.friend.status != -1 && e.stars_avg === undefined" translate><a ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend.status == 1 ? 'like' : 'dislike' }} to:</span
+                ><span ng-if="e.friend !== undefined && e.friend.status != -1 && e.stars_avg !== undefined" translate="e.friend.status"><a ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend.status }} star to:<br plural><a ng-href="/user/{{ e.friend.username }}/"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend.status }} stars to:</span
             ></span
             ><span ng-if="e.friend !== undefined && e.friend.count !== undefined"
-                ><span ng-repeat="p in e.friend.objs"><span ng-if="$last && e.friend.count <= 3"> and </span><a ng-href="/user/{{ p.username }}/"><strong>{{ p.first_name }} {{ p.last_name }}</strong></a><span ng-if="!$last && e.friend.count != $index + 2">, </span></span>
-                <span ng-if="e.friend.count > 3">and {{ e.friend.count }} other {{ e.friend.count == 1 ? 'friend' : 'friends' }}</span><span> <span ng-if="e.is_opened !== undefined">favoured</span><span ng-if="e.is_opened === undefined"><span ng-if="e.stars_avg === undefined">reacted to</span><span ng-if="e.stars_avg !== undefined">rated</span></span></span
-            ></span
-            ><span>:</span>
+                ><span ng-repeat="p in e.friend.objs"><span ng-if="$last && e.friend.count <= 3"> {{ "and" | translate }} </span><a ng-href="/user/{{ p.username }}/"><strong>{{ p.first_name }} {{ p.last_name }}</strong></a><span ng-if="!$last && e.friend.count != $index + 2">, </span></span>
+                <span ng-if="e.friend.count > 3" translate="e.friend.count" subtract="3">and {{ e.friend.count }} other friend<br plural>and {{ e.friend.count }} other friends</span><span>{{ e.is_opened !== undefined ? "favoured" : e.stars_avg !== undefined ? "rated" : "reacted to" | translate:null:'they' }}:</span
+            ></span>
         </div>
         <div class="well bs-component clearfix pb18">
             <div ng-if="$parent.ts == undefined && (first_name !== undefined || id === undefined) || e.person !== undefined" ng-init="obj = e.business !== undefined ? e.business : e.target !== undefined ? e.target : e.person != undefined ? e.person : e.content_object !== undefined ? e.content_object : e">
-                <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person != undefined && e.content_object !== undefined">, to: <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span><small ng-if="e.distance !== undefined" class="text-muted">&mdash; {{ e.distance.value+e.distance.unit }} away</small></legend>
+                <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person != undefined && e.content_object !== undefined">{{ ", to:" | translate:null:'from user to which business' }} <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span><small ng-if="e.distance !== undefined" class="text-muted">&mdash; {{ "%s away" | translate:e.distance.value+e.distance.unit:'distance' }}</small></legend>
                 <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ e.price !== undefined ? '/images/'+e.id+'/avatar/64/?item=1' : '/images/'+obj.id+'/avatar/64/'+(obj.shortname !== undefined ? '?business=1' : '') }}"></a></div>
             </div>
             <div ng-if="e.text !== undefined">
@@ -36,20 +27,14 @@
                 <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ (e.converted || e.price)|currency:'' }} {{ e.converted === undefined ? e.business.currency || e.currency : user_curr }}</p>
             </div>
             <div ng-if="e.is_opened !== undefined">
-                <p>Currently <strong>{{ e.is_opened ? "opened" : "closed" }}</strong>; {{ e.item_count }} {{ e.item_count > 1 ? "items" : "item" }}; supported {{ e.supported_curr.length == 0 ? "currency" : "currencies" }}: <strong>{{ e.currency }}</strong><span ng-repeat="c in e.supported_curr">, <strong>{{ c }}</strong></span></p>
+                <p><span translate>Currently <strong>{{ e.is_opened ? 'opened' : 'closed' }}</strong></span><span translate="e.item_count">; {{ e.item_count }} item<br plural>; {{ e.item_count }} items</span><span translate="e.supported_curr.length" add="1">; supported currency:<br plural>; supported currencies:</span> <strong>{{ e.currency }}</strong><span ng-repeat="c in e.supported_curr">, <strong>{{ c }}</strong></span></p>
             </div>
             <div ng-if="e.friend_count !== undefined">
-                <p><span>Has</span
-                    > <span ng-switch="e.friend_count[0]"
-                        ><span ng-switch-when="0">no friends</span
-                        ><a href="javascript:" ng-click="$parent.showFriendsModal(e.id || e.target.id)" ng-switch-when="1">one friend</a
-                        ><a href="javascript:" ng-click="$parent.showFriendsModal(e.id || e.target.id)" ng-switch-default>{{ e.friend_count[0] }} friends</a
-                    ></span
-                    ><span ng-if="e.friend_count[0] > 0" ng-switch="e.friend_count[1]"
-                        >; <span ng-switch-when="0">no mutual friends</span
-                        ><span ng-switch-when="1"><strong>one</strong> mutual friend</span
-                        ><span ng-switch-default><strong>{{ e.friend_count[1] }}</strong> friends</span
-                    ></span
+                <p
+                    ><span ng-if="e.friend_count[0] > 0" translate="e.friend_count[0]">Has <a href="javascript:" ng-click="$parent.showFriendsModal(e.id || e.target.id)">{{ e.friend_count[0] }} friend</a><br plural>Has <a href="javascript:" ng-click="$parent.showFriendsModal(e.id || e.target.id)">{{ e.friend_count[0] }} friends</a></span
+                    ><span ng-if="e.friend_count[0] == 0">{{ "Has no friends" | translate }}</span
+                    ><span ng-if="e.friend_count[0] > 0 && e.friend_count[1] > 0" translate="e.friend_count[1]">; <strong>{{ e.friend_count[1] }}</strong> mutual friend<br plural>; <strong>{{ e.friend_count[1] }}</strong> mutual friends</span
+                    ><span ng-if="e.friend_count[0] > 0 && e.friend_count[1] == 0">{{ "; no mutual friends" | translate }}</span
                 ></p>
             </div>
             <div class="op br">
@@ -64,14 +49,14 @@
                     ></span
 
                     ><span ng-if="e.is_opened === undefined"
-                        ><a href="javascript:" ng-click="showComments($index)"><i class="fa fa-comment"></i> Komentari ({{ e.comment_count }})</a
+                        ><a href="javascript:" ng-click="showComments($index)"><i class="fa fa-comment"></i> {{ "Comments (%s)" | translate:e.comment_count }}</a
 
                         ><span ng-if="e.when !== undefined && isFuture($index)"
-                            ><a href="javascript:" class="rmn" uib-popover-template="'/static/main/modals/reminder.html'" popover-trigger="outsideClick" popover-is-open="cmb.opened[$index]" ng-click="initRmn($index)"><i class="fa fa-bell"></i> Podseti me na ovaj događaj</a
-                            ><a href="javascript:" ng-click="notifySelect($index)"><i class="fa fa-users"></i> Obavesti prijatelje</a
+                            ><a href="javascript:" class="rmn" uib-popover-template="'/static/main/modals/reminder.html'" popover-trigger="outsideClick" popover-is-open="cmb.opened[$index]" ng-click="initRmn($index)"><i class="fa fa-bell"></i> {{ "Remind me for this event" | translate }}</a
+                            ><a href="javascript:" ng-click="notifySelect($index)"><i class="fa fa-users"></i> {{ "Notify friends" | translate }}</a
                         ></span
 
-                        ><span ng-if="e.curruser_status == -1"><a href="javascript:" ng-dialog-message="Are you sure that you want to delete this {{ t }}?" ng-dialog-click="delete($index)"><i class="fa fa-times"></i> Obriši</a></span
+                        ><span ng-if="e.curruser_status == -1"><a href="javascript:" ng-dialog-message="{{ t == 'event' ? 'Are you sure that you want to delete this event?' : t == 'item' ? 'Are you sure that you want to delete this item?' : 'Are you sure that you want to delete this review? | translate }}" ng-dialog-click="delete($index)"><i class="fa fa-times"></i> {{ "Remove" | translate }}</a></span
                     ></span
                 ></span
                 ><span ng-if="e.friend_count !== undefined" ng-include="'/static/main/friend.html'" new-scope ng-init="o = [e, $index]"></span>
@@ -79,22 +64,22 @@
             <div ng-if="e.created !== undefined && e.main_comment != null"><div class="well bs-component clearfix br an cmn com" ng-include="'comment'" new-scope ng-init="m = {obj: e.main_comment}"></div></div>
             <div class="cmn" ng-if="e.is_opened === undefined && e.friend_count === undefined" ng-show="e.showcomm[1]">
                 <div ng-repeat="k in com">
-                    <a href="javascript:" class="mpd lm text-center" ng-show="show_next($parent.$index, k[2])" ng-click="load_next($parent.$index, k[2])">Load {{ k[0] }}</a>
+                    <a href="javascript:" class="mpd lm text-center" ng-show="show_next($parent.$index, k[2])" ng-click="load_next($parent.$index, k[2])">{{ k[0] }}</a>
                     <div class="cmn mb13 loa-c" ng-if="e.showcomm[0][k[2]] == false"><i class="fa fa-spinner fa-2x"></i></div>
                     <div class="angular-animate com" ng-if="e[k[1]] !== undefined" ng-include="'comment'" ng-repeat="c in e[k[1]]" new-scope ng-init="m = {obj: c}"></div>
                 </div>
                 <div class="form-group cmn mb7">
-                    <textarea ng-attr-id="{{ t + $index }}" class="form-control" rows="1" placeholder="Your comment" required></textarea>
+                    <textarea ng-attr-id="{{ t + $index }}" class="form-control" rows="1" ng-attr-placeholder="{{ 'Your comment' | translate }}" required maxlength="1000"></textarea>
                 </div>
                 <ul ng-if="e.created !== undefined && e.is_manager" class="nya-bs-select comb" ng-model="e.status" ng-init="e.status = choices[0]">
                     <li nya-bs-option="choice in choices"><a>{{ choice.name }}</a></li>
                 </ul
-                ><input type="submit" ng-attr-id="{{ t + $index }}b" class="btn btn-sm btn-primary" value="Submit" ng-click="submitComment($index)">
+                ><input type="submit" ng-attr-id="{{ t + $index }}b" class="btn btn-sm btn-primary" value="{{ 'Submit' | translate }}" ng-click="submitComment($index)">
             </div>
         </div>
         <hr ng-if="toggleHr(first_name !== undefined || !t, $last && !r)" class="mpd">
     </div>
-    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="props.has_next_page && !loading" ng-click="load_page()">Load more</a>
+    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="props.has_next_page && !loading" ng-click="load_page()">{{ "Load more" | translate }}</a>
     <div class="loa mb13 loa-c" ng-if="!r && loading"><i class="fa fa-spinner fa-2x"></i></div>
-    <div class="nev" ng-if="!objs.length && !loading && (modal_loaded === undefined || close !== undefined)"><span ng-hide="checkAnim()">No results.</span></div>
+    <div class="nev" ng-if="!objs.length && !loading && (modal_loaded === undefined || close !== undefined)"><span ng-hide="checkAnim()">{{ "No results." | translate }}</span></div>
 </div>

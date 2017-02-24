@@ -1,0 +1,1136 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-02-24 04:37+0100\n"
+"PO-Revision-Date: 2017-02-24 04:38+0100\n"
+"Last-Translator: Mihailo Popović <mihailosoft@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: Serbian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: gournet/settings.py:242
+msgid "English"
+msgstr "Engleski"
+
+#: gournet/settings.py:243
+msgid "Serbian"
+msgstr "Srpski"
+
+#: main/allauth_forms.py:36
+msgid "Enter city from where are you from, e.g: Vranje, Serbia."
+msgstr "Unesite svoje prebivalište, npr: Vranje, Srbija."
+
+#: main/allauth_forms.py:41
+msgid "Invalid birthdate."
+msgstr "Uneti datum nije validan."
+
+#: main/forms.py:86
+msgid ""
+"You have to adjust the exact location using the map with a marker below."
+msgstr "Morate podesiti tačnu lokaciju koristeći mapu sa markerom ispod."
+
+#: main/forms.py:110
+msgid "Type of your business"
+msgstr "Tip vašeg ugostiteljskog objekta"
+
+#: main/forms.py:111
+msgctxt "name of business"
+msgid "Its name"
+msgstr "Njegovo ime"
+
+#: main/models.py:52
+msgid "Serbian dinar (RSD)"
+msgstr "Srpski dinar (RSD)"
+
+#: main/models.py:52
+msgid "Euro (EUR)"
+msgstr "Evro (EUR)"
+
+#: main/models.py:53 templates/user.html:30
+msgid "Male"
+msgstr "Muško"
+
+#: main/models.py:53 templates/user.html:30
+msgid "Female"
+msgstr "Žensko"
+
+#: main/models.py:61
+msgid "longitude/latitude"
+msgstr "longituda/latituda"
+
+#: main/models.py:61
+msgid "Enter valid coordinates."
+msgstr "Unesite validne koordinate."
+
+#: main/models.py:63
+msgid "address"
+msgstr "adresa"
+
+#: main/models.py:97
+msgid "username"
+msgstr "korisničko ime"
+
+#: main/models.py:100
+#, python-format
+msgid "Maximum %d characters."
+msgstr "Maksimalno %d karaktera."
+
+#: main/models.py:100 main/models.py:244
+msgid "English letters (case-insensitive), digits and ./-/_ only."
+msgstr ""
+"Engleski karakteri (nije osetljivo na veličinu slova), brojevi i ./-/_ "
+"karakteri su samo dozvoljeni."
+
+#: main/models.py:102
+msgid "A user with that username already exists."
+msgstr "Korisnik sa tim korisničkim imenom već postoji."
+
+#: main/models.py:104
+msgid "first name"
+msgstr "Ime"
+
+#: main/models.py:104
+msgid "Invalid first name."
+msgstr "Netačno ime."
+
+#: main/models.py:105
+msgid "last name"
+msgstr "prezime"
+
+#: main/models.py:105
+msgid "Invalid last name."
+msgstr "Netačno prezime."
+
+#: main/models.py:106
+msgid "email address"
+msgstr "email adresa"
+
+#: main/models.py:115
+msgid "gender"
+msgstr "pol"
+
+#: main/models.py:116
+msgid "birthdate"
+msgstr "datum rođenja"
+
+#: main/models.py:122 main/models.py:257
+msgid "default currency"
+msgstr "podrazumevana valuta"
+
+#: main/models.py:131
+msgid "staff status"
+msgstr "status osoblja"
+
+#: main/models.py:133
+msgid "Designates whether the user can log into this admin site."
+msgstr ""
+"Određuje da li se korisnik može prijaviti na ovaj administratorski sajt."
+
+#: main/models.py:136
+msgctxt "user active"
+msgid "active"
+msgstr "aktivan/a"
+
+#: main/models.py:138
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr ""
+"Određuje da li korisnik može biti tretiran kao aktivan. Poništite ovo umesto "
+"brisanja naloga."
+
+#: main/models.py:140
+msgid "date joined"
+msgstr "datum priključenja"
+
+#: main/models.py:150
+msgid "user"
+msgstr "korisnik"
+
+#: main/models.py:151
+msgid "users"
+msgstr "korisnici"
+
+#: main/models.py:211
+#, python-format
+msgid "%s wants to be your friend."
+msgstr "%s želi biti Vaš prijatelj."
+
+#: main/models.py:214
+#, python-format
+msgid "%s has accepted friend request."
+msgstr "%s je prihvatio/la zahtev za prijateljstvo."
+
+#: main/models.py:228
+#, python-format
+msgid "\"%s\" is not permitted as a shortname."
+msgstr "\"%s\" nije dozvoljeno kao skraćenica."
+
+#: main/models.py:237
+msgid "Restaurant"
+msgstr "Restoran"
+
+#: main/models.py:237
+msgid "Tavern"
+msgstr "Kafana"
+
+#: main/models.py:237
+msgid "Bistro"
+msgstr "Bistro"
+
+#: main/models.py:237
+msgid "Cafe"
+msgstr "Cafe"
+
+#: main/models.py:237
+msgid "Pub"
+msgstr "Pab"
+
+#: main/models.py:237
+msgid "Bar"
+msgstr "Bar"
+
+#: main/models.py:237
+msgid "Nightclub"
+msgstr "Noćni klub"
+
+#: main/models.py:237
+msgctxt "type of business"
+msgid "Fast food"
+msgstr "Usluga brze hrane"
+
+#: main/models.py:241
+msgid "shortname"
+msgstr "skraćenica"
+
+#: main/models.py:244
+msgid ""
+"The people could access your business by putting its shortname after the "
+"site address, e.g: <u>http://gournet.co/shortname</u>."
+msgstr ""
+"Ljudi mogu pristupiti Vašem ugostiteljskom objektu stavljanjem njegove "
+"skraćenice nakon adrese ovog sajta: <u>http://gournet.co/skracenica</u>."
+
+#: main/models.py:244
+#, fuzzy
+#| msgid "Maximum %d characters."
+msgid "Maximum 30 characters."
+msgstr "Maksimalno %d karaktera."
+
+#: main/models.py:249
+msgid "Enter a valid business name."
+msgstr "Unesite validno ime ugostiteljskog objekta."
+
+#: main/models.py:250
+msgid "phone number"
+msgstr "broj telefona"
+
+#: main/models.py:250
+msgid "In national format, e.g: 017448739."
+msgstr "U nacionalnom formatu, npr: 017448739."
+
+#: main/models.py:251
+msgid "opening time"
+msgstr "vreme otvaranja"
+
+#: main/models.py:252
+msgid "opening time on Saturday"
+msgstr "vreme otvaranja u subotu"
+
+#: main/models.py:253
+msgid "opening time on Sunday"
+msgstr "vreme otvaranja u nedelju"
+
+#: main/models.py:254
+msgid "closing time"
+msgstr "vreme zatvaranja"
+
+#: main/models.py:255
+msgid "closing time on Saturday"
+msgstr "vreme zatvaranja u subotu"
+
+#: main/models.py:256
+msgid "closing time on Sunday"
+msgstr "vreme zatvaranja u nedelju"
+
+#: main/models.py:266
+msgid "business"
+msgstr "ugostiteljski objekat"
+
+#: main/models.py:289
+msgid "event"
+msgstr "događaj"
+
+#: main/models.py:290
+msgid "events"
+msgstr "događaji"
+
+#: main/models.py:306
+msgid "Alcoholic beverages"
+msgstr "Alkoholna pića"
+
+#: main/models.py:307
+#, fuzzy
+msgid "Cider"
+msgstr "Jabukovača"
+
+#: main/models.py:308
+msgid "Whiskey"
+msgstr "Viski"
+
+#: main/models.py:309
+msgid "Wine"
+msgstr "Vino"
+
+#: main/models.py:310
+msgid "Beer"
+msgstr "Pivo"
+
+#: main/models.py:311
+msgid "Vodka"
+msgstr "Votka"
+
+#: main/models.py:312
+#, fuzzy
+#| msgctxt "singular"
+#| msgid "Brandy"
+msgid "Brandy"
+msgstr "Rakija, vinjak, konjak i sl."
+
+#: main/models.py:313
+msgid "Liqueur"
+msgstr "Liker"
+
+#: main/models.py:314
+msgid "Cocktail"
+msgstr "Koktel"
+
+#: main/models.py:315
+msgid "Tequila"
+msgstr "Tekila"
+
+#: main/models.py:316
+msgid "Gin"
+msgstr "Džin"
+
+#: main/models.py:317
+msgid "Rum"
+msgstr "Rum"
+
+#: main/models.py:320
+msgid "Other drinks"
+msgstr "Ostala pića"
+
+#: main/models.py:321
+msgid "Coffee"
+msgstr "Kafa"
+
+#: main/models.py:322
+msgid "Soft drink"
+msgstr "Bezalkoholno piće"
+
+#: main/models.py:323
+msgid "Juice"
+msgstr "Sok"
+
+#: main/models.py:324
+msgid "Tea"
+msgstr "Čaj"
+
+#: main/models.py:325
+msgid "Hot chocolate"
+msgstr "Topla čokolada"
+
+#: main/models.py:326
+msgctxt "singular"
+msgid "Water"
+msgstr "Voda"
+
+#: main/models.py:327 main/models.py:341
+msgid "Other"
+msgstr "Ostalo"
+
+#: main/models.py:330
+msgid "Food"
+msgstr "Hrana"
+
+#: main/models.py:331
+msgctxt "singular"
+msgid "Fast food"
+msgstr "Brza hrana"
+
+#: main/models.py:332
+msgid "Pizza"
+msgstr "Pica"
+
+#: main/models.py:333
+msgid "Pasta"
+msgstr "Testenina"
+
+#: main/models.py:334
+msgid "Appetizer"
+msgstr "Predjelo"
+
+#: main/models.py:335
+msgid "Soup"
+msgstr "Supa"
+
+#: main/models.py:336
+msgid "Meal"
+msgstr "Obrok"
+
+#: main/models.py:337
+msgctxt "singular"
+msgid "Barbecue"
+msgstr "Roštilj"
+
+#: main/models.py:338
+msgctxt "singular"
+msgid "Seafood"
+msgstr "Morska hrana"
+
+#: main/models.py:339
+msgid "Salad"
+msgstr "Salata"
+
+#: main/models.py:340
+msgid "Dessert"
+msgstr "Dezert"
+
+#: main/models.py:360
+msgid "item"
+msgstr "proizvod"
+
+#: main/models.py:361
+msgid "items"
+msgstr "proizvodi"
+
+#: main/models.py:386
+msgid "Started"
+msgstr "Započeto"
+
+#: main/models.py:386
+msgid "Closed"
+msgstr "Zatvoreno"
+
+#: main/models.py:386
+msgid "Completed"
+msgstr "Završeno"
+
+#: main/models.py:386
+msgid "Declined"
+msgstr "Odbijeno"
+
+#: main/models.py:386
+msgid "Under review"
+msgstr "U razmatranju"
+
+#: main/models.py:386
+msgid "Planned"
+msgstr "Planirano"
+
+#: main/models.py:386
+msgid "Archived"
+msgstr "Arhivirano"
+
+#: main/models.py:386
+msgid "Need feedback"
+msgstr "Potrebna povratna informacija"
+
+#: main/models.py:399
+msgid "review"
+msgstr "recenzija"
+
+#: main/models.py:400
+msgid "reviews"
+msgstr "recenzije"
+
+#: main/views.py:100
+msgid "Image format not supproted."
+msgstr "Format slike nije podržan."
+
+#: main/views.py:103
+msgid "Invalid image."
+msgstr "Slika nije validna."
+
+#: main/views.py:392
+#, python-format
+msgid "%(name)s has commented on a review on your business."
+msgstr "%(name)s je komentarisao recenziju na Vašem ugostiteljskom objektu."
+
+#: main/views.py:394
+#, python-format
+msgid "%(name)s has commented on your %(target)s."
+msgstr "%(name)s je komentarisao Vaš %(target)s."
+
+#: main/views.py:401
+#, python-format
+msgid "%(name)s has reviewed your business."
+msgstr "%(name)s je ostavio recenziju na Vašem ugostiteljskom objektu."
+
+#: main/views.py:407
+#, python-format
+msgid "%(person_count)d have commented on a review on your business."
+msgstr ""
+"%(person_count)d čoveka su komentarisala recenziju Vašeg ugostiteljskog "
+"objekta."
+
+#: main/views.py:409
+#, python-format
+msgid "%(person_count)d have commented on your %(target)s."
+msgstr "%(person_count)d čoveka su komentarisala Vaš %(target)s."
+
+#: main/views.py:416
+#, python-format
+msgid "%(person_count)d have reviewed your business."
+msgstr ""
+"%(person_count)d čoveka su ostavila recenziju na Vašem ugostiteljskom "
+"objektu."
+
+#: templates/account/account_inactive.html:5
+#: templates/account/account_inactive.html:8
+msgid "Account Inactive"
+msgstr "Nalog neaktivan"
+
+#: templates/account/account_inactive.html:10
+msgid "This account is inactive."
+msgstr "Ovaj nalog je neaktivan."
+
+#: templates/account/email/email_confirmation_message.txt:1
+#, python-format
+msgid ""
+"Hello from %(site_name)s!\n"
+"\n"
+"You're receiving this e-mail because user %(user_display)s at "
+"%(site_domain)s has given yours as an e-mail address to connect their "
+"account.\n"
+"\n"
+"To confirm this is correct, go to %(activate_url)s\n"
+msgstr ""
+"Pozdrav sa %(site_name)s-a!\n"
+"\n"
+"Primili ste ovaj e-mail zbog toga što korisnik %(user_display)s na "
+"%(site_domain)s  je dao Vašu e-mail adresu za povezivanje njegovog naloga.\n"
+"\n"
+"Za potvrđivanje tačnosti ovoga, idite na %(activate_url)s\n"
+
+#: templates/account/email/email_confirmation_message.txt:7
+#, python-format
+msgid ""
+"Thank you from %(site_name)s!\n"
+"%(site_domain)s"
+msgstr ""
+"Vaš %(site_name)s\n"
+"%(site_domain)s"
+
+#: templates/account/email/email_confirmation_subject.txt:3
+msgid "Please Confirm Your E-mail Address"
+msgstr "Molimo potvrdite Vašu e-mail adresu"
+
+#: templates/account/email/password_reset_key_message.txt:1
+#, python-format
+msgid ""
+"Hello from %(site_name)s!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at %(site_domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the "
+"link below to reset your password."
+msgstr ""
+"Pozdrav sa %(site_name)s-a!\n"
+"\n"
+"Vi ste primili ovaj e-mail pošto ste Vi zatražili šifru Vašeg naloga na "
+"%(site_domain)s, ili je to bio neko drugi.\n"
+"Možete ovo slobdno ignorisati ako niste Vi zatražili resetovanje šifre. "
+"Kliknite na link ispod da bi resetovali Vašu šifru."
+
+#: templates/account/email/password_reset_key_message.txt:8
+#, python-format
+msgid "In case you forgot, your username is %(username)s."
+msgstr "U slučaju da ste zaboravili, Vaše korisničko ime je %(username)s."
+
+#: templates/account/email/password_reset_key_message.txt:10
+#, python-format
+msgid ""
+"Thank you for using %(site_name)s!\n"
+"%(site_domain)s"
+msgstr ""
+"Hvala Vam što koristite %(site_name)s!\n"
+"%(site_domain)s"
+
+#: templates/account/email/password_reset_key_subject.txt:3
+msgid "Password Reset E-mail"
+msgstr "Resetovanje šifre preko e-maila"
+
+#: templates/account/email_confirm.html:9
+msgid "Confirm E-mail Address"
+msgstr "Potvrdite e-mail adresu"
+
+#: templates/account/email_confirm.html:12
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr ""
+"Molimo potvrdite da je <a href=\"mailto:%(email)s\">%(email)s</a> e-mail "
+"adresa korisnika %(user_display)s."
+
+#: templates/account/email_confirm.html:15
+msgid "Confirm"
+msgstr "Potvrdi"
+
+#: templates/account/email_confirm.html:19
+#, python-format
+msgid ""
+"This e-mail confirmation link expired or is invalid. Please <a href="
+"\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+msgstr ""
+"Ovaj e-mail konfirmacioni link je istekao ili nije validan. Molimo <a href="
+"\"%(email_url)s\">zatražite novi zahtev za potvrdu e-maila</a>."
+
+#: templates/account/messages/email_confirmation_sent.txt:2
+#, python-format
+msgid "Confirmation e-mail sent to %(email)s."
+msgstr "Konfirmacijski e-mail je poslat na adresu %(email)s."
+
+#: templates/account/messages/email_confirmed.txt:2
+#, python-format
+msgid "You have confirmed %(email)s."
+msgstr "Potvrdili ste %(email)s."
+
+#: templates/account/messages/password_changed.txt:2
+msgid "Password successfully changed."
+msgstr "Šifra je uspešno promenjena."
+
+#: templates/account/messages/unverified_primary_email.txt:2
+msgid "Your primary e-mail address must be verified."
+msgstr "Vaša primarna e-mail adresa mora biti verifikovana."
+
+#: templates/account/password_change.html:5
+#: templates/account/password_change.html:8
+#: templates/account/password_change.html:13
+#: templates/account/password_reset_from_key.html:10
+#: templates/account/password_reset_from_key_done.html:9
+msgid "Change Password"
+msgstr "Promeni šifru"
+
+#: templates/account/password_reset.html:10
+#: templates/account/password_reset_done.html:9
+msgid "Password Reset"
+msgstr "Resetuj šifru"
+
+#: templates/account/password_reset.html:14
+msgid ""
+"Forgotten your password? Enter your e-mail address below, and we'll send you "
+"an e-mail allowing you to reset it."
+msgstr ""
+"Zaboravili ste šifru? Unesite Vašu e-mail adresu ispod, i mi ćemo Vam "
+"poslati e-mail omogućavajući Vam da je resetujete."
+
+#: templates/account/password_reset.html:18
+msgid "Reset My Password"
+msgstr "Resetuj moju šifru"
+
+#: templates/account/password_reset.html:20
+msgid "Please contact us if you have any trouble resetting your password."
+msgstr ""
+"Molimo kontaktirajte nas ako imate bilo kakvih problema sa resetovanjem Vaše "
+"šifre."
+
+#: templates/account/password_reset_done.html:13
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+"Poslali smo vam e-mail. Molimo kontaktirajte nas ako ga ne primite u roku od "
+"par minuta."
+
+#: templates/account/password_reset_from_key.html:10
+msgid "Bad Token"
+msgstr "Loš token"
+
+#: templates/account/password_reset_from_key.html:13
+#, python-format
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</"
+"a>."
+msgstr ""
+"Link za resetovanje šifre je bio nevalidan, moguće zbog toga što je već "
+"iskorišćen.  Molimo zatražite <a href=\"%(passwd_reset_url)s\">ponovno "
+"resetovanje šifre</a>."
+
+#: templates/account/password_reset_from_key.html:19
+msgid "Change My Password"
+msgstr "Promeni moju šifru"
+
+#: templates/account/password_reset_from_key.html:22
+#: templates/account/password_reset_from_key_done.html:10
+msgid "Your password is now changed."
+msgstr "Vaša šifra je sada promenjena."
+
+#: templates/account/signup.html:13 templates/socialaccount/signup.html:13
+msgid "Fill the data"
+msgstr "Popunite podatke"
+
+#: templates/account/signup.html:21
+msgid "Or connect via"
+msgstr "Ili se povežite preko"
+
+#: templates/account/signup_closed.html:5
+#: templates/account/signup_closed.html:8
+msgid "Sign Up Closed"
+msgstr "Registracije zatvorene"
+
+#: templates/account/signup_closed.html:10
+msgid "We are sorry, but the sign up is currently closed."
+msgstr "Žao nam je, ali registracije su trenutno zatvorene."
+
+#: templates/account/verification_sent.html:8
+#: templates/account/verified_email_required.html:5
+#: templates/account/verified_email_required.html:8
+msgid "Verify Your E-mail Address"
+msgstr "Verifikujte Vašu e-mail adresu"
+
+#: templates/account/verification_sent.html:9
+msgid ""
+"We have sent an e-mail to you for verification. Follow the link provided to "
+"finalize the signup process. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+"Mi smo Vam poslali e-mail za verifikaciju. Pratite link koji ćete dobiti da "
+"bi završili proces registracije. Molimo kontaktirajte nas ako ga ne primite "
+"u roku od par minuta."
+
+#: templates/account/verified_email_required.html:12
+msgid ""
+"This part of the site requires us to verify that\n"
+"you are who you claim to be. For this purpose, we require that you\n"
+"verify ownership of your e-mail address. "
+msgstr ""
+"Za ovaj deo sajta zahtevamo da verifikujemo\n"
+"da ste Vi ta osoba za koju tvrdite da jeste. Zato, mi zahtevamo od Vas da\n"
+"potvrdite vlasništvo Vaše e-mail adrese. "
+
+#: templates/account/verified_email_required.html:16
+msgid ""
+"We have sent an e-mail to you for\n"
+"verification. Please click on the link inside this e-mail. Please\n"
+"contact us if you do not receive it within a few minutes."
+msgstr ""
+"Mi smo Vam poslali e-mail za\n"
+"verifikaciju. Molimo kliknite na link unutar tog e-maila. Molimo\n"
+"kontaktirajte nas ako ga ne primite u roku od par minuta."
+
+#: templates/account/verified_email_required.html:20
+#, python-format
+msgid ""
+"<strong>Note:</strong> you can still <a href=\"%(email_url)s\">change your e-"
+"mail address</a>."
+msgstr ""
+"<strong>Napomena:</strong> Vi i dalje možete <a href=\"%(email_url)s"
+"\">promeniti Vašu e-mail adresu</a>."
+
+#: templates/base/home.html:50
+msgid "My business"
+msgstr "Moj ugostiteljski objekat"
+
+#: templates/base/home.html:53
+msgid "Favourites"
+msgstr "Omiljeni"
+
+#: templates/base/home.html:55 templates/base/home.html:64
+msgid "News feed"
+msgstr "Novosti"
+
+#: templates/base/home.html:56 templates/base/home.html:65
+msgid "Show list"
+msgstr "Prikaži listu"
+
+#: templates/base/home.html:58 templates/base/home.html:67
+msgid "Recent"
+msgstr "Nedavno"
+
+#: templates/base/home.html:62
+msgid "Friends"
+msgstr "Prijatelji"
+
+#: templates/base/home.html:74
+msgid "Change password/email(s)"
+msgstr "Promena šife/email(ova)"
+
+#: templates/base/home.html:75
+msgid "Internationalization"
+msgstr "Internacionalizacija"
+
+#: templates/base/home.html:79
+msgid "Logout"
+msgstr "Odjavi me"
+
+#: templates/base/home.html:98
+msgid "Manager"
+msgstr "Menadžer"
+
+#: templates/base/home.html:98
+msgctxt "manager"
+msgid "M"
+msgstr "M"
+
+#: templates/base/home.html:98
+msgid "Stars"
+msgstr "Zvezdice"
+
+#: templates/base/home.html:100
+msgid "Status"
+msgstr "Status"
+
+#: templates/base/home.html:105
+msgid "Are you sure that you want to delete this comment?"
+msgstr "Da li ste sigurni da želite obrisati ovaj komentar?"
+
+#: templates/base/home.html:105
+msgid "Delete"
+msgstr "Obriši"
+
+#: templates/base/home.html:112 templates/home.html:16
+msgid "Search"
+msgstr "Traži"
+
+#: templates/base/home.html:119
+msgid "Find other businesses..."
+msgstr "Pretraži ostale ugostiteljske objekte..."
+
+#: templates/base/home.html:119
+msgid "Find businesses..."
+msgstr "Pretraži ugostiteljske objekte..."
+
+#: templates/base/home.html:120
+msgid "Find events..."
+msgstr "Pretraži događaje..."
+
+#: templates/base/home.html:121
+msgid "Find items..."
+msgstr "Pretraži proizvode..."
+
+#: templates/base/home.html:122
+msgid "Find users..."
+msgstr "Pretraži korisnike..."
+
+#: templates/base/signup.html:4
+msgid "Signup on Gournet"
+msgstr "Registruj se na Gournet-u"
+
+#: templates/base/view.html:16
+msgid "You can also drag an new image here"
+msgstr "Ovde takođe možete i prevući novu sliku"
+
+#: templates/create.html:15
+#, fuzzy
+msgid "Create Your Business"
+msgstr "Zavedi svoj ugostiteljski objekat"
+
+#: templates/create_extra.html:13
+msgid "My business also works on <strong>Saturday</strong>"
+msgstr "Moj ugostiteljski objekat takođe radi i <strong>Subotom</strong>"
+
+#: templates/create_extra.html:18
+msgid "And on <strong>Sunday</strong>, too"
+msgstr "I <strong>Nedeljom</strong>, takođe"
+
+#: templates/create_extra.html:23 templates/i18n.html:23
+msgid "Save"
+msgstr "Sačuvaj"
+
+#: templates/create_extra.html:23
+msgid "Create"
+msgstr "Napravi"
+
+#: templates/home.html:12
+msgid "Home"
+msgstr "Početna"
+
+#: templates/home.html:14
+msgid "Location information is too inaccurate."
+msgstr "Informacije za lokaciju su previše neprecizne."
+
+#: templates/home.html:14
+msgid ""
+"You have denied the permission to use the location service. Please enable it "
+"or clear the setting, and refresh this page."
+msgstr ""
+"Vi ste odbili zahtev da se koristi servis za lokaciju. Molimo uključite ga "
+"ili obrišite to podešavanje, i osvežite ovu stranicu."
+
+#: templates/home.html:14
+msgid "Location service is disabled."
+msgstr "Servis za lokaciju je isključen."
+
+#: templates/home.html:14
+msgid "Location information is currently unavailable."
+msgstr "Informacije za lokaciju su trenutno nedostupne."
+
+#: templates/home.html:14
+msgid "Using your home location."
+msgstr "Koristi se Vaše prebivalište kao lokacija."
+
+#: templates/home.html:14
+msgid "Using your last position."
+msgstr "Koristi se Vaša poslednja pozicija."
+
+#: templates/home.html:14
+msgid "Use the detected location, regardlessly."
+msgstr "Bez obzira, koristi detektovanu lokaciju."
+
+#: templates/home.html:14
+msgid "Enable."
+msgstr "Uključi."
+
+#: templates/home.html:22
+msgid "Move marker to the center"
+msgstr "Pomeri marker na centar"
+
+#: templates/home.html:23
+msgid "Set marker to the home location"
+msgstr "Postavi marker na lokaciju prebivališta"
+
+#: templates/home.html:29
+#, python-format
+msgid ""
+"Searching <strong>%(o)s t == 'user' ? \"users\" : t == 'business' ? "
+"\"businesses\" : t == 'item' ? \"items\" : \"events\" %(c)s</strong>, with "
+"keyword(s): <strong>%(o)s keywords %(c)s</strong>."
+msgstr ""
+"Pretražuju se <strong>%(o)s t == 'user' ? \"korisnici\" : t == 'business' ? "
+"\"ugostiteljski objekti\" : t == 'item' ? \"proizvodi\" : \"događaji\" "
+"%(c)s</strong>, sa ključnim rečima: <strong>%(o)s keywords %(c)s</strong>."
+
+#: templates/home.html:29
+msgid "Go to main page."
+msgstr "Vrati se na početnu stranicu."
+
+#: templates/i18n.html:2
+msgid "You must refresh the page for changes to take effect."
+msgstr "Morate osvežiti ovu stranicu da bi se videle promene."
+
+#: templates/i18n.html:4
+msgid "Language:"
+msgstr "Jezik:"
+
+#: templates/i18n.html:10
+msgid "Preferred currency:"
+msgstr "Preferirana valuta:"
+
+#: templates/i18n.html:17
+msgid "Preferred time zone:"
+msgstr "Preferirana vremenska zona:"
+
+#: templates/i18n.html:22
+msgid "Current time zone:"
+msgstr "Trenutna vremenska zona:"
+
+#: templates/i18n.html:22
+msgid "Use"
+msgstr "Koristi"
+
+#: templates/index.html:5
+msgid "Welcome to Gournet"
+msgstr "Dobro došli na Gournet"
+
+#: templates/index.html:26
+msgid "New here? Click to sign up!"
+msgstr "Novi? Kliknite ovde za registraciju!"
+
+#: templates/index.html:33
+msgid "Welcome to Gournet!"
+msgstr "Dobro došli na Gournet!"
+
+#: templates/index.html:34
+msgid ""
+"Gournet is a place where you can find your favourite restaurants, cafes, "
+"pubs, and much more! Join our community to explore all the features this "
+"platform offers!"
+msgstr ""
+"Gournet je mesto gde ćete naći Vaše omiljene restorane, kafiće, klubove i "
+"mnogo toga drugog! Pridružite se našoj zajednici da istražite sve mogućnosti "
+"koje ova platforma nudi!"
+
+#: templates/index.html:44 templates/index.html:46
+msgid "Login"
+msgstr "Prijavite se"
+
+#: templates/index.html:47
+msgid "Forgot your password?"
+msgstr "Zaboravili ste šifru?"
+
+#: templates/socialaccount/authentication_error.html:8
+msgid "Social Network Login Failure"
+msgstr "Prijava preko socijalne mreže neuspela"
+
+#: templates/socialaccount/authentication_error.html:9
+msgid ""
+"An error occurred while attempting to login via your social network account."
+msgstr ""
+"Desila se greška prilikom pokušaja da Vas prijavimo preko Vašeg naloga na "
+"socijalnoj mreži."
+
+#: templates/socialaccount/login_cancelled.html:5
+#: templates/socialaccount/login_cancelled.html:9
+msgid "Login Cancelled"
+msgstr "Prijavljivanje otkazano"
+
+#: templates/socialaccount/login_cancelled.html:13
+#, python-format
+msgid ""
+"You decided to cancel logging in to our site using one of your existing "
+"accounts. If this was a mistake, please proceed to <a href=\"%(login_url)s"
+"\">sign in</a>."
+msgstr ""
+"Odlučili ste da otkažete prijavljivanje na naš sajt koristeći jedan od Vaših "
+"postojećih naloga. Ako je ovo bila greška, molimo da se <a href="
+"\"%(login_url)s\">prijavite</a>."
+
+#: templates/socialaccount/signup.html:14
+#, python-format
+msgid ""
+"You are about to use your %(provider_name)s account data to signup to "
+"%(site_name)s. As a final step, please complete the following form:"
+msgstr ""
+"Vi ćete upravo iskoristiti podatke sa Vašeg %(provider_name)s naloga da se "
+"registrujete na %(site_name)s. Kao poslednji korak, molimo dovršite sledeću "
+"formu:"
+
+#: templates/user.html:45
+msgid "Born {{ edit[2].value | ageFilter }} years ago"
+msgstr "Rođen/a pre {{ edit[2].value | ageFilter }} godina"
+
+#: templates/user.html:63
+#, python-format
+msgid "Born %(y)s years ago"
+msgstr "Rođen/a pre %(y)s godina"
+
+#: templates/user.html:77
+msgid "Has no friends"
+msgstr "Nema prijatelja"
+
+#: templates/user.html:79
+#, python-format
+msgid "<strong>%(counter)s</strong></a> person is your friend"
+msgid_plural "<strong>%(counter)s</strong></a> persons are your friends"
+msgstr[0] "<strong>%(counter)s</strong></a> osoba je Vaš prijatelj"
+msgstr[1] "<strong>%(counter)s</strong></a> osobe su Vaši prijatelji"
+msgstr[2] "<strong>%(counter)s</strong></a> osoba su Vaši prijatelji"
+
+#: templates/user.html:79
+msgid "You have no friends"
+msgstr "Nemate prijatelja"
+
+#: templates/view.html:37
+msgid "Shortname:"
+msgstr "Skraćenica:"
+
+#: templates/view.html:50 templates/view.html:64
+msgid "Nobody favored this"
+msgstr "Niko nije favorizovao ovo"
+
+#: templates/view.html:57
+msgid "It's my favorite, too"
+msgstr "I meni je omiljeno, takođe"
+
+#: templates/view.html:57
+msgid "It's my favorite"
+msgstr "Meni je omiljeno"
+
+#: templates/view.html:59
+msgid "It's not my favorite anymore"
+msgstr "Više mi nije omiljeno"
+
+#: templates/view.html:63
+#, python-format
+msgid "<strong>%(counter)s</strong></a> person has favored this"
+msgid_plural "<strong>%(counter)s</strong></a> persons have favored this"
+msgstr[0] "<strong>%(counter)s</strong></a> osoba je favorizovala ovo"
+msgstr[1] "<strong>%(counter)s</strong></a> osobe su favorizovale ovo"
+msgstr[2] "<strong>%(counter)s</strong></a> osoba je favorizovalo ovo"
+
+#: templates/view.html:68
+msgid "Edit"
+msgstr "Izmeni"
+
+#: templates/view.html:72
+msgid "Currently opened"
+msgstr "Trenutno otvoreno"
+
+#: templates/view.html:72
+msgid "Currently closed"
+msgstr "Trenutno zatvoreno"
+
+#: templates/view.html:73
+#, python-format
+msgid "Monday-Friday, from %(wf)s to %(wt)s"
+msgstr "Radnim danima od %(wf)s do %(wt)s"
+
+#: templates/view.html:74
+#, python-format
+msgid "Saturday, from %(wf)s to %(wt)s"
+msgstr "Subodom od %(wf)s do %(wt)s"
+
+#: templates/view.html:75
+#, python-format
+msgid "Sunday, from %(wf)s to %(wt)s"
+msgstr "Nedeljom od %(wf)s do %(wt)s"
+
+#: templates/view.html:84
+msgid ""
+"Your business won't be visible to others until you add some items to it."
+msgstr ""
+"Vaš ugostiteljski objekat neće biti vidljiv sve dok mu ne dodate neke "
+"proizvode."
+
+#: templates/view.html:86
+msgid "Events"
+msgstr "Događaji"
+
+#: templates/view.html:89
+#, fuzzy, python-format
+#| msgid "Please enter a text with %(m)s or more characters."
+msgid "Please enter text with %(m)s or more characters."
+msgstr "Molimo unesite tekst sa %(m)s ili vise karaktera."
+
+#: templates/view.html:100 templates/view.html:121 templates/view.html:181
+msgid "Submit"
+msgstr "Pošalji"
+
+#: templates/view.html:107
+msgid "Menu"
+msgstr "Meni"
+
+#: templates/view.html:110
+msgid "Name must must have minimum 2 characters."
+msgstr "Ime mora imati najmanje 2 karaktera."
+
+#: templates/view.html:110
+msgid "Name conflicts with the existing item."
+msgstr "Ime je u konfliktu sa već postojećim proizvodom."
+
+#: templates/view.html:173
+msgid "Reviews"
+msgstr "Recenzije"
+
+#: templates/view.html:176
+msgid "Please enter a message with \"+minchar+\" or more characters."
+msgstr "Molimo unesite poruku sa \"+minchar+\" ili više karaktera."
+
+#: templates/view.html:176
+msgid "Please select how many stars you give."
+msgstr "Molimo odaberite koliko zvezdica dajete."

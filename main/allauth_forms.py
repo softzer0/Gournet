@@ -5,8 +5,8 @@ from django import forms
 from django.forms import extras
 from django.contrib.auth import get_user_model
 from captcha.fields import ReCaptchaField
-from django.utils.translation import get_language
 from .forms import clean_loc
+from django.utils.translation import ugettext as _, get_language
 
 BIRTHDATE_YEARS = ('2015','2014','2013','2012','2011','2010','2009','2008','2007','2006','2005','2004','2003','2002',
                     '2001','2000','1999','1998','1997','1996','1995','1994','1993','1992','1991','1990','1989','1988',
@@ -23,8 +23,8 @@ class BaseSignupForm(UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'location', 'currency')
-        widgets = {'currency': forms.HiddenInput}
+        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'location', 'currency', 'language')
+        widgets = {'currency': forms.HiddenInput, 'language': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,13 +33,16 @@ class BaseSignupForm(UserCreationForm):
         self.fields['password2'].widget.attrs['title'] = ''
         self.fields['address'].widget.attrs['required'] = ''
         self.fields['address'].label = "City"
-        self.fields['address'].help_text = "Enter city from where are you from, e.g"+': Vranje, Serbia.'
+        self.fields['address'].help_text = _("Enter city from where are you from, e.g: Vranje, Serbia.")
 
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data['birthdate'].year > 2015 or cleaned_data['birthdate'].year < 1927:
-            self.add_error('birthdate', forms.ValidationError("Invalid birthdate.", code='invalid'))
+            self.add_error('birthdate', forms.ValidationError(_("Invalid birthdate."), code='invalid'))
         resp = clean_loc(self, cleaned_data, True, True)
+        if self.errors:
+            return
+        cleaned_data['language'] = get_language()
         if resp:
             for a in reversed(resp['address_components']):
                 if 'country' in a['types']:

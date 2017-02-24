@@ -1,4 +1,15 @@
-from main.models import User, Business, Recent, get_content_types, get_has_stars
+from main.models import User, Business, Recent, get_content_types, get_has_stars, REVIEW_STATUS
+
+REVIEW_STATUS_E = (
+    (REVIEW_STATUS[0][1], 'label-primary'), #Started
+    (REVIEW_STATUS[1][1], 'label-warning'), #Closed
+    (REVIEW_STATUS[2][1], 'label-success'), #Completed
+    (REVIEW_STATUS[3][1], 'label-danger'), #Declined
+    (REVIEW_STATUS[4][1], 'label-info'), #Under review
+    (REVIEW_STATUS[5][1], 'planned'), #Planned
+    (REVIEW_STATUS[6][1], 'label-default'), #Archived
+    (REVIEW_STATUS[7][1], 'feedback') #Need feedback
+)
 
 def base(request):
     if not request.user.is_authenticated():
@@ -10,6 +21,7 @@ def base(request):
 
     return {
         'content_types': get_content_types(),
+        'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars(),
         'favs': gen_qs(Business),
         'friends': gen_qs(User)

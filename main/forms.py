@@ -1,12 +1,13 @@
 from django import forms
-from .models import CATEGORY, Business
+from .models import CATEGORY, Business, Loc
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 from geopy import GoogleV3
 from django.contrib.gis.geos import fromstr, Point
 from rest_framework.serializers import ValidationError
+from django.utils.translation import ugettext as _, ugettext_lazy as _l, pgettext
 
-SHORTNAME_EXISTS_MSG = "A business with that shortname already exists."
-COORDINATES_NOT_FOUND_MSG = "Either coordinates for specified address are not found, or there's some internal error."
+SHORTNAME_EXISTS_MSG = _l("A business with that shortname already exists.")
+COORDINATES_NOT_FOUND_MSG = _l("Either coordinates for specified address are not found, or there's some internal error.")
 GOOGLEV3_OBJ = GoogleV3() #api=
 
 def clean_loc(self, cleaned_data, noloc=False, retraw=False):
@@ -59,7 +60,7 @@ class BaseForm(forms.ModelForm):
        'ng-change': 'geocode(true)',
        'ng-model-options': '{updateOn: \'default blur\', debounce: {default: 1000, blur: 0}}'
     }))
-    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$', label="Longitude/latitude")
+    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$', label=Loc.location.field_name.capitalize())
 
     class Meta:
         fields = ('phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun')
@@ -72,6 +73,8 @@ class BaseForm(forms.ModelForm):
         if not_b:
             self.fields['phone'].widget.attrs['ng-model'] = 'data.form[1]'
             self.fields['supported_curr'].widget.attrs['ng-model'] = 'data.form[2]'
+            for f in ('phone', 'supported_curr', 'address'):
+                self.fields[f].widget.attrs['ng-disabled'] = 'data.disabled'
         else:
             self.fields['location'].widget.attrs['ng-initial'] = ''
         self.fields['phone'].widget.attrs['title'] = ''
@@ -80,19 +83,21 @@ class BaseForm(forms.ModelForm):
         self.fields['location'].widget.attrs['ng-model'] = 'data.form[4]' if not_b else 'location'
         self.fields['location'].widget.attrs['readonly'] = True
         self.fields['location'].widget.attrs['title'] = ''
-        self.fields['location'].help_text = "You have to adjust the exact location using the map with a marker below."
-        for i, f in enumerate(['opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun']):
+        self.fields['location'].help_text = _("You have to adjust the exact location using the map with a marker below.")
+        for i, f in enumerate(tuple(('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'))):
             self.fields[f].widget.attrs['value'] = ''
             self.fields[f].widget.attrs['ng-model'] = ('data.form[0]' if not_b else 'date')+'['+str(i)+']'
-            if not not_b:
+            if not_b:
+                self.fields[f].widget.attrs['ng-disabled'] = 'data.disabled'
+            else:
                 self.fields[f].widget.attrs['ng-initial'] = i
             self.fields[f].widget.attrs['datetime'] = 'HH:mm'
             self.fields[f].widget.format = '%H:%M'
             if i > 1:
                 if i % 2 == 0:
-                    self.fields[f].label = "Opening time"
+                    self.fields[f].label = self.fields['opened'].label
                 else:
-                    self.fields[f].label = "Closing time"
+                    self.fields[f].label = self.fields['closed'].label
 
 class BusinessForm(BaseForm):
     class Meta:
@@ -102,14 +107,14 @@ class BusinessForm(BaseForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['type'].label = "Type of your business"
-        self.fields['name'].label = "Its name"
-        self.fields['name'].widget.attrs['placeholder'] = "Name"
+        self.fields['type'].label = _("Type of your business")
+        self.fields['name'].label = pgettext("name of business", "Its name")
+        self.fields['name'].widget.attrs['placeholder'] = Business.name.field_name.capitalize()
         self.fields['name'].widget.attrs['ng-model'] = 'name'
         self.fields['name'].widget.attrs['ng-initial'] = ''
         self.fields['name'].widget.attrs['ng-change'] = 'genshort()'
         self.fields['shortname'].label = "Shortname (a part of the URL)"
-        self.fields['shortname'].widget.attrs['placeholder'] = "Shortname"
+        self.fields['shortname'].widget.attrs['placeholder'] = Business.shortname.field_name.capitalize()
         self.fields['shortname'].widget.attrs['title'] = ''
         self.fields['shortname'].widget.attrs['ng-model'] = 'shortname'
         self.fields['shortname'].widget.attrs['ng-initial'] = ''

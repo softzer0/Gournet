@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinLengthValidator, MaxValueValidator
+from django.core.validators import RegexValidator, MinLengthValidator, MaxLengthValidator, MaxValueValidator
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
@@ -20,9 +20,10 @@ from multiselectfield import MultiSelectField
 from timezone_field import TimeZoneField
 from sys import argv
 from timezonefinder import TimezoneFinder
+from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, activate as translation_activate
 
 TF_OBJ = TimezoneFinder()
-IS_SERVER = len(argv) == 1 or argv[1] not in ['makemigrations', 'migrate']
+IS_SERVER = len(argv) == 1 or argv[1] not in ('makemigrations', 'migrate')
 
 @lru_cache()
 def get_content_types():
@@ -31,7 +32,7 @@ def get_content_types():
         class t:
             pk = None
         o = t()
-    for r in ['business', 'event', 'item', 'comment']:
+    for r in ('business', 'event', 'item', 'comment'):
         res[r] = ContentType.objects.get(model=r) if IS_SERVER else o
     return res
 
@@ -48,8 +49,8 @@ def get_content_types_pk():
     return [get_content_types()[ct].pk for ct in get_content_types()] if IS_SERVER else []
 
 
-CURRENCY = (('RSD', "Serbian dinars (RSD)"), ('EUR', "Euros (EUR)"))
-CHOICE_GENDER = ((0, 'Male'), (1, 'Female'))
+CURRENCY = (('RSD', _("Serbian dinar (RSD)")), ('EUR', _("Euro (EUR)")))
+CHOICE_GENDER = ((0, _("Male")), (1, _("Female")))
 
 user_short_name = RegexValidator(
                     r'^[\w.-]+$',
@@ -57,9 +58,9 @@ user_short_name = RegexValidator(
                 )
 
 class Loc(models.Model):
-    location = PointField("longitude/latitude", geography=True, error_messages={'invalid': "Enter valid coordinates."}) #, geography=True
+    location = PointField(_("longitude/latitude"), geography=True, error_messages={'invalid': _("Enter valid coordinates.")}) #, geography=True
     loc_projected = PointField(srid=3857)
-    address = models.CharField(max_length=130)
+    address = models.CharField(_("address"), max_length=130)
     #tz = TimeZoneField(default=settings.TIME_ZONE) #enable
 
     class Meta:
@@ -72,7 +73,7 @@ class Loc(models.Model):
         return new
 
     def save(self, *args, **kwargs):
-        if self._loaded_location != self.location:
+        if not self.pk or self._loaded_location != self.location:
             self.loc_projected = self.location.transform(3857, True)
             self.tz = TF_OBJ.timezone_at(lat=self.location.coords[1], lng=self.location.coords[0])
         super().save(*args, **kwargs)
@@ -93,16 +94,16 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     admin-compliant permissions.
     """
     username = models.CharField(
-        "username",
+        _("username"),
         max_length=30,
         unique=True,
-        help_text="Maximum 30 characters."+' '+"English letters (case-insensitive), digits and ./-/_ only.",
+        help_text=string_concat(_("Maximum %d characters.") % 30, ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name],
-        error_messages={'unique': "A user with that username already exists."},
+        error_messages={'unique': _("A user with that username already exists.")},
     )
-    first_name = models.CharField("first name", max_length=30, validators=[RegexValidator(r'^[^\W\d_]+$', "Invalid first name.")]) # Removed "blank" attribute
-    last_name = models.CharField("last name", max_length=30, validators=[RegexValidator(r'^[^\W\d_]+(\-[^\W\d_]+)?$', "Invalid last name.")]) # Removed "blank" attribute
-    email = models.EmailField("email address", unique=True) # Changed from "blank" to "unique" attribute
+    first_name = models.CharField(_("first name"), max_length=30, validators=[RegexValidator(r'^[^\W\d_]+$', _("Invalid first name."))]) # Removed 'blank' attribute
+    last_name = models.CharField(_("last name"), max_length=30, validators=[RegexValidator(r'^[^\W\d_]+(\-[^\W\d_]+)?$', _("Invalid last name."))]) # Removed 'blank' attribute
+    email = models.EmailField(_("email address"), unique=True) # Changed from 'blank' to 'unique' attribute
 
     # Added custom fields [BEGIN]
 
@@ -111,14 +112,14 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     #favourites = models.ManyToManyField('Business', blank=True, related_name='favoured_by')
     #comments = models.ManyToManyField('Event', blank=True, symmetrical=False, through='Comment', related_name='commented_by')
 
-    gender = models.IntegerField("gender", choices=CHOICE_GENDER, default=0)
-    birthdate = models.DateField("birthdate")
+    gender = models.IntegerField(_("gender"), choices=CHOICE_GENDER, default=0)
+    birthdate = models.DateField(_("birthdate"))
 
     """name_changed = models.BooleanField(default=False)
     gender_changed = models.BooleanField(default=False)
     birthdate_changed = models.BooleanField(default=False)""" #enable
 
-    currency = models.CharField("default currency", choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
+    currency = models.CharField(_("default currency"), choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
     language = models.CharField(choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
     tz = TimeZoneField(default=settings.TIME_ZONE) #del
 
@@ -127,30 +128,27 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     # Added custom fields [END]
 
     is_staff = models.BooleanField(
-        "staff status",
+        _("staff status"),
         default=False,
-        help_text="Designates whether the user can log into this admin site.",
+        help_text=_("Designates whether the user can log into this admin site."),
     )
     is_active = models.BooleanField(
-        "active",
+        pgettext_lazy('user active', "active"),
         default=True,
-        help_text=(
-            "Designates whether this user should be treated as active. "
-            "Unselect this instead of deleting accounts."
-        ),
+        help_text=_("Designates whether this user should be treated as active. Unselect this instead of deleting accounts."),
     )
-    date_joined = models.DateTimeField("date joined", default=timezone.now)
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     objects = MyUserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birthdate', 'country', 'city'] # Added fields after "email"
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'gender', 'birthdate', 'country', 'city'] # Added fields after 'email'
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'
         ordering = ['username', 'first_name', 'last_name']
-        verbose_name = "user"
-        #verbose_name_plural = "users"
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
 
     def save(self, *args, **kwargs):
         self.first_name = self.first_name.capitalize()
@@ -187,8 +185,8 @@ class Notification(models.Model):
 
 
 class Relationship(models.Model):
-    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="from_person")
-    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="to_person")
+    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='from_person')
+    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='to_person')
     notification = models.OneToOneField(Notification, null=True, blank=True, on_delete=models.SET_NULL)
     symmetric = models.BooleanField(default=False)
 
@@ -206,27 +204,28 @@ def relationship_save_notification(instance, **kwargs):
         return
     #instance.full_clean()
     text = '<strong>'+instance.from_person.first_name+' '+instance.from_person.last_name+'</strong> '
+    translation_activate(instance.to_person.language)
     try:
         rel = Relationship.objects.get(from_person=instance.to_person, to_person=instance.from_person)
     except:
-        text += "wants to be your friend"
+        text = ugettext("%s wants to be your friend.") % text
     else:
         instance.symmetric = True
-        text += "has accepted friend request"
+        text = ugettext("%s has accepted friend request.") % text
         if rel.notification.unread:
             rel.notification.unread = False
             rel.notification.save()
-    instance.notification = instance.to_person.notification_set.create(text=text+'.', link='/user/'+instance.from_person.username+'/')
+    instance.notification = instance.to_person.notification_set.create(text=text, link='/user/'+instance.from_person.username+'/')
 
 @receiver(post_delete, sender=Relationship)
 def relationship_delete_notification(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
 
-FORBIDDEN = ['admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'localization', 'upload', 'edit.html'] # important
+FORBIDDEN = ('admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'i18n', 'upload', 'edit.html') # important
 def not_forbidden(value):
     if value in FORBIDDEN:
-        raise ValidationError('"%s" is not permitted as a shortname.' % value)
+        raise ValidationError(ugettext("\"%s\" is not permitted as a shortname.") % value)
 
 class BusinessManager(GeoManager):
     def get_by_natural_key(self, shortname):
@@ -235,34 +234,36 @@ class BusinessManager(GeoManager):
     def filter_by_natural_key(self, shortname):
         return self.filter(shortname__iexact=shortname)
 
-BUSINESS_TYPE = ((0, "Restaurant"), (1, "Tavern"), (2, "Bistro"), (3, "Cafe"), (4, "Pub"), (5, "Bar"), (6, "Nightclub"), (7, "Fast food"))
+BUSINESS_TYPE = ((0, _("Restaurant")), (1, _("Tavern")), (2, _("Bistro")), (3, _("Cafe")), (4, _("Pub")), (5, _("Bar")), (6, _("Nightclub")), (7, pgettext_lazy('type of business', "Fast food")))
 
 class Business(Loc):
     shortname = models.CharField(
-        "shortname",
+        _("shortname"),
         max_length=30,
         unique=True,
-        help_text="The people could access your business by putting its shortname after the site address, e.g"+': <u>http://gournet.co/shortname</u>. ' +\
-                  "Maximum 30 characters."+' '+"English letters (case-insensitive), digits and ./-/_ only.",
+        help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>http://gournet.co/shortname</u>."), '\n', _("Maximum 30 characters."), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name, not_forbidden]
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)
     type = models.SmallIntegerField(choices=BUSINESS_TYPE, default=0)
-    name = models.CharField(max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', ("Enter a valid business name."))])
-    phone = PhoneNumberField("phone number", help_text="In national format, e.g"+': 017448739.')
-    opened = models.TimeField("opening time", default=datetime.time(8, 0))
-    opened_sat = models.TimeField("opening time on Saturday", null=True, blank=True)
-    opened_sun = models.TimeField("opening time on Sunday", null=True, blank=True)
-    closed = models.TimeField("closing time", default=datetime.time(0, 0))
-    closed_sat = models.TimeField("closing time on Saturday", null=True, blank=True)
-    closed_sun = models.TimeField("closing time on Sunday", null=True, blank=True)
-    currency = models.CharField("default currency", choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
+    name = models.CharField(max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', _("Enter a valid business name."))])
+    phone = PhoneNumberField(_("phone number"), help_text=_("In national format, e.g: 017448739."))
+    opened = models.TimeField(_("opening time"), default=datetime.time(8, 0))
+    opened_sat = models.TimeField(_("opening time on Saturday"), null=True, blank=True)
+    opened_sun = models.TimeField(_("opening time on Sunday"), null=True, blank=True)
+    closed = models.TimeField(_("closing time"), default=datetime.time(0, 0))
+    closed_sat = models.TimeField(_("closing time on Saturday"), null=True, blank=True)
+    closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
+    currency = models.CharField(_("default currency"), choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
     supported_curr = MultiSelectField("other supported currencies (if any)", choices=CURRENCY, null=True, blank=True, max_length=3)
     is_published = models.BooleanField(default=False)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
 
     objects = BusinessManager()
+
+    class Meta:
+        verbose_name = _("business")
 
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
@@ -276,7 +277,7 @@ EVENT_MIN_CHAR = 15
 
 class Event(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    text = models.TextField(validators=[MinLengthValidator(EVENT_MIN_CHAR)])
+    text = models.TextField(validators=[MinLengthValidator(EVENT_MIN_CHAR), MaxLengthValidator(1000)])
     when = models.DateTimeField()
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
@@ -285,8 +286,8 @@ class Event(models.Model):
 
     class Meta:
         ordering = ['-when', '-pk']
-        #verbose_name = "event"
-        #verbose_name_plural = "events"
+        verbose_name = _("event")
+        verbose_name_plural = _("events")
 
     def __str__(self):
         return 'Event #%d on business #%d' % (self.pk, self.business_id)
@@ -302,42 +303,42 @@ def event_cascade_delete(instance, **kwargs):
 
 
 CATEGORY = (
-    ("Alcoholic beverages", (
-            ('cider', "Cider"),
-            ('whiskey', "Whiskey"),
-            ('wine', "Wine"),
-            ('beer', "Beer"),
-            ('vodka', "Vodka"),
-            ('brandy', "Brandy"),
-            ('liqueur', "Liqueur"),
-            ('cocktail', "Cocktail"),
-            ('tequila', "Tequila"),
-            ('gin', "Gin"),
-            ('rum', "Rum")
+    (_("Alcoholic beverages"), (
+            ('cider', _("Cider")),
+            ('whiskey', _("Whiskey")),
+            ('wine', _("Wine")),
+            ('beer', _("Beer")),
+            ('vodka', _("Vodka")),
+            ('brandy', _("Brandy")),
+            ('liqueur', _("Liqueur")),
+            ('cocktail', _("Cocktail")),
+            ('tequila', _("Tequila")),
+            ('gin', _("Gin")),
+            ('rum', _("Rum"))
         )
      ),
-    ("Other drinks", (
-            ('coffee', "Coffee"),
-            ('soft_drink', "Soft drink"),
-            ('juice', "Juice"),
-            ('tea', "Tea"),
-            ('hot_chocolate', "Hot chocolate"),
-            ('water', "Water"),
-            ('drinks_other', "Other")
+    (_("Other drinks"), (
+            ('coffee', _("Coffee")),
+            ('soft_drink', _("Soft drink")),
+            ('juice', _("Juice")),
+            ('tea', _("Tea")),
+            ('hot_chocolate', _("Hot chocolate")),
+            ('water', pgettext_lazy('singular', "Water")),
+            ('drinks_other', _("Other"))
         )
     ),
-    ("Food", (
-            ('fast_food', "Fast food"),
-            ('pizza', "Pizza"),
-            ('pasta', "Pasta"),
-            ('appetizer', "Appetizer"),
-            ('soup', "Soup"),
-            ('meal', "Meal"),
-            ('barbecue', "Barbecue"),
-            ('seafood', "Seafood"),
-            ('salad', "Salad"),
-            ('dessert', "Dessert"),
-            ('food_other', "Other")
+    (_("Food"), (
+            ('fast_food', pgettext_lazy('singular', "Fast food")),
+            ('pizza', _("Pizza")),
+            ('pasta', _("Pasta")),
+            ('appetizer', _("Appetizer")),
+            ('soup', _("Soup")),
+            ('meal', _("Meal")),
+            ('barbecue', pgettext_lazy('singular', "Barbecue")),
+            ('seafood', pgettext_lazy('singular', "Seafood")),
+            ('salad', _("Salad")),
+            ('dessert', _("Dessert")),
+            ('food_other', _("Other"))
         )
     )
 )
@@ -356,8 +357,8 @@ class Item(models.Model):
         ordering = ['business', 'category', 'name', 'price']
         unique_together = (('business', 'name'),)
         #ordering = ['category', 'name', 'price']
-        #verbose_name = "item"
-        #verbose_name_plural = "items"
+        verbose_name = _("item")
+        verbose_name_plural = _("items")
 
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
@@ -382,11 +383,11 @@ class CT(models.Model):
         abstract = True
 
 
-REVIEW_STATUS = ((0, "Started"), (1, "Closed"), (2, "Completed"), (3, "Declined"), (4, "Under review"), (5, "Planned"), (6, "Archived"), (7, "Need feedback"))
+REVIEW_STATUS = ((0, _("Started")), (1, _("Closed")), (2, _("Completed")), (3, _("Declined")), (4, _("Under review")), (5, _("Planned")), (6, _("Archived")), (7, _("Need feedback")))
 
 class Comment(CT):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
+    text = models.TextField(validators=[MaxLengthValidator(1000)])
     created = models.DateTimeField(auto_now_add=True)
     stars = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)], null=True, blank=True)
     main_comment = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
@@ -395,8 +396,8 @@ class Comment(CT):
 
     class Meta:
         ordering = ['-created']
-        verbose_name = "review"
-        #verbose_name_plural = "reviews"
+        verbose_name = _("review")
+        verbose_name_plural = _("reviews")
 
     def __str__(self):
         return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != settings.CONTENT_TYPE['comment'] else 'review', self.object_id)
@@ -456,8 +457,8 @@ class Like(CT):
 
 
 class EventNotification(CT):
-    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_from_person", blank=True, null=True)
-    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notify_to_person")
+    from_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_from_person', blank=True, null=True)
+    to_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notify_to_person')
     comment_type = models.PositiveSmallIntegerField(blank=True, null=True)
     when = models.DateTimeField(auto_now_add=True)
     count = models.PositiveSmallIntegerField(default=1)

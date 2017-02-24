@@ -1,0 +1,4 @@
+
+#: main/static/main/modals/settings.html:6
+msgid "Please type your current password."
+msgstr "Molimo unesite Vašu treutnu šifru."

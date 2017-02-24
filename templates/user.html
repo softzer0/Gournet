@@ -1,10 +1,11 @@
 {% extends 'base/view.html' %}
+{% load i18n %}
 
 {% block head %}{{ block.super }}
     {% load staticfiles %}<script src="{% static 'main/js/custom/home_extra.js' %}"></script>
     <script src="{% static 'main/js/custom/user.js' %}"></script>{% endblock %}
 
-{% block bodyatt %}{{ block.super }} ng-init="id = {{ usr.pk }}; u = {friend_count: {{ friend_count }}{% if rel_state > -1 %}, rel_state: {{ rel_state }}}; first_name = '{{ usr.first_name }}'{% else %}}{% endif %}"{% endblock %}
+{% block bodyatt %}{{ block.super }} ng-init="id = {{ usr.pk }}; u = {% if rel_state > -1 %}{friend_count: {{ friend_count }}, rel_state: {{ rel_state }}}; first_name = '{{ usr.first_name }}'{% else %}true{% endif %}"{% endblock %}
 
 {% block rowatt %}ng-controller="UserCtrl"{% endblock %}
 
@@ -14,8 +15,8 @@
                         <div ng-if="edit[0].disabled !== undefined" ng-hide="edit[0].disabled">
                             <div>
                                 <div>
-                                    <div><input type="text" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[0]"></div>
-                                    <div><input type="text" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[1]"></div>
+                                    <div><input type="text" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[0]" maxlength="30"></div>
+                                    <div><input type="text" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[1]" maxlength="30"></div>
                                     <a class="fa fa-2x fa-check n text-center" ng-show="edit[0].disabled === false" ng-click="doAction()"></a>
                                 </div>
                             </div>
@@ -24,24 +25,24 @@
 
 {% block img %}{{ usr.pk }}/avatar/?{% endblock %}
 
-{% block other %}<li>{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit[1], 'disabled')" in-scope="documentClick.gender" ng-init="setE('{{ usr.gender }}')">
-                            <a class="n" ng-if="edit[1].disabled !== undefined" ng-show="edit[1].disabled" ng-click="edit[1].disabled = false"><i class="fa" ng-class="{% verbatim %}edit[1].value == 0 ? 'fa-mars' : 'fa-venus'{% endverbatim %}"></i> {% verbatim %}{{ edit[1].value == 0 ? 'Male' : 'Female' }}{% endverbatim %}</a>
-                            <p ng-if="edit[1].disabled === undefined"><i class="fa" ng-class="{% verbatim %}edit[1].value == 0 ? 'fa-mars' : 'fa-venus'{% endverbatim %}"></i> {% verbatim %}{{ edit[1].value == 0 ? 'Male' : 'Female' }}{% endverbatim %}</p>
+{% block other %}<li>{% trans "Male" as m_t %}{% trans "Female" as f_t %}{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit[1], 'disabled')" in-scope="documentClick.gender" ng-init="setE('{{ usr.gender }}')">
+                            <a class="n" ng-if="edit[1].disabled !== undefined" ng-show="edit[1].disabled" ng-click="edit[1].disabled = false"><i class="fa" ng-class="edit[1].value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit[1].value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</a>
+                            <p ng-if="edit[1].disabled === undefined"><i class="fa" ng-class="edit[1].value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit[1].value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</p>
                             <div ng-if="edit[1].disabled !== undefined" ng-hide="edit[1].disabled">
                                 <div>
                                     <div>
                                         <div class="ulh"><ul class="nya-bs-select" ng-model="edit[1].form">
-                                            <li class="nya-bs-option" data-value="0"><a>Male</a></li>
-                                            <li class="nya-bs-option" data-value="1"><a>Female</a></li>
+                                            <li class="nya-bs-option" data-value="0"><a>{{ m_t }}</a></li>
+                                            <li class="nya-bs-option" data-value="1"><a>{{ f_t }}</a></li>
                                         </ul><div ng-show="edit[1].disabled == null"></div></div>
                                         <a class="fa fa-2x fa-check n text-center" ng-show="edit[1].disabled === false" ng-click="doAction(1)"></a>
                                     </div>
                                 </div>
                             </div>
-                        </div>{% else %}{% if usr.gender == 0 %}<i class="fa fa-mars"></i> Male{% else %}<i class="fa fa-venus"></i> Female{% endif %}{% endif %}</li>
+                        </div>{% else %}{% if usr.gender == 0 %}<i class="fa fa-mars"></i> {{ m_t }}{% else %}<i class="fa fa-venus"></i> {{ f_t }}{% endif %}{% endif %}</li>
                         <li>{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit[2], 'disabled')" in-scope="documentClick.birth" ng-init="setED('{{ usr.birthdate|date:'Y-m-d' }}')">
-                            <a class="n" ng-if="edit[2].disabled !== undefined" ng-show="edit[2].disabled" ng-click="edit[2].disabled = false">Born {% verbatim %}{{ edit[2].value | ageFilter }}{% endverbatim %} years ago</a>
-                            <p ng-if="edit[2].disabled === undefined">Born {% verbatim %}{{ edit[2].value | ageFilter }}{% endverbatim %} years ago</p>
+                            <a class="n" ng-if="edit[2].disabled !== undefined" ng-show="edit[2].disabled" ng-click="edit[2].disabled = false">{% trans "Born {{ edit[2].value | ageFilter }} years ago" as b_t %}{{ b_t }}</a>
+                            <p ng-if="edit[2].disabled === undefined">{{ b_t }}</p>
                             <div ng-if="edit[2].disabled !== undefined" ng-hide="edit[2].disabled">
                                 <div>
                                     <div>
@@ -58,28 +59,23 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>{% else %}Born {{ born }} years ago{% endif %}</li>
+                        </div>{% else %}{% blocktrans with y=born %}Born {{ y }} years ago{% endblocktrans %}{% endif %}</li>
                         <li>{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit[3], 'disabled')" ng-init="setE('{{ usr.address }}')">
                             <a class="n" ng-show="edit[3].disabled" ng-click="edit[3].disabled = false"><i class="fa fa-map-marker"></i> {% verbatim %}{{ edit[3].value }}{% endverbatim %}</a>
                             <div ng-hide="edit[3].disabled">
                                 <div>
                                     <div>
-                                        <div><input type="text" class="form-control" ng-disabled="edit[3].disabled == null" ng-model="edit[3].form"></div>
+                                        <div><input type="text" class="form-control" ng-disabled="edit[3].disabled == null" ng-model="edit[3].form" maxlength="130"></div>
                                         <a class="fa fa-2x fa-check n text-center" ng-show="edit[3].disabled === false" ng-click="doAction(3)"></a>
                                     </div>
                                 </div>
                             </div>
                         </div>{% else %}<a href="https://maps.google.com/maps?q={{ usr.address }}"><i class="fa fa-map-marker"></i> {{ usr.address }}</a>{% endif %}</li>
                         <li
-                            ><a href="javascript:" ng-click="showFriendsModal()" ng-if="$parent.u.friend_count > 0"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ $parent.u.friend_count }}{% endverbatim %}</strong></a
-                            ><i class="fa fa-users" ng-if="$parent.u.friend_count == 0"></i>
-                            <span ng-switch="$parent.u.friend_count"
-                                ><span ng-switch-default>osobe su {% if rel_state > -1 %}mu{% else %}ti{% endif %} prijatelji</span
-                                ><span ng-switch-when="1">osoba {% if rel_state > -1 %}mu{% else %}ti{% endif %} je prijatelj</span
-                                ><span ng-switch-when="0">{% if rel_state > -1 %}Nema{% else %}Nemaš{% endif %} prijatelja</span
-                            ></span>
+                            >{% if rel_state > -1 %}<span ng-if="$parent.u.friend_count > 0" translate="$parent.u.friend_count"><a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ $parent.u.friend_count }}{% endverbatim %}</strong></a> friend<br plural><a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ $parent.u.friend_count }}{% endverbatim %}</strong></a> friends</span
+                            ><span ng-if="$parent.u.friend_count == 0"><i class="fa fa-users"></i> {% trans "Has no friends" %}</span>
                         </li>
-                        {% if rel_state > -1 %}<li><span ng-include="'/static/main/friend.html'" new-scope ng-init="o = [$parent.u]"></span></li>{% endif %}{% endblock %}
+                        <li><span ng-include="'/static/main/friend.html'" new-scope ng-init="o = [$parent.u]"></span>{% else %}{% if friend_count > 0 %}<a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> {% blocktrans count counter=friend_count %}<strong>{{ counter }}</strong></a> person is your friend{% plural %}<strong>{{ counter }}</strong></a> persons are your friends{% endblocktrans %}{% else %}<i class="fa fa-users"></i> {% trans "You have no friends" %}{% endif %}{% endif %}</li>{% endblock %}
 
 {% block content %}<uib-tab ng-repeat="tab in tabs" index="$index" heading="{% verbatim %}{{ tab.display }}{% endverbatim %}">
 						<div class="mn1" ng-init="t = tab.name.slice(0, -1)" ng-if="objloaded[$index] || active == $index" ng-include="'/static/main/events.html'"></div>
