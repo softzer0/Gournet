@@ -30,7 +30,7 @@ def save_img(image, preserve_ratio=True, image_format='JPEG', size=None):
         #if isinstance(original, ContentFile):
         image.seek(0) # see http://code.djangoproject.com/ticket/8222 for details
         image = Image.open(image)
-    if image.mode not in ['L', 'RGB', 'RGBA']:
+    if image.mode not in ('L', 'RGB', 'RGBA'):
         if image.mode == 'P':
             image = image.convert('RGBA')
         else:
@@ -68,7 +68,7 @@ def generate_thumb(type, pk, format, ext, image, size, preserve_ratio):
     save(type, pk, thumb_name, thumbnail)
 
 def saveimgwiththumbs(type, pk, format, content, thumb_preserve_ratio=True):
-    if type in ['user', 'business', 0]:
+    if type in ('user', 'business', 0):
         if type == 0:
             size = None
             type = 'user'

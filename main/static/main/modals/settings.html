@@ -1,42 +1,42 @@
 <uib-tabset active="obj.active" type="pills" class="nji row">
-    <uib-tab index="0" heading="Password and email(s)"><!-- ng-click="enableAnimation()"-->
-        <form autocomplete="on" ng-init="pattern = '.{8,}'; title = 'Password must contain at least 8 characters'">
+    <uib-tab index="0" heading="{{ 'Password and email(s)' | translate }}"><!-- ng-click="enableAnimation()"-->
+        <form autocomplete="on" ng-init="pattern = '.{8,}'; title = gettext('Password must contain at least 8 characters')">
             <div ng-if="pass_err !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
                 <button class="close" type="button" ng-click="dismissError()">&times;</button>
-                <p class="def">{{ pass_err == 0 ? 'Your password has been changed.' : pass_err_txt }}</p>
+                <p class="def">{{ pass_err == 0 ? "Your password has been changed." : pass_err_txt | translate }}</p>
             </div>
-            <p>Enter your current password before changing:</p>
-            <div ng-class="{'has-error': pass_err == 1 || pass_err == 3}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[0]" placeholder="Current password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
-            <p>Enter new password:</p>
-            <div ng-class="{'has-error': pass_err == 2 || pass_err == 3}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[1]" placeholder="New password" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
-            <p>Repeat new password:</p>
-            <div ng-class="{'has-error': pass_err == 4}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[2]" placeholder="New password (again)" ng-pattern="pattern" pattern="{{ pattern }}" required title="{{ title }}"></div>
-            <input type="submit" ng-disabled="obj.changing" ng-click="changePassword()" class="btn btn-success" value="Save">
+            <p>{{ "Enter your current password before changing:" | translate }}</p>
+            <div ng-class="{'has-error': pass_err == 1 || pass_err == 3}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[0]" ng-attr-placeholder="{{ 'Current password' | translate }}" ng-pattern="pattern" pattern="{{ pattern }}" required ng-attr-title="{{ title }}"></div>
+            <p>{{ "Enter new password:" | translate }}</p>
+            <div ng-class="{'has-error': pass_err == 2 || pass_err == 3}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[1]" ng-attr-placeholder="{{ 'New password' | translate }}" ng-pattern="pattern" pattern="{{ pattern }}" required ng-attr-title="{{ title }}"></div>
+            <p>{{ "Repeat new password:" | translate }}</p>
+            <div ng-class="{'has-error': pass_err == 4}"><input ng-disabled="obj.changing" class="form-control" type="password" ng-model="obj.pass[2]" ng-attr-placeholder="{{ 'New password (again)' | translate }}" ng-pattern="pattern" pattern="{{ pattern }}" required ng-attr-title="{{ title }}"></div>
+            <input type="submit" ng-disabled="obj.changing" ng-click="changePassword()" class="btn btn-success" ng-attr-value="{{ 'Save' | translate }}">
         </form>
         <hr class="hor">
         <div class="loa" ng-if="!loaded && obj.active == 0"><i class="fa fa-spinner"></i></div>
         <div ng-show="loaded">
-            <p>You have currently {{ emails.length }} email {{ emails.length > 1 ? 'addresses' : 'address' }} associated with your account:</p>
+            <p translate="emails.length">You have currently {{ emails.length }} email address associated with your account:<br plural>You have currently {{ emails.length }} email addresses associated with your account:</p>
             <div ng-if="sent.length" class="alert alert-success alert-dismissable">
                 <button class="close" type="button" ng-click="sent.length = 0">&times;</button>
-                <p class="ww">Confirmation e-mail has been sent to <span ng-repeat="e in sent">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>.</p>
+                <p class="ww" translate>Confirmation e-mail has been sent to <span ng-repeat="e in sent">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>.</p>
             </div>
-            <div ng-repeat="e in emails" style="white-space: nowrap;">
+            <div ng-repeat="e in emails" style="white-space: nowrap; overflow: auto">
                 <input type="radio" ng-model="obj.selected" ng-value="$index" ng-change="EmailSelected()" id="email_{{ $index }}" name="email">
-                <label for="email_{{ $index }}" class="btr">{{ e.email | limitTo:52 }}{{ e.email.length > 52 ? '...' : '' }}</label> <span ng-if="e.verified" class="label label-success btr">Verified</span> <span ng-if="e.primary" class="label label-info btr">Primary</span>
+                <label for="email_{{ $index }}" class="btr">{{ e.email | limitTo:52 }}{{ e.email.length > 52 ? '...' : '' }}</label> <span ng-if="e.verified" class="label label-success btr">{{ "Verified" | translate }}</span> <span ng-if="e.primary" class="label label-info btr">{{ "Primary" | translate }}</span>
             </div>
             <div class="bt3">
-                <button ng-disabled="emails[obj.selected].primary || !emails[obj.selected].verified" class="btn btn-info btr" ng-click="makePrimaryEmail()">Make Primary</button>
-                <button ng-disabled="emails[obj.selected].verified" class="btn btn-default btr" ng-click="resendConfirmationEmail()">Re-send Verification</button>
-                <button ng-disabled="emails[obj.selected].primary" class="btn btn-danger" ng-dialog-click="removeEmail()" ng-dialog-message="Are you sure that you want to remove email <strong>{{ emails[obj.selected].email }}</strong>?" ng-dialog-yn="true">Remove</button>
+                <button ng-disabled="emails[obj.selected].primary || !emails[obj.selected].verified" class="btn btn-info btr" ng-click="makePrimaryEmail()">{{ "Make Primary" | translate }}</button>
+                <button ng-disabled="emails[obj.selected].verified" class="btn btn-default btr" ng-click="resendConfirmationEmail()">{{ "Re-send Verification" | translate }}</button>
+                <button ng-disabled="emails[obj.selected].primary" class="btn btn-danger" ng-dialog-click="removeEmail()" ng-dialog-message="{{ 'Are you sure that you want to remove email <strong>%s</strong>?' | translate:emails[obj.selected].email }}" ng-dialog-yn="true">{{ "Remove" | translate }}</button>
             </div>
         </div>
         <form>
-            <input type="email" ng-disabled="obj.adding" class="form-control" ng-model="obj.email" placeholder="Email" required>
-            <input type="submit" ng-disabled="obj.adding" class="btn btn-warning" ng-click="addEmail()" value="Add Email Address">
+            <input type="email" ng-disabled="obj.adding" class="form-control" ng-model="obj.email" ng-attr-placeholder="{{ 'Email' | translate }}" required>
+            <input type="submit" ng-disabled="obj.adding" class="btn btn-warning" ng-click="addEmail()" ng-attr-value="{{ 'Add Email Address' | translate }}">
         </form>
     </uib-tab>
-    <uib-tab index="1" heading="Localization"><!-- ng-click="enableAnimation()"-->
-        <div ng-if="obj.active == 1 && set_modal_loaded !== undefined || setD !== undefined" ng-include="'/localization/'" onload="set_modal_loaded(true)"></div>
+    <uib-tab index="1" heading="{{ 'Internationalization' | translate }}"><!-- ng-click="enableAnimation()"-->
+        <div ng-if="obj.active == 1 && set_modal_loaded !== undefined || setD !== undefined" ng-include="'/i18n/'" onload="set_modal_loaded(true)"></div>
     </uib-tab>
 </uib-tabset>

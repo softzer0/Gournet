@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% load i18n %}
 
-{% block title %}Welcome to Gournet{% endblock %}
+{% block title %}{% trans "Welcome to Gournet" %}{% endblock %}
 {% block head %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">
     <style>
         body {
@@ -23,15 +23,15 @@
     </style>{% endblock %}
 
 {% block navbar %}<div class="navbar-collapse collapse in" id="navbar-main">
-                <ul class="nav navbar-nav navbar-header pull-right"><li><a href="{% url 'account_signup' %}" class="text-right">New here? Click to sign up!</a></li></ul>
+                <ul class="nav navbar-nav navbar-header pull-right"><li><a href="{% url 'account_signup' %}" class="text-right">{% trans "New here? Click to sign up!" %}</a></li></ul>
             </div>{% endblock %}
 
 {% block container %}
         <div class="row">
             <div class="col-sm-8">
                 <div class="jumbotron">
-                    <h2>Welcome to Gournet!</h2>
-                    <p>Gournet is a place where you can find your favourite restaurants, cafes, pubs, and much more! Join our community to explore all the features this platform offers!</p>
+                    <h2>{% trans "Welcome to Gournet!" %}</h2>
+                    <p>{% blocktrans %}Gournet is a place where you can find your favourite restaurants, cafes, pubs, and much more! Join our community to explore all the features this platform offers!{% endblocktrans %}</p>
                 </div>
             </div>
             <div class="col-sm-4">
@@ -43,8 +43,8 @@
                         {% endif %}
                         <legend>{% trans "Login" %}</legend>
                         {% bootstrap_form form %}
-                        <button type="submit" class="f1 btn btn-primary btn-block">Login</button>
-                        <div class="f"><a href="{% url 'account_reset_password' %}">Forgot your password?</a></div>
+                        <button type="submit" class="f1 btn btn-primary btn-block">{% trans "Login" %}</button>
+                        <div class="f"><a href="{% url 'account_reset_password' %}">{% trans "Forgot your password?" %}</a></div>
                     </form>
                 </div>
             </div>

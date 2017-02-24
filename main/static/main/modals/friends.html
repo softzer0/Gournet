@@ -9,10 +9,10 @@
         <div class="us col-xs-4 col-sm-3 col-lg-2" ng-show="tabs[0].next_page && loaded">
             <a href="javascript:" ng-click="load_page()" class="well n">
                 <i class="text-center fa fa-ellipsis-v fa-4x"></i>
-                <p class="text-center br3 def">Load more</p>
+                <p class="text-center br3 def">{{ "Load more" | translate }}</p>
             </a>
         </div>
     </div>
 </div>
 <div class="loaded loa loa-c" ng-if="!loaded"><i class="fa fa-spinner fa-2x"></i></div>
-<div class="loaded" ng-if="tabs[0].elems === undefined && loaded">No {{ favs ? 'favourites' : 'friends' }}.</div>
+<div class="loaded" ng-if="tabs[0].elems === undefined && loaded">{{ favs ? 'No favourites.' : 'No friends.' | translate }}</div>

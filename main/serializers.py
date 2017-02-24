@@ -34,8 +34,8 @@ def gen_where(model, pk=None, table=None, column=None, target=None, ct=None, whe
         where {where})
         '''.format(app_label=APP_LABEL, model=model, col_add=col_add, sel_add='to_person_' if target == 'relationship' else '', target=target, #{additional}
             inner_join='inner join {app_label}{add_user}_{table} on ({app_label}_{target}.id = {app_label}{add_user}_{table}.{on_col}_id{content_type})'.format(app_label=APP_LABEL, add_user='_user' if table != 'relationship' and not column and (table or not ct) else '', table=table or model, target=target,
-                on_col=('to' if model == 'relationship' else 'from')+'_person' if table == 'relationship' else 'object' if column in ['person', 'user'] or not pk else 'person' if target == 'user' else 'object' if not table and ct else target, content_type=' and {app_label}_{table}.content_type_id = {ct}'.format(app_label=APP_LABEL, table=table or model, ct=ct) if ct else '') if table or ct else '',
-            where='{column} = {pk}'.format(column='main_relationship.from_person_id' if not table and not ct or table == 'relationship' else '{app_label}{add_user}_{table}.{column}'.format(app_label=APP_LABEL, add_user = '_user' if model != 'user' and column not in ['person', 'user'] and (table or not ct) else '', table=table or target, column=(column or 'user')+('_id' if table or not ct else '')), pk=pk) if not where else where#,
+                on_col=('to' if model == 'relationship' else 'from')+'_person' if table == 'relationship' else 'object' if column in ('person', 'user') or not pk else 'person' if target == 'user' else 'object' if not table and ct else target, content_type=' and {app_label}_{table}.content_type_id = {ct}'.format(app_label=APP_LABEL, table=table or model, ct=ct) if ct else '') if table or ct else '',
+            where='{column} = {pk}'.format(column='main_relationship.from_person_id' if not table and not ct or table == 'relationship' else '{app_label}{add_user}_{table}.{column}'.format(app_label=APP_LABEL, add_user = '_user' if model != 'user' and column not in ('person', 'user') and (table or not ct) else '', table=table or target, column=(column or 'user')+('_id' if table or not ct else '')), pk=pk) if not where else where#,
             )#additional='or {app_label}_{model}.{col_add}id = {additional_pk}'.format(app_label=APP_LABEL, model=model, col_add=col_add, additional_pk=additional_obj.pk) if additional_obj else '')
 
 def sort_related(query, first=None, where=None, retothers=False):
@@ -73,9 +73,9 @@ class AccountSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'birthdate': ["Invalid birthdate."]})
         """if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
             raise serializers.ValidationError({'non_field_errors': ["Your name was already changed once."]})
-        for f in [['gender', "gender"], ['birthdate', "birthdate"]]:
-            if f[0] in attrs and getattr(self.context['request'].user, f[0]+'_changed') and attrs[f[0]] != getattr(self.context['request'].user, f[0]):
-                raise serializers.ValidationError({'non_field_errors': ["Your +f[1]+ was already changed once."]})""" #enable
+        for f in ('gender', 'birthdate'):
+            if f in attrs and getattr(self.context['request'].user, f+'_changed') and attrs[f] != getattr(self.context['request'].user, f):
+                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % getattr(models.User, f).field_name]})""" #enable
         return attrs
 
     def update(self, instance, validated_data):
@@ -83,7 +83,7 @@ class AccountSerializer(serializers.ModelSerializer):
             instance.location = clean_loc(self, validated_data, True)
         """if not self.context['request'].user.name_changed:
             instance.name_change = 'first_name' in validated_data and validated_data['first_name'] != instance.first_name or 'last_name' in validated_data and validated_data['last_name'] != instance.last_name
-        for f in ['gender', 'birthdate']:
+        for f in ('gender', 'birthdate'):
             if not getattr(instance, f+'_changed'):
                 setattr(instance, f+'_changed', f in validated_data and validated_data[f] != getattr(instance, f))""" #enable
         return super().update(instance, validated_data)
@@ -131,12 +131,18 @@ class ManagerSerializer(serializers.ModelSerializer):
         model = models.Business
         exclude = ('id', 'manager', 'loc_projected', 'is_published')
 
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
+            self.fields[f].format = '%H:%M'
+
     def validate(self, attrs):
         business_clean_data(self, attrs)
         return attrs
 
     def update(self, instance, validated_data):
-        if 'currency' in validated_data and validated_data['currency'] in [i[0] for i in models.CURRENCY]:
+        if 'currency' in validated_data and validated_data['currency'] in tuple(i[0] for i in models.CURRENCY):
             mass_convert(instance.pk, instance, validated_data['currency'])
         return super().update(instance, validated_data)
 
@@ -239,7 +245,7 @@ class RelationshipSerializer(BaseURSerializer):
             self.fields['to_person'] = UsersWithoutCurrentField()
 
     def get_friend(self, obj):
-        return UserSerializer(obj.to_person if obj.rev_dir else obj.from_person, context={'noid': None}).data
+        return UserSerializer(obj.to_person if obj.rev_dir else obj.from_person).data #, context={'noid': None}
 
     def get_target(self, obj):
         return UserSerializer(obj.from_person if obj.rev_dir else obj.to_person).data
@@ -319,7 +325,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         return gen_distance(obj)
 
     def get_is_opened(self, obj):
-        now = obj.tz.normalize(timezone.now())
+        now = timezone.localtime(timezone.now()) #obj.tz.normalize(timezone.now()) #enable
         day = now.weekday()
         opened = obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened
         closed = obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed

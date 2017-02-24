@@ -13,3 +13,4 @@ djangorestframework==3.3.3
 geopy==1.11.0
 django-timezone-field==2.0
 timezonefinder==1.5.7
+django-statici18n==1.3.0

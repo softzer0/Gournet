@@ -1,4 +1,5 @@
-var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime', 'ct.ui.router.extras']) /*, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'*/
+app.requires.push('ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime', 'ct.ui.router.extras'); //, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'
+app
     .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL, CONTENT_TYPES) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
@@ -21,14 +22,14 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 var objService = $injector.get($scope.t+'Service');
                 switch ($scope.t) {
                     case 'event':
-                        $scope.title = "Event(s)";
+                        $scope.title = gettext("Event(s)");
                         break;
                     case 'item':
-                        $scope.title = "Item(s)";
+                        $scope.title = gettext("Item(s)");
                         if ($stateParams.ts !== null) $scope.ts = $stateParams.ts;
                         break;
                     case 'review':
-                        $scope.title = "Review(s)";
+                        $scope.title = gettext("Review(s)");
                 }
                 $scope.file = '../events';
 
@@ -66,6 +67,38 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     .filter('unsafe', function($sce) { return $sce.trustAsHtml })
     //.filter('spaces', function() { return function(input) { return input.replace(/\s+/g, '+') } })
 
+    .filter('translate', function() {
+        return function(input, params, context) {
+            var r = context !== undefined ? pgettext(context, input) : gettext(input);
+            return params != null ? interpolate(r, [params]/*, params.constructor == Object*/) : r;
+        }
+    })
+    .directive('translate', function($compile, $timeout) {
+        return {
+            compile: function(element, attrs) {
+                if (attrs.translate == '') {
+                    element.html(gettext(element.html()));
+                    return;
+                }
+                attrs.html = element.html().split('<br plural="">');
+                return {
+                    post: function (scope, element, attrs) {
+                        delete attrs.html[2];
+                        scope.$watch(function () {
+                            return scope.$eval(attrs.translate);
+                        }, function (val) {
+                            var p = attrs.html[2];
+                            attrs.html[2] = ngettext(attrs.html[0], attrs.html[1], attrs.add !== undefined ? val + attrs.add : attrs.subtract !== undefined ? val - attrs.subtract : val);
+                            if (p == attrs.html[2]) return;
+                            element.html(attrs.html[2]);
+                            $compile(element.contents())(scope);
+                        });
+                    }
+                }
+            }
+        }
+    })
+
     .directive('newScope', function() {
         return {
             scope: true,
@@ -78,7 +111,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             show: function (message, OkCancel) {
                 return $uibModal.open({
                     windowClass: 'modal-confirm',
-                    template: '<div class="modal-body"><span class="ww">' + message + '</span></div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(OkCancel === undefined ? 'Yes' : 'OK')+'</button>'+((OkCancel || OkCancel === undefined) ? '<button class="btn btn-warning" ng-click="cancel()">'+(OkCancel === undefined ? 'No' : 'Cancel')+'</button></div>':''),
+                    template: '<div class="modal-body"><span class="ww">' + message + '</span></div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(OkCancel === undefined ? gettext("Yes") : gettext("OK"))+'</button>'+((OkCancel || OkCancel === undefined) ? '<button class="btn btn-warning" ng-click="cancel()">'+(OkCancel === undefined ? gettext("No") : gettext("Cancel"))+'</button></div>':''),
                     controller: function($scope, $uibModalInstance) {
                         $scope.ok = function() { $uibModalInstance.close() };
                         $scope.cancel = function() { $uibModalInstance.dismiss('cancel') };
@@ -99,7 +132,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             },
             link: function(scope, element, attrs) {
                 element.bind('click', function() {
-                    dialogService.show(attrs.ngDialogMessage || "Are you sure?", (attrs.ngDialogOkcancel && attrs.ngDialogOkonly) ? false : attrs.ngDialogOkcancel || (attrs.ngDialogOkonly ? false : undefined)).then(function() { scope.ngDialogClick() }/*, function() {}*/);
+                    dialogService.show(attrs.ngDialogMessage || gettext("Are you sure?"), (attrs.ngDialogOkcancel && attrs.ngDialogOkonly) ? false : attrs.ngDialogOkcancel || (attrs.ngDialogOkonly ? false : undefined)).then(function() { scope.ngDialogClick() }/*, function() {}*/);
                 });
             }
         }
@@ -257,21 +290,21 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
         if (t == 0) o = APIService.init(); else o = APIService.init(3);
         switch (t){
             case 0:
-                $scope.title = d.id == null ? ($scope.event !== undefined ? "Select friend(s)" : "Your friends") : "Friends";
+                $scope.title = d.id == null ? ($scope.event !== undefined ? gettext("Select friend(s)") : gettext("Your friends")) : gettext("Friends");
                 o = APIService.init();
                 break;
             case 1:
             case 2:
                 d.content_type = CONTENT_TYPES['business'];
                 if (d.id == null || t == 2) {
-                    if (d.id != null) $scope.title = "Favourites"; else $scope.title = "Your favourites";
+                    if (d.id != null) $scope.title = gettext("Favourites"); else $scope.title = gettext("Your favourites");
                     d.is_person = 1;
                     $scope.favs = true;
-                } else $scope.title = "Favoured by";
+                } else $scope.title = gettext("Favoured by");
                 break;
             default:
                 d.content_type = CONTENT_TYPES[t];
-                if (stars) $scope.title = "Ratings"; else $scope.title = "Reactions";
+                if (stars) $scope.title = gettext("Ratings"); else $scope.title = gettext("Reactions");
         }
         $scope.tabs = [];
         ($scope.load_page = function (i) {
@@ -302,7 +335,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                                 }
                             } else {
                                 for (i = 0; i < 2; i++) if (result[i].results.length > 0) {
-                                    $scope.tabs[t] = {elems: [], value: i + 1, heading: i == 0 ? "Liked by" : "Disiked by"};
+                                    $scope.tabs[t] = {elems: [], value: i + 1, heading: i == 0 ? gettext("Liked by") : gettext("Disiked by")};
                                     load();
                                 }
                             }
@@ -432,14 +465,14 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                             function () {
                                 u.rel_state++;
                                 //c(u);
-                                if (u.rel_state == 3) if (angular.isArray(u.friend_count)) u.friend_count[0]++; else u.friend_count++;
+                                if (u.rel_state == 3) if (u.friend_count.length !== undefined) u.friend_count[0]++; else u.friend_count++;
                                 l();
                             });
                         break;
                     default:
                         friendService.delete({id: id || u.id || u.target.id},
                             function () {
-                                if (u.rel_state == 3) if (angular.isArray(u.friend_count)) u.friend_count[0]--; else u.friend_count--;
+                                if (u.rel_state == 3) if (u.friend_count.length !== undefined) u.friend_count[0]--; else u.friend_count--;
                                 u.rel_state = 0;
                                 //c(u);
                                 l();
@@ -564,25 +597,23 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 }
                 if (this.page_offset == 1 && this.objs[2] == 'comment') ld.content_type = CONTENT_TYPES['business'];
                 function appendResults(results) {
-                    if (cn === null) {
-                        if (results.length > 0) for (i = self.objs[0].length - 1; i >= 0; i--) {
-                            if (self.objs[0][i].distance !== undefined) for (j = results.length - 1; j >= 0; j--) {
-                                if (self.objs[0][i].id == results[j].id) {
-                                    self.objs[0][i].distance.value = results[j].distance.value;
-                                    self.objs[0][i].distance.unit = results[j].distance.unit;
-                                    results.splice(j, 1);
-                                    ids = true;
-                                    break;
-                                }
-                                if (ids) {
-                                    if (results.length == 0) break;
-                                    ids = false;
-                                } else self.objs[0].splice(i, 1);
+                    if (cn === null) if (results.length > 0) for (i = self.objs[0].length - 1; i >= 0; i--) {
+                        for (j = results.length - 1; j >= 0; j--) if (self.u !== undefined ? self.objs[0][i].type == results[j].type && (self.objs[0][i].target !== undefined ? self.objs[0][i].friend.id == results[j].friend.id && self.objs[0][i].target.id == results[j].target.id : self.objs[0][i].id == results[j].id) : self.objs[0][i].id == results[j].id) {
+                            if (results[j].distance !== undefined) {
+                                self.objs[0][i].distance.value = results[j].distance.value;
+                                self.objs[0][i].distance.unit = results[j].distance.unit;
                             }
-                        } else self.objs[0].length = 0;
-                    }
+                            results.splice(j, 1);
+                            ids = true;
+                            break;
+                        }
+                        if (ids) {
+                            if (results.length == 0) break;
+                            ids = false;
+                        } else self.objs[0].splice(i, 1);
+                    } else self.objs[0].length = 0;
                     self.objs[0].push.apply(self.objs[0], results);
-                    if (cn === null && self.u === undefined) self.objs[0].sort(dynamicSortMultiple('-distance.unit', 'distance.value'));
+                    if (cn === null && self.u === undefined) self.objs[0].sort(dynamicSortMultiple('-distance.unit', 'distance.value')); //change (for another language)
                 }
                 if (this.page_offset > 1 || b !== undefined || rel_state !== undefined || this.u !== undefined) d = (this.s || this.u.feed).get(ld,
                     function (result) {
@@ -666,7 +697,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 return (this.s || this.u[e[index].type]).delete({id: e[index].id}, function (){
                     if (!self.unloaded[r ? 1 : 0]) self.remove(e, index, r);
                 }, function (result){
-                    if (is_item && result.data !== undefined && result.data.non_field_errors !== undefined) dialogService.show("You can't delete the last remaining item!", false);
+                    if (is_item && result.data !== undefined && result.data.non_field_errors !== undefined) dialogService.show(gettext("You can't delete the last remaining item!"), false);
                 }).$promise;
             }
         };
@@ -839,23 +870,22 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     .controller('BaseCtrl', function ($scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
         $scope.r = $scope.$parent.objs !== undefined;
         $scope.objs = $scope.r ? $scope.$parent.objs : objService[0].getobjs(false, false);
-        var t = objService[0].getobjs();
         if (!$scope.r) { // && $scope.objs.length == 0
             $scope.props = objService[0].props;
             function l() { $timeout(function() { $scope.loading = false })}
             function load(s) { //$timeout(function() {
-                if (s || t == 'user') $scope.$parent.$parent.$parent.$parent.loading = undefined;
+                if (s || $scope.$parent.t == 'user') $scope.$parent.$parent.$parent.$parent.loading = undefined;
                 else if ($scope.loading) {
                     $timeout(load, 100 + Math.floor(Math.random() * 10));
                     return;
                 }
                 $scope.loading = true;
-                objService[0].load($scope.id || $scope.keywords, $scope.u !== undefined ? $scope.u.rel_state !== undefined ? false : null : $scope.is_fav, t != 'user' ? $scope.coords : undefined).then(function() {
+                objService[0].load($scope.id || $scope.keywords, $scope.u ? $scope.u.rel_state !== undefined ? false : null : $scope.is_fav, $scope.$parent.t != 'user' ? $scope.coords : undefined).then(function() {
                     l();
                     if (objService.length == 2) objService[1]();
                 } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
             /*})*/}
-            if (t == 'user' || $scope.$parent.$parent.$parent.$parent.loading === undefined) load();
+            if ($scope.$parent.t == 'user' || $scope.$parent.$parent.$parent.$parent.loading === undefined) load();
             $scope.load_page = function (){
                 if ($scope.wid !== undefined) {
                     navigator.geolocation.clearWatch($scope.wid);
@@ -868,7 +898,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
         if (!$scope.r) $scope.$on('$destroy', function() { objService[0].getobjs($scope.r, null) });
 
-        if (t == 'user') return;
+        if ($scope.$parent.t == 'user') return;
 
         if (angular.element('#home_map').length == 1) $scope.load = load;
 
@@ -884,13 +914,13 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             return objService[0].setLikeStatus(index, $scope.r, dislike, par_ind).then(l, l);
         };
 
-        if (t == 'business') return;
+        if ($scope.$parent.t == 'business') return;
 
         $scope.checkAnim = function () { return angular.element('.objs'+$scope.r+'_'+$scope.$parent.t+' > [class*=\'ng-leave\']').length };
 
         $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1](true) }) }; //... > 1)
 
-        $scope.com = [["older", 'comments', 0], ["newer", 'user_comments', 1]];
+        $scope.com = [[gettext("Load older"), 'comments', 0], [gettext("Load newer"), 'user_comments', 1]];
 
         function load_comments(index, m){
             function l() { $timeout(function (){ $scope.objs[index].showcomm[0][m || 0] = true }) }
@@ -936,7 +966,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             return v ? r.valueOf() : r;
         }
         var when, index;
-        $scope.cmb = {choices: ["(Custom)"]};
+        $scope.cmb = {choices: [gettext("(Custom)")]};
         $scope.picker = {options: {minDate: subTime($rootScope.currTime, 0, -1)}};
         $scope.initRmn = function (ind){
             if (index !== undefined && $scope.objs[ind].id == $scope.objs[index].id) return;
@@ -945,26 +975,26 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
             $scope.picker.options.maxDate = when;
             $scope.cmb.choices.length = 1;
             var md = $scope.picker.options.minDate.valueOf();
-            if (subTime(when, 0, 15, true) > md) $scope.cmb.choices.push("15 minutes");
-            if (subTime(when, 0, 30, true) > md) $scope.cmb.choices.push("Half an hour");
+            if (subTime(when, 0, 15, true) > md) $scope.cmb.choices.push(gettext("15 minutes"));
+            if (subTime(when, 0, 30, true) > md) $scope.cmb.choices.push(gettext("Half an hour"));
             for (var i = 2; i >= 0; i--) if ($scope.cmb.choices.length >= i + 1) {
                 if ($scope.cmb.selected != $scope.cmb.choices[i]) $scope.cmb.selected = $scope.cmb.choices[i]; else checkSel();
                 break;
             }
-            if (subTime(when, 0, 45, true) > md) $scope.cmb.choices.push("45 minutes");
-            if (subTime(when, 1, 0, true) > md) $scope.cmb.choices.push("An hour");
-            if (subTime(when, 2, 0, true) > md) $scope.cmb.choices.push("2 hours");
-            if (subTime(when, 3, 0, true) > md) $scope.cmb.choices.push("3 hours");
-            if (subTime(when, 4, 0, true) > md) $scope.cmb.choices.push("4 hours");
-            if (subTime(when, 5, 0, true) > md) $scope.cmb.choices.push("5 hours");
-            if (subTime(when, 6, 0, true) > md) $scope.cmb.choices.push("Half a day");
-            if (subTime(when, 24, 0, true) > md) $scope.cmb.choices.push("A day");
-            if (subTime(when, 48, 0, true) > md) $scope.cmb.choices.push("2 days");
-            if (subTime(when, 72, 0, true) > md) $scope.cmb.choices.push("3 days");
-            if (subTime(when, 96, 0, true) > md) $scope.cmb.choices.push("4 days");
-            if (subTime(when, 120, 0, true) > md) $scope.cmb.choices.push("5 days");
-            if (subTime(when, 144, 0, true) > md) $scope.cmb.choices.push("6 days");
-            if (subTime(when, 168, 0, true) > md) $scope.cmb.choices.push("A week");
+            if (subTime(when, 0, 45, true) > md) $scope.cmb.choices.push(gettext("45 minutes"));
+            if (subTime(when, 1, 0, true) > md) $scope.cmb.choices.push(gettext("An hour"));
+            if (subTime(when, 2, 0, true) > md) $scope.cmb.choices.push(gettext("2 hours"));
+            if (subTime(when, 3, 0, true) > md) $scope.cmb.choices.push(gettext("3 hours"));
+            if (subTime(when, 4, 0, true) > md) $scope.cmb.choices.push(gettext("4 hours"));
+            if (subTime(when, 5, 0, true) > md) $scope.cmb.choices.push(gettext("5 hours"));
+            if (subTime(when, 6, 0, true) > md) $scope.cmb.choices.push(gettext("Half a day"));
+            if (subTime(when, 24, 0, true) > md) $scope.cmb.choices.push(gettext("A day"));
+            if (subTime(when, 48, 0, true) > md) $scope.cmb.choices.push(gettext("2 days"));
+            if (subTime(when, 72, 0, true) > md) $scope.cmb.choices.push(gettext("3 days"));
+            if (subTime(when, 96, 0, true) > md) $scope.cmb.choices.push(gettext("4 days"));
+            if (subTime(when, 120, 0, true) > md) $scope.cmb.choices.push(gettext("5 days"));
+            if (subTime(when, 144, 0, true) > md) $scope.cmb.choices.push(gettext("6 days"));
+            if (subTime(when, 168, 0, true) > md) $scope.cmb.choices.push(gettext("A week"));
         };
 
         $scope.$watch('cmb.selected', function(value) { if (value !== undefined) checkSel() });
@@ -1080,7 +1110,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
 
     .controller('ItemsCtrl', function($scope, USER) { $scope.user_curr = USER.currency })
 
-    .controller('ReviewsCtrl', function($scope) {  $scope.choices = [{name: "(None)", value: null}, {name: "Started", value: 0}, {name: "Closed", value: 1}, {name: "Completed", value: 2}, {name: "Declined", value: 3}, {name: "Under review", value: 4}, {name: "Planned", value: 5}, {name: "Archived", value: 6}, {name: "Need feedback", value: 7}] })
+    .controller('ReviewsCtrl', function($scope) { $scope.choices = [{name: gettext("(None)"), value: null}, {name: gettext("Started"), value: 0}, {name: gettext("Closed"), value: 1}, {name: gettext("Completed"), value: 2}, {name: gettext("Declined"), value: 3}, {name: gettext("Under review"), value: 4}, {name: gettext("Planned"), value: 5}, {name: gettext("Archived"), value: 6}, {name: gettext("Need feedback"), value: 7}] })
 
     .controller('eventsOnlyCtrl', function ($scope, $controller, eventService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [eventService]}), $controller('EventsCtrl', {$scope: $scope})) })
 
@@ -1297,25 +1327,25 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
     .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, emailService, USER) { //, $animate
         $scope.close = function() { $uibModalInstance.dismiss('cancel') };
         $scope.set_modal_loaded = function (s){ if ($scope.obj.active == 0 || s) $timeout(function() { $scope.modal_loaded = true; if (s) delete $scope.set_modal_loaded }) };
-        $scope.title = "Settings";
+        $scope.title = gettext("Settings");
         $scope.file = 'settings';
-        $scope.obj = {active: index, pass: [], email: null, selected: 0};
+        $scope.obj = {active: index, pass: [], email: undefined, selected: 0};
         $scope.user = USER;
         //$scope.enableAnimation = function (){ console.log(angular.element('.nji')[0]); $animate.enabled(angular.element('.nji')[0], true) };
 
         // Email
 
         //var load;
-        $scope.sent = [];
         var deact = $scope.$watch('obj.active', function (value) {
             if (value == 0 && $scope.emails === undefined) {
                 //$scope.obj.selected = 0;
                 $scope.emails = emailService.emails;
+                $scope.sent = [];
                 //if ($scope.emails.length == 0) {
                     //load = true;
                 emailService.load().then(function (){ $timeout(function() { $scope.loaded = true; /*load = false*/ }) });
                 $scope.addEmail = function () {
-                    if ($scope.obj.email === undefined) return;
+                    if ($scope.obj.email == '' || $scope.obj.email === undefined) return;
                     for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
                     $scope.obj.adding = true;
                     emailService.add($scope.obj.email).then(function (){
@@ -1370,12 +1400,11 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                     delete $scope.pass_err_txt;
                 };
                 $scope.changePassword = function () {
-                    var i = 0;
-                    for (; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
+                    for (var i = 0; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
                     var pw_fields = angular.element('input[type="password"]');
                     if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
                         //if ($scope.pass_err != 4) {
-                        $scope.pass_err_txt = "New password fields don't match.";
+                        $scope.pass_err_txt = gettext("New password fields don't match.");
                         $scope.pass_err = 4;
                         pw_fields[2].focus();
                         //}
@@ -1418,7 +1447,7 @@ var app = angular.module('mainApp', ['ui.bootstrap', 'nya.bootstrap.select', 'ng
                 $scope.modal_loaded = false;
                 $scope.submitLocal = function (){
                     $scope.obj.saving = true;
-                    $rootScope.sendreq('localization/', 'language='+USER.language+'&currency='+USER.currency+'&tz='+USER.tz).then(function (response){
+                    $rootScope.sendreq('i18n/', 'language='+USER.language+'&currency='+USER.currency+'&tz='+USER.tz).then(function (response){
                         delete $scope.obj.saving;
                         if (response.data.altered.length > 0) $scope.$parent.refresh = true;
                     }, function (){ delete $scope.obj.saving });

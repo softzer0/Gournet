@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'captcha',
     'django_settings_export',
     'timezone_field',
+    'statici18n',
     'main'
 ]
 
@@ -78,7 +79,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stronghold.middleware.LoginRequiredMiddleware',
-    'main.middleware.TimezoneMiddleware'
+    'main.middleware.TimezoneLocaleMiddleware'
 ]
 
 from django.conf.global_settings import CACHES
@@ -87,6 +88,8 @@ CACHES['rates'] = {
     'LOCATION': '/var/tmp/django_cache_rates',
     'TIMEOUT': 43200
 }
+
+LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'main.pagination.PageNumberPagination',
@@ -125,16 +128,14 @@ NOCAPTCHA = True
 
 PHONENUMBER_DEFAULT_REGION = "RS"
 
+STATICI18N_ROOT = os.path.join(BASE_DIR, 'main/static/main/js/') #remove
+
 # Begin custom
 
 EVENT_PAGE_SIZE = 15
 NOTIFICATION_PAGE_SIZE = 5
 COMMENT_PAGE_SIZE = 4
 SEARCH_PAGE_SIZE = 10
-
-from django.conf.global_settings import gettext_noop
-LANGUAGES = (('en-us', gettext_noop('English')),
-             ('sr-latn', gettext_noop('Serbian')))
 
 # End custom
 
@@ -237,13 +238,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
+from django.utils.translation import gettext_lazy
+LANGUAGES = (('en-us', gettext_lazy('English')),
+             ('sr-latn', gettext_lazy('Serbian')))
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Europe/Belgrade'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
 USE_TZ = True
 

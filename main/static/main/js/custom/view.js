@@ -2,7 +2,7 @@ app
     .factory('menuService', function ($q, APIService){
         var itemService = APIService.init(8), menu, defer = $q.defer(); //, category
 
-        function chngmenu() { if (!menu[0].hascontent) menu[1].name = "Drinks"; else menu[1].name = "Other drinks" } //menu[0].name == "Other drinks" / if (menu.length)
+        function chngmenu() { if (!menu[0].hascontent) menu[1].name = gettext("Drinks"); else menu[1].name = gettext("Other drinks") } //menu[0].name == "Other drinks" / if (menu.length)
 
         /*name = {
             'cider': menu[0].content[0].content,
@@ -67,40 +67,40 @@ app
         return {
             init: function (){
                 menu = [ // important
-                    {first: false, hascontent: false, name: "Alcoholic beverages", content: [
-                        {category: 'cider', name: "Ciders", content: []},
-                        {category: 'whiskey', name: "Whiskeys", content: []},
-                        {category: 'wine', name: "Wines", content: []},
-                        {category: 'beer', name: "Beers", content: []},
-                        {category: 'vodka', name: "Vodkas", content: []},
-                        {category: 'brandy', name: "Brandy", content: []},
-                        {category: 'liqueur', name: "Liqueurs", content: []},
-                        {category: 'cocktail', name: "Cocktails", content: []},
-                        {category: 'tequila', name: "Tequilas", content: []},
-                        {category: 'gin', name: "Gin", content: []},
-                        {category: 'rum', name: "Rum", content: []}
+                    {first: false, hascontent: false, name: gettext("Alcoholic beverages"), content: [
+                        {category: 'cider', name: gettext("Ciders"), content: []},
+                        {category: 'whiskey', name: gettext("Whiskeys"), content: []},
+                        {category: 'wine', name: gettext("Wines"), content: []},
+                        {category: 'beer', name: gettext("Beers"), content: []},
+                        {category: 'vodka', name: gettext("Vodkas"), content: []},
+                        {category: 'brandy', name: pgettext('plural', "Brandy"), content: []},
+                        {category: 'liqueur', name: gettext("Liqueurs"), content: []},
+                        {category: 'cocktail', name: gettext("Cocktails"), content: []},
+                        {category: 'tequila', name: gettext("Tequilas"), content: []},
+                        {category: 'gin', name: gettext("Gins"), content: []},
+                        {category: 'rum', name: gettext("Rums"), content: []}
                     ]},
-                    {first: false, hascontent: false, name: "Other drinks", content: [
-                        {category: 'coffee', name: "Coffee", content: []},
-                        {category: 'soft_drink', name: "Soft drinks", content: []},
-                        {category: 'juice', name: "Juices", content: []},
-                        {category: 'tea', name: "Teas", content: []},
-                        {category: 'hot_chocolate', name: "Hot chocolate", content: []},
-                        {category: 'water', name: "Water", content: []},
-                        {category: 'drinks_other', name: "Other", content: []}
+                    {first: false, hascontent: false, name: gettext("Other drinks"), content: [
+                        {category: 'coffee', name: gettext("Coffees"), content: []},
+                        {category: 'soft_drink', name: gettext("Soft drinks"), content: []},
+                        {category: 'juice', name: gettext("Juices"), content: []},
+                        {category: 'tea', name: gettext("Teas"), content: []},
+                        {category: 'hot_chocolate', name: gettext("Hot chocolates"), content: []},
+                        {category: 'water', name: pgettext('plural', "Water"), content: []},
+                        {category: 'drinks_other', name: gettext("Other"), content: []}
                     ]},
-                    {first: false, hascontent: false, name: "Food", content: [
-                        {category: 'fast_food', name: "Fast food", content: []},
-                        {category: 'pizza', name: "Pizza", content: []},
-                        {category: 'pasta', name: "Pasta", content: []},
-                        {category: 'appetizer', name: "Appetizers", content: []},
-                        {category: 'soup', name: "Soups", content: []},
-                        {category: 'meal', name: "Meals", content: []},
-                        {category: 'barbecue', name: "Barbecue", content: []},
-                        {category: 'seafood', name: "Seafood", content: []},
-                        {category: 'salad', name: "Salads", content: []},
-                        {category: 'dessert', name: "Desserts", content: []},
-                        {category: 'food_other', name: "Other", content: []}
+                    {first: false, hascontent: false, name: gettext("Food"), content: [
+                        {category: 'fast_food', name: pgettext('plural', "Fast food"), content: []},
+                        {category: 'pizza', name: gettext("Pizzas"), content: []},
+                        {category: 'pasta', name: gettext("Pastas"), content: []},
+                        {category: 'appetizer', name: gettext("Appetizers"), content: []},
+                        {category: 'soup', name: gettext("Soups"), content: []},
+                        {category: 'meal', name: gettext("Meals"), content: []},
+                        {category: 'barbecue', name: pgettext('plural', "Barbecue"), content: []},
+                        {category: 'seafood', name: pgettext('plural', "Seafood"), content: []},
+                        {category: 'salad', name: gettext("Salads"), content: []},
+                        {category: 'dessert', name: gettext("Desserts"), content: []},
+                        {category: 'food_other', name: gettext("Other"), content: []}
                     ]}
                 ];
                 return menu;
@@ -168,11 +168,26 @@ app
                         end(result);
                     }
                 ).$promise;
+            },
+            find: function (f, v, c, a) {
+                var e = false;
+                for (var j = 0; j < menu.length; j++) {
+                    for (var k = 0; k < menu[j].content.length; k++) {
+                        if (c === undefined || menu[j].content[k].category == c) for (var l = 0; l < menu[j].content[k].content.length; l++) if (menu[j].content[k].content[l][f] == v) {
+                            if (a) a(menu[j].content[k].content[l]);
+                            e = true;
+                            break;
+                        }
+                        if (e) break;
+                    }
+                    if (e) break;
+                }
+                return e;
             }
         }
     })
 
-    .controller('BusinessCtrl', function($rootScope, $scope, $timeout, $controller, $injector, $state, APIService, menuService, CONTENT_TYPES, reviewService, itemService) {
+    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $injector, $state, APIService, menuService, itemService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope,
@@ -194,48 +209,6 @@ app
                 }},
                 {name: 'reviews', func: function(){ $scope.objloaded[2] = true }}]}));
 
-        //$scope.name = angular.element('.lead.text-center.br2').text();
-        var likeService = APIService.init(3), loading;
-        $scope.doFavouriteAction = function () {
-            if (loading) return;
-            loading = true;
-            if ($scope.fav_state == 0) {
-                likeService.save({content_type: CONTENT_TYPES['business'], object_id: $scope.$parent.id},
-                    function () {
-                        $scope.fav_state = 1;
-                        $scope.fav_count++;
-                        $timeout(function() { loading = false });
-                    });
-            } else {
-                likeService.delete({content_type: CONTENT_TYPES['business'], id: $scope.$parent.id},
-                    function (){
-                        $scope.fav_state = 0;
-                        $scope.fav_count--;
-                        $timeout(function() { loading = false });
-                    });
-            }
-        };
-        /*$scope.$parent.$watch('rel_state', function (value) {
-            $scope.rel_state_msg = "Are you sure that you want to ";
-            if (value == 0) $scope.rel_state_msg += "set a favourite this business"; else $scope.rel_state_msg += "remove from favourites this business";
-            //$scope.rel_state_msg += ' <strong>'+$scope.name+'</strong>?'
-        })*/
-
-        $scope.submitReview = function () {
-            var el = angular.element('[name="forms.review"] [name="text"]'), cond;
-            cond = el.val().length < $scope.minchar ? 1 : 0;
-            if ($scope.forms.review_stars == 0) cond += 2;
-            if (cond > 0) {
-                $scope.forms.review.alert = cond;
-                if (cond == 1 || cond == 3) el.focus();
-                return;
-            } else $scope.forms.review.alert = 0;
-            reviewService.new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
-                $scope.showrevf = false;
-                $scope.rating.user = reviewService.getobjs(false, false)[0].stars;
-            });
-        };
-
         $scope.showItem = function (id){ $state.go('main.showObjs', {ids: id, type: 'item', ts: $scope.img !== undefined ? $scope.img[id].ts || 0 : 0}) };
 
         var workh;
@@ -244,62 +217,145 @@ app
             if ($scope.data.form !== undefined) {
                 for (var i = 0; i < h.length; i++) $scope.data.form[0][i] = moment(h[i], 'HH:mm').toDate();
                 for (; i < 7; i++) $scope.data.form[0][i] = new Date(0, 0, 0, i % 2 ? 0 : 8, 0);
-                $scope.$watch('data.tz', function (val, oldval){ if (val != oldval) $scope.ref_is_opened() });
                 workh = ['value', 'form'];
-                for (i = 0; i < 2; i++) {
-                    $scope.data[workh[i]][1] = arguments[1];
-                    $scope.data[workh[i]][3] = arguments[2];
-                }
-                $scope.data.form[4] = arguments[3];
-                $scope.data.form[2] = arguments[4];
+                for (i = 0; i < 2; i++) for (var j = 1; j < 5; j++) $scope.data[workh[i]][j] = arguments[j];
                 workh = $scope.data.value[0];
             } else workh = $scope.data.value;
             workh.push.apply(workh, h);
             $rootScope.$watch('currTime', $scope.ref_is_opened);
         };
         $scope.ref_is_opened = function (){
-            var now = moment().tz($scope.data.tz), day = now.weekday(), opened = moment.tz(day == 6 && workh.length >= 4 ? workh[2] : day == 7 && workh.length == 6 ? workh[4] : workh[0], 'HH:mm', $scope.data.tz).toDate(), closed = moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz).toDate();
-            now = now.toDate();
-            if (opened >= closed) if (opened > now) $scope.is_opened = now < closed; else $scope.is_opened = true; else $scope.is_opened = opened <= now && now < closed;
+            var now = moment().tz($scope.data.tz), day = now.weekday(), d = [moment.tz(day == 6 && workh.length >= 4 ? workh[2] : day == 7 && workh.length == 6 ? workh[4] : workh[0], 'HH:mm', $scope.data.tz), moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz)];
+            day = now.date();
+            for (var i = 0; i < 2; i++) if (day > d[i].date()) d[i].add(day - d[i].date(), 'days'); else if (d[i].date() > day) d[i].subtract(d[i].date() - day, 'days');
+            if (d[1].isBefore(d[0]) || d[1].isSame(d[0])) if (now.isBefore(d[0])) $scope.is_opened = now.isBefore(d[1]); else $scope.is_opened = true; else $scope.is_opened = now.isBefore(d[1]) && (d[0].isBefore(now) || d[0].isSame(now));
         };
 
-        // Manager
-        if (angular.element('.img_p').length == 0) {
+        var services;
+        // Not manager
+        if (!OWNER_MANAGER) {
             $scope.data = {value: [], tz: undefined};
+            //$scope.name = angular.element('.lead.text-center.br2').text();
+            var likeService = APIService.init(3), loading;
+            services = [$injector.get('$timeout'), $injector.get('CONTENT_TYPES')['business'], $injector.get('reviewService')];
+            $scope.doFavouriteAction = function () {
+                if (loading) return;
+                loading = true;
+                if ($scope.fav_state == 0) {
+                    likeService.save({content_type: services[1], object_id: $scope.$parent.id},
+                        function () {
+                            $scope.fav_state = 1;
+                            $scope.fav_count++;
+                            services[0](function() { loading = false });
+                        });
+                } else {
+                    likeService.delete({content_type: services[1], id: $scope.$parent.id},
+                        function (){
+                            $scope.fav_state = 0;
+                            $scope.fav_count--;
+                            services[0](function() { loading = false });
+                        });
+                }
+            };
+            /*$scope.$parent.$watch('rel_state', function (value) {
+                $scope.rel_state_msg = "Are you sure that you want to ";
+                if (value == 0) $scope.rel_state_msg += "set a favourite this business"; else $scope.rel_state_msg += "remove from favourites this business";
+                //$scope.rel_state_msg += ' <strong>'+$scope.name+'</strong>?'
+            })*/
+
+            $scope.submitReview = function () {
+                var el = angular.element('[name="forms.review"] [name="text"]'), cond;
+                cond = el.val().length < $scope.minchar ? 1 : 0;
+                if ($scope.forms.review_stars == 0) cond += 2;
+                if (cond > 0) {
+                    $scope.forms.review.alert = cond;
+                    if (cond == 1 || cond == 3) el.focus();
+                    return;
+                } else $scope.forms.review.alert = 0;
+                services[2].new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
+                    $scope.showrevf = false;
+                    $scope.rating.user = services[2].getobjs(false, false)[0].stars;
+                });
+            };
             return;
         }
+
+        // Manager
         $scope.data = $injector.get('editData');
-        var services = [$injector.get('dialogService'), $injector.get('$uibModal'), $injector.get('BASE_MODAL')];
+        services = [$injector.get('dialogService'), $injector.get('$uibModal'), $injector.get('BASE_MODAL')];
 
         //$rootScope.$watch('currTime', function (val){ if (val !== undefined) });
-        $scope.s = APIService.init(13);
+        var s = APIService.init(13);
+        $scope.s = s;
+        function showerr(msg){
+            services[0].show(msg, false);
+            $scope.form[2] = '';
+            return true;
+        }
         $scope.doAction = function (){
             $scope.execA(null, ['type', 'name', 'shortname'], undefined, undefined, function (result){
-                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k in result.data) if (k == 'shortname') {
-                    services[0].show("Specified shortname is already taken.", false);
-                    return true;
-                }
+                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k in result.data) if (k == 'shortname') return showerr(gettext("Specified shortname is already taken."));
             }, function () {
-                /*if (!/^[\w.-]+$/.test($scope.edit.form[2])) {
-                    services[0].show("Specified shortname is invalid.", false);
-                    return true;
-                }*/
-                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k = 0; k < $scope.forbidden.length; k++) if ($scope.edit.form[2] == $scope.forbidden[k]) {
-                    services[0].show("Specified shortname is not permitted.", false);
-                    return true;
-                }
+                //if (!/^[\w.-]+$/.test($scope.edit.form[2])) showerr("Specified shortname is invalid.");
+                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k = 0; k < $scope.forbidden.length; k++) if ($scope.edit.form[2] == $scope.forbidden[k]) return showerr(gettext("Specified shortname is not permitted."));
             });
         };
+
         $scope.openEdit = function (){
-            services[1].open({size: 'md', windowClass: 'ai', templateUrl: services[2], controller: function ($scope, $controller, $uibModalInstance, editData){
+            services[1].open({size: 'md', windowClass: 'ai', templateUrl: services[2], controller: function ($rootScope, $scope, $controller, $uibModalInstance, editData, checkField, dialogService){
                 $scope.data = editData;
-                $scope.title = "Edit business info";
+                $scope.title = gettext("Edit business info");
                 $scope.file = '../../../edit';
                 angular.extend(this, $controller('ModalCtrl', {$scope: $scope, $uibModalInstance: $uibModalInstance}), $controller('CreateCtrl', {$scope: $scope}));
 
+                function disablef(d) {
+                    $scope.data.disabled = d;
+                    $scope.map.marker.options.draggable = !d;
+                }
                 $scope.doSave = function (){
-                    //...
+                    var d = {};
+                    if (checkField($scope.data, 1)) d['phone'] = $scope.data.form[1];
+                    for (var i = 0; i < $scope.data.form[2].length; i++) if ($scope.data.form[2][i] == $scope.data.curr) {
+                        $scope.data.form[2].splice(i, 1);
+                        break;
+                    }
+                    if (checkField($scope.data, 2)) d['supported_curr'] = $scope.data.form[2];
+                    if (checkField($scope.data, 3) || checkField($scope.data, 4)) {
+                        d['address'] = $scope.data.form[3];
+                        d['location'] = $scope.data.form[4];
+                    }
+                    var a = [0], p = ['phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'], r;
+                    function f(v){ return moment(v).format('HH:mm') }
+                    for (i = 0; i < 6; i++) if (i < 2 || $scope.work[i < 4 ? 0 : 1]) {
+                        a[1] = i;
+                        r = checkField($scope.data, a, false, f);
+                        if (r) d[p[i+4]] = r;
+                    }
+                    if (Object.keys(d).length == 0) {
+                        $scope.close();
+                        return;
+                    }
+                    disablef(true);
+                    s.partial_update(d, function () {
+                        $scope.data.error = false;
+                        a = Object.keys(d);
+                        for (i = 0; i < a.length; i++) {
+                            r = p.indexOf(a[i]);
+                            if (r < 4) $scope.data.value[r+1] = $scope.data.form[r+1]; else $scope.data.value[0][r-4] = d[a[i]];
+                        }
+                        if (d.address !== undefined || d.location !== undefined || r >= 4) {
+                            //$scope.data.tz = result['tz']; //enable
+                            $rootScope.currTime = new Date();
+                        }
+                        $scope.close();
+                    }, function (result) {
+                        if (result.data.phone !== undefined) {
+                            $scope.data.form[1] = '';
+                            dialogService.show(gettext("The phone number entered is not valid."), false);
+                        }
+                        disablef(false);
+                    });
                 };
-            }});
+            }}).result.finally(function (){ $scope.data.disabled = false });
         };
     });

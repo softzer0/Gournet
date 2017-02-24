@@ -1,4 +1,5 @@
 {% extends 'base/view.html' %}
+{% load i18n %}
 
 {% block head %}{{ block.super }}
     {% comment %}<style>
@@ -9,15 +10,15 @@
             margin: 13px;
         }</style>{% endcomment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.11/moment-timezone-with-data-2010-2020.min.js"></script>
-    {% load staticfiles %}<script src="{% static 'main/js/custom/view.js' %}"></script>
-{% if fav_state == -1 %}{% include 'base/home_extra.html' %}
+    {% load staticfiles %}<script src="{% static 'main/js/custom/view.js' %}"></script>{% if fav_state == -1 %}
+    {% include 'base/home_extra.html' %}
     <script src="{% static 'main/js/custom/manager.js' %}"></script>
     <script src="{% static 'main/js/custom/map.js' %}"></script>
     <script src="{% static 'main/js/custom/create.js' %}"></script>{% endif %}{% endblock %}
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ business.id }}"{% endblock %}
 
-{% block rowatt %}ng-controller="BusinessCtrl" ng-init="fav_count = {{ fav_count }}; fav_state = {{ fav_state }}; minchar = {{ minchar }}"{% endblock %}
+{% block rowatt %}ng-controller="BusinessCtrl" ng-init="minchar = {{ minchar }}{% if fav_state > -1 %}; fav_count = {{ fav_count }}; fav_state = {{ fav_state }}{% endif %}"{% endblock %}
 
 {% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% load getextend %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened({{ business.type }}, '{{ business.name }}', '{{ business.shortname }}')">
                         <a class="n lead text-center" ng-show="edit.disabled" ng-click="edit.disabled = false">{% verbatim %}{{ types[edit.value[0]] }} "{{ edit.value[1] }}"{% endverbatim %}</a>
@@ -27,13 +28,13 @@
                                     <div class="ulh"><ul class="nya-bs-select" ng-model="edit.form[0]">
                                         <li nya-bs-option="t in types" data-value="$index"><a>{% verbatim %}{{ t }}{% endverbatim %}</a></li>
                                     </ul><div ng-show="edit.disabled == null"></div></div>
-                                    <div><input type="text" class="form-control" ng-disabled="edit.disabled == null" ng-model="edit.form[1]"></div>
+                                    <div><input type="text" class="form-control" ng-disabled="edit.disabled == null" ng-model="edit.form[1]" maxlength="60"></div>
                                 </div>
                             </div>
                             <div>
                                 <div>
-                                    <label for="shortname">Shortname:</label>
-                                    <div><input name="shortname" type="text" pattern="^[\w.-]+$" class="form-control" ng-disabled="edit.disabled == null" ng-model="edit.form[2]"></div>
+                                    <label for="shortname">{% trans "Shortname:" %}</label>
+                                    <div><input name="shortname" type="text" pattern="^[\w.-]+$" class="form-control" ng-disabled="edit.disabled == null" ng-model="edit.form[2]" maxlength="30"></div>
                                 </div>
                             </div>
                             <a class="fa fa-2x fa-check n text-center" ng-click="doAction()"></a>
@@ -44,31 +45,29 @@
 
 {% block other %}<li{% if business.manager != request.user %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" show-stats="true" readonly="true"{% else %}><span star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}" user-rating="-1"{% endif %}{% endif %}></span></li>
                         <li
-                            ><span ng-if="fav_count > 0"
-                                ><a href="javascript:" ng-click="showFavouritesModal()"
-                                    ><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong
-                                ></a> {% verbatim %}{{ fav_count > 1 ? "osobe su favorizovale" : "osoba je favorizovala" }}{% endverbatim %} ovo</span
-                            ><span ng-if="fav_count == 0"
-                                ><i class="fa fa-heart"></i> Niko nije favorizovao ovo</span
+                            >{% if fav_state > -1 %}<span ng-if="fav_count > 0" translate="fav_count"><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> person has favored this<br plural><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> persons have favored this</span
+                            ><span ng-if="fav_count == 0"><i class="fa fa-heart"></i> {% trans "Nobody favored this" %}</span
                         ></li>
-                        {% if fav_state > -1 %}<li
+                        <li
                             ><a href="javascript:" {% comment %}ng-dialog-message="{% verbatim %}{{ fav_state_msg }}{% endverbatim %}" {% endcomment %}ng{% comment %}-dialog{% endcomment %}-click="doFavouriteAction()"
                                 ><span ng-if="fav_state == 0"
-                                    ><i class="fa fa-plus-square"></i> {% verbatim %}{{ fav_count > 0 ? "I meni je omiljeno" : "Meni je omiljeno" }}{% endverbatim %}</span
+                                    ><i class="fa fa-plus-square"></i> {{ '{' }}{{ '{' }} fav_count > 0 ? "{% trans "It's my favorite, too" %}" : "{% trans "It's my favorite" %}" {{ '}' }}{{ '}' }}</span
                                 ><span ng-if="fav_state == 1"
-                                    ><i class="fa fa-minus-square"></i> Nije mi više omiljeno</span
+                                    ><i class="fa fa-minus-square"></i> {% trans "It's not my favorite anymore" %}</span
                             ></a
-                        ></li>
-                        {% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>{% endcomment %}
+                        >{% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>
+                        {% endcomment %}{% else %}{% if fav_count > 0 %}<a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}</span>
+                        {% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
+                        {% endif %}</li>
                         {% endif %}<li>
                             <hr style="margin: 8px 13px 13px;">{% if fav_state == -1 %}
-                                <a href="javascript:" ng-click="openEdit()"><i class="fa fa-pencil"></i> Edit</a></li>
+                                <a href="javascript:" ng-click="openEdit()"><i class="fa fa-pencil"></i> {% trans "Edit" %}</a></li>
                             <li>{% endif %}
-                            <ul class="list-unstyled" ng-init="data.tz = 'Europe/Belgrade{% comment %}{{ business.tz }}{% endcomment %}'; set_data([{% for n in workh %}'{{ n }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% if fav_state == -1 %}, '{{ business.phone }}', '{{ business.address }}', '{{ business.location.coords.0 }},{{ business.location.coords.1 }}'{% if business.supported_curr %}, [{% for c in business.supported_curr %}'{{ c }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% endif %}{% endif %})">
-                                <li><b ng-class="is_opened ? 'text-success' : 'text-danger'">{% verbatim %}{{ is_opened ? 'Trenutno otvoreno' : 'Trenutno zatvoreno' }}{% endverbatim %}</b></li>
-                                <li><i class="fa fa-sign-in"></i> Radnim danima od {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][0] }}{% endverbatim %}{% else %}{{ workh.0 }}{% endif %} do {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][1] }}{% endverbatim %}{% else %}{{ workh.1 }}{% endif %}</li>{% if fav_state == -1 or workh.length >= 4 %}
-                                <li{% if fav_state == -1 %} ng-if="data.value[0].length >= 4"{% endif %}><i class="fa fa-sign-in"></i> Subotom od {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][2] }}{% endverbatim %}{% else %}{{ workh.2 }}{% endif %} do {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][3] }}{% endverbatim %}{% else %}{{ workh.3 }}{% endif %}</li>{% endif %}{% if fav_state == -1 or workh.length == 6 %}
-                                <li{% if fav_state == -1 %} ng-if="data.value[0].length == 6"{% endif %}><i class="fa fa-sign-in"></i> Nedeljom od {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][4] }}{% endverbatim %}{% else %}{{ workh.4 }}{% endif %} do {% if fav_state == -1 %}{% verbatim %}{{ data.value[0][5] }}{% endverbatim %}{% else %}{{ workh.5 }}{% endif %}</li>{% endif %}
+                            <ul class="list-unstyled" ng-init="data.tz = 'Europe/Belgrade{% comment %}{{ business.tz }}{% endcomment %}'; set_data([{% for n in workh.value %}'{{ n }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% if fav_state == -1 %}, '{{ business.phone }}', [{% for c in business.supported_curr %}'{{ c }}'{% if not forloop.last %}, {% endif %}{% endfor %}], '{{ business.address }}', '{{ business.location.coords.0 }},{{ business.location.coords.1 }}'{% endif %})">
+                                <li><b ng-class="is_opened ? 'text-success' : 'text-danger'">{{ '{' }}{{ '{' }} is_opened ? "{% trans "Currently opened" %}" : "{% trans "Currently closed" %}" {{ '}' }}{{ '}' }}</b></li>
+                                <li><i class="fa fa-sign-in"></i> {% blocktrans with wf=workh.display.0 wt=workh.display.1 %}Monday-Friday, from {{ wf }} to {{ wt }}{% endblocktrans %}</li>{% if fav_state == -1 or workh.length >= 4 %}
+                                <li{% if fav_state == -1 %} ng-if="data.value[0].length >= 4"{% endif %}><i class="fa fa-sign-in"></i> {% blocktrans with wf=workh.display.2 wt=workh.display.3 %}Saturday, from {{ wf }} to {{ wt }}{% endblocktrans %}</li>{% endif %}{% if fav_state == -1 or workh.length == 6 %}
+                                <li{% if fav_state == -1 %} ng-if="data.value[0].length == 6"{% endif %}><i class="fa fa-sign-in"></i> {% blocktrans with wf=workh.display.4 wt=workh.display.5 %}Sunday, from {{ wf }} to {{ wt }}{% endblocktrans %}</li>{% endif %}
                             </ul>
                         </li>
                         <li><ul class="list-unstyled">
@@ -77,14 +76,14 @@
                             </ul>
                         </li>{% endblock %}
 
-{% block content %}{% if not business.is_published %}                    <uib-alert id="unpub" type="warning">Your business won't be visible to others until you add some items to it.</uib-alert>
+{% block content %}{% if not business.is_published %}                    <uib-alert id="unpub" type="warning">{% trans "Your business won't be visible to others until you add some items to it." %}</uib-alert>
 
-                    {% endif %}<uib-tab index="0" heading="Events">
+                    {% endif %}<uib-tab index="0" heading="{% trans "Events" %}">
 {% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="EventCtrl">
 							<form name="forms.event" ng-submit="submitEvent()" class="frm form-vertical">
-                                <uib-alert class="mpd" type="danger" close="forms.event.alert = false" ng-if="forms.event.alert">Please enter a message with {{ minchar }} or more characters.</uib-alert>
+                                <uib-alert class="mpd" type="danger" close="forms.event.alert = false" ng-if="forms.event.alert">{% blocktrans with m=minchar %}Please enter text with {{ m }} or more characters.{% endblocktrans %}</uib-alert>
                                 <div class="form-group" ng-class="{'has-error': forms.event.alert}">
-								    <textarea name="text" class="form-control" rows="3" required></textarea>
+								    <textarea name="text" class="form-control" rows="3" required maxlength="1000"></textarea>
                                 </div>
                                 <p class="input-group" style="width: 250px;">
                                     <input type="hidden" datetime-picker="dd.MM.yyyy HH:mm" datepicker-options="picker.options" ng-model="picker.date" is-open="picker.open">
@@ -93,28 +92,28 @@
                                         <button type="button" class="btn btn-default" ng-click="picker.open = true"><i class="fa fa-calendar"></i></button>
                                     </span>
                                 </p>
-								<input type="submit" class="btn btn-primary" value="Submit">
+								<input type="submit" class="btn btn-primary" value="{% trans "Submit" %}">
 							</form>
 						</div>
 
 {% endif %}                        <div class="mn1 vi" ng-init="t = 'event'" ng-if="objloaded[0] || active == 0" ng-include="'/static/main/events.html'"></div>
                     </uib-tab>
 
-                    <uib-tab index="1" heading="Menu">
+                    <uib-tab index="1" heading="{% trans "Menu" %}">
 {% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="ItemCtrl">
 							<form name="forms.item" ng-submit="submitItem()" class="frm form-vertical">
-                                <uib-alert class="mpd" type="danger" close="forms.item.alert = undefined" ng-if="forms.item.alert !== undefined">Please enter a valid name (it {% verbatim %}{{ forms.item.alert === true ? "must have minimum 2 characters" : "conflicts with the existing item" }}{% endverbatim %}).</uib-alert>
+                                <uib-alert class="mpd" type="danger" close="forms.item.alert = undefined" ng-if="forms.item.alert !== undefined">{{ '{' }}{{ '{' }} forms.item.alert === true ? "{% trans "Name must must have minimum 2 characters." %}" : "{% trans "Name conflicts with the existing item." %}" {{ '}' }}{{ '}' }}</uib-alert>
                                 <div class="form-group" ng-class="{'has-error': forms.item.alert !== undefined}">
-                                    <input name="name" type="text" class="form-control" required>
+                                    <input name="name" type="text" class="form-control" required maxlength="60">
                                 </div>
-                                <fieldset ng-init="$parent.curr = ['{{ business.currency }}', '{{ business.currency }}', '{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}']">
-                                    <select class="form-control" ng-model="$parent.curr[1]" ng-change="changedCurr()">{% for c in curr %}
+                                <fieldset ng-init="$parent.data.curr = '{{ business.currency }}'; $parent.curr = ['{{ business.currency }}', '{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}']">
+                                    <select class="form-control" ng-model="$parent.curr[0]" ng-change="changedCurr()">{% for c in curr %}
                                         <option value="{{ c.0 }}">{{ c.1 }}</option>{% endfor %}
                                     </select>
                                     <span><input type="number" name="price" step="0.01" min="0" class="form-control" required></span>
                                 </fieldset>
                                 {% load bootstrap3 %}{% bootstrap_field form.cat %}
-								<input type="submit" class="btn btn-primary" value="Submit">
+								<input type="submit" class="btn btn-primary" value="{% trans "Submit" %}">
 							</form>
 						</div>
 
@@ -141,14 +140,14 @@
                                                     ><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div>
                                                 </td>
                                                 <td><div{% if fav_state == -1 %} class="inline" ng-init="edit_i[i.id] = {form: i.price, disabled: true}" click-outside="co(edit_i[i.id], 'disabled')">
-                                                    <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="edit_i[i.id].disabled = false"{% endif %}>{% verbatim %}{{ (i.converted || i.price)|currency:'' }}{% endverbatim %} {% if fav_state == -1 %}{% verbatim %}{{ curr[2] }}{% endverbatim %}</a>
+                                                    <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="edit_i[i.id].disabled = false"{% endif %}>{% verbatim %}{{ (i.converted || i.price)|currency:'' }}{% endverbatim %} {% if fav_state == -1 %}{% verbatim %}{{ curr[1] }}{% endverbatim %}</a>
                                                     <div ng-hide="edit_i[i.id].disabled">
                                                         <div>
                                                             <div>
                                                                 <div>
                                                                     <div class="input-group">
                                                                         <input type="number" step="0.01" min="0" class="form-control" string-to-number ng-model="edit_i[i.id].form" ng-disabled="edit_i[i.id].disabled == null">
-                                                                        <span class="input-group-addon" ng-bind="curr[0]"></span>
+                                                                        <span class="input-group-addon" ng-bind="data.curr"></span>
                                                                     </div>
                                                                 </div>
                                                                 <a class="fa fa-check n clickable text-center" ng-show="edit_i[i.id].disabled === false" ng-click="doIAction(i)"></a>
@@ -165,15 +164,15 @@
                         </div>
 					</uib-tab>
 
-                    <uib-tab index="2" heading="Reviews">
+                    <uib-tab index="2" heading="{% trans "Reviews" %}">
 {% if fav_state != -1 %}						<div ng-if="showrevf" class="well bs-component clearfix wp">
 							<form name="forms.review" ng-submit="submitReview()" class="frm form-vertical">
-                                <uib-alert class="mpd" type="danger" close="forms.review.alert = 0" ng-if="forms.review.alert > 0">{% verbatim %}{{ forms.review.alert != 2 ? "Please enter a message with "+minchar+" or more characters." : '' }} {{ forms.review.alert != 1 ? "Please select how many stars you give." : '' }}{% endverbatim %}</uib-alert>
+                                <uib-alert class="mpd" type="danger" close="forms.review.alert = 0" ng-if="forms.review.alert > 0">{{ '{' }}{{ '{' }} forms.review.alert != 2 ? "{% blocktrans %}Please enter a message with "+minchar+" or more characters.{% endblocktrans %}" : '' {{ '}' }}{{ '}' }} {{ '{' }}{{ '{' }} forms.review.alert != 1 ? "{% trans "Please select how many stars you give." %}" : '' {{ '}' }}{{ '}' }}</uib-alert>
                                 <div class="form-group" ng-class="{'has-error': forms.review.alert == 1 || forms.review.alert == 3}">
-								    <textarea name="text" class="form-control" rows="3" required></textarea>
+								    <textarea name="text" class="form-control" rows="3" required maxlength="1000"></textarea>
                                 </div>
                                 <div class="mpd" star-rating="forms.review_stars" user-rating="forms.review_stars"></div>
-								<input type="submit" class="btn btn-primary" value="Submit">
+								<input type="submit" class="btn btn-primary" value="{% trans "Submit" %}">
 							</form>
 						</div>
 
