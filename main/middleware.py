@@ -1,25 +1,30 @@
 from pytz import timezone as pytz_timezone
-from django.utils.timezone import activate, deactivate
-from django.utils.translation import activate as translation_activate, get_language
-from django.middleware.locale import LocaleMiddleware
+from django.utils.timezone import activate as tz_activate
+from django.utils.translation import activate as lang_activate, get_language
+from django.conf import settings
 
-class TimezoneLocaleMiddleware(LocaleMiddleware):
+class TimezoneLocaleMiddleware:
     def process_request(self, request):
         if request.user.is_authenticated():
             tzname = request.session.get('timezone')
             if tzname:
-                activate(pytz_timezone(tzname))
+                tz_activate(pytz_timezone(tzname))
             else:
-                activate(request.user.tz)
-            translation_activate(request.user.language)
-            request.LANGUAGE_CODE = get_language()
+                tz_activate(request.user.tz)
+            lang_activate(request.user.language)
+            request.LANGUAGE_CODE = request.user.language
         else:
-            super().process_request(request)
-            deactivate()
+            lang = request.GET.get('lang')
+            if not lang:
+                lang = request.session.get('language')
+                if not lang:
+                    lang = settings.LANGUAGE_CODE
+                    request.session['language'] = lang
+            else:
+                request.session['language'] = lang
+            lang_activate(lang)
 
     def process_response(self, request, response):
-        if not hasattr(request, 'user') or not request.user.is_authenticated():
-            return super().process_response(request, response)
         if 'Content-Language' not in response:
-            response['Content-Language'] = get_language()
+            response['Content-Language'] = getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
         return response

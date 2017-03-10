@@ -3,7 +3,8 @@
 {% load i18n %}
 
 {% block title %}{% trans "Welcome to Gournet" %}{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">
+{% block head %}{{ block.super }}
+    <link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">
     <style>
         body {
             padding-top: 80px;
@@ -11,15 +12,15 @@
 
         .jumbotron {
             margin-bottom: 0;
-        }
+        }{% comment %}
 
-        /*.navbar-collapse.collapse {
+        .navbar-collapse.collapse {
             display: block;
         }
 
         .navbar-nav.navbar-right:last-child {
             margin-right: -15px !important;
-        }*/
+        }{% endcomment %}
     </style>{% endblock %}
 
 {% block navbar %}<div class="navbar-collapse collapse in" id="navbar-main">

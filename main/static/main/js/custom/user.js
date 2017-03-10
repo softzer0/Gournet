@@ -14,7 +14,7 @@ app
         }
 
         // Owner
-        $scope.setED = function (val){ $scope.edit.push({value: new Date(val), disabled: true, form: {value: new Date(val), options: {minDate: new Date('1927'), maxDate: new Date('2016')}, opened: false}}) };
+        $scope.setED = function (val){ $scope.edit.push({value: new Date(val), disabled: true, form: {value: new Date(val), options: {minDate: new Date('1927'), maxDate: new Date('2003')}, opened: false}}) };
         $scope.s = APIService.init(12);
         function zeroPad(num) { //, places
             var zero = 3 - num.toString().length; //places - (...) + 1

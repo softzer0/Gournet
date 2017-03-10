@@ -26,7 +26,7 @@ if (window.location.pathname == '/my-business/') { //important
     });
 }
 app
-    .config(function(uiGmapGoogleMapApiProvider) { uiGmapGoogleMapApiProvider.configure({libraries: 'visualization', lang: LANG}) }) //, api: 'APIKEY'
+    .config(function(uiGmapGoogleMapApiProvider) { uiGmapGoogleMapApiProvider.configure({libraries: 'visualization', language: LANG}) }) //, api: 'APIKEY' //add
 
     .controller('CreateCtrl', function ($scope, $controller, $timeout, $injector, USER) {
         $scope.work = [];

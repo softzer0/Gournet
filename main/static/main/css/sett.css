@@ -1,17 +1,3 @@
-.modal-header {
-    padding-bottom: 5px;
-}
-
-.modal-header h3 {
-    margin: 0;
-    display: inline;
-}
-
-.modal-header .close {
-    font-size: 30px;
-    margin-top: -5px;
-}
-
 .sett .form-control {
     width: 250px;
 }

@@ -20,7 +20,8 @@ from multiselectfield import MultiSelectField
 from timezone_field import TimeZoneField
 from sys import argv
 from timezonefinder import TimezoneFinder
-from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, activate as translation_activate
+from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, activate as lang_activate
+from django.utils.functional import lazy
 
 TF_OBJ = TimezoneFinder()
 IS_SERVER = len(argv) == 1 or argv[1] not in ('makemigrations', 'migrate')
@@ -97,7 +98,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         _("username"),
         max_length=30,
         unique=True,
-        help_text=string_concat(_("Maximum %d characters.") % 30, ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
+        help_text=string_concat(lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name],
         error_messages={'unique': _("A user with that username already exists.")},
     )
@@ -119,7 +120,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     gender_changed = models.BooleanField(default=False)
     birthdate_changed = models.BooleanField(default=False)""" #enable
 
-    currency = models.CharField(_("default currency"), choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
+    currency = models.CharField(choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
     language = models.CharField(choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
     tz = TimeZoneField(default=settings.TIME_ZONE) #del
 
@@ -137,6 +138,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         default=True,
         help_text=_("Designates whether this user should be treated as active. Unselect this instead of deleting accounts."),
     )
+    #is_manager = models.BooleanField(default=False) #enable
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     objects = MyUserManager()
@@ -147,8 +149,8 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     class Meta:
         swappable = 'AUTH_USER_MODEL'
         ordering = ['username', 'first_name', 'last_name']
-        verbose_name = _("user")
-        verbose_name_plural = _("users")
+        """verbose_name = _("user")
+        verbose_name_plural = _("users")"""
 
     def save(self, *args, **kwargs):
         self.first_name = self.first_name.capitalize()
@@ -204,7 +206,7 @@ def relationship_save_notification(instance, **kwargs):
         return
     #instance.full_clean()
     text = '<strong>'+instance.from_person.first_name+' '+instance.from_person.last_name+'</strong> '
-    translation_activate(instance.to_person.language)
+    lang_activate(instance.to_person.language)
     try:
         rel = Relationship.objects.get(from_person=instance.to_person, to_person=instance.from_person)
     except:
@@ -222,7 +224,7 @@ def relationship_delete_notification(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
 
-FORBIDDEN = ('admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'i18n', 'upload', 'edit.html') # important
+FORBIDDEN = ('contact', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
 def not_forbidden(value):
     if value in FORBIDDEN:
         raise ValidationError(ugettext("\"%s\" is not permitted as a shortname.") % value)
@@ -241,13 +243,13 @@ class Business(Loc):
         _("shortname"),
         max_length=30,
         unique=True,
-        help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>http://gournet.co/shortname</u>."), '\n', _("Maximum 30 characters."), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
+        help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>http://gournet.co/shortname</u>."), '\n', lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name, not_forbidden]
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)
-    type = models.SmallIntegerField(choices=BUSINESS_TYPE, default=0)
-    name = models.CharField(max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', _("Enter a valid business name."))])
-    phone = PhoneNumberField(_("phone number"), help_text=_("In national format, e.g: 017448739."))
+    type = models.SmallIntegerField(_("type"), choices=BUSINESS_TYPE, default=0)
+    name = models.CharField(_("first name"), max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', _("Enter a valid business name."))])
+    phone = PhoneNumberField(_("phone number")) #, help_text=_("In national format, e.g: 017448739.")
     opened = models.TimeField(_("opening time"), default=datetime.time(8, 0))
     opened_sat = models.TimeField(_("opening time on Saturday"), null=True, blank=True)
     opened_sun = models.TimeField(_("opening time on Sunday"), null=True, blank=True)
@@ -255,15 +257,15 @@ class Business(Loc):
     closed_sat = models.TimeField(_("closing time on Saturday"), null=True, blank=True)
     closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
     currency = models.CharField(_("default currency"), choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
-    supported_curr = MultiSelectField("other supported currencies (if any)", choices=CURRENCY, null=True, blank=True, max_length=3)
+    supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True, max_length=3)
     is_published = models.BooleanField(default=False)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
 
     objects = BusinessManager()
 
-    class Meta:
-        verbose_name = _("business")
+    """class Meta:
+        verbose_name = _("business")"""
 
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
@@ -286,8 +288,8 @@ class Event(models.Model):
 
     class Meta:
         ordering = ['-when', '-pk']
-        verbose_name = _("event")
-        verbose_name_plural = _("events")
+        """verbose_name = _("event")
+        verbose_name_plural = _("events")"""
 
     def __str__(self):
         return 'Event #%d on business #%d' % (self.pk, self.business_id)
@@ -309,7 +311,7 @@ CATEGORY = (
             ('wine', _("Wine")),
             ('beer', _("Beer")),
             ('vodka', _("Vodka")),
-            ('brandy', _("Brandy")),
+            ('brandy', pgettext_lazy('singular', "Brandy")),
             ('liqueur', _("Liqueur")),
             ('cocktail', _("Cocktail")),
             ('tequila', _("Tequila")),
@@ -357,8 +359,8 @@ class Item(models.Model):
         ordering = ['business', 'category', 'name', 'price']
         unique_together = (('business', 'name'),)
         #ordering = ['category', 'name', 'price']
-        verbose_name = _("item")
-        verbose_name_plural = _("items")
+        """verbose_name = _("item")
+        verbose_name_plural = _("items")"""
 
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
@@ -396,8 +398,8 @@ class Comment(CT):
 
     class Meta:
         ordering = ['-created']
-        verbose_name = _("review")
-        verbose_name_plural = _("reviews")
+        verbose_name = "review"
+        verbose_name_plural = "reviews"
 
     def __str__(self):
         return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != settings.CONTENT_TYPE['comment'] else 'review', self.object_id)

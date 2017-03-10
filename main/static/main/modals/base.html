@@ -8,6 +8,6 @@
     <div class="loa loa-c" ng-if="modal_loaded != true"><i class="fa fa-spinner fa-2x"></i></div>
 </div>
 
-<div class="modal-footer" ng-if="event !== undefined">
-    <button ng-if="!working" class="btn btn-primary" ng-click="sendNotify()" ng-disabled="sel_cnt == 0">{{ "Notify (%s)" | translate:sel_cnt }}</button><b ng-if="working">{{ "Working..." | translate }}</b>
+<div class="modal-footer" ng-if="button_text !== undefined">
+    <button ng-if="!working" class="btn btn-primary" ng-click="doAction()" ng-disabled="check_disabled()">{{ button_text | translate:sel_cnt }}</button><b ng-if="working">{{ "Working..." | translate }}</b>
 </div>

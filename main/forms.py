@@ -4,11 +4,12 @@ from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 from geopy import GoogleV3
 from django.contrib.gis.geos import fromstr, Point
 from rest_framework.serializers import ValidationError
-from django.utils.translation import ugettext as _, ugettext_lazy as _l, pgettext
+from django.utils.translation import ugettext as _, ugettext_lazy, pgettext, get_language
+from captcha.fields import ReCaptchaField
 
-SHORTNAME_EXISTS_MSG = _l("A business with that shortname already exists.")
-COORDINATES_NOT_FOUND_MSG = _l("Either coordinates for specified address are not found, or there's some internal error.")
-GOOGLEV3_OBJ = GoogleV3() #api=
+SHORTNAME_EXISTS_MSG = ugettext_lazy("A business with that shortname already exists.")
+COORDINATES_NOT_FOUND_MSG = ugettext_lazy("Either coordinates for specified address are not found, or there's some internal error.")
+GOOGLEV3_OBJ = GoogleV3() #api= #add
 
 def clean_loc(self, cleaned_data, noloc=False, retraw=False):
     loc = cleaned_data.get('location', False) if not noloc else False
@@ -60,7 +61,7 @@ class BaseForm(forms.ModelForm):
        'ng-change': 'geocode(true)',
        'ng-model-options': '{updateOn: \'default blur\', debounce: {default: 1000, blur: 0}}'
     }))
-    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$', label=Loc.location.field_name.capitalize())
+    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$')
 
     class Meta:
         fields = ('phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun')
@@ -77,12 +78,14 @@ class BaseForm(forms.ModelForm):
                 self.fields[f].widget.attrs['ng-disabled'] = 'data.disabled'
         else:
             self.fields['location'].widget.attrs['ng-initial'] = ''
-        self.fields['phone'].widget.attrs['title'] = ''
+        for f in ('phone', 'location'):
+            self.fields[f].widget.attrs['title'] = ''
         self.fields['address'].widget.attrs['ng-model'] = 'data.form[3]' if not_b else 'address'
+        for f in ('address', 'location'):
+            self.fields[f].label = Loc._meta.get_field(f).verbose_name.capitalize()
         self.fields['location'].widget.attrs['geom_type'] = ''
         self.fields['location'].widget.attrs['ng-model'] = 'data.form[4]' if not_b else 'location'
         self.fields['location'].widget.attrs['readonly'] = True
-        self.fields['location'].widget.attrs['title'] = ''
         self.fields['location'].help_text = _("You have to adjust the exact location using the map with a marker below.")
         for i, f in enumerate(tuple(('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'))):
             self.fields[f].widget.attrs['value'] = ''
@@ -109,16 +112,24 @@ class BusinessForm(BaseForm):
         super().__init__(*args, **kwargs)
         self.fields['type'].label = _("Type of your business")
         self.fields['name'].label = pgettext("name of business", "Its name")
-        self.fields['name'].widget.attrs['placeholder'] = Business.name.field_name.capitalize()
+        self.fields['name'].widget.attrs['placeholder'] = Business._meta.get_field('name').verbose_name.capitalize()
         self.fields['name'].widget.attrs['ng-model'] = 'name'
-        self.fields['name'].widget.attrs['ng-initial'] = ''
+        for f in ('name', 'shortname', 'address'):
+            self.fields[f].widget.attrs['ng-initial'] = ''
         self.fields['name'].widget.attrs['ng-change'] = 'genshort()'
-        self.fields['shortname'].label = "Shortname (a part of the URL)"
-        self.fields['shortname'].widget.attrs['placeholder'] = Business.shortname.field_name.capitalize()
+        self.fields['shortname'].label = _("Shortname (a part of the URL)")
+        self.fields['shortname'].widget.attrs['placeholder'] = Business._meta.get_field('shortname').verbose_name.capitalize()
         self.fields['shortname'].widget.attrs['title'] = ''
         self.fields['shortname'].widget.attrs['ng-model'] = 'shortname'
-        self.fields['shortname'].widget.attrs['ng-initial'] = ''
-        self.fields['address'].widget.attrs['ng-initial'] = ''
 
     def clean(self):
         business_clean_data(self, super().clean())
+
+class CaptchaForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['captcha'] = ReCaptchaField(attrs={'lang': get_language()})
+
+class ContactForm(CaptchaForm):
+    email = forms.EmailField(label=ugettext_lazy("Send replies to"), widget=forms.widgets.TextInput(attrs={'placeholder': ugettext_lazy("E-mail Address")}))
+    message = forms.CharField(label=ugettext_lazy("Message"), min_length=20, widget=forms.widgets.Textarea(attrs={'rows': 10, 'placeholder': ugettext_lazy("Enter message here...")}))

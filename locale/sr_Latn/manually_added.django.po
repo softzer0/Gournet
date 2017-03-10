@@ -1,0 +1,37 @@
+#: main/views.py:385
+#, python-format
+#| msgctxt "commented on"
+#| msgid "your ."
+#| msgid_plural "your %d ."
+#| msgstr[0] ""
+#| msgstr[1] ""
+
+#: main/views.py:392
+#, python-format
+msgctxt "commented on"
+msgid "your event"
+msgid_plural "your %d events"
+msgstr[0] "Vaš %d događaj"
+msgstr[1] "Vaša %d događaja"
+msgstr[2] "Vaših %d događaja"
+
+#: main/views.py:392
+#, python-format
+msgctxt "commented on"
+msgid "your item"
+msgid_plural "your %d items"
+msgstr[0] "Vaš %d proizvod"
+msgstr[1] "Vaša %d proizvoda"
+msgstr[2] "Vaših %d proizvoda"
+
+#: main/views.py:392
+#, python-format
+msgctxt "commented on"
+msgid "your review"
+msgid_plural "your %d reviews"
+msgstr[0] "Vašu %d recenziju"
+msgstr[1] "Vaše %d recenzije"
+msgstr[2] "Vaših %d recenzija"
+
+msgid "Enter a valid email address."
+msgstr "Unesite validnu email adresu."

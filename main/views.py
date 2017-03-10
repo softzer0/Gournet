@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_protect
 from rest_framework.exceptions import NotFound #, MethodNotAllowed
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
+from stronghold.views import StrongholdPublicMixin
 from allauth.account import views
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -39,7 +40,9 @@ from pytz import common_timezones
 from json import dumps
 from PIL import Image
 from .thumbs import saveimgwiththumbs
-from django.utils.translation import ungettext as _p, ugettext as _
+from django.utils.translation import ungettext, ugettext as _, pgettext, npgettext
+from django.core.cache.utils import make_template_fragment_key
+from django.core.cache import cache
 
 User = get_user_model()
 
@@ -49,12 +52,20 @@ def home_index(request):
         return TemplateView.as_view(template_name='home.html')(request) # HomePageView.as_view()(request)
     return views.LoginView.as_view(template_name='index.html')(request) # IndexPageView.as_view()(request)
 
+class InfoView(StrongholdPublicMixin, TemplateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['file'] = 'home' if self.request.user.is_authenticated() else 'main'
+        return context
+
+def edit_view(request):
+    return render(request, 'create_extra.html', {'form': forms.BaseForm(), 'f': ['data.form[0]', ' || data.disabled', ' ng-disabled="data.disabled"']})
+
 
 def get_param_bool(param):
     return param and param in ('1', 'true', 'True', 'TRUE')
 
-def edit_view(request):
-    return render(request, 'create_extra.html', {'form': forms.BaseForm(), 'f': ['data.form[0]', ' || data.disabled', ' ng-disabled="data.disabled"']})
+
 
 @csrf_protect
 def i18n_view(request):
@@ -109,6 +120,19 @@ def upload_view(request, pk_b=None):
 
 
 @csrf_protect
+def contact_view(request):
+    file = 'home' if request.user.is_authenticated() else 'main'
+    if request.method == 'POST':
+        form = forms.ContactForm(data=request.POST)
+        if form.is_valid():
+            models.User.objects.get(username='user').email_user(form.cleaned_data['email'], form.cleaned_data['message']) #repl user with mikisoft
+            return render(request, 'contact_sent.html', {'file': file})
+    else:
+        form = forms.ContactForm()
+    return render(request, 'contact.html', {'form': form, 'file': file})
+
+
+@csrf_protect
 def create_business(request):
     try:
         b = models.Business.objects.get(manager=request.user)
@@ -126,6 +150,8 @@ def create_business(request):
         form = forms.BusinessForm(data=request.POST)
         if form.is_valid():
             models.Business.objects.create(**form.cleaned_data)
+            request.user.is_manager = True
+            request.user.save()
             return redirect('/'+form.cleaned_data['shortname']+'/')
     else:
         form = forms.BusinessForm()
@@ -165,9 +191,10 @@ def show_business(request, shortname):
         data['workh']['display'] = data['workh']['value']
     else:
         data['fav_state'] = -1
-        data['form'] = forms.DummyCategory()
-        data['edit_data'] = {'types': models.BUSINESS_TYPE, 'forbidden': models.FORBIDDEN}
-        data['curr'] = models.CURRENCY
+        if not cache.get(make_template_fragment_key('e')):
+            data['edit_data'] = {'types': models.BUSINESS_TYPE, 'forbidden': models.FORBIDDEN}
+            data['curr'] = models.CURRENCY
+            data['form'] = forms.DummyCategory()
         data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
     return render(request, 'view.html', data)
@@ -373,52 +400,27 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
     def create_notif(self, txt, pks, created):
         self.request.user.notification_set.add(models.Notification(text=txt[0], link='#/show='+','.join(str(v) for v in pks)+'&type='+txt[1], created=created), bulk=False)
 
-    def gen_person(self, person):
-        return
-
     def add_notif(self, curr, created):
         txt = {}
         if len(curr['persons']) == 1:
             txt['name'] = '<a href="/user/%s/"><i>%s %s</i></a>' % (curr['persons'][0].username, curr['persons'][0].first_name, curr['persons'][0].last_name)
-        if curr['typ'] is not None or curr['typ'] != 2 and len(curr['pks']) > 1:
+        if curr['typ'] is None or curr['typ'] == 1 and len(curr['pks']) > 1:
             txt['count'] = len(curr['pks'])
         if curr['typ'] is not None:
-            if curr['typ'] != 1:
-                txt['target'] = curr['ct'].model_class()._meta.verbose_name if curr['typ'] != 2 else models.Business._meta.verbose_name
-            if len(curr['persons']) == 1:
-                if curr['typ'] != 2:
+            if curr['typ'] != 2:
+                txt['person_action'] = _("%s has commented on") % txt['name'] if len(curr['persons']) == 1 else ungettext("%d have commented on", "%d have commented on", len(curr['persons'])) % len(curr['persons'])
+                if curr['typ'] == 1:
                     if len(curr['pks']) == 1:
-                        if curr['typ'] == 1:
-                            txt = _("%(name)s has commented on a review on your business.") % txt
-                        else:
-                            txt = _("%(name)s has commented on your %(target)s.") % txt
+                        txt = pgettext('person has commented on', "%s a review on your business.") % txt['person_action']
                     else:
-                        if curr['typ'] == 1:
-                            txt = _p("%(name)s has commented on %(count)d reviews on your business.", "%(name)s has commented on %(count)d reviews on your business.", txt['count']) % txt
-                        else:
-                            txt = _p("%(name)s has commented on your %(count)d %(target)s.", "%(name)s has commented on your %(count)d %(target)s.", txt['count']) % txt
+                        txt = ungettext("%(person_action)s %(count)d review on your business.", "%(person_action)s %(count)d reviews on your business.", txt['count']) % txt
                 else:
-                    txt = _("%(name)s has reviewed your business.") % txt
+                    txt = txt['person_action']+' '+npgettext('commented on', "your "+curr['ct'].model_class()._meta.verbose_name+".", "your %d "+curr['ct'].model_class()._meta.verbose_name_plural+".", len(curr['pks'])) % len(curr['pks'])
             else:
-                txt['person_count'] = len(curr['persons'])
-                if curr['typ'] != 2:
-                    if len(curr['pks']) == 1:
-                        if curr['typ'] == 1:
-                            txt = _("%(person_count)d have commented on a review on your business.") % txt
-                        else:
-                            txt = _("%(person_count)d have commented on your %(target)s.") % txt
-                    else:
-                        if curr['typ'] == 1:
-                            txt = _p("%(person_count)d have commented on %(count)d reviews on your business.", "%(person_count)d have commented on %(count)d reviews on your business.", txt['count']) % txt
-                        else:
-                            txt = _p("%(person_count)d have commented on your %(count)d %(target)s.", "%(person_count)d have commented on your %(count)d %(target)s.", txt['count']) % txt
-                else:
-                    txt = _("%(person_count)d have reviewed your business.") % txt
-            txt = [txt, (curr['ct'].model if curr['ct'] != models.get_content_types()['comment'] else 'review')+('&showcomments' if curr['typ'] != 2 and len(curr['pks']) == 1 else '')]
+                txt = _("%s has reviewed your business.") % txt['name'] if len(curr['persons']) == 1 else ungettext("%d have reviewed your business.", "%d have reviewed your business.", len(curr['persons'])) % len(curr['persons'])
         else:
-            txt['target'] = models.Event._meta.verbose_name
-            txt = [_p("%(name)s notifies you about %(count)d %(target)s.", "%(name)s notifies you about %(count)d %(target)s.", txt['count']) % txt, 'event']
-        self.create_notif(txt, curr['pks'], created)
+            txt = ungettext("%(name)s notifies you about %(count)d event.", "%(name)s notifies you about %(count)d events.", txt['count']) % txt
+        self.create_notif([txt, curr['ct'].name if curr['ct'].name != 'comment' else 'review' if curr['typ'] is not None else 'event'], curr['pks'], created)
 
     def get_queryset(self):
         if self.request.query_params.get('page', False):
@@ -431,7 +433,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                 for i in range(rems.count()):
                     if rems[i].object_id not in curr:
                         curr.append(rems[i].object_id)
-                self.create_notif([_p("You have %d reminder.", "You have %d reminders.", len(curr)) % len(curr), 'event'], curr, rems.last().when)
+                self.create_notif([ungettext("You have %d reminder.", "You have %d reminders.", len(curr)) % len(curr), 'event'], curr, rems.last().when)
                 rems._raw_delete(rems.db)
             notifies = notifies.exclude(from_person=None)
             if notifies.count() > 0:
@@ -616,7 +618,7 @@ def get_t_pk(obj, dic):
     @type obj: django.views.generic.base.View
     """
     if 'ct_pk' not in obj.kwargs:
-        obj.kwargs['ct_pk'] = obj.request.data.get('content_type', None) or obj.request.query_params.get('content_type', None)
+        obj.kwargs['ct_pk'] = obj.request.data.get('content_type') or obj.request.query_params.get('content_type')
         if obj.kwargs['ct_pk'] and not isinstance(obj.kwargs['ct_pk'], int) and not obj.kwargs['ct_pk'].isdigit():
             obj.kwargs['ct_pk'] = None
     pk = obj.kwargs['ct_pk']

@@ -25,7 +25,6 @@
       "%(sel)s od %(cnt)s izabrana",
       "%(sel)s od %(cnt)s izabranih"
     ],
-    "(None)": "(Ni\u0161ta)",
     "15 minutes": "15 minuta",
     "2 days": "2 dana",
     "2 hours": "2 sata",
@@ -79,7 +78,6 @@
     "Alcoholic beverages": "Alkoholna pi\u0107a",
     "An hour": "sat",
     "Appetizers": "Predjela",
-    "Archived": "Arhivirano",
     "Are you sure that you want to continue?": "Da li ste sigurni da \u017eelite nastaviti?",
     "Are you sure that you want to delete this event?": "Da li ste sigurni da \u017eelite obrisati ovaj doga\u0111aj?",
     "Are you sure that you want to delete this item?": "Da li ste sigurni da \u017eelite obrisati ovaj proizvod?",
@@ -96,15 +94,12 @@
     "Chosen %s": "Izabrano \u201e%s\u201c",
     "Click to choose all %s at once.": "Izaberite sve \u201e%s\u201c odjednom.",
     "Click to remove all chosen %s at once.": "Uklonite sve izabrane \u201e%s\u201c odjednom.",
-    "Closed": "Zatvoreno",
     "Cocktails": "Kokteli",
     "Coffees": "Kafe",
     "Comments (%s)": "Komentari (%s)",
-    "Completed": "Zavr\u0161eno",
     "Confirmation e-mail has been sent to <span ng-repeat=\"e in sent\">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>.": "E-mail za verifikaciju je upravo poslat na <span ng-repeat=\"e in sent\">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>.",
     "Current password": "Trenutna lozinka",
     "Currently <strong>{{ e.is_opened ? 'opened' : 'closed' }}</strong>": "Trenutno <strong>{{ e.is_opened ? 'otvoreno' : 'zatvoreno' }}</strong>",
-    "Declined": "Odbijeno",
     "Desserts": "Dezert",
     "Drinks": "Pi\u0107a",
     "Edit business info": "Izmeni informacije ugostiteljskog objekta",
@@ -144,7 +139,6 @@
     "Make Primary": "Napravi primarnim",
     "Meals": "Obroci",
     "Midnight": "Pono\u0107",
-    "Need feedback": "Potrebna povratna informacija",
     "New password": "Nova \u0161ifra",
     "New password (again)": "Nova \u0161ifra (opet)",
     "New password fields don't match.": "Polja za unos nove \u0161ifre se ne poklapaju.",
@@ -163,7 +157,6 @@
     "Password must contain at least 8 characters": "\u0160ifra mora da sadr\u017ei minimum 8 karaktera",
     "Pastas": "Testenina",
     "Pizzas": "Pice",
-    "Planned": "Planirano",
     "Please type your current password.": "Molimo unesite Va\u0161u treutnu \u0161ifru.",
     "Primary": "Primarno",
     "Ratings": "Ocene",
@@ -187,7 +180,6 @@
     "Soups": "Supe",
     "Specified shortname is already taken.": "Data skra\u0107enica je ve\u0107 zauzeta.",
     "Specified shortname is not permitted.": "Data skra\u0107enica nije dozvoljena.",
-    "Started": "Zapo\u010deto",
     "Submit": "Po\u0161alji",
     "Teas": "\u010cajevi",
     "Tequilas": "Tekile",
@@ -197,7 +189,6 @@
     "Today": "Danas",
     "Tomorrow": "Sutra",
     "Type into this box to filter down the list of available %s.": "Filtrirajte listu dostupnih elemenata \u201e%s\u201c.",
-    "Under review": "U razmatranju",
     "Verified": "Verifikovano",
     "Vodkas": "Votke",
     "Whiskeys": "Viski",
@@ -371,8 +362,10 @@
 
 }(this));
 
-app.config(function (timeAgoSettings) {
-  timeAgoSettings.strings['sr_Latn'] = {
+app.config(function ($injector) {
+  var s = $injector.get('timeAgoSettings');
+  if (s === undefined) return;
+  s.strings['sr_Latn'] = {
       prefixAgo: 'pre',
       prefixFromNow: null,
       suffixAgo: null,
@@ -390,5 +383,5 @@ app.config(function (timeAgoSettings) {
       years: '%d godina/e',
       numbers: []
   };
-  timeAgoSettings.overrideLang = 'sr_Latn';
+  s.overrideLang = 'sr_Latn';
 });

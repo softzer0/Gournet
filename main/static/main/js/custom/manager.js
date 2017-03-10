@@ -9,7 +9,7 @@ app
         }
     })
 
-    .factory('editData', function (){ return {value: [[]], form: [[]], tz: undefined} })
+    .constant('EDIT_DATA', {value: [[]], form: [[]], tz: undefined})
 
     .controller('EventCtrl', function($rootScope, $scope, eventService) {
         //$scope.name = angular.element('.lead.text-center.br2').text();
@@ -67,7 +67,7 @@ app
                 s.partial_update_a({currency: $scope.curr[0]}, function (result) {
                     for (var i = 0; i < result.length; i++) menuService.find('id', result[i].id, result[i].category, function (obj){
                         obj.price = result[i].price;
-                        $scope.edit_i[obj.id].form = result[i].price;
+                        $scope.$parent.$parent.$parent.edit_i[obj.id].form = result[i].price;
                         obj.converted = result[i].converted;
                     });
                     if ($scope.curr[0] == USER.currency || result.length > 0 && result[0].converted != null) $scope.$parent.curr[1] = USER.currency; else $scope.$parent.curr[1] = $scope.curr[0];
@@ -82,12 +82,12 @@ app
 
         $scope.$parent.doIAction = function (e){
             if ($scope.edit_i[e.id].form != '' && $scope.edit_i[e.id].form != e.price) {
-                $scope.$parent.edit_i[e.id].disabled = null;
+                $scope.$parent.$parent.$parent.edit_i[e.id].disabled = null;
                 s.partial_update({object_id: e.id, price: $scope.edit_i[e.id].form}, function (result) {
                     e.price = result.price;
                     e.converted = result.converted;
-                    $scope.$parent.edit_i[e.id].disabled = true;
-                }, function () { $scope.$parent.edit_i[e.id].disabled = true });
-            } else $scope.$parent.edit_i[e.id].disabled = true;
+                    $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true;
+                }, function () { $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true });
+            } else $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true;
         };
     });

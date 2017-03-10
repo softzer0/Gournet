@@ -1,0 +1,17 @@
+{% extends 'base/'|add:file|add:'.html' %}
+{% load i18n %}
+
+{% block container %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="well bs-component nw" style="max-width: 600px;">
+                    <form method="post" class="form-vertical" action="{% url 'contact' %}">
+                        <legend>{% trans "Contact" %}</legend>
+                        {% csrf_token %}
+                        {% load bootstrap3 %}{% bootstrap_form form %}
+                        <input class="f1 btn btn-primary btn-block" type="submit" value="{% trans "Send" %}">
+                    </form>
+                </div>
+            </div>
+        </div>
+{% endblock %}

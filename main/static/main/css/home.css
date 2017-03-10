@@ -8,17 +8,13 @@
     margin-bottom: 3px;
 }
 
-.well:not(.nw) {
+.well:not(.nw):not(.bc) {
     background-color: #fffdfd;
 }
 
 /*.pb18 {
     padding-bottom: 18px;
 }*/
-
-.pb8, .modal-body .nev {
-    padding-bottom: 8px;
-}
 
 legend {
     font-size: 20px;
@@ -175,21 +171,6 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
         width: 90px;
     }
 }
-
-@media (max-width: 480px) {
-    .modal:not(.modal-confirm):not(.oc) .modal-dialog {
-        width: 100%;
-        /*height: 100%;*/
-        padding: 0;
-        margin: 0;
-    }
-    .modal:not(.modal-confirm):not(.oc) .modal-content {
-        min-height: 100%;
-        height: auto;
-        border-radius: 0;
-    }
-}
-
 html, body {
   height: 100%;
 }
@@ -292,58 +273,12 @@ body, .mb3 p, *:not(".nw") .form-group, .nmb, .well.cmn > p {
     margin-bottom: -10px;
 }
 
-/*.modal-body > div > .container-fluid {
-    padding: 0;
-}*/
-
 .ls > li {
 	padding-bottom: 5px;
 }
 
-.loa-c {
-    display: table;
-    margin: 0 auto;
-}
-
 .fa-spinner:not(.fa-2x) {
     margin-bottom: 4px;
-}
-
-.fa-spinner {
-    -webkit-animation: spin 1s infinite linear;
-    -moz-animation: spin 1s infinite linear;
-    -o-animation: spin 1s infinite linear;
-    animation: spin 1s infinite linear;
-     -webkit-transform-origin: 50% 58%;
-         transform-origin:50% 58%;
-         -ms-transform-origin:50% 58%; /* IE 9 */
-}
-
-@-moz-keyframes spin {
-  from {
-    -moz-transform: rotate(0deg);
-  }
-  to {
-    -moz-transform: rotate(360deg);
-  }
-}
-
-@-webkit-keyframes spin {
-  from {
-    -webkit-transform: rotate(0deg);
-  }
-  to {
-    -webkit-transform: rotate(360deg);
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /*img.prof, .prof > img {
@@ -411,12 +346,6 @@ img.prof, .prof > img, .nw hr {
 .navmenu-brand:hover,
 .navmenu-brand:focus {
   text-decoration: none;
-}
-.oc .modal-content {
-    background-color: #f8f8f8;
-    padding: 1px; /*border-width: 0 0 0 1px;
-    border-radius: 0;
-    border-color: #e7e7e7;*/
 }
 .navmenu-default .navmenu-brand {
   color: #777;
@@ -570,4 +499,22 @@ img.prof, .prof > img, .nw hr {
     height: 32px;
     padding: 3px 9px;
     font-size: 12px;
+}
+
+footer > div > div > div > *:first-child {
+    width: 28%;
+}
+
+@media (max-width: 531px) {
+    footer > div > div > div > *:first-child {
+        width: 49%;
+    }
+
+    footer .more {
+        display: none;
+    }
+
+    footer .more_b {
+        display: initial;
+    }
 }

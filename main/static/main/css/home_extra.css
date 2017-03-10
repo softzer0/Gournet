@@ -37,19 +37,19 @@
     width: 245px;
 }
 
-@media (max-width: 416px) {
+@media (max-width: 426px) {
     .angular-google-map-container .form-control {
         width: 205px;
     }
 }
 
-@media (max-width: 376px) {
+@media (max-width: 386px) {
     .angular-google-map-container .form-control {
         width: 175px;
     }
 }
 
-@media (max-width: 345px) {
+@media (max-width: 355px) {
     .angular-google-map-container .form-control {
         width: 141px;
     }

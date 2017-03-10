@@ -220,6 +220,10 @@
     background-color: rgba(255, 255, 255, 0.5);
 }
 
+.namef > div {
+	margin: 5px 0;
+}
+
 .inline > div:not(.mpd):not(.form-group) > div {
 	width: 100%;
 	border-collapse: collapse;
@@ -251,8 +255,4 @@
 
 :not(td) > .inline > div:not(.mpd):not(.form-group) > div > div > a {
 	border-left-width: 10px;
-}
-
-.namef > div {
-	margin: 5px 0;
 }

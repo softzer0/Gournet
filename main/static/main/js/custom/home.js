@@ -32,7 +32,7 @@ app
             template: gentemp(false, 'event\'')
         });
 
-        uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places', language: LANG}); //, api: 'APIKEY'
+        uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places', language: LANG}); //, api: 'APIKEY' //add
     })
 
     .run(function ($rootScope, $state, $timeout) {

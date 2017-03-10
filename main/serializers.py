@@ -75,7 +75,7 @@ class AccountSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'non_field_errors': ["Your name was already changed once."]})
         for f in ('gender', 'birthdate'):
             if f in attrs and getattr(self.context['request'].user, f+'_changed') and attrs[f] != getattr(self.context['request'].user, f):
-                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % getattr(models.User, f).field_name]})""" #enable
+                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % f]}) #models.User._meta.get_field(f).verbose_name""" #enable
         return attrs
 
     def update(self, instance, validated_data):

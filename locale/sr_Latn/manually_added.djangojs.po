@@ -1,4 +1,16 @@
+#: main/static/main/events.html:59
+#| msgid "event"
+#| msgstr ""
+
+#: main/static/main/events.html:59
+#| msgid "item"
+#| msgstr ""
 
 #: main/static/main/modals/settings.html:6
 msgid "Please type your current password."
-msgstr "Molimo unesite Vašu treutnu šifru."
+msgstr "Molimo unesite Vašu trenutnu šifru."
+
+#: main/static/main/js/custom/main.js:268
+#, javascript-format
+msgid "Notify (%s)"
+msgstr "Obavesti (%s)"

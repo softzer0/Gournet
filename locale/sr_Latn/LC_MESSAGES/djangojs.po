@@ -2,7 +2,7 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
@@ -81,6 +81,11 @@ msgstr "Vaši prijatelji"
 #: main/static/main/js/custom/main.js:285
 msgid "Friends"
 msgstr "Prijatelji"
+
+#: main/static/main/js/custom/main.js:268
+#, javascript-format
+msgid "Notify (%s)"
+msgstr "Obavesti (%s)"
 
 #: main/static/main/js/custom/main.js:292
 msgid "Favourites"
@@ -193,42 +198,6 @@ msgstr "6 dana"
 #: main/static/main/js/custom/main.js:991
 msgid "A week"
 msgstr "nedelju dana"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "(None)"
-msgstr "(Ništa)"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Started"
-msgstr "Započeto"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Closed"
-msgstr "Zatvoreno"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Completed"
-msgstr "Završeno"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Declined"
-msgstr "Odbijeno"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Under review"
-msgstr "U razmatranju"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Planned"
-msgstr "Planirano"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Archived"
-msgstr "Arhivirano"
-
-#: main/static/main/js/custom/main.js:1107
-msgid "Need feedback"
-msgstr "Potrebna povratna informacija"
 
 #: main/static/main/js/custom/main.js:1324
 msgid "Settings"
@@ -611,10 +580,12 @@ msgstr "Da li ste sigurni da želite obrisati ovaj događaj?"
 msgid "Are you sure that you want to delete this item?"
 msgstr "Da li ste sigurni da želite obrisati ovaj proizvod?"
 
+#: main/static/main/events.html:59
 msgid "Are you sure that you want to delete this review?"
 msgstr "Da li ste sigurni da želite obrisati ovu recenziju?"
 
-#: main/static/main/events.html:59 main/static/main/modals/settings.html:31
+#: main/static/main/events.html:59
+#: main/static/main/modals/settings.html:31
 msgid "Remove"
 msgstr "Izbriši"
 
@@ -626,7 +597,8 @@ msgstr "Vaš komentar"
 msgid "Submit"
 msgstr "Pošalji"
 
-#: main/static/main/events.html:82 main/static/main/modals/friends.html:12
+#: main/static/main/events.html:82
+#: main/static/main/modals/friends.html:12
 #: main/static/main/modals/notifications.html:9
 #: main/static/main/modals/likes.html:17
 msgid "Load more"
@@ -655,10 +627,6 @@ msgstr "Prihvati zahtev za prijateljstvo"
 #: main/static/main/friend.html:7
 msgid "Remove from friends"
 msgstr "Izbriši iz prijatelja"
-
-#: main/static/main/modals/base.html:12
-msgid "Notify (%s)"
-msgstr "Obavesti (%s)"
 
 #: main/static/main/modals/base.html:12
 #: main/static/main/modals/reminder.html:12
@@ -691,7 +659,7 @@ msgstr "Vaša šifra je promenjena."
 
 #: main/static/main/modals/settings.html:6
 msgid "Please type your current password."
-msgstr "Molimo unesite Vašu treutnu šifru."
+msgstr "Molimo unesite Vašu trenutnu šifru."
 
 #: main/static/main/modals/settings.html:8
 msgid "Enter your current password before changing:"
@@ -760,6 +728,7 @@ msgid "Re-send Verification"
 msgstr "Pošalji ponovo verifikaciju"
 
 #: main/static/main/modals/settings.html:31
+#, javascript-format
 msgid "Are you sure that you want to remove email <strong>%s</strong>?"
 msgstr "Da li ste sigurni da želite obrisati email <strong>%s</strong>?"
 
@@ -785,6 +754,7 @@ msgid "Set"
 msgstr "Postavi"
 
 #: templates/view.html:48
+#: templates/view.html:49
 msgid ""
 "<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-"
 "heart\"></i> <strong>{{ fav_count }}</strong></a> person has favored this"

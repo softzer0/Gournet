@@ -1,6 +1,8 @@
 
-app.config(function (timeAgoSettings) {
-  timeAgoSettings.strings['sr_Latn'] = {
+app.config(function ($injector) {
+  var s = $injector.get('timeAgoSettings');
+  if (s === undefined) return;
+  s.strings['sr_Latn'] = {
       prefixAgo: 'pre',
       prefixFromNow: null,
       suffixAgo: null,
@@ -18,5 +20,5 @@ app.config(function (timeAgoSettings) {
       years: '%d godina/e',
       numbers: []
   };
-  timeAgoSettings.overrideLang = 'sr_Latn';
+  s.overrideLang = 'sr_Latn';
 });

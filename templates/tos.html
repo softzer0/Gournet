@@ -1,0 +1,36 @@
+{% extends 'base/'|add:file|add:'.html' %}
+{% load i18n %}
+{% load cache %}
+{% load main_tags %}
+
+{% block container %}
+{% get_current_language as lang %}{% cache 0 t lang %}{% markdown %}{% blocktrans %}### Terms of Service
+###### *Last change on 08.03.2017.*
+
+By visiting the website **www.gournet.co** you comply with the Terms of Service listed in the further text. Please read it carefuly and introduce yourself with the rules, because any use of this website implies your acceptance of the Terms and rules stated in this document. Gournet team holds the right to make partial or complete changes of this website or the general Terms of Service, without previous notice. Therefore, next time when you visit this website, please look again at these conditions, to ensure you are aware of any changes that have occurred.
+
+#### Intellectual property rights and use of the website
+
+All the material, which falls under the information in the form of text and pictures, which is published on this website is the property of Gournet team. Anything contained on this website can't be treated as a permission to use any of the brands shown on it.
+Using the website means browsing it, printing content of its pages or saving it in electronic form, and accessing and using the website content, under the condition that all copyrigts and Gournet team trademark is included. Using any part of this website in commercial purposes or its integration into any other publication or a page is strongly forbidden.
+
+#### Warranty
+
+Gournet team provides the information contained on this website using original sources, in as much detail as possible, and actively seeks to broaden and update it. The information on this website is intended exclusively for presentation of businesses and their services. Gournet team doesn't give warranty of completeness, reliability, promptness or accuracy of the information on this website, either explicitly nor not. Gournet team doesn't have a resposibility of keeping the material and services available on this website, nor doing related corrections or additions. Therefore, we recommend you to check every information you get via this website, before you use it in any sense. If you need any advice or instructions related to our services, please contact us directly.
+
+#### Limited Liability
+
+By accessing this website, users declare that they agree upon the fact that they use this website and its content at their own risk. Either Gournet team, or third party who collaborate in writing, production and transfering this website can't be responsible for direct, accidental, consequential, indirect or any other kind of damage, costs, losses or violations which occur as a result of access or inability to access this website, and the use or inability to use this website, or as a result of the fact that you relied on the information provided by this website.
+Also, Gournet team doesn't accept the responsibility of any losses caused by viruses which can infect your device or any other assets by using this website. If you decide to use this website, you do so at your own risk.
+You can't base your business relationship with Gournet team only by transmitting or receiving the information from this website, and none of the users of this website should act or refrain from acting, by basing on any information on this website. Sending messages via contact form does not oblige Gournet team to base business relationship in any sense with any of the users of this website.
+
+#### User responsibility
+
+User of this website is fully responsible for content and accuracy of the information he publishes on this website, as well as non-infringement of any third party to whom that information may refer. The user, by sending information to the website gives its consent to Gournet team to publish it and to use it for business purposes, including but not limiting to reproduction, development, advertising, sales and marketing, without any restrictions and without any charge to the user, with a note that the position on the fees may change in the future.
+
+By providing the information, user guarantees ownership of it, apropo material, and that he has the right, or consent for publishing information, apropo material, so using them by Gournet team won't infringe copyrights of the third party. Gournet team in any case has no obligation to post or use transmitted information or material. While using the website and any of the information or material which it contains, user has a responsibility to act in accordance with all applicable regulations.
+
+#### Governing Law and Jurisdiction
+
+By using this website, you comply with any legal claims or litigations which are in connection with this website or its use, governed by the legislation of the Republic of Serbia, with the competent court in Belgrade.{% endblocktrans %}{% endmarkdown %}{% endcache %}
+{% endblock %}

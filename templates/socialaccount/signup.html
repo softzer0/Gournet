@@ -13,7 +13,7 @@
                         <legend>{% trans "Fill the data" %}</legend>
                         <p>{% blocktrans with provider_name=account.get_provider.name site_name=site.name %}You are about to use your {{provider_name}} account data to signup to {{site_name}}. As a final step, please complete the following form:{% endblocktrans %}</p>
                         {% bootstrap_form form %}
-                        <input class="f1 btn btn-primary btn-block" type="submit" value="Sign up!">
+                        <input class="f1 btn btn-primary btn-block" type="submit" value="{% trans "Sign me up!" %}">
                     </form>
                 </div>
             </div>

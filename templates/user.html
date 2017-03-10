@@ -25,7 +25,7 @@
 
 {% block img %}{{ usr.pk }}/avatar/?{% endblock %}
 
-{% block other %}<li>{% trans "Male" as m_t %}{% trans "Female" as f_t %}{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit[1], 'disabled')" in-scope="documentClick.gender" ng-init="setE('{{ usr.gender }}')">
+{% block other %}<li>{% trans "Male" context 'display' as m_t %}{% trans "Female" context 'display' as f_t %}{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit[1], 'disabled')" in-scope="documentClick.gender" ng-init="setE('{{ usr.gender }}')">
                             <a class="n" ng-if="edit[1].disabled !== undefined" ng-show="edit[1].disabled" ng-click="edit[1].disabled = false"><i class="fa" ng-class="edit[1].value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit[1].value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</a>
                             <p ng-if="edit[1].disabled === undefined"><i class="fa" ng-class="edit[1].value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit[1].value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</p>
                             <div ng-if="edit[1].disabled !== undefined" ng-hide="edit[1].disabled">
@@ -72,8 +72,8 @@
                             </div>
                         </div>{% else %}<a href="https://maps.google.com/maps?q={{ usr.address }}"><i class="fa fa-map-marker"></i> {{ usr.address }}</a>{% endif %}</li>
                         <li
-                            >{% if rel_state > -1 %}<span ng-if="$parent.u.friend_count > 0" translate="$parent.u.friend_count"><a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ $parent.u.friend_count }}{% endverbatim %}</strong></a> friend<br plural><a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ $parent.u.friend_count }}{% endverbatim %}</strong></a> friends</span
-                            ><span ng-if="$parent.u.friend_count == 0"><i class="fa fa-users"></i> {% trans "Has no friends" %}</span>
+                            >{% if rel_state > -1 %}<span ng-show="$parent.u.friend_count > 0" translate="$parent.u.friend_count"><a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ $parent.u.friend_count }}{% endverbatim %}</strong></a> friend<br plural><a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> <strong>{% verbatim %}{{ $parent.u.friend_count }}{% endverbatim %}</strong></a> friends</span
+                            ><span ng-show="$parent.u.friend_count == 0"><i class="fa fa-users"></i> {% trans "Has no friends" %}</span>
                         </li>
                         <li><span ng-include="'/static/main/friend.html'" new-scope ng-init="o = [$parent.u]"></span>{% else %}{% if friend_count > 0 %}<a href="javascript:" ng-click="showFriendsModal()"><i class="fa fa-users"></i> {% blocktrans count counter=friend_count %}<strong>{{ counter }}</strong></a> person is your friend{% plural %}<strong>{{ counter }}</strong></a> persons are your friends{% endblocktrans %}{% else %}<i class="fa fa-users"></i> {% trans "You have no friends" %}{% endif %}{% endif %}</li>{% endblock %}
 

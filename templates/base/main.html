@@ -1,17 +1,19 @@
-<!DOCTYPE html>
-<html lang="en"{% block htmlatt %}{% endblock %}>
+{% load i18n %}{% get_current_language as lang %}<!DOCTYPE html>
+<html lang="en"{% comment %}{% block htmlatt %}{% endcomment %} ng-app="mainApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title{% block titleatt %}{% endblock %}>{% block title %}Gournet{% endblock %}</title>
-    {% load staticfiles %}
-    <link rel="shortcut icon" href="{% static 'main/favicon.ico' %}"/>
+    {% load staticfiles %}{% load cache %}{% cache 0 h %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}"/>
     <link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/main.css' %}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    {% block head %}{% endblock %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
+    <script{% comment %} src="{% static 'main/js/custom/login_signup.js' %}"{% endcomment %}>var app = angular.module('mainApp', []).controller('BaseMainCtrl', function ($scope){ $scope.switchMore = function (){ $scope.footer_more = angular.element('footer .more').toggleClass('show').hasClass('show') } })</script>
+    {% block head %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">{% endblock %}
 </head>
-<body{% block bodyatt %}{% endblock %}>
+<body{% endcache %}{% block bodyatt %} ng-controller="BaseMainCtrl"{% endblock %}>
     {% block begin %}{% endblock %}
 
     <header class="navbar navbar-default navbar-fixed-top">
@@ -21,11 +23,25 @@
         {% block navbar_container_end %}</div>{% endblock %}
     </header>
 
-    <div class="container w">{% block container %}{% endblock %}</div>
+    <div class="container w">{% block container %}
+{% endblock %}    </div>
 
     <footer class="navbar navbar-fixed-bottom">
         <div class="container">
-            <p class="text-muted">Copyright © 2016-2017 by MikiSoft</p>
+            <div>
+                <div>
+                    <div><small class="text-muted">&copy; 2016-2017 - MikiSoft</small></div>
+                    <div>
+                        <ul class="nav navbar-nav navbar-header more">
+                            <li><a href="{% url 'contact' %}">{% trans "Contact" %}</a></li>
+                            <li><a href="{% url 'tos' %}">{% trans "Terms of Service" %}</a></li>
+                            <li><a href="{% url 'privacy-policy' %}">{% trans "Privacy Policy" %}</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-header more_b"><li><a href="javascript:" ng-click="switchMore()"><i class="fa" ng-class="'fa-caret-square-o-'+(footer_more ? 'down' : 'up')"></i></a></ul>{% block footer_extra %}
+                        <ul class="nav navbar-nav navbar-header"><li><a href="?lang={% if lang == 'sr-latn' %}en-us{% else %}sr-latn{% endif %}" class="text-right text-muted">{% if lang == 'sr-latn' %}Switch to English{% else %}Prebaci na srpski jezik{% endif %}</a></li></ul>{% endblock %}
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 

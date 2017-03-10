@@ -10,7 +10,7 @@ from html.parser import HTMLParser
 prog = [compile(r'("|\')(.*?)\1'), compile(r'%(\(.*?\))?s')]
 class TemplateParser(HTMLParser):
 	recording = 0
-	f = ['', '']
+	f = [None, '']
 	tmp = [None, '']
 
 	def __init__(self, *args, **kwargs):
@@ -52,7 +52,7 @@ class TemplateParser(HTMLParser):
 			for s in prog[0].findall(e[0]):
 				r[1] = self.repl(s[1])
 				for i in self.data:
-					if not i.get('msgid_plural', None) and ''.join(i['msgid']) == r[1] and ''.join(i.get('msgctxt', [])) == e[2]:
+					if 'msgid_plural' not in i and ''.join(i['msgid']) == r[1] and ''.join(i.get('msgctxt', [])) == e[2]:
 						self.appendpos(self.genc(), i)
 						r[1] = None
 						break
@@ -87,7 +87,7 @@ class TemplateParser(HTMLParser):
 	def handle_data(self, data):
 		self.tmp[1] += data
 		if self.recording > 0:
-			self.tmp[0][self.f[1]][0] += self.repl(data)
+			self.tmp[0][self.f[1]][0] += self.repl(data).replace('\n', '\\n')
 
 	def handle_endtag(self, tag):
 		if self.recording > 0:

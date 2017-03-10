@@ -195,9 +195,9 @@ app
                 {name: 'menu', func: function () {
                     if ($scope.menu === undefined) {
                         $scope.menu = menuService.init();
-                        itemService.menu = $scope.fav_state !== undefined;
+                        itemService.menu = $scope.fav_state !== undefined || OWNER_MANAGER;
                         //if (itemService.menu) itemService.bu = $scope.fav_state == -1;
-                        if ($scope.img !== undefined) menuService.observe.then(null, null, function (result){
+                        if ($scope.img !== undefined) menuService.observe.then(undefined, undefined, function (result){
                             if (typeof(result) == 'number') {
                                 $scope.img[result].w();
                                 delete $scope.img[result];
@@ -281,7 +281,7 @@ app
         }
 
         // Manager
-        $scope.data = $injector.get('editData');
+        $scope.data = $injector.get('EDIT_DATA');
         services = [$injector.get('dialogService'), $injector.get('$uibModal'), $injector.get('BASE_MODAL')];
 
         //$rootScope.$watch('currTime', function (val){ if (val !== undefined) });
@@ -302,8 +302,8 @@ app
         };
 
         $scope.openEdit = function (){
-            services[1].open({size: 'md', windowClass: 'ai', templateUrl: services[2], controller: function ($rootScope, $scope, $controller, $uibModalInstance, editData, checkField, dialogService){
-                $scope.data = editData;
+            services[1].open({size: 'md', windowClass: 'ai', templateUrl: services[2], controller: function ($rootScope, $scope, $controller, $uibModalInstance, EDIT_DATA, checkField, dialogService){
+                $scope.data = EDIT_DATA;
                 $scope.title = gettext("Edit business info");
                 $scope.file = '../../../edit';
                 angular.extend(this, $controller('ModalCtrl', {$scope: $scope, $uibModalInstance: $uibModalInstance}), $controller('CreateCtrl', {$scope: $scope}));

@@ -282,8 +282,27 @@ app
         angular.extend(this, $controller('ModalCtrl', {$scope: $scope, $uibModalInstance: $uibModalInstance}));
 
         $scope.file = file;
-        $scope.event = event;
-        if ($scope.event !== undefined) $scope.sel_cnt = 0;
+        if (event !== undefined) {
+            $scope.event = event;
+            $scope.sel_cnt = 0;
+            $scope.check_disabled = function () { return sel_cnt == 0 };
+            $scope.button_text = "Notify (%s)"; // interpolate(gettext("Notify (%s)"), [$scope.sel_cnt])
+
+            $scope.makeSel = function (i) {
+                //if ($scope.event !== undefined) {
+                if ($scope.event === undefined || $scope.working) return;
+                $scope.tabs[0].elems[i].selected = $scope.tabs[0].elems[i].selected !== undefined ? !$scope.tabs[0].elems[i].selected : true;
+                if ($scope.tabs[0].elems[i].selected) $scope.sel_cnt++; else $scope.sel_cnt--;
+                //} else $window.location.href = '/'+($scope.favs ? $scope.tabs[0].elems[i].shortname : 'user/'+$scope.tabs[0].elems[i].username)+'/'
+            };
+
+            $scope.doAction = function (){
+                $scope.working = true;
+                var to = '';
+                for (i = 0; i < $scope.tabs[0].elems.length; i++) if ($scope.tabs[0].elems[i].selected) to += ',' + $scope.tabs[0].elems[i].id;
+                $rootScope.sendreq('api/events/'+$scope.event+'/notify/?notxt=1&to='+to.slice(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
+            }
+        }
 
         var d = {id: usersModalService.params.id}, t = usersModalService.params.type, o, st = typeof(t) == 'string', i;
         if (st) var stars = HAS_STARS[t];
@@ -333,11 +352,9 @@ app
                                     $scope.tabs[t].heading += '</span>'; //$scope.tabs[t].heading.slice(1)
                                     load();
                                 }
-                            } else {
-                                for (i = 0; i < 2; i++) if (result[i].results.length > 0) {
-                                    $scope.tabs[t] = {elems: [], value: i + 1, heading: i == 0 ? gettext("Liked by") : gettext("Disiked by")};
-                                    load();
-                                }
+                            } else for (i = 0; i < 2; i++) if (result[i].results.length > 0) {
+                                $scope.tabs[t] = {elems: [], value: i + 1, heading: i == 0 ? gettext("Liked by") : gettext("Disiked by")};
+                                load();
                             }
                         } else $scope.tabs[0] = {elems: []};
                     }
@@ -351,21 +368,6 @@ app
             }
             if (t.init) o.query(t, f); else o.get(t, f);
         })();
-
-        $scope.makeSel = function (i) {
-            //if ($scope.event !== undefined) {
-            if ($scope.event === undefined || $scope.working) return;
-            $scope.tabs[0].elems[i].selected = $scope.tabs[0].elems[i].selected !== undefined ? !$scope.tabs[0].elems[i].selected : true;
-            if ($scope.tabs[0].elems[i].selected) $scope.sel_cnt++; else $scope.sel_cnt--;
-            //} else $window.location.href = '/'+($scope.favs ? $scope.tabs[0].elems[i].shortname : 'user/'+$scope.tabs[0].elems[i].username)+'/'
-        };
-
-        $scope.sendNotify = function (){
-            $scope.working = true;
-            var to = '';
-            for (i = 0; i < $scope.tabs[0].elems.length; i++) if ($scope.tabs[0].elems[i].selected) to += ',' + $scope.tabs[0].elems[i].id;
-            $rootScope.sendreq('api/events/'+$scope.event+'/notify/?notxt=1&to='+to.slice(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
-        }
     })
 
     .factory('APIService', function($resource) {
@@ -1110,7 +1112,7 @@ app
 
     .controller('ItemsCtrl', function($scope, USER) { $scope.user_curr = USER.currency })
 
-    .controller('ReviewsCtrl', function($scope) { $scope.choices = [{name: gettext("(None)"), value: null}, {name: gettext("Started"), value: 0}, {name: gettext("Closed"), value: 1}, {name: gettext("Completed"), value: 2}, {name: gettext("Declined"), value: 3}, {name: gettext("Under review"), value: 4}, {name: gettext("Planned"), value: 5}, {name: gettext("Archived"), value: 6}, {name: gettext("Need feedback"), value: 7}] })
+    .controller('ReviewsCtrl', function($scope, REVIEW_STATUS) { $scope.choices = REVIEW_STATUS }) //, $injector) { ... }) //change
 
     .controller('eventsOnlyCtrl', function ($scope, $controller, eventService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [eventService]}), $controller('EventsCtrl', {$scope: $scope})) })
 
@@ -1124,7 +1126,9 @@ app
         }
     }]}), $controller('ReviewsCtrl', {$scope: $scope})); /*, function (index) { if ($scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0] }*/ })
 
-    .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, usersModalService, APIService, NOTIF_PAGE_SIZE) { //, $interval
+    .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, $controller, usersModalService, APIService, NOTIF_PAGE_SIZE) { //, $interval
+        angular.extend(this, $controller('BaseMainCtrl', {$scope: $scope}));
+
         $rootScope.title = $window.document.title;
         $rootScope.currTime = new Date();
         $scope.showOffcanvas = function (){

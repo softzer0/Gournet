@@ -76,10 +76,10 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'main.middleware.TimezoneLocaleMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'stronghold.middleware.LoginRequiredMiddleware',
-    'main.middleware.TimezoneLocaleMiddleware'
 ]
 
 from django.conf.global_settings import CACHES
@@ -161,7 +161,7 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIALACCOUNT_FORMS = {'signup': 'main.allauth_forms.SocialSignupForm'}
-ACCOUNT_FORMS = {'signup': 'main.allauth_forms.SignupForm'}
+ACCOUNT_FORMS = {'signup': 'main.allauth_forms.SignupForm', 'login': 'main.allauth_forms.LoginForm'}
 
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = (

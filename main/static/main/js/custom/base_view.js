@@ -80,7 +80,7 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
     var services = [$injector.get('$q'), $injector.get('Upload'), $injector.get('dialogService'), $injector.get('checkField')];
 
     $scope.gened = function (){ return {value: arguments.length > 1 ? jQuery.makeArray(arguments) : arguments[0], form: arguments.length > 1 ? jQuery.makeArray(arguments) : arguments[0], disabled: true} };
-    if ($scope.u) {
+    if ($scope.u === true) {
         $scope.documentClick = {};
         $scope.edit = [];
         $scope.setE = function (){ $scope.edit.push($scope.gened.apply(this, arguments)) };
