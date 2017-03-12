@@ -71,21 +71,21 @@ class AccountSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if 'birthdate' in attrs and (attrs['birthdate'].year > 2015 or attrs['birthdate'].year < 1927):
             raise serializers.ValidationError({'birthdate': ["Invalid birthdate."]})
-        """if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
+        if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
             raise serializers.ValidationError({'non_field_errors': ["Your name was already changed once."]})
         for f in ('gender', 'birthdate'):
             if f in attrs and getattr(self.context['request'].user, f+'_changed') and attrs[f] != getattr(self.context['request'].user, f):
-                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % f]}) #models.User._meta.get_field(f).verbose_name""" #enable
+                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % f]}) #models.User._meta.get_field(f).verbose_name
         return attrs
 
     def update(self, instance, validated_data):
         if 'address' in validated_data:
             instance.location = clean_loc(self, validated_data, True)
-        """if not self.context['request'].user.name_changed:
+        if not self.context['request'].user.name_changed:
             instance.name_change = 'first_name' in validated_data and validated_data['first_name'] != instance.first_name or 'last_name' in validated_data and validated_data['last_name'] != instance.last_name
         for f in ('gender', 'birthdate'):
             if not getattr(instance, f+'_changed'):
-                setattr(instance, f+'_changed', f in validated_data and validated_data[f] != getattr(instance, f))""" #enable
+                setattr(instance, f+'_changed', f in validated_data and validated_data[f] != getattr(instance, f))
         return super().update(instance, validated_data)
 
 def get_rate(f, t):
@@ -325,7 +325,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         return gen_distance(obj)
 
     def get_is_opened(self, obj):
-        now = timezone.localtime(timezone.now()) #obj.tz.normalize(timezone.now()) #enable
+        now = obj.tz.normalize(timezone.now())
         day = now.weekday()
         opened = obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened
         closed = obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed
@@ -602,7 +602,7 @@ class ItemSerializer(BaseSerializer):
             self.fields.pop('curruser_status')
             self.fields.pop('likestars_count')
             self.fields.pop('comment_count')
-            #self.fields.pop('has_image') #enable
+            self.fields.pop('has_image')
             #self.fields.pop('stars_avg')
             if 'currency' in self.context:
                 self.fields.pop('name')

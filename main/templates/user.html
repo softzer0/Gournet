@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block head %}{{ block.super }}
-    {% load staticfiles %}<script src="{% static 'main/js/custom/home_extra.js' %}"></script>
+    {% load static %}<script src="{% static 'main/js/custom/home_extra.js' %}"></script>
     <script src="{% static 'main/js/custom/user.js' %}"></script>{% endblock %}
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ usr.pk }}; u = {% if rel_state > -1 %}{friend_count: {{ friend_count }}, rel_state: {{ rel_state }}}; first_name = '{{ usr.first_name }}'{% else %}true{% endif %}"{% endblock %}

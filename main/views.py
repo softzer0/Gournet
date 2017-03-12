@@ -66,7 +66,6 @@ def get_param_bool(param):
     return param and param in ('1', 'true', 'True', 'TRUE')
 
 
-
 @csrf_protect
 def i18n_view(request):
     st = None
@@ -113,9 +112,9 @@ def upload_view(request, pk_b=None):
     except:
         return HttpResponse(_("Invalid image."), status=status.HTTP_400_BAD_REQUEST)
     saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.FILES[next(iter(request.FILES))]))
-    """if pk_b and pk_b != 'business' and pk_b.has_image:
+    if pk_b and pk_b != 'business' and pk_b.has_image:
         pk_b.has_image = True
-        pk_b.save()""" #enable
+        pk_b.save()
     return HttpResponse(status=status.HTTP_200_OK)
 
 
@@ -227,7 +226,7 @@ def return_avatar(request, pk, size):
         t = 'item'
     else:
         t = 'user'
-    img_folder = settings.MEDIA_ROOT+'images/'+t+'/'
+    img_folder = path.join(settings.MEDIA_ROOT, 'images/'+t+'/')
     avatar = img_folder+pk+'/avatar'
     s = '.'
     st = None
@@ -415,7 +414,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                     else:
                         txt = ungettext("%(person_action)s %(count)d review on your business.", "%(person_action)s %(count)d reviews on your business.", txt['count']) % txt
                 else:
-                    txt = txt['person_action']+' '+npgettext('commented on', "your "+curr['ct'].model_class()._meta.verbose_name+".", "your %d "+curr['ct'].model_class()._meta.verbose_name_plural+".", len(curr['pks'])) % len(curr['pks'])
+                    txt = txt['person_action']+' '+npgettext('commented on', "your "+(curr['ct'].model_class()._meta.verbose_name if curr['ct'] != models.get_content_types()['comment'] else "review")+".", "your %d "+(curr['ct'].model_class()._meta.verbose_name_plural if curr['ct'] != models.get_content_types()['comment'] else "reviews")+".", len(curr['pks'])) % len(curr['pks'])
             else:
                 txt = _("%s has reviewed your business.") % txt['name'] if len(curr['persons']) == 1 else ungettext("%d have reviewed your business.", "%d have reviewed your business.", len(curr['persons'])) % len(curr['persons'])
         else:
