@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title{% block titleatt %}{% endblock %}>{% block title %}Gournet{% endblock %}</title>
-    {% load staticfiles %}{% load cache %}{% cache 0 h %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}"/>
+    {% load static %}{% load cache %}{% cache 0 h %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}"/>
     <link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/main.css' %}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">

@@ -1,5 +1,5 @@
 <div ng-class="'objs'+r+'_'+t+(modal_loaded ? ' um' : '')" dynamic-controller="t+'sOnlyCtrl'" ng-cloak>
-    <div class="angular-animate" ng-repeat="e in objs" ng-cloak><!-- ng-init="$last ? enableAnimation() : angular.noop()" class="{{ objs_animation ? 'angular-animate' : '' }}"-->
+    <div class="angular-animate" ng-repeat="e in objs" ng-cloak>
         <div ng-if="e.person_status !== undefined || e.friend !== undefined" class="mb3">
             <span ng-if="e.friend === undefined || e.friend.count === undefined"
                 ><span ng-if="e.friend === undefined && e.person_status[0] == -1" translate>{{ first_name || 'You' }} {{ e.when !== undefined ? 'posted' : e.price !== undefined ? 'added' : 'reviewed' }}:</span
@@ -23,7 +23,7 @@
                 <p>{{ e.text }} <small class="text-muted">&mdash; {{ (e.when || e.created) | timeAgo }}</small></p>
             </div>
             <div ng-if="e.price !== undefined">
-                <img class="img-responsive bor prof margin-center" ng-if="$parent.ts != undefined" ng-src="/images/{{ e.id }}/avatar/?item=1{{ $parent.ts != 0 ? $parent.ts : '' }}"><!-- ng-if="... && e.has_image" -->
+                <img class="img-responsive bor prof margin-center" ng-if="$parent.ts !== undefined || e.has_image" ng-src="/images/{{ e.id }}/avatar/?item=1{{ $parent.ts !== undefined && $parent.ts != 0 ? $parent.ts : '' }}">
                 <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ (e.converted || e.price)|currency:'' }} {{ e.converted === undefined ? e.business.currency || e.currency : user_curr }}</p>
             </div>
             <div ng-if="e.is_opened !== undefined">

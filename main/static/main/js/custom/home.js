@@ -1,6 +1,6 @@
 app.requires.push('uiGmapgoogle-maps'); //, 'ct.ui.router.extras'
 app
-    .config(function ($stateProvider, uiGmapGoogleMapApiProvider) {
+    .config(function ($stateProvider, uiGmapGoogleMapApiProvider, LANG, GMAPS_API_KEY) {
         function gentemp(g, t) { return (g ? '<p><a href="#/"><i class="fa fa-chevron-left"></i> '+gettext("Go to main page.")+'</a></p>' : '')+'<div ng-init="t = \''+(t !== undefined ? t : '\'')+'" ng-include="\'/static/main/events.html\'"></div>' }
 
         $stateProvider.state('main', {
@@ -32,7 +32,7 @@ app
             template: gentemp(false, 'event\'')
         });
 
-        uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places', language: LANG}); //, api: 'APIKEY' //add
+        uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places', language: LANG, key: GMAPS_API_KEY});
     })
 
     .run(function ($rootScope, $state, $timeout) {

@@ -344,7 +344,7 @@ app
                             if (r < 4) $scope.data.value[r+1] = $scope.data.form[r+1]; else $scope.data.value[0][r-4] = d[a[i]];
                         }
                         if (d.address !== undefined || d.location !== undefined || r >= 4) {
-                            //$scope.data.tz = result['tz']; //enable
+                            $scope.data.tz = result['tz'];
                             $rootScope.currTime = new Date();
                         }
                         $scope.close();

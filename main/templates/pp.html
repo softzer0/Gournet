@@ -3,6 +3,8 @@
 {% load cache %}
 {% load main_tags %}
 
+{% block title %}{% trans "Privacy Policy" %} - Gournet{% endblock %}
+
 {% block container %}
 {% get_current_language as lang %}{% cache 0 t lang %}{% markdown %}{% blocktrans %}### Privacy Policy
 

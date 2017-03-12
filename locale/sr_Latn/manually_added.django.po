@@ -1,10 +1,18 @@
-#: main/views.py:385
-#, python-format
+# REMOVE
+
+#: main/views.py:417
+#, fuzzy, python-format
 #| msgctxt "commented on"
-#| msgid "your ."
-#| msgid_plural "your %d ."
-#| msgstr[0] ""
-#| msgstr[1] ""
+#| msgid "your item"
+#| msgid_plural "your %d items"
+msgctxt "commented on"
+msgid "your "
+msgid_plural "your %d "
+msgstr[0] "Vaš %d proizvod"
+msgstr[1] "Vaša %d proizvoda"
+msgstr[2] "Vaših %d proizvoda"
+
+# ADD
 
 #: main/views.py:392
 #, python-format
@@ -35,3 +43,6 @@ msgstr[2] "Vaših %d recenzija"
 
 msgid "Enter a valid email address."
 msgstr "Unesite validnu email adresu."
+
+msgid "The username and/or password you specified are not correct."
+msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."

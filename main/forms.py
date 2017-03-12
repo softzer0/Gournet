@@ -6,10 +6,11 @@ from django.contrib.gis.geos import fromstr, Point
 from rest_framework.serializers import ValidationError
 from django.utils.translation import ugettext as _, ugettext_lazy, pgettext, get_language
 from captcha.fields import ReCaptchaField
+from django.conf import settings
 
 SHORTNAME_EXISTS_MSG = ugettext_lazy("A business with that shortname already exists.")
 COORDINATES_NOT_FOUND_MSG = ugettext_lazy("Either coordinates for specified address are not found, or there's some internal error.")
-GOOGLEV3_OBJ = GoogleV3() #api= #add
+GOOGLEV3_OBJ = GoogleV3(api_key=settings.GMAPS_API_KEY)
 
 def clean_loc(self, cleaned_data, noloc=False, retraw=False):
     loc = cleaned_data.get('location', False) if not noloc else False

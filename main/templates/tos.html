@@ -3,6 +3,8 @@
 {% load cache %}
 {% load main_tags %}
 
+{% block title %}{% trans "Terms of Service" %} - Gournet{% endblock %}
+
 {% block container %}
 {% get_current_language as lang %}{% cache 0 t lang %}{% markdown %}{% blocktrans %}### Terms of Service
 ###### *Last change on 08.03.2017.*

@@ -1,5 +1,5 @@
 <uib-tabset active="obj.active" type="pills" class="nji row">
-    <uib-tab index="0" heading="{{ 'Password and email(s)' | translate }}"><!-- ng-click="enableAnimation()"-->
+    <uib-tab index="0" heading="{{ 'Password and email(s)' | translate }}">
         <form autocomplete="on" ng-init="pattern = '.{8,}'; title = gettext('Password must contain at least 8 characters')">
             <div ng-if="pass_err !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
                 <button class="close" type="button" ng-click="dismissError()">&times;</button>
@@ -36,7 +36,7 @@
             <input type="submit" ng-disabled="obj.adding" class="btn btn-warning" ng-click="addEmail()" ng-attr-value="{{ 'Add Email Address' | translate }}">
         </form>
     </uib-tab>
-    <uib-tab index="1" heading="{{ 'Internationalization' | translate }}"><!-- ng-click="enableAnimation()"-->
+    <uib-tab index="1" heading="{{ 'Internationalization' | translate }}">
         <div ng-if="obj.active == 1 && set_modal_loaded !== undefined || setD !== undefined" ng-include="'/i18n/'" onload="set_modal_loaded(true)"></div>
     </uib-tab>
 </uib-tabset>

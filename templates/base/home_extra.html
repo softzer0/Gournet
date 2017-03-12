@@ -1,5 +1,0 @@
-    {% url 'account_login' as home_url %}{% if request.path != home_url %}<link rel="stylesheet" href="{% load staticfiles %}{% static 'main/css/create.css' %}">{% endif %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.1/lodash.min.js"></script>
-    <script src="{% load staticfiles %}{% static 'main/js/angular-simple-logger.light.min.js' %}"></script>
-    <script>LANG = '{{ request.LANGUAGE_CODE }}'</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-google-maps/2.4.0/angular-google-maps.js"></script>

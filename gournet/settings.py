@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'fbf0+@#!&9&!rb%6s4veb_#f7)r+1=u9ktofp_sc@=oi#%tnal'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', '.gournet.co']
 
 # Application definition
 
@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'django_settings_export',
     'timezone_field',
     'statici18n',
+    'related_admin',
     'main'
 ]
 
@@ -128,8 +129,6 @@ NOCAPTCHA = True
 
 PHONENUMBER_DEFAULT_REGION = "RS"
 
-STATICI18N_ROOT = os.path.join(BASE_DIR, 'main/static/main/js/') #remove
-
 # Begin custom
 
 EVENT_PAGE_SIZE = 15
@@ -137,13 +136,15 @@ NOTIFICATION_PAGE_SIZE = 5
 COMMENT_PAGE_SIZE = 4
 SEARCH_PAGE_SIZE = 10
 
+GMAPS_API_KEY = "***REMOVED***"
+
 # End custom
 
 SETTINGS_EXPORT = [
     'NOTIFICATION_PAGE_SIZE',
     'COMMENT_PAGE_SIZE',
     'SEARCH_PAGE_SIZE',
-    'STATIC_URL'
+    'GMAPS_API_KEY'
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -171,7 +172,6 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/email/confirm/',
     r'/logout/',
     r'/static/',
-    r'/media/',
     r'/admin/'
 )
 
@@ -210,8 +210,12 @@ WSGI_APPLICATION = 'gournet.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'gournet',
+        'USER': 'mikisoft',
+        'PASSWORD': 'bed85ae9c2',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -242,7 +246,7 @@ from django.utils.translation import gettext_lazy
 LANGUAGES = (('en-us', gettext_lazy('English')),
              ('sr-latn', gettext_lazy('Serbian')))
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'sr-latn'
 
 TIME_ZONE = 'Europe/Belgrade'
 
@@ -258,8 +262,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

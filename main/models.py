@@ -62,7 +62,7 @@ class Loc(models.Model):
     location = PointField(_("longitude/latitude"), geography=True, error_messages={'invalid': _("Enter valid coordinates.")}) #, geography=True
     loc_projected = PointField(srid=3857)
     address = models.CharField(_("address"), max_length=130)
-    #tz = TimeZoneField(default=settings.TIME_ZONE) #enable
+    tz = TimeZoneField(verbose_name=_("time zone"), default=settings.TIME_ZONE)
 
     class Meta:
         abstract = True
@@ -116,13 +116,12 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     gender = models.IntegerField(_("gender"), choices=CHOICE_GENDER, default=0)
     birthdate = models.DateField(_("birthdate"))
 
-    """name_changed = models.BooleanField(default=False)
-    gender_changed = models.BooleanField(default=False)
-    birthdate_changed = models.BooleanField(default=False)""" #enable
+    name_changed = models.BooleanField(_("name already changed?"), default=False)
+    gender_changed = models.BooleanField(_("gender already changed?"), default=False)
+    birthdate_changed = models.BooleanField(_("birthdate already changed?"), default=False)
 
-    currency = models.CharField(choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
-    language = models.CharField(choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
-    tz = TimeZoneField(default=settings.TIME_ZONE) #del
+    currency = models.CharField(_("currency"), choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
+    language = models.CharField(_("language"), choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
 
     recent = GenericRelation('Recent')
 
@@ -138,7 +137,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         default=True,
         help_text=_("Designates whether this user should be treated as active. Unselect this instead of deleting accounts."),
     )
-    #is_manager = models.BooleanField(default=False) #enable
+    is_manager = models.BooleanField(_("is manager?"), default=False)
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     objects = MyUserManager()
@@ -149,8 +148,8 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     class Meta:
         swappable = 'AUTH_USER_MODEL'
         ordering = ['username', 'first_name', 'last_name']
-        """verbose_name = _("user")
-        verbose_name_plural = _("users")"""
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
 
     def save(self, *args, **kwargs):
         self.first_name = self.first_name.capitalize()
@@ -258,14 +257,15 @@ class Business(Loc):
     closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
     currency = models.CharField(_("default currency"), choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
     supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True, max_length=3)
-    is_published = models.BooleanField(default=False)
+    is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
 
     objects = BusinessManager()
 
-    """class Meta:
-        verbose_name = _("business")"""
+    class Meta:
+        verbose_name = _("business")
+        verbose_name_plural = _("businesses")
 
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
@@ -278,18 +278,18 @@ def business_review_delete(instance, **kwargs):
 EVENT_MIN_CHAR = 15
 
 class Event(models.Model):
-    business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    text = models.TextField(validators=[MinLengthValidator(EVENT_MIN_CHAR), MaxLengthValidator(1000)])
-    when = models.DateTimeField()
-    created = models.DateTimeField(auto_now_add=True)
+    business = models.ForeignKey(Business, verbose_name=_("business"), on_delete=models.CASCADE)
+    text = models.TextField(_("text"), validators=[MinLengthValidator(EVENT_MIN_CHAR), MaxLengthValidator(1000)])
+    when = models.DateTimeField(_("when"))
+    created = models.DateTimeField(_("created"), auto_now_add=True)
     likes = GenericRelation('Like')
 
     objects = GeoManager()
 
     class Meta:
         ordering = ['-when', '-pk']
-        """verbose_name = _("event")
-        verbose_name_plural = _("events")"""
+        verbose_name = _("event")
+        verbose_name_plural = _("events")
 
     def __str__(self):
         return 'Event #%d on business #%d' % (self.pk, self.business_id)
@@ -347,20 +347,20 @@ CATEGORY = (
 ITEM_MIN_CHAR = 2
 
 class Item(models.Model):
-    business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    category = models.CharField(choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=13)
-    name = models.CharField(validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
-    price = models.DecimalField(max_digits=7, decimal_places=2)
-    created = models.DateTimeField(auto_now_add=True)
-    #has_image = models.BooleanField(default=False) #enable
+    business = models.ForeignKey(Business, verbose_name=_("business"), on_delete=models.CASCADE)
+    category = models.CharField(_("category"), choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=13)
+    name = models.CharField(_("name"), validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
+    price = models.DecimalField(_("price"), max_digits=7, decimal_places=2)
+    created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
+    has_image = models.BooleanField(_("has image?"), default=False)
     likes = GenericRelation('Like')
 
     class Meta:
         ordering = ['business', 'category', 'name', 'price']
         unique_together = (('business', 'name'),)
         #ordering = ['category', 'name', 'price']
-        """verbose_name = _("item")
-        verbose_name_plural = _("items")"""
+        verbose_name = _("item")
+        verbose_name_plural = _("items")
 
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
@@ -377,8 +377,8 @@ def item_set_b_published(instance, **kwargs):
 
 
 class CT(models.Model):
-    content_type = models.ForeignKey(ContentType, limit_choices_to={'pk__in': get_content_types_pk()})
-    object_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType, verbose_name=_("object type"), limit_choices_to={'pk__in': get_content_types_pk()})
+    object_id = models.PositiveIntegerField(_("object ID"))
     content_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
@@ -388,18 +388,18 @@ class CT(models.Model):
 REVIEW_STATUS = ((0, _("Started")), (1, _("Closed")), (2, _("Completed")), (3, _("Declined")), (4, _("Under review")), (5, _("Planned")), (6, _("Archived")), (7, _("Need feedback")))
 
 class Comment(CT):
-    person = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField(validators=[MaxLengthValidator(1000)])
-    created = models.DateTimeField(auto_now_add=True)
-    stars = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)], null=True, blank=True)
-    main_comment = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
-    status = models.SmallIntegerField(choices=REVIEW_STATUS, null=True, blank=True)
+    person = models.ForeignKey(User, verbose_name=_("person"), on_delete=models.CASCADE)
+    text = models.TextField(_("text"), validators=[MaxLengthValidator(1000)])
+    created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
+    stars = models.PositiveSmallIntegerField(_("stars"), validators=[MaxValueValidator(5)], null=True, blank=True)
+    main_comment = models.ForeignKey('self', verbose_name=_("main comment"), null=True, blank=True, on_delete=models.SET_NULL)
+    status = models.SmallIntegerField(_("status"), choices=REVIEW_STATUS, null=True, blank=True)
     likes = GenericRelation('Like')
 
     class Meta:
         ordering = ['-created']
-        verbose_name = "review"
-        verbose_name_plural = "reviews"
+        verbose_name = _("comment/review")
+        verbose_name_plural = _("comments/reviews")
 
     def __str__(self):
         return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != settings.CONTENT_TYPE['comment'] else 'review', self.object_id)
@@ -481,7 +481,8 @@ class Recent(CT):
 
 """TESTING:
 from main.models import User
-a = User(username='mikisoft', email='mihailosoft@gmail.com', first_name='Mihailo', last_name='Popović', gender=1, birthdate='***REMOVED***', location=0)
+from django.contrib.gis.geos import Point
+a = User(username='mikisoft', email='mihailosoft@gmail.com', first_name='Mihailo', last_name='Popović', gender=0, birthdate='***REMOVED***', address='Vranje, Srbija', currency='RSD', location=Point(21.9002712, 42.5450345, srid=4326))
 a.set_password('PASSWORD')
 a.is_staff = True
 a.is_superuser = True
@@ -494,11 +495,12 @@ a.verified = True
 a.save()
 
 from main.models import User
+from django.contrib.gis.geos import Point
 a = User.objects.get(pk=1)
 a.username = 'user'
 a.set_password('1')
 a.save()
-a = User.objects.create(username='manager',email='lololoasadasdd@sdaaadsa.ss',first_name='Miki',last_name='Pop',birthdate='***REMOVED***',location=0)
+a = User.objects.create(username='manager',email='lololoasadasdd@sdaaadsa.ss',first_name='Miki',last_name='Pop',birthdate='***REMOVED***',address='Vranje, Srbija',location=Point(21.9002712, 42.5450345, srid=4326))
 a.set_password('1')
 a.save()
 # try to login to site
