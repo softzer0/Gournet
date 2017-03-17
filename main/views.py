@@ -82,7 +82,7 @@ def i18n_view(request):
                 st = status.HTTP_400_BAD_REQUEST
         #if get_param_bool(request.GET.get('nohtml', False)):
         return HttpResponse(dumps({'altered': c}), status=st)
-    return render(request, 'i18n.html', {'timezones': common_timezones, 'langs': settings.LANGUAGES, 'currencies': models.CURRENCY}, status=st)
+    return render(request, 'i18n.html', {'timezones': common_timezones, 'langs': settings.LANGUAGES, 'currencies': models.CURRENCY} if not cache.get(make_template_fragment_key('i18n')) else None, status=st)
 
 
 @csrf_protect
@@ -124,7 +124,7 @@ def contact_view(request):
     if request.method == 'POST':
         form = forms.ContactForm(data=request.POST)
         if form.is_valid():
-            models.User.objects.get(username='user').email_user(form.cleaned_data['email'], form.cleaned_data['message']) #repl user with mikisoft
+            models.User.objects.get(username='mikisoft').email_user(form.cleaned_data['email'], form.cleaned_data['message'])
             return render(request, 'contact_sent.html', {'file': file})
     else:
         form = forms.ContactForm()
@@ -145,9 +145,9 @@ def create_business(request):
             if request.POST.get(s[0], False) != 'on':
                 request.POST.pop('opened_'+s[1], None)
                 request.POST.pop('closed_'+s[1], None)
-        request.POST['manager'] = request.user.pk
         form = forms.BusinessForm(data=request.POST)
         if form.is_valid():
+            form.cleaned_data['manager'] = request.user
             models.Business.objects.create(**form.cleaned_data)
             request.user.is_manager = True
             request.user.save()
@@ -166,7 +166,7 @@ def show_business(request, shortname):
         data = {'business': models.Business.objects.get_by_natural_key(shortname)}
     except models.Business.DoesNotExist:
         return redirect('/')
-    if not data['business'].is_published and data['business'].manager != request.user:
+    if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
     if data['business'].likes.filter(person=request.user).exists():
         increase_recent(request, data['business'])
@@ -190,7 +190,7 @@ def show_business(request, shortname):
         data['workh']['display'] = data['workh']['value']
     else:
         data['fav_state'] = -1
-        if not cache.get(make_template_fragment_key('e')):
+        if not cache.get(make_template_fragment_key('edit_data')):
             data['edit_data'] = {'types': models.BUSINESS_TYPE, 'forbidden': models.FORBIDDEN}
             data['curr'] = models.CURRENCY
             data['form'] = forms.DummyCategory()
@@ -513,10 +513,12 @@ def send_notifications(request, pk):
     return base_view(request, t, cont, pk=pk)
 
 
-def filter_published(model, ct_f='business'):
-    if isinstance(ct_f, int):
-        return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model.__name__.lower(), 1, column='is_published', target='business', ct=ct_f)])
-    return model.objects.filter(**{(ct_f+'__' if ct_f else '')+'is_published': True})
+def filter_published(self, ct_f, model=None):
+    if not model:
+        model = self.model
+    if self.request.user.is_staff:
+        return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model._meta.model_name, target='business', ct=ct_f, where='exists (select 1 from main_item where main_item.business_id = main_'+model._meta.model_name+'.object_id)')]) if not isinstance(ct_f, bool) else model.objects.extra(where=['exists (select 1 from main_item where main_item.business_id = main_business.id)'])
+    return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model._meta.model_name, 1, column='is_published', target='business', ct=ct_f)]) if not isinstance(ct_f, bool) else model.objects.filter(**{('business__' if ct_f else '')+'is_published': True})
 
 class FeedAPIView(MultipleModelAPIView):
     sorting_field = '-sort_field'
@@ -528,7 +530,7 @@ class FeedAPIView(MultipleModelAPIView):
             """
             @type model: django.db.models.Model
             """
-            qs = filter_published(model, ct or (None if filter is None else 'business'))
+            qs = filter_published(self, ct or filter is not None, model)
             if filter:
                 qs = qs.filter(Q(**{filter + '__in': friends}) | Q(likes__person__in=friends)).annotate(is_liked=Max(Case(When(likes__person__in=friends, then=1), default=0, output_field=IntegerField())), sort_field=Max(Case(When(likes__person__in=friends, then=F('likes__date')), default=F('created')))) #.distinct('pk')
             else:
@@ -556,10 +558,10 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     def __init__(self):
         super().__init__()
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
-        self.main_f = self.ct or 'business'
+        self.main_f = self.ct or True
 
     def get_person_qs(self, person):
-        qs = filter_published(self.model, self.main_f).filter(Q(**{self.filter: person}) | Q(likes__person=person))
+        qs = filter_published(self, self.main_f).filter(Q(**{self.filter: person}) | Q(likes__person=person))
         return qs.order_by(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)).desc(), *self.model._meta.ordering) if self.order_by else qs
 
     def get_qs_pk(self):
@@ -572,7 +574,7 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
         return qs
 
     def getnopk(self):
-        return filter_published(self.model, self.main_f)
+        return filter_published(self, self.main_f)
 
     def get_queryset(self):
         if self.request.query_params.get('ids', False):
@@ -723,7 +725,7 @@ class EventAPIView(BaseAPIView):
     def getnopk(self):
         if not isinstance(self, EventAPIView):
             self.model = models.Event
-            self.main_f = 'business'
+            self.main_f = True
             qs = BaseAPIView.getnopk(self)
         else:
             qs = super().getnopk()

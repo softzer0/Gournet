@@ -1,4 +1,3 @@
-
 app.config(function ($injector) {
   var s = $injector.get('timeAgoSettings');
   if (s === undefined) return;

@@ -231,6 +231,11 @@ app
             if (d[1].isBefore(d[0]) || d[1].isSame(d[0])) if (now.isBefore(d[0])) $scope.is_opened = now.isBefore(d[1]); else $scope.is_opened = true; else $scope.is_opened = now.isBefore(d[1]) && (d[0].isBefore(now) || d[0].isSame(now));
         };
 
+        $scope.dismissI = function() {
+            angular.element('#editinf').remove();
+            delete $scope.dismissI;
+        };
+
         var services;
         // Not manager
         if (!OWNER_MANAGER) {

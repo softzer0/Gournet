@@ -65,7 +65,7 @@ class BaseForm(forms.ModelForm):
     location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$')
 
     class Meta:
-        fields = ('phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun')
+        exclude = ('type', 'name', 'shortname', 'currency', 'manager', 'is_published', 'tz', 'loc_projected')
         model = Business
         widgets = {'phone': PhoneNumberInternationalFallbackWidget, 'supported_curr': forms.SelectMultiple}
 
@@ -105,7 +105,7 @@ class BaseForm(forms.ModelForm):
 
 class BusinessForm(BaseForm):
     class Meta:
-        fields = '__all__'
+        exclude = ('manager', 'is_published', 'tz', 'loc_projected')
         model = Business
         widgets = {'phone': PhoneNumberInternationalFallbackWidget, 'supported_curr': forms.SelectMultiple}
 

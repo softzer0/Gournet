@@ -25,6 +25,10 @@ msgid ""
 "After changing the %s for the first time, you won't be able to do that again."
 msgstr "Nakon menjanja %s po prvi put, nećete moći to uraditi ponovo."
 
+#: main/static/main/js/custom/manager.js:52
+msgid "This message will disappear once your business is approved. When published, it will become visible/accessible to others."
+msgstr "Ova poruka će nestati jednom kada Vaš ugostiteljski objekat bude potvrđen. Kada bude objavljen, tada će biti vidljiv/dostupan ostalima."
+
 #: main/static/main/js/custom/base_view.js:119
 #: main/static/main/js/custom/manager.js:65
 msgid "Are you sure that you want to continue?"

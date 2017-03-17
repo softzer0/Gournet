@@ -290,7 +290,7 @@ msgstr "vreme zatvaranja u nedelju"
 
 #: main/models.py:258
 msgid "default currency"
-msgstr "preferirana valuta:"
+msgstr "korišćena valuta:"
 
 #: main/models.py:259
 msgid "other supported currencies (if any)"
@@ -538,10 +538,6 @@ msgstr "glavni komentar"
 #: main/models.py:396
 msgid "status"
 msgstr "status"
-
-#: main/models.py:401
-msgid "comment/review"
-msgstr "komentar/recenzija"
 
 #: main/models.py:402
 msgid "comments/reviews"
@@ -1396,19 +1392,19 @@ msgstr[2] "<strong>%(counter)s</strong></a> osoba su Vaši prijatelji"
 msgid "You have no friends"
 msgstr "Nemate prijatelja"
 
-#: main/templates/view.html:38
+#: main/templates/view.html:33
 msgid "Shortname:"
 msgstr "Skraćenica:"
 
-#: main/templates/view.html:51 main/templates/view.html:65
+#: main/templates/view.html:50 main/templates/view.html:60
 msgid "Nobody favored this"
 msgstr "Niko nije favorizovao ovo"
 
-#: main/templates/view.html:58
+#: main/templates/view.html:55
 msgid "It's my favorite, too"
 msgstr "I meni je omiljeno, takođe"
 
-#: main/templates/view.html:58
+#: main/templates/view.html:55
 msgid "It's my favorite"
 msgstr "Meni je omiljeno"
 
@@ -1436,27 +1432,36 @@ msgstr "Trenutno otvoreno"
 msgid "Currently closed"
 msgstr "Trenutno zatvoreno"
 
-#: main/templates/view.html:74
+#: main/templates/view.html:69
 #, python-format
 msgid "Monday-Friday, from %(wf)s to %(wt)s"
 msgstr "Radnim danima od %(wf)s do %(wt)s"
 
-#: main/templates/view.html:75
+#: main/templates/view.html:70
 #, python-format
 msgid "Saturday, from %(wf)s to %(wt)s"
 msgstr "Subodom od %(wf)s do %(wt)s"
 
-#: main/templates/view.html:76
+#: main/templates/view.html:71
 #, python-format
 msgid "Sunday, from %(wf)s to %(wt)s"
 msgstr "Nedeljom od %(wf)s do %(wt)s"
 
-#: main/templates/view.html:85
-msgid ""
-"Your business won't be visible to others until you add some items to it."
-msgstr ""
-"Vaš ugostiteljski objekat neće biti vidljiv sve dok mu ne dodate neke "
-"proizvode."
+#: main/templates/view.html:79
+msgid "<a href=\"/admin/main/business/%(pk)s/change/\" target=\"_blank\">Edit this business for publishing</a> or <a href=\"/admin/main/business/%(pk)s/delete/\">reject it</a>."
+msgstr "<a href=\"/admin/main/business/%(pk)s/change/\" target=\"_blank\">Izmeni ovaj ugostiteljski objekat pre objavljivanja</a> ili ga <a href=\"/admin/main/business/%(pk)s/delete/\">odbij</a>."
+
+#: main/templates/view.html:79
+msgid "Your business won't be a candidate for verfication until you add some items to it."
+msgstr "Vaš ugostiteljski objekat neće biti kandidat za verifikaciju sve dok mu ne dodate neke proizvode."
+
+#: main/templates/view.html:79
+msgid "This message will disappear once your business is approved. When published, it will become visible/accessible to others."
+msgstr "Ova poruka će nestati jednom kada Vaš ugostiteljski objekat bude verifikovan. Kada bude objavljen, tada će biti vidljiv/dostupan ostalima."
+
+#: main/templates/view.html:81
+msgid "Edit this business in admin panel."
+msgstr "Izmeni ovaj ugostiteljski objekat u administratorskom panelu."
 
 #: main/templates/view.html:87
 msgid "Events"
@@ -1879,18 +1884,54 @@ msgstr "Unesite validnu email adresu."
 msgid "The username and/or password you specified are not correct."
 msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."
 
-#: main/admin.py:34
+#: main/admin.py:17
+msgid "has any item?"
+msgstr "ima barem jednog proizvoda?"
+
+#: main/admin.py:37
+#: main/admin.py:55
+msgid "like(s)"
+msgstr "sviđanja"
+
+#: main/admin.py:37
+msgid "item(s)"
+msgstr "proizvodi"
+
+#: main/admin.py:37
+msgid "event(s)"
+msgstr "događaji"
+
+#: main/admin.py:41
+msgid "review(s)"
+msgstr "recenzije"
+
+#: main/admin.py:50
+msgid "name/text"
+msgstr "ime/tekst"
+
+#: main/admin.py:59
+msgid "dislike(s)"
+msgstr "nesviđanja"
+
+#: main/admin.py:63
+msgid "comment(s)"
+msgstr "komentari"
+
+#: main/admin.py:79
 msgid "review"
 msgstr "recenzija"
 
-#: main/admin.py:35
+#: main/admin.py:80
 msgid "reviews"
 msgstr "recenzije"
 
-#: main/admin.py:40
+#: main/admin.py:85
 msgid "comment"
 msgstr "komentar"
 
-#: main/admin.py:41
+#: main/admin.py:86
 msgid "comments"
 msgstr "komentari"
+
+msgid "created"
+msgstr "napravljeno"

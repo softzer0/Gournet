@@ -505,7 +505,7 @@ footer > div > div > div > *:first-child {
     width: 28%;
 }
 
-@media (max-width: 531px) {
+@media (max-width: 561px) {
     footer > div > div > div > *:first-child {
         width: 49%;
     }

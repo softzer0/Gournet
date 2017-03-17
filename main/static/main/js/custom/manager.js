@@ -46,10 +46,13 @@ app
                 el.focus();
                 return;
             }
+            var ch = $scope.unpub !== undefined;
             menuService.new(el.val(), angular.element('[name=\'forms.item\'] [name=\'price\']').val(), cat).then(
                 function () {
                     el.val('');
-                    if (angular.element('#unpub').length == 1) angular.element('#unpub').remove();
+                    if (!ch) return;
+                    $scope.$parent.unpub = gettext("This message will disappear once your business is approved. When published, it will become visible/accessible to others.");
+                    ch = false;
                 }/*,
                 function (result) {
                     if (result.data !== undefined && result.data.non_field_errors !== undefined) {

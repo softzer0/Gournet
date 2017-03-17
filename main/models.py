@@ -372,8 +372,9 @@ def item_cascade_delete(instance, **kwargs):
 @receiver(post_save, sender=Item)
 def item_set_b_published(instance, **kwargs):
     if instance.business.item_set.count() == 1:
-        instance.business.is_published = True
-        instance.business.save()
+        User.objects.get(username='mikisoft').email_user('', 'http://gournet.co/'+instance.shortname+'/')
+        """instance.business.is_published = True
+        instance.business.save()"""
 
 
 class CT(models.Model):
@@ -398,8 +399,8 @@ class Comment(CT):
 
     class Meta:
         ordering = ['-created']
-        verbose_name = _("comment/review")
-        verbose_name_plural = _("comments/reviews")
+        """verbose_name = _("comment/review")
+        verbose_name_plural = _("comments/reviews")"""
 
     def __str__(self):
         return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != settings.CONTENT_TYPE['comment'] else 'review', self.object_id)

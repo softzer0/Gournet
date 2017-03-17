@@ -52,8 +52,8 @@ class BaseSignupForm(UserCreationForm):
         if resp:
             for a in reversed(resp['address_components']):
                 if 'country' in a['types'] and a['short_name'] == 'RS': #for c in CURRENCY_COUNTRY:
-                        cleaned_data['currency'] = 'RSD' #if a['short_name'] in c:
-                        break #= c[1]
+                    cleaned_data['currency'] = 'RSD' #if a['short_name'] in c:
+                    break #= c[1]
 
 class SignupForm(BaseSignupForm, DefaultSignupForm, CaptchaForm):
     pass

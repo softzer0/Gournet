@@ -21,7 +21,7 @@
 
 {% block rowatt %}ng-controller="BusinessCtrl" ng-init="minchar = {{ minchar }}{% if fav_state > -1 %}; fav_count = {{ fav_count }}; fav_state = {{ fav_state }}{% endif %}"{% endblock %}
 
-{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache 0 e %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened({{ business.type }}, '{{ business.name }}', '{{ business.shortname }}'){% endcache %}">
+{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache 0 edit_data %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened({{ business.type }}, '{{ business.name }}', '{{ business.shortname }}'){% endcache %}">
                         <a class="n lead text-center" ng-show="edit.disabled" ng-click="edit.disabled = false">{% verbatim %}{{ types[edit.value[0]] }} "{{ edit.value[1] }}"{% endverbatim %}</a>
                         <div ng-hide="edit.disabled">
                             <div>
@@ -57,14 +57,13 @@
                                     ><i class="fa fa-minus-square"></i> {% trans "It's not my favorite anymore" %}</span
                             ></a
                         >{% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>
-                        {% endcomment %}{% else %}{% if fav_count > 0 %}<a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}</span>
-                        {% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
-                        {% endif %}</li>
+                        {% endcomment %}{% else %}<span>{% if fav_count > 0 %}<a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}{% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
+                        {% endif %}</span></li>
                         {% endif %}<li>
                             <hr style="margin: 8px 13px 13px;">{% if fav_state == -1 %}
                                 <a href="javascript:" ng-click="openEdit()"><i class="fa fa-pencil"></i> {% trans "Edit" %}</a></li>
                             <li>{% endif %}
-                            <ul class="list-unstyled" ng-init="data.tz = 'Europe/Belgrade{% comment %}{{ business.tz }}{% endcomment %}'; set_data([{% for n in workh.value %}'{{ n }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% if fav_state == -1 %}, '{{ business.phone }}', [{% for c in business.supported_curr %}'{{ c }}'{% if not forloop.last %}, {% endif %}{% endfor %}], '{{ business.address }}', '{{ business.location.coords.0 }},{{ business.location.coords.1 }}'{% endif %})">
+                            <ul class="list-unstyled" ng-init="data.tz = '{{ business.tz }}'; set_data([{% for n in workh.value %}'{{ n }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% if fav_state == -1 %}, '{{ business.phone }}', [{% for c in business.supported_curr %}'{{ c }}'{% if not forloop.last %}, {% endif %}{% endfor %}], '{{ business.address }}', '{{ business.location.coords.0 }},{{ business.location.coords.1 }}'{% endif %})">
                                 <li><b ng-class="is_opened ? 'text-success' : 'text-danger'">{{ '{' }}{{ '{' }} is_opened ? "{% trans "Currently opened" %}" : "{% trans "Currently closed" %}" {{ '}' }}{{ '}' }}</b></li>
                                 <li><i class="fa fa-sign-in"></i> {% blocktrans with wf=workh.display.0 wt=workh.display.1 %}Monday-Friday, from {{ wf }} to {{ wt }}{% endblocktrans %}</li>{% if fav_state == -1 or workh.length >= 4 %}
                                 <li{% if fav_state == -1 %} ng-if="data.value[0].length >= 4"{% endif %}><i class="fa fa-sign-in"></i> {% blocktrans with wf=workh.display.2 wt=workh.display.3 %}Saturday, from {{ wf }} to {{ wt }}{% endblocktrans %}</li>{% endif %}{% if fav_state == -1 or workh.length == 6 %}
@@ -77,7 +76,9 @@
                             </ul>
                         </li>{% endblock %}
 
-{% block content %}{% if not business.is_published %}                    <uib-alert id="unpub" type="warning">{% trans "Your business won't be visible to others until you add some items to it." %}</uib-alert>
+{% block content %}{% if not business.is_published %}<uib-alert type="warning">{% if request.user.is_staff %}{% blocktrans with pk=business.pk %}<a href="/admin/main/business/{{ pk }}/change/" target="_blank">Edit this business for publishing</a> or <a href="/admin/main/business/{{ pk }}/delete/">reject it</a>.{% endblocktrans %}{% else %}{% if not business.item_set.exists %}<span ng-init="$parent.$parent.unpub = '{% trans "Your business won't be a candidate for verfication until you add some items to it." %}'" ng-bind="$parent.$parent.unpub"></span>{% else %}{% trans "This message will disappear once your business is approved. When published, it will become visible/accessible to others." %}{% endif %}{% endif %}</uib-alert>
+
+                    {% elif request.user.is_staff %}<uib-alert id="editinf" type="info" close="dismissI()"><a href="/admin/main/business/{{ business.pk }}/change/" target="_blank">{% trans "Edit this business in admin panel." %}</a></uib-alert>
 
                     {% endif %}<uib-tab index="0" heading="{% trans "Events" %}">
 {% if fav_state == -1 %}						<div class="well bs-component clearfix wp" ng-controller="EventCtrl">
@@ -101,13 +102,13 @@
                     </uib-tab>
 
                     <uib-tab index="1" heading="{% trans "Menu" %}">
-{% if fav_state == -1 %}						{% cache 0 i %}<div class="well bs-component clearfix wp" ng-controller="ItemCtrl">
+{% if fav_state == -1 %}						{% cache 0 item_form %}<div class="well bs-component clearfix wp" ng-controller="ItemCtrl">
 							<form name="forms.item" ng-submit="submitItem()" class="frm form-vertical">
                                 <uib-alert class="mpd" type="danger" close="forms.item.alert = undefined" ng-if="forms.item.alert !== undefined">{{ '{' }}{{ '{' }} forms.item.alert === true ? "{% trans "Name must must have minimum 2 characters." %}" : "{% trans "Name conflicts with the existing item." %}" {{ '}' }}{{ '}' }}</uib-alert>
                                 <div class="form-group" ng-class="{'has-error': forms.item.alert !== undefined}">
                                     <input name="name" type="text" class="form-control" required maxlength="60">
                                 </div>
-                                <fieldset class="rev" ng-init="$parent.data.curr = '{{ business.currency }}'; $parent.curr = ['{{ business.currency }}', '{% endcache %}{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{% cache 0 i1 %}']">
+                                <fieldset class="rev" ng-init="$parent.data.curr = '{{ business.currency }}'; $parent.curr = ['{{ business.currency }}', '{% endcache %}{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{% cache 0 item_form0 %}']">
                                     <select class="form-control" ng-model="$parent.curr[0]" ng-change="changedCurr()">{% for c in curr %}
                                         <option value="{{ c.0 }}">{{ c.1 }}</option>{% endfor %}
                                     </select>

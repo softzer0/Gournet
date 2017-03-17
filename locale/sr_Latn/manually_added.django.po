@@ -1,7 +1,7 @@
 # REMOVE
 
-#: main/views.py:417
-#, fuzzy, python-format
+#~: main/views.py:417
+#~, fuzzy, python-format
 #| msgctxt "commented on"
 #| msgid "your item"
 #| msgid_plural "your %d items"
@@ -46,3 +46,6 @@ msgstr "Unesite validnu email adresu."
 
 msgid "The username and/or password you specified are not correct."
 msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."
+
+msgid "created"
+msgstr "napravljeno"
