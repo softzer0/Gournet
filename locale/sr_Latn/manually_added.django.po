@@ -50,5 +50,26 @@ msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."
 msgid "created"
 msgstr "napravljeno"
 
+#, python-format
 msgid "The password is too similar to the %(verbose_name)s."
 msgstr "Šifra je previše slična sa podatkom unetim u polje: %(verbose_name)s."
+
+msgid "Enter a valid phone number."
+msgstr "Unesi validan broj telefona."
+
+#, python-format
+msgid ""
+"This password is too short. It must contain at least %(min_length)d "
+"character."
+msgid_plural ""
+"This password is too short. It must contain at least %(min_length)d "
+"characters."
+msgstr[0] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karakter."
+msgstr[1] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+msgstr[2] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+
+msgid "This password is too common."
+msgstr "Ova šifra je previše učestala."
+
+msgid "This password is entirely numeric."
+msgstr "Ova šifra je skroz brojčana."

@@ -207,6 +207,10 @@ msgstr "Podešavanja"
 msgid "New password fields don't match."
 msgstr "Polja za unos nove šifre se ne poklapaju."
 
+#: main/static/main/js/custom/main.js:1420
+msgid "Your new password matches the current entered password, choose a different one."
+msgstr "Vaša nova šifra se poklapa sa trenutnom, izaberite drugu."
+
 #: main/static/main/js/custom/manager.js:65
 msgid ""
 "If you change the business currency now, then item prices in the menu will "

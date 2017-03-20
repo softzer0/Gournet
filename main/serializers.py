@@ -508,18 +508,18 @@ class CommentSerializer(BaseSerializer):
 
     def validate(self, attrs):
         attrs = exists(attrs)
-        if attrs['content_type'] == models.get_content_types()['comment']:
-            if attrs['content_object'].content_type != models.get_content_types()['business']:
+        if attrs['content_type'] == ContentType.objects.get(model='comment'):
+            if attrs['content_object'].content_type != ContentType.objects.get(model='business'):
                 raise serializers.ValidationError({'non_field_errors': ["Commeting on a non-review comment type currently isn't supported."]})
             #elif self.context['request'].user == attrs['content_object'].content_object.manager:
             #    if 'status' not in attrs:
             #        raise serializers.ValidationError({'status': [getattr(Field, 'default_error_messages')['required']]})
-        elif attrs['content_type'] == models.get_content_types()['business']:
+        elif attrs['content_type'] == ContentType.objects.get(model='business'):
             if self.context['request'].user == attrs['content_object'].manager:
                 raise serializers.ValidationError({'non_field_errors': ["You can't review your own business."]})
-            if models.Comment.objects.filter(content_type=models.get_content_types()['business'], object_id=attrs['object_id'], person=self.context['request'].user).exists():
+            if models.Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=attrs['object_id'], person=self.context['request'].user).exists():
                 raise serializers.ValidationError({'non_field_errors': ["Each business can be reviewed only once per person. Use PUT/DELETE for the existing review."]})
-        if 'status' in attrs and (attrs['content_type'] != models.get_content_types()['comment'] or self.context['request'].user != attrs['content_object'].content_object.manager):
+        if 'status' in attrs and (attrs['content_type'] != ContentType.objects.get(model='comment') or self.context['request'].user != attrs['content_object'].content_object.manager):
             attrs.pop('status')
         return attrs
 
@@ -670,13 +670,13 @@ class LikeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         attrs = exists(attrs)
-        if attrs['content_type'] == models.get_content_types()['comment']:
-            if attrs['content_object'].content_type == models.get_content_types()['comment']:
+        if attrs['content_type'] == ContentType.objects.get(model='comment'):
+            if attrs['content_object'].content_type == ContentType.objects.get(model='comment'):
                 if attrs['content_object'].status is None:
                     raise serializers.ValidationError({'non_field_errors': ["Liking an user comment currently isn't supported."]})
             elif attrs['content_object'].person == self.context['request'].user:
                 self.own_like_err('review')
-        elif attrs['content_type'] == models.get_content_types()['business']:
+        elif attrs['content_type'] == ContentType.objects.get(model='business'):
             if attrs['content_object'].manager == self.context['request'].user:
                 raise serializers.ValidationError({'non_field_errors': ["You can't make your own business as favourite."]})
         elif attrs['content_object'].business.manager == self.context['request'].user:
@@ -686,7 +686,7 @@ class LikeSerializer(serializers.ModelSerializer):
 
 class ReminderSerializer(serializers.ModelSerializer):
     to_person = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    content_type = serializers.HiddenField(default=models.get_content_types()['event'])
+    content_type = serializers.HiddenField(default=ContentType.objects.get(model='event'))
     when = serializers.DateTimeField()
 
     class Meta:

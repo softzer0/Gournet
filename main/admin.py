@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _, ugettext
 from related_admin import RelatedFieldAdmin, getter_for_related_field
 from django.db.models import Count, Avg
 from django.template.defaultfilters import truncatewords
+from django.contrib.contenttypes.models import ContentType
 
 class BaseAdmin(admin.ModelAdmin):
     exclude = ('loc_projected',)
@@ -50,7 +51,7 @@ class BaseObjAdmin(admin.ModelAdmin):
     name_text.short_description = _("name/text")
 
 def filter_relation(self, model, obj):
-    return getattr(models, model).objects.filter(content_type__pk=models.get_content_types()[type(obj)._meta.model_name if not hasattr(self, 'model_name') else self.model_name].pk, object_id=obj.pk)
+    return getattr(models, model).objects.filter(content_type__pk=ContentType.objects.get(model=type(obj)._meta.model_name if not hasattr(self, 'model_name') else self.model_name).pk, object_id=obj.pk)
 
 class DisLike:
     def like_count(self, obj):
@@ -99,4 +100,4 @@ class CommentAdmin(BaseCommentAdmin):
     list_filter = BaseCommentAdmin.list_filter + ('status',)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).exclude(content_type__pk=models.get_content_types()['business'].pk)
+        return super().get_queryset(request).exclude(content_type__pk=ContentType.objects.get(model='business').pk)

@@ -1414,15 +1414,15 @@ app
                         //}
                         return;
                     }
-                    /*if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
+                    if ($scope.obj.pass[0] == $scope.obj.pass[1]) {
                         //var t = "Your new password matches the current password, enter a different one.";
                         //if ($scope.pass_err_txt != t) {
-                        $scope.pass_err_txt = "Your new password matches the current entered password, so use a different one."; //t
+                        $scope.pass_err_txt = gettext("Your new password matches the current entered password, choose a different one."); //t
                         $scope.pass_err = 2;
                         pw_fields[1].focus();
                         //}
                         return;
-                    }*/
+                    }
                     $scope.dismissError();
                     $scope.obj.changing = true;
                     $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){

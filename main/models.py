@@ -18,7 +18,6 @@ from functools import lru_cache
 from django.contrib.gis.db.models import PointField, GeoManager
 from multiselectfield import MultiSelectField
 from timezone_field import TimeZoneField
-from sys import argv
 from timezonefinder import TimezoneFinder
 from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, activate as lang_activate
 from django.utils.functional import lazy
@@ -26,30 +25,20 @@ from os.path import join
 from shutil import rmtree
 
 TF_OBJ = TimezoneFinder()
-IS_SERVER = len(argv) == 1 or argv[1] not in ('makemigrations', 'migrate')
-
-@lru_cache()
-def get_content_types():
-    res = {}
-    if not IS_SERVER:
-        class t:
-            pk = None
-        o = t()
-    for r in ('business', 'event', 'item', 'comment'):
-        res[r] = ContentType.objects.get(model=r) if IS_SERVER else o
-    return res
-
-@lru_cache()
-def get_user_ct_pk():
-    return ContentType.objects.get(model='user').pk
 
 @lru_cache()
 def get_has_stars():
-    return {get_content_types()['item'].pk: 'item'}
+    return {ContentType.objects.get(model='item').pk: 'item'}
 
 @lru_cache()
 def get_content_types_pk():
-    return [get_content_types()[ct].pk for ct in get_content_types()] if IS_SERVER else []
+    res = []
+    try:
+        for r in ('business', 'event', 'item', 'comment'):
+            res.append(ContentType.objects.get(model=r).pk)
+    except:
+        pass
+    return res
 
 
 CURRENCY = (('RSD', _("Serbian dinar (RSD)")), ('EUR', _("Euro (EUR)")))
@@ -284,7 +273,7 @@ class Business(Loc):
 
 @receiver(pre_delete, sender=Business)
 def business_review_and_avatar_delete(instance, **kwargs):
-    Comment.objects.filter(content_type=get_content_types()['business'], object_id=instance.pk).delete()
+    Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=instance.pk).delete()
     rem_avatar(instance)
 
 
@@ -309,7 +298,7 @@ class Event(models.Model):
 
 def cascade_delete(type, pk):
     for model in (EventNotification, Comment):
-        qs = model.objects.filter(content_type=get_content_types()[type], object_id=pk)
+        qs = model.objects.filter(content_type=ContentType.objects.get(model=type), object_id=pk)
         qs._raw_delete(qs.db)
 
 @receiver(pre_delete, sender=Event)
@@ -417,7 +406,7 @@ class Comment(CT):
         verbose_name_plural = _("comments/reviews")"""
 
     def __str__(self):
-        return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != get_content_types()['comment'] else 'review', self.object_id)
+        return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != ContentType.objects.get(model='comment') else 'review', self.object_id)
 
 def increment(model, filter):
     obj, created = model.objects.get_or_create(**filter)
@@ -436,7 +425,7 @@ def comment_save_notification(instance, created, **kwargs):
     if bc == 1 and instance.status is not None:
         instance.content_object.main_comment = instance
         instance.content_object.save()
-    ct = get_content_types()['comment'] if bc == 2 else instance.content_type
+    ct = ContentType.objects.get(model='comment') if bc == 2 else instance.content_type
     obj_pk = instance.pk if bc == 2 else instance.object_id
     # noinspection PyUnresolvedReferences
     manager = instance.content_object.manager if bc == 2 else instance.content_object.content_object.manager if bc == 1 else instance.content_object.business.manager

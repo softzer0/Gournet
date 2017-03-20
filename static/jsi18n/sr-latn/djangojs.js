@@ -221,6 +221,7 @@
     "Your comment": "Va\u0161 komentar",
     "Your favourites": "Va\u0161i favoriti",
     "Your friends": "Va\u0161i prijatelji",
+    "Your new password matches the current entered password, choose a different one.": "Va\u0161a nova \u0161ifra se poklapa sa trenutnom, izaberite drugu.",
     "Your password has been changed.": "Va\u0161a \u0161ifra je promenjena.",
     "after changing\u0004birthdate": "datuma ro\u0111enja",
     "after changing\u0004gender": "pola",

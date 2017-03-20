@@ -1509,7 +1509,7 @@ msgstr "%s je komentarisao"
 #, python-format
 msgid "%d have commented on"
 msgid_plural "%d have commented on"
-msgstr[0] ""
+msgstr[0] "%d osoba je komentarisala"
 msgstr[1] "%d osobe su komentarisale"
 msgstr[2] "%d osoba je komentarisalo"
 
@@ -1563,9 +1563,9 @@ msgstr "%s je ostavio recenziju na Vašem ugostiteljskom objektu."
 #, python-format
 msgid "%d have reviewed your business."
 msgid_plural "%d have reviewed your business."
-msgstr[0] ""
+msgstr[0] "%d osoba je ostavila recenziju na Vašem ugostiteljskom objektu."
 msgstr[1] "%d osobe su ostavile recenziju na Vašem ugostiteljskom objektu."
-msgstr[2] "%d osoba je ostavio recenziju na Vašem ugostiteljskom objektu."
+msgstr[2] "%d osoba je ostavilo recenziju na Vašem ugostiteljskom objektu."
 
 #: main/views.py:421
 #, python-format
@@ -1927,6 +1927,7 @@ msgstr "komentari"
 msgid "created"
 msgstr "napravljeno"
 
+#, python-format
 msgid "The password is too similar to the %(verbose_name)s."
 msgstr "Šifra je previše slična sa podatkom unetim u polje: %(verbose_name)s."
 
@@ -1937,3 +1938,23 @@ msgstr "recenzija"
 #: main/apps.py:22
 msgid "reviews"
 msgstr "recenzije"
+
+msgid "Enter a valid phone number."
+msgstr "Unesi validan broj telefona."
+
+#, python-format
+msgid ""
+"This password is too short. It must contain at least %(min_length)d "
+"character."
+msgid_plural ""
+"This password is too short. It must contain at least %(min_length)d "
+"characters."
+msgstr[0] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karakter."
+msgstr[1] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+msgstr[2] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+
+msgid "This password is too common."
+msgstr "Ova šifra je previše učestala."
+
+msgid "This password is entirely numeric."
+msgstr "Ova šifra je skroz brojčana."

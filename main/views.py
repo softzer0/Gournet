@@ -374,7 +374,7 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView
         qs = serializers.friends_from(person, True)
         if person != self.request.user:
             return serializers.sort_related(qs, self.request.user)
-        return serializers.sort_related(qs, where=serializers.gen_where('user', self.request.user.pk, 'recent', 'user', ct=models.get_user_ct_pk()))
+        return serializers.sort_related(qs, where=serializers.gen_where('user', self.request.user.pk, 'recent', 'user', ct=ContentType.objects.get(model='user').pk))
 
     def delete(self, request, *args, **kwargs):
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
@@ -419,7 +419,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                     else:
                         txt = ungettext("%(person_action)s %(count)d review on your business.", "%(person_action)s %(count)d reviews on your business.", txt['count']) % txt
                 else:
-                    txt = txt['person_action']+' '+npgettext('commented on', "your %d "+(curr['ct'].model_class()._meta.verbose_name if curr['ct'] != models.get_content_types()['comment'] else "review")+".", "your %d "+(curr['ct'].model_class()._meta.verbose_name_plural if curr['ct'] != models.get_content_types()['comment'] else "reviews")+".", len(curr['pks'])) % len(curr['pks'])
+                    txt = txt['person_action']+' '+npgettext('commented on', "your %d "+(curr['ct'].model_class()._meta.verbose_name if curr['ct'] != ContentType.objects.get(model='comment') else "review")+".", "your %d "+(curr['ct'].model_class()._meta.verbose_name_plural if curr['ct'] != ContentType.objects.get(model='comment') else "reviews")+".", len(curr['pks'])) % len(curr['pks'])
             else:
                 txt = _("%s has reviewed your business.") % txt['name'] if len(curr['persons']) == 1 else ungettext("%d have reviewed your business.", "%d have reviewed your business.", len(curr['persons'])) % len(curr['persons'])
         else:
@@ -506,8 +506,8 @@ def send_notifications(request, pk):
             if not notxt:
                 cnt = 0
             for person in persons:
-                if request.user != person and not models.EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=models.get_content_types()['event'], object_id=event.pk).exists():
-                    models.EventNotification.objects.create(from_person=request.user, to_person=person, content_type=models.get_content_types()['event'], object_id=event.pk)
+                if request.user != person and not models.EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=ContentType.objects.get(model='event'), object_id=event.pk).exists():
+                    models.EventNotification.objects.create(from_person=request.user, to_person=person, content_type=ContentType.objects.get(model='event'), object_id=event.pk)
                     if not notxt:
                         # noinspection PyUnboundLocalVariable
                         cnt += 1
@@ -656,7 +656,7 @@ def get_qs(obj_v, model):
     """
     ct = get_type(obj_v)
     obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else models.Event)
-    return model.objects.filter(content_type=ct if ct else models.get_content_types()['event'], object_id=obj.pk)
+    return model.objects.filter(content_type=ct if ct else ContentType.objects.get(model='event'), object_id=obj.pk)
 
 def set_t(obj_v, context):
     """
@@ -665,7 +665,7 @@ def set_t(obj_v, context):
     pk = get_t_pk(obj_v, models.get_has_stars())
     if pk is True:
         context['stars'] = None
-    elif pk == models.get_content_types()['business'].pk:
+    elif pk == ContentType.objects.get(model='business').pk:
         context['business'] = None
     else:
         return False
@@ -675,7 +675,7 @@ class CommentAPIView(BaseAPIView):
     serializer_class = serializers.CommentSerializer
     model = models.Comment
     filter = 'person'
-    ct = models.get_content_types()['business'].pk
+    ct = ContentType.objects.get(model='business').pk
 
     def getnopk(self):
         return self.order_qs(self.get_person_qs(self.request.user))
@@ -713,7 +713,7 @@ class CommentAPIView(BaseAPIView):
         if obj.status is not None and obj.content_object.main_comment == obj:
             co = obj.content_object
             obj.delete()
-            co.main_comment = models.Comment.objects.filter(content_type=models.get_content_types()['comment'], object_id=co.pk, status__isnull=False).last()
+            co.main_comment = models.Comment.objects.filter(content_type=ContentType.objects.get(model='comment'), object_id=co.pk, status__isnull=False).last()
             if co.main_comment:
                 co.save()
                 return Response(data=serializers.CommentSerializer(co.main_comment, context=self.get_serializer_context()).data)
@@ -736,7 +736,7 @@ class EventAPIView(BaseAPIView):
             qs = super().getnopk()
             self.kwargs['search'] = None
         if get_param_bool(self.request.query_params.get('favourites', False)):
-            return get_loc(self, qs.extra(where=[serializers.gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=models.get_content_types()['business'].pk)]))
+            return get_loc(self, qs.extra(where=[serializers.gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=ContentType.objects.get(model='business').pk)]))
         return get_loc(self, qs, loc=not self.request.query_params.get('search', False)) #, store=not isinstance(self, EventAPIView)
 
 class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
@@ -866,18 +866,18 @@ class LikeAPIView(MultiBaseAPIView, generics.CreateAPIView, generics.UpdateAPIVi
         return results
 
     def get_queryList(self):
-        if not self.kwargs['pk'] or get_type(self) and self.kwargs['ct'] == models.get_content_types()['business']:
+        if not self.kwargs['pk'] or get_type(self) and self.kwargs['ct'] == ContentType.objects.get(model='business'):
             pk = self.kwargs['pk']
             is_user = get_param_bool(self.request.query_params.get('is_person', False))
             if is_user:
-                if get_type(self) and self.kwargs['ct'] == models.get_content_types()['business']:
+                if get_type(self) and self.kwargs['ct'] == ContentType.objects.get(model='business'):
                     self.kwargs['notype'] = None
                 if pk and pk != self.request.user.pk:
                     person = get_object(pk)
-                    return [(serializers.sort_related(models.Business.objects.filter(likes__person=person), models.Business.objects.filter(manager=self.request.user).first(), serializers.gen_where('business', self.request.user.pk, 'like', 'person', ct=models.get_content_types()['business'].pk)), serializers.BusinessSerializer)]
-                return [(serializers.sort_related(models.Business.objects.filter(likes__person=self.request.user), where=serializers.gen_where('business', self.request.user.pk, 'recent', 'user', ct=models.get_content_types()['business'].pk)), serializers.BusinessSerializer)]
+                    return [(serializers.sort_related(models.Business.objects.filter(likes__person=person), models.Business.objects.filter(manager=self.request.user).first(), serializers.gen_where('business', self.request.user.pk, 'like', 'person', ct=ContentType.objects.get(model='business').pk)), serializers.BusinessSerializer)]
+                return [(serializers.sort_related(models.Business.objects.filter(likes__person=self.request.user), where=serializers.gen_where('business', self.request.user.pk, 'recent', 'user', ct=ContentType.objects.get(model='business').pk)), serializers.BusinessSerializer)]
             business = get_object(pk, models.Business) if pk else get_b_from(self.request.user)
-            return [(serializers.sort_related(User.objects.filter(like__content_type=models.get_content_types()['business'], like__object_id=business.pk), self.request.user, serializers.gen_where('user', business.pk, 'like', 'object', ct=models.get_content_types()['business'].pk)), serializers.UserSerializer)]
+            return [(serializers.sort_related(User.objects.filter(like__content_type=ContentType.objects.get(model='business'), like__object_id=business.pk), self.request.user, serializers.gen_where('user', business.pk, 'like', 'object', ct=ContentType.objects.get(model='business').pk)), serializers.UserSerializer)]
         qs = get_qs(self, models.Like)
         if 'stars' not in self.get_serializer_context(True):
             if get_param_bool(self.request.query_params.get('init', False)):
@@ -898,7 +898,7 @@ class LikeAPIView(MultiBaseAPIView, generics.CreateAPIView, generics.UpdateAPIVi
 
     def get_object(self):
         ct = get_type(self)
-        return get_object_or_404(models.Like, content_type=ct if ct else models.get_content_types()['event'], object_id=self.kwargs['pk'], person=self.request.user)
+        return get_object_or_404(models.Like, content_type=ct if ct else ContentType.objects.get(model='event'), object_id=self.kwargs['pk'], person=self.request.user)
 
     def get_serializer_context(self, kw=False):
         if 'context' not in self.kwargs:
