@@ -1,4 +1,4 @@
-from .models import User, Business, Recent, get_content_types, get_has_stars, REVIEW_STATUS
+from .models import User, Business, Recent, get_has_stars, CONTENT_TYPES, REVIEW_STATUS
 
 REVIEW_STATUS_E = (
     (REVIEW_STATUS[0][1], 'label-primary'), #Started
@@ -20,7 +20,7 @@ def base(request):
         return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)[:5]
 
     return {
-        'content_types': get_content_types(),
+        'content_types': CONTENT_TYPES,
         'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars(),
         'favs': gen_qs(Business),

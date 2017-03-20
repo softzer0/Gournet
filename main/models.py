@@ -25,6 +25,7 @@ from os.path import join
 from shutil import rmtree
 
 TF_OBJ = TimezoneFinder()
+CONTENT_TYPES = {}
 
 @lru_cache()
 def get_has_stars():
@@ -35,7 +36,8 @@ def get_content_types_pk():
     res = []
     try:
         for r in ('business', 'event', 'item', 'comment'):
-            res.append(ContentType.objects.get(model=r).pk)
+            CONTENT_TYPES[r] = ContentType.objects.get(model=r).pk
+            res.append(CONTENT_TYPES[r])
     except:
         pass
     return res

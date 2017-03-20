@@ -6,7 +6,7 @@ class MainAppConfig(AppConfig):
 
     def ready(self):
         from sys import argv
-        if len(argv) == 1 or argv[1] in ('makemigrations', 'migrate'):
+        if len(argv) > 1 and argv[1] in ('makemigrations', 'migrate'):
             return
 
         from . import models
