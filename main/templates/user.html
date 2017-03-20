@@ -9,15 +9,15 @@
 
 {% block rowatt %}ng-controller="UserCtrl"{% endblock %}
 
-{% block name_content %}{% if rel_state == -1 and not request.user.name_changed %}<div class="inline namef br2" ng-cloak click-outside="co(edit[0], 'disabled')" in-scope="documentClick.name" ng-init="setE('{{ usr.first_name }}', '{{ usr.last_name }}')">
-                        <a class="n lead text-center" ng-if="edit[0].disabled !== undefined" ng-show="edit[0].disabled" ng-click="edit[0].disabled = false">{% verbatim %}{{ edit[0].value[0] }} {{ edit[0].value[1] }}{% endverbatim %}</a>
-                        <p class="lead text-center" ng-if="edit[0].disabled === undefined">{% verbatim %}{{ edit[0].value[0] }} {{ edit[0].value[1] }}{% endverbatim %}</p>
-                        <div ng-if="edit[0].disabled !== undefined" ng-hide="edit[0].disabled">
+{% block name_content %}{% if rel_state == -1 and not request.user.name_changed %}<div class="inline namef br2" ng-cloak click-outside="co(edit.name, 'disabled')" in-scope="documentClick.name" ng-init="setE('name', '{{ usr.first_name }}', '{{ usr.last_name }}')">
+                        <a class="n lead text-center" ng-if="edit.name.disabled !== undefined" ng-show="edit.name.disabled" ng-click="edit.name.disabled = false">{% verbatim %}{{ edit.name.value[0] }} {{ edit.name.value[1] }}{% endverbatim %}</a>
+                        <p class="lead text-center" ng-if="edit.name.disabled === undefined">{% verbatim %}{{ edit.name.value[0] }} {{ edit.name.value[1] }}{% endverbatim %}</p>
+                        <div ng-if="edit.name.disabled !== undefined" ng-hide="edit.name.disabled">
                             <div>
                                 <div>
-                                    <div><input type="text" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[0]" maxlength="30"></div>
-                                    <div><input type="text" class="form-control" ng-disabled="edit[0].disabled == null" ng-model="edit[0].form[1]" maxlength="30"></div>
-                                    <a class="fa fa-2x fa-check n text-center" ng-show="edit[0].disabled === false" ng-click="doAction()"></a>
+                                    <div><input type="text" class="form-control" ng-disabled="edit.name.disabled == null" ng-model="edit.name.form[0]" maxlength="30"></div>
+                                    <div><input type="text" class="form-control" ng-disabled="edit.name.disabled == null" ng-model="edit.name.form[1]" maxlength="30"></div>
+                                    <a class="fa fa-2x fa-check n text-center" ng-show="edit.name.disabled === false" ng-click="doAction()"></a>
                                 </div>
                             </div>
                         </div>
@@ -25,48 +25,48 @@
 
 {% block img %}{{ usr.pk }}/avatar/?{% endblock %}
 
-{% block other %}<li>{% trans "Male" context 'display' as m_t %}{% trans "Female" context 'display' as f_t %}{% if rel_state == -1 and not request.user.gender_changed %}<div class="inline namef" ng-cloak click-outside="co(edit[1], 'disabled')" in-scope="documentClick.gender" ng-init="setE('{{ usr.gender }}')">
-                            <a class="n" ng-if="edit[1].disabled !== undefined" ng-show="edit[1].disabled" ng-click="edit[1].disabled = false"><i class="fa" ng-class="edit[1].value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit[1].value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</a>
-                            <p ng-if="edit[1].disabled === undefined"><i class="fa" ng-class="edit[1].value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit[1].value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</p>
-                            <div ng-if="edit[1].disabled !== undefined" ng-hide="edit[1].disabled">
+{% block other %}<li>{% trans "Male" context 'display' as m_t %}{% trans "Female" context 'display' as f_t %}{% if rel_state == -1 and not request.user.gender_changed %}<div class="inline namef" ng-cloak click-outside="co(edit.gender, 'disabled')" in-scope="documentClick.gender" ng-init="setE('gender', '{{ usr.gender }}')">
+                            <a class="n" ng-if="edit.gender.disabled !== undefined" ng-show="edit.gender.disabled" ng-click="edit.gender.disabled = false"><i class="fa" ng-class="edit.gender.value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit.gender.value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</a>
+                            <p ng-if="edit.gender.disabled === undefined"><i class="fa" ng-class="edit.gender.value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit.gender.value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</p>
+                            <div ng-if="edit.gender.disabled !== undefined" ng-hide="edit.gender.disabled">
                                 <div>
                                     <div>
-                                        <div class="ulh"><ul class="nya-bs-select" ng-model="edit[1].form">
+                                        <div class="ulh"><ul class="nya-bs-select" ng-model="edit.gender.form">
                                             <li class="nya-bs-option" data-value="0"><a>{{ m_t }}</a></li>
                                             <li class="nya-bs-option" data-value="1"><a>{{ f_t }}</a></li>
-                                        </ul><div ng-show="edit[1].disabled == null"></div></div>
-                                        <a class="fa fa-2x fa-check n text-center" ng-show="edit[1].disabled === false" ng-click="doAction(1)"></a>
+                                        </ul><div ng-show="edit.gender.disabled == null"></div></div>
+                                        <a class="fa fa-2x fa-check n text-center" ng-show="edit.gender.disabled === false" ng-click="doAction(1)"></a>
                                     </div>
                                 </div>
                             </div>
                         </div>{% else %}{% if usr.gender == 0 %}<i class="fa fa-mars"></i> {{ m_t }}{% else %}<i class="fa fa-venus"></i> {{ f_t }}{% endif %}{% endif %}</li>
-                        <li>{% if rel_state == -1 and not request.user.birthdate_changed %}<div class="inline namef" ng-cloak click-outside="co(edit[2], 'disabled')" in-scope="documentClick.birth" ng-init="setED('{{ usr.birthdate|date:'Y-m-d' }}')">
-                            <a class="n" ng-if="edit[2].disabled !== undefined" ng-show="edit[2].disabled" ng-click="edit[2].disabled = false">{% trans "Born {{ edit[2].value | ageFilter }} years ago" as b_t %}{{ b_t }}</a>
-                            <p ng-if="edit[2].disabled === undefined">{{ b_t }}</p>
-                            <div ng-if="edit[2].disabled !== undefined" ng-hide="edit[2].disabled">
+                        <li>{% if rel_state == -1 and not request.user.birthdate_changed %}<div class="inline namef" ng-cloak click-outside="co(edit.birth, 'disabled')" in-scope="documentClick.birth" ng-init="setED('birth', '{{ usr.birthdate|date:'Y-m-d' }}')">
+                            <a class="n" ng-if="edit.birth.disabled !== undefined" ng-show="edit.birth.disabled" ng-click="edit.birth.disabled = false">{% with val="{{ edit.birth.value | ageFilter }}" %}{% with b_t='<span translate="'|add:val|add:'">Born '|add:val|add:' years ago<br plural>Born '|add:val|add:' years ago</span>' %}{{ b_t }}</a>
+                            <p ng-if="edit.birth.disabled === undefined">{{ b_t }}{% endwith %}{% endwith %}</p>
+                            <div ng-if="edit.birth.disabled !== undefined" ng-hide="edit.birth.disabled">
                                 <div>
                                     <div>
                                         <div>
                                             <p class="input-group">
-                                                <input type="hidden" uib-datepicker-popup="yyyy-MM-dd" ng-model="edit[2].form.value" is-open="edit[2].form.opened" datepicker-options="edit[2].form.options">
-                                                <input type="text" class="form-control" ng-if="edit[2].disabled !== undefined" ng-hide="edit[2].disabled" ng-disabled="edit[2].disabled == null" datetime="yyyy-MM-dd" ng-model="edit[2].form.value" min="{% verbatim %}{{ edit[2].form.options.minDate.toUTCString() }}{% endverbatim %}" max="{% verbatim %}{{ edit[2].form.options.maxDate.toUTCString() }}{% endverbatim %}">
+                                                <input type="hidden" uib-datepicker-popup="yyyy-MM-dd" ng-model="edit.birth.form.value" is-open="edit.birth.form.opened" datepicker-options="edit.birth.form.options">
+                                                <input type="text" class="form-control" ng-if="edit.birth.disabled !== undefined" ng-hide="edit.birth.disabled" ng-disabled="edit.birth.disabled == null" datetime="yyyy-MM-dd" ng-model="edit.birth.form.value" min="{% verbatim %}{{ edit.birth.form.options.minDate.toUTCString() }}{% endverbatim %}" max="{% verbatim %}{{ edit.birth.form.options.maxDate.toUTCString() }}{% endverbatim %}">
                                                 <span class="input-group-btn">
-                                                    <button type="button" class="btn btn-default" ng-click="edit[2].form.opened = true"><i class="fa fa-calendar"></i></button>
+                                                    <button type="button" class="btn btn-default" ng-click="edit.birth.form.opened = true"><i class="fa fa-calendar"></i></button>
                                                 </span>
                                             </p>
                                         </div>
-                                        <a class="fa fa-2x fa-check n text-center" ng-show="edit[2].disabled === false" ng-click="doAction(2)"></a>
+                                        <a class="fa fa-2x fa-check n text-center" ng-show="edit.birth.disabled === false" ng-click="doAction(2)"></a>
                                     </div>
                                 </div>
                             </div>
-                        </div>{% else %}{% blocktrans with y=born %}Born {{ y }} years ago{% endblocktrans %}{% endif %}</li>
-                        <li>{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit[3], 'disabled')" ng-init="setE('{{ usr.address }}')">
-                            <a class="n" ng-show="edit[3].disabled" ng-click="edit[3].disabled = false"><i class="fa fa-map-marker"></i> {% verbatim %}{{ edit[3].value }}{% endverbatim %}</a>
-                            <div ng-hide="edit[3].disabled">
+                        </div>{% else %}{% blocktrans count y=born %}Born {{ y }} years ago{% plural %}Born {{ y }} years ago{% endblocktrans %}{% endif %}</li>
+                        <li>{% if rel_state == -1 %}<div class="inline namef" ng-cloak click-outside="co(edit.addr, 'disabled')" ng-init="setE('addr', '{{ usr.address }}')">
+                            <a class="n" ng-show="edit.addr.disabled" ng-click="edit.addr.disabled = false"><i class="fa fa-map-marker"></i> {% verbatim %}{{ edit.addr.value }}{% endverbatim %}</a>
+                            <div ng-hide="edit.addr.disabled">
                                 <div>
                                     <div>
-                                        <div><input type="text" class="form-control" ng-disabled="edit[3].disabled == null" ng-model="edit[3].form" maxlength="130"></div>
-                                        <a class="fa fa-2x fa-check n text-center" ng-show="edit[3].disabled === false" ng-click="doAction(3)"></a>
+                                        <div><input type="text" class="form-control" ng-disabled="edit.addr.disabled == null" ng-model="edit.addr.form" maxlength="130"></div>
+                                        <a class="fa fa-2x fa-check n text-center" ng-show="edit.addr.disabled === false" ng-click="doAction(3)"></a>
                                     </div>
                                 </div>
                             </div>

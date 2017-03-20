@@ -168,23 +168,22 @@ def show_business(request, shortname):
         return redirect('/')
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
-    if data['business'].likes.filter(person=request.user).exists():
-        increase_recent(request, data['business'])
-    data['fav_count'] = models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).count()
-    data['rating'] = models.Comment.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
+    data['fav_count'] = data['business'].likes.count()
+    data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
     data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
     data['workh'] = {'value': []}
     for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
         if getattr(data['business'], f) is not None:
             data['workh']['value'].append(time_format(getattr(data['business'], f), 'H:i'))
     if request.user != data['business'].manager:
-        if models.Like.objects.filter(content_type=models.get_content_types()['business'], object_id=data['business'].pk, person=request.user).exists():
+        if data['business'].likes.filter(person=request.user).exists():
+            increase_recent(request, data['business'])
             data['fav_state'] = 1
         else:
             data['fav_state'] = 0
         data['minchar'] = serializers.REVIEW_MIN_CHAR
         try:
-            data['rating'].append(models.Comment.objects.get(content_type=models.get_content_types()['business'], object_id=data['business'].pk, person=request.user).stars)
+            data['rating'].append(models.Review.objects.filter(object_id=data['business'].pk, person=request.user).stars)
         except:
             data['rating'].append(0)
         data['workh']['display'] = data['workh']['value']
@@ -212,10 +211,11 @@ def show_profile(request, username):
             data['rel_state'] = 1
         if models.Relationship.objects.filter(from_person=data['usr'], to_person=request.user).exists():
             data['rel_state'] += 2
-        data['born'] = timezone.now()
-        data['born'] = data['born'].year - data['usr'].birthdate.year - ((data['born'].month, data['born'].day) < (data['usr'].birthdate.month, data['usr'].birthdate.day))
     else:
         data['rel_state'] = -1
+    if request.user != data['usr'] or request.user.birthdate_changed:
+        data['born'] = timezone.now()
+        data['born'] = data['born'].year - data['usr'].birthdate.year - ((data['born'].month, data['born'].day) < (data['usr'].birthdate.month, data['usr'].birthdate.day))
     return render(request, 'user.html', data)
 
 
@@ -226,7 +226,7 @@ def return_avatar(request, pk, size):
         t = 'item'
     else:
         t = 'user'
-    img_folder = path.join(settings.MEDIA_ROOT, 'images/'+t+'/')
+    img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+t+'/'
     avatar = img_folder+pk+'/avatar'
     s = '.'
     st = None
@@ -324,7 +324,12 @@ def get_loc(self, qs, f=True, loc=False, store=False, deford=True):
                 self.kwargs['pos'] = self.request.user.loc_projected
         pos = self.kwargs['pos']
     if qs is not None:
-        f = 'business__' if f else ''
+        if f:
+            if isinstance(f, bool):
+                f = 'business'
+            f += '__'
+        else:
+            f = ''
         if loc:
             qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=self.request.query_params.get('distance', 5)))})
         if loc is not None:
@@ -337,7 +342,7 @@ class BusinessAPIView(SearchAPIView):
 
     def get_queryset(self):
         ins = not isinstance(self, BusinessAPIView)
-        return get_loc(self, models.Business.objects.filter(is_published=True).defer('manager', 'phone', 'address', 'is_published'), False, ins, ins, False).order_by(Case(When(Q(currency=self.request.user.currency) | Q(supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
+        return get_loc(self, filter_published(self, model=models.Business).defer('manager', 'phone', 'address', 'is_published'), False, ins, ins, False).order_by(Case(When(Q(currency=self.request.user.currency) | Q(supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -351,7 +356,7 @@ def get_object(pk, cl=User):
     try:
         return cl.objects.get(pk=pk)
     except:
-        raise NotFound(cl._meta.verbose_name.capitalize()+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
+        raise NotFound(cl._meta.model_name.capitalize()+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
 
 class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView):
     filter_backends = (SearchFilter,)
@@ -414,12 +419,12 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                     else:
                         txt = ungettext("%(person_action)s %(count)d review on your business.", "%(person_action)s %(count)d reviews on your business.", txt['count']) % txt
                 else:
-                    txt = txt['person_action']+' '+npgettext('commented on', "your "+(curr['ct'].model_class()._meta.verbose_name if curr['ct'] != models.get_content_types()['comment'] else "review")+".", "your %d "+(curr['ct'].model_class()._meta.verbose_name_plural if curr['ct'] != models.get_content_types()['comment'] else "reviews")+".", len(curr['pks'])) % len(curr['pks'])
+                    txt = txt['person_action']+' '+npgettext('commented on', "your %d "+(curr['ct'].model_class()._meta.verbose_name if curr['ct'] != models.get_content_types()['comment'] else "review")+".", "your %d "+(curr['ct'].model_class()._meta.verbose_name_plural if curr['ct'] != models.get_content_types()['comment'] else "reviews")+".", len(curr['pks'])) % len(curr['pks'])
             else:
                 txt = _("%s has reviewed your business.") % txt['name'] if len(curr['persons']) == 1 else ungettext("%d have reviewed your business.", "%d have reviewed your business.", len(curr['persons'])) % len(curr['persons'])
         else:
             txt = ungettext("%(name)s notifies you about %(count)d event.", "%(name)s notifies you about %(count)d events.", txt['count']) % txt
-        self.create_notif([txt, curr['ct'].name if curr['ct'].name != 'comment' else 'review' if curr['typ'] is not None else 'event'], curr['pks'], created)
+        self.create_notif([txt, curr['ct'].model if curr['ct'].model != 'comment' else 'review' if curr['typ'] is not None else 'event'], curr['pks'], created)
 
     def get_queryset(self):
         if self.request.query_params.get('page', False):
@@ -513,12 +518,12 @@ def send_notifications(request, pk):
     return base_view(request, t, cont, pk=pk)
 
 
-def filter_published(self, ct_f, model=None):
+def filter_published(self, ct_f=False, model=None):
     if not model:
         model = self.model
     if self.request.user.is_staff:
-        return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model._meta.model_name, target='business', ct=ct_f, where='exists (select 1 from main_item where main_item.business_id = main_'+model._meta.model_name+'.object_id)')]) if not isinstance(ct_f, bool) else model.objects.extra(where=['exists (select 1 from main_item where main_item.business_id = main_business.id)'])
-    return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model._meta.model_name, 1, column='is_published', target='business', ct=ct_f)]) if not isinstance(ct_f, bool) else model.objects.filter(**{('business__' if ct_f else '')+'is_published': True})
+        return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model._meta.model_name, target='business', ct=ct_f, where='exists (select 1 from main_item inner join main_'+model._meta.model_name+' on main_item.business_id = main_'+model._meta.model_name+'.object_id)')]) if type(ct_f) == int else model.objects.extra(where=['exists (select 1 from main_item inner join main_business on main_item.business_id = main_business.id)'])
+    return model.objects.filter(content_type__pk=ct_f).extra(where=[serializers.gen_where(model._meta.model_name, 'True', column='is_published', target='business', ct=ct_f)]) if type(ct_f) == int else model.objects.filter(**{(('business' if isinstance(ct_f, bool) else ct_f)+'__' if ct_f else '')+'is_published': True})
 
 class FeedAPIView(MultipleModelAPIView):
     sorting_field = '-sort_field'
@@ -526,22 +531,22 @@ class FeedAPIView(MultipleModelAPIView):
     max = 20
 
     def get_queryList(self):
-        def get_friends_qs(model, filter='business__manager', ct=None):
+        def get_friends_qs(model, filter='business__manager', rel=None):
             """
             @type model: django.db.models.Model
             """
-            qs = filter_published(self, ct or filter is not None, model)
+            qs = filter_published(self, rel or filter is not None, model)
             if filter:
                 qs = qs.filter(Q(**{filter + '__in': friends}) | Q(likes__person__in=friends)).annotate(is_liked=Max(Case(When(likes__person__in=friends, then=1), default=0, output_field=IntegerField())), sort_field=Max(Case(When(likes__person__in=friends, then=F('likes__date')), default=F('created')))) #.distinct('pk')
             else:
                 qs = qs.filter(likes__person__in=friends).annotate(sort_field=F('likes__date'))
-            return (get_loc(self, qs, filter is not None, store=True) if not ct else qs)[:self.max]
+            return get_loc(self, qs, rel or filter is not None, store=True)[:self.max]
 
         friends = list(serializers.friends_from(self.request.user).values_list('pk', flat=True))
         return [(get_friends_qs(models.Business, None), serializers.BusinessSerializer),
                 (get_friends_qs(models.Event), serializers.EventSerializer),
                 (get_friends_qs(models.Item), serializers.ItemSerializer),
-                (get_friends_qs(models.Comment, 'person', models.get_content_types()['business'].pk), serializers.CommentSerializer),
+                (get_friends_qs(models.Review, 'person', 'object'), serializers.CommentSerializer),
                 (models.Relationship.objects.filter(Q(from_person__in=friends) | Q(to_person__in=friends)).filter(symmetric=True).exclude(to_person=self.request.user).exclude(from_person=self.request.user).annotate(rev_dir=Case(When(to_person__in=friends, then=1), default=0, output_field=IntegerField()), sort_field=F('notification__created')).defer('notification', 'symmetric')[:self.max], serializers.RelationshipSerializer, 'user')]
 
     def get_serializer_context(self):
@@ -562,7 +567,7 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def get_person_qs(self, person):
         qs = filter_published(self, self.main_f).filter(Q(**{self.filter: person}) | Q(likes__person=person))
-        return qs.order_by(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)).desc(), *self.model._meta.ordering) if self.order_by else qs
+        return qs.annotate(sort=Max(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)))).order_by(F('sort').desc(), *self.model._meta.ordering) if self.order_by else qs
 
     def get_qs_pk(self):
         b = get_object(self.kwargs['pk'], models.Business)
@@ -684,7 +689,7 @@ class CommentAPIView(BaseAPIView):
     def order_qs(self, qs):
         if not self.request.query_params.get('ids', False):
             if 'business' in self.get_serializer_context(True):
-                qs = qs.order_by(Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField()).desc(), *models.Comment._meta.ordering)
+                qs = qs.order_by(Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField()), *models.Comment._meta.ordering)
             else:
                 self.pagination_class = pagination.CommentPagination
                 if get_param_bool(self.request.query_params.get('reverse', False)):
@@ -769,7 +774,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         elif self.request.method in ('PUT', 'PATCH'):
             context['edit'] = None
         elif self.request.query_params.get('ids', False):
-            context['ids'] = None
+            context['ids'] = get_param_bool(self.request.query_params.get('has_img_ind', False))
         elif not get_param_bool(self.request.query_params.get('is_person', False)) and get_param_bool(self.request.query_params.get('menu', False)):
             context['menu'] = None
         return context
@@ -786,7 +791,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
-        if models.Item.objects.filter(business=obj.business).count() == 1:
+        if obj.business.item_set.count() == 1:
             raise ValidationError({'non_field_errors': ["The last remaining item can't be deleted."]})
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

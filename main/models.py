@@ -22,6 +22,8 @@ from sys import argv
 from timezonefinder import TimezoneFinder
 from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, activate as lang_activate
 from django.utils.functional import lazy
+from os.path import join
+from shutil import rmtree
 
 TF_OBJ = TimezoneFinder()
 IS_SERVER = len(argv) == 1 or argv[1] not in ('makemigrations', 'migrate')
@@ -74,7 +76,7 @@ class Loc(models.Model):
         return new
 
     def save(self, *args, **kwargs):
-        if not self.pk or self._loaded_location != self.location:
+        if not hasattr(self, '_loaded_location') or self._loaded_location != self.location:
             self.loc_projected = self.location.transform(3857, True)
             self.tz = TF_OBJ.timezone_at(lat=self.location.coords[1], lng=self.location.coords[0])
         super().save(*args, **kwargs)
@@ -172,6 +174,16 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+def rem_avatar(instance):
+    try:
+        rmtree(join(settings.MEDIA_ROOT, 'images')+'/'+instance._meta.model_name+'/'+str(instance.pk))
+    except:
+        pass
+
+@receiver(pre_delete, sender=User)
+def user_avatar_delete(instance, **kwargs):
+    rem_avatar(instance)
 
 
 class Notification(models.Model):
@@ -271,8 +283,9 @@ class Business(Loc):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
 @receiver(pre_delete, sender=Business)
-def business_review_delete(instance, **kwargs):
+def business_review_and_avatar_delete(instance, **kwargs):
     Comment.objects.filter(content_type=get_content_types()['business'], object_id=instance.pk).delete()
+    rem_avatar(instance)
 
 
 EVENT_MIN_CHAR = 15
@@ -295,7 +308,7 @@ class Event(models.Model):
         return 'Event #%d on business #%d' % (self.pk, self.business_id)
 
 def cascade_delete(type, pk):
-    for model in [EventNotification, Comment]:
+    for model in (EventNotification, Comment):
         qs = model.objects.filter(content_type=get_content_types()[type], object_id=pk)
         qs._raw_delete(qs.db)
 
@@ -366,13 +379,15 @@ class Item(models.Model):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
 
 @receiver(pre_delete, sender=Item)
-def item_cascade_delete(instance, **kwargs):
+def item_cascade_and_avatar_delete(instance, **kwargs):
     cascade_delete('item', instance.pk)
+    rem_avatar(instance)
+
 
 @receiver(post_save, sender=Item)
 def item_set_b_published(instance, **kwargs):
     if instance.business.item_set.count() == 1:
-        User.objects.get(username='mikisoft').email_user('', 'http://gournet.co/'+instance.shortname+'/')
+        User.objects.get(username='mikisoft').email_user('', 'http://gournet.co/'+instance.business.shortname+'/')
         """instance.business.is_published = True
         instance.business.save()"""
 
@@ -385,7 +400,6 @@ class CT(models.Model):
     class Meta:
         abstract = True
 
-
 REVIEW_STATUS = ((0, _("Started")), (1, _("Closed")), (2, _("Completed")), (3, _("Declined")), (4, _("Under review")), (5, _("Planned")), (6, _("Archived")), (7, _("Need feedback")))
 
 class Comment(CT):
@@ -393,7 +407,7 @@ class Comment(CT):
     text = models.TextField(_("text"), validators=[MaxLengthValidator(1000)])
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
     stars = models.PositiveSmallIntegerField(_("stars"), validators=[MaxValueValidator(5)], null=True, blank=True)
-    main_comment = models.ForeignKey('self', verbose_name=_("main comment"), null=True, blank=True, on_delete=models.SET_NULL)
+    main_comment = models.ForeignKey('Comment', verbose_name=_("main comment"), null=True, blank=True, on_delete=models.SET_NULL)
     status = models.SmallIntegerField(_("status"), choices=REVIEW_STATUS, null=True, blank=True)
     likes = GenericRelation('Like')
 
@@ -403,7 +417,7 @@ class Comment(CT):
         verbose_name_plural = _("comments/reviews")"""
 
     def __str__(self):
-        return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != settings.CONTENT_TYPE['comment'] else 'review', self.object_id)
+        return 'User %s, review (#%d) on business #%d%s%s' % (self.person.username, self.pk, self.object_id, ', with main comment #'+str(self.main_comment_id) if self.main_comment else '', ', status: '+self.get_status_display() if self.status is not None else '') if self.content_type.model == 'business' else 'User %s, comment (#%d) on %s #%d' % (self.person.username, self.pk, self.content_type.model if self.content_type != get_content_types()['comment'] else 'review', self.object_id)
 
 def increment(model, filter):
     obj, created = model.objects.get_or_create(**filter)
@@ -490,7 +504,7 @@ a.is_superuser = True
 a.save()
 # try to login to site
 from allauth.account.models import EmailAddress
-a = EmailAddress.objects.get(pk=1)
+a = EmailAddress.objects.first()
 a.primary = True
 a.verified = True
 a.save()

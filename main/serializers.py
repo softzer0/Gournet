@@ -52,7 +52,7 @@ def sort_related(query, first=None, where=None, retothers=False):
         cases = []
         s = 0
     cases += [When(pk=obj.pk, then=Value(i+s)) for i, obj in enumerate(others.all())]
-    return query.order_by(Case(*cases, output_field=IntegerField()), *query.model._meta.ordering)
+    return query.order_by(Case(*cases, output_field=IntegerField()), *query.model._meta.ordering) if len(cases) > 0 else query
 
 
 class EmailSerializer(serializers.ModelSerializer):
@@ -271,7 +271,7 @@ class UserSerializer(BaseURSerializer):
 
 
 def get_friends(s, obj):
-    context = {'noid': None} if not isinstance(obj, models.Comment) or not obj.is_liked else {}
+    context = {'noid': None} if not isinstance(obj, models.Review) or not obj.is_liked else {}
     if isinstance(obj, models.Business) or obj.is_liked:
         qs = friends_from(s.context['request'].user, True, qs=User.objects.filter(like__content_type__pk=ContentType.objects.get_for_model(obj).pk, like__object_id=obj.pk))
         if qs.count() == 1:
@@ -282,7 +282,7 @@ def get_friends(s, obj):
             return UserSerializer(qs, context=context).data
         return {'objs': UserSerializer(qs[:3], many=True, context=context).data, 'count': qs.count()}
     context['status'] = -1
-    return UserSerializer(obj.manager if isinstance(obj, models.Business) else obj.business.manager if not isinstance(obj, models.Comment) else obj.person, context=context).data
+    return UserSerializer(obj.manager if isinstance(obj, models.Business) else obj.business.manager if not isinstance(obj, models.Review) else obj.person, context=context).data
 
 def gen_distance(obj):
     return {'value': round(obj.distance.km, 1), 'unit': 'km'} if obj.distance.km > 0.8 else {'value': round(obj.distance.m), 'unit': 'm'}
@@ -404,7 +404,7 @@ class BaseSerializer(serializers.ModelSerializer):
                 return [2 if ls.is_dislike else 1, ls.date] if t else 2 if ls.is_dislike else 1
             return [ls.stars, ls.date] if t else ls.stars
         if t:
-            if not isinstance(obj, models.Comment) and 'person' in self.context and self.context['person'] == self.context['request'].user:
+            if not isinstance(obj, models.Review) and not isinstance(obj, models.Comment) and 'person' in self.context and self.context['person'] == self.context['request'].user:
                 return [-1, obj.created]
             return [-1]
         return -1
@@ -484,6 +484,8 @@ class CommentSerializer(BaseSerializer):
             self.fields.pop('status')
             self.fields['text'].validators = [MinLengthValidator(REVIEW_MIN_CHAR)]
             self.fields['is_manager'] = serializers.SerializerMethodField()
+            if 'feed' in self.context or 'list' in self.context:
+                self.fields['distance'] = serializers.SerializerMethodField()
         else:
             if not likes:
                 self.fields.pop('curruser_status')
@@ -552,6 +554,9 @@ class CommentSerializer(BaseSerializer):
             return UserSerializer(obj.person).data
         return None
 
+    def get_distance(self, obj):
+        return gen_distance(obj)
+
 class EventSerializer(BaseSerializer):
     when = DateTimeFieldWihTZ()
 
@@ -609,6 +614,8 @@ class ItemSerializer(BaseSerializer):
         else:
             if 'ids' not in self.context:
                 self.fields['category'].write_only = True
+            elif not self.context['ids']:
+                self.fields.pop('has_image')
             if 'hiddenbusiness' in self.context:
                 self.fields['currency'] = serializers.CharField(source='business.currency', read_only=True)
             elif 'home' in self.context or 'search' in self.context or 'feed' in self.context:
@@ -680,10 +687,11 @@ class LikeSerializer(serializers.ModelSerializer):
 class ReminderSerializer(serializers.ModelSerializer):
     to_person = serializers.HiddenField(default=serializers.CurrentUserDefault())
     content_type = serializers.HiddenField(default=models.get_content_types()['event'])
+    when = serializers.DateTimeField()
 
     class Meta:
         model = models.EventNotification
-        exclude = ('from_person', 'comment_type')
+        exclude = ('from_person', 'comment_type', 'count')
         validators = [
             UniqueTogetherValidator(
                 queryset=models.EventNotification.objects.all(),

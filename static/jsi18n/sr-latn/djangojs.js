@@ -25,6 +25,7 @@
       "%(sel)s od %(cnt)s izabrana",
       "%(sel)s od %(cnt)s izabranih"
     ],
+    "(Custom)": "(Osobeno)",
     "15 minutes": "15 minuta",
     "2 days": "2 dana",
     "2 hours": "2 sata",
@@ -46,7 +47,7 @@
     "; supported currency:": [
       "; podr\u017eana valuta:",
       "; podr\u017eane valute:",
-      "; podr\u017eanih valuta:"
+      "; podr\u017eane valute:"
     ],
     "; {{ e.item_count }} item": [
       "; {{ e.item_count }} proizvod",
@@ -86,12 +87,18 @@
     "Are you sure?": "Da li ste sigurni?",
     "Available %s": "Dostupni %s",
     "Beers": "Piva",
+    "Born {{ edit.birth.value | ageFilter }} years ago": [
+      "Ro\u0111en/a pre {{ edit.birth.value | ageFilter }} godinu",
+      "Ro\u0111en/a pre {{ edit.birth.value | ageFilter }} godine",
+      "Ro\u0111en/a pre {{ edit.birth.value | ageFilter }} godina"
+    ],
     "Cancel": "Odustani",
     "Cancel friend request": "Otka\u017ei zahtev za prijateljstvo",
     "Choose": "Izaberi",
     "Choose a time": "Odabir vremena",
     "Choose all": "Izaberi sve",
     "Chosen %s": "Izabrano \u201e%s\u201c",
+    "Ciders": "Cideri",
     "Click to choose all %s at once.": "Izaberite sve \u201e%s\u201c odjednom.",
     "Click to remove all chosen %s at once.": "Uklonite sve izabrane \u201e%s\u201c odjednom.",
     "Cocktails": "Kokteli",
@@ -101,6 +108,7 @@
     "Current password": "Trenutna lozinka",
     "Currently <strong>{{ e.is_opened ? 'opened' : 'closed' }}</strong>": "Trenutno <strong>{{ e.is_opened ? 'otvoreno' : 'zatvoreno' }}</strong>",
     "Desserts": "Dezert",
+    "Disiked by": "Ne svi\u0111a se",
     "Drinks": "Pi\u0107a",
     "Edit business info": "Izmeni informacije ugostiteljskog objekta",
     "Email": "Email",
@@ -108,6 +116,7 @@
     "Enter your current password before changing:": "Unesite Va\u0161u trenutnu lozinku pre menjanja:",
     "Event(s)": "Doga\u0111aji",
     "Events": "Doga\u0111aji",
+    "Favoured by": "Favorizovano od strane",
     "Favourites": "Omiljeni",
     "Filter": "Filter",
     "Food": "Hrana",
@@ -132,6 +141,7 @@
     "Item(s)": "Proizvodi",
     "Items": "Proizvodi",
     "Juices": "Sokovi",
+    "Liked by": "Svi\u0111a se",
     "Liqueurs": "Likeri",
     "Load more": "U\u010ditaj jo\u0161",
     "Load newer": "U\u010ditaj novije",
@@ -165,7 +175,7 @@
     "Remind me for this event": "Podseti me na ovaj doga\u0111aj",
     "Remove": "Izbri\u0161i",
     "Remove all": "Ukloni sve",
-    "Remove from friends": "Izbri\u0161i iz prijatelja",
+    "Remove from friends": "Izbaci iz prijatelja",
     "Repeat new password:": "Ponovite novu \u0161ifru:",
     "Review(s)": "Recenzije",
     "Reviews": "Recenzije",
@@ -186,7 +196,7 @@
     "The phone number entered is not valid.": "Uneti broj telefona nije validan.",
     "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes.": "Ovo je lista dostupnih \u201e%s\u201c. Mo\u017eete izabrati elemente tako \u0161to \u0107ete ih izabrati u listi i kliknuti na \u201eIzaberi\u201c.",
     "This is the list of chosen %s. You may remove some by selecting them in the box below and then clicking the \"Remove\" arrow between the two boxes.": "Ovo je lista izabranih \u201e%s\u201c. Mo\u017eete ukloniti elemente tako \u0161to \u0107ete ih izabrati u listi i kliknuti na \u201eUkloni\u201c.",
-    "This message will disappear once your business is approved. When published, it will become visible/accessible to others.": "Ova poruka \u0107e nestati jednom kada Va\u0161 ugostiteljski objekat bude verifikovan. Kada bude objavljen, tada \u0107e biti vidljiv/dostupan ostalima.",
+    "This message will disappear once your business is approved. When published, it will become visible/accessible to others.": "Ova poruka \u0107e nestati jednom kada Va\u0161 ugostiteljski objekat bude potvr\u0111en. Kada bude objavljen, tada \u0107e biti vidljiv/dostupan ostalima.",
     "Today": "Danas",
     "Tomorrow": "Sutra",
     "Type into this box to filter down the list of available %s.": "Filtrirajte listu dostupnih elemenata \u201e%s\u201c.",

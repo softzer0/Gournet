@@ -43,7 +43,7 @@ app
                 });
 
                 $scope.objs = objService.getobjs(true, false);
-                objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.menu).then(function () { //, $scope.nobusiness
+                objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.ts !== undefined).then(function () { //, $scope.nobusiness
                     $timeout(function () {
                         $scope.loading = false;
                         $scope.modal_loaded = true;
@@ -166,11 +166,11 @@ app
             restrict: 'A',
             template:
                 '<span class="star-rating" ng-if="readonly">' +
-                '    <i ng-repeat="_ in max track by $index" class="fa" ng-class="(floor(starRating) > $index + 1 || starRating == $index + 1 ? \'fa-star\' : floor(starRating) == $index + 1 && starRating % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\')+($last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats)) ? \' last-star\' : \'\')"></i' +
+                '    <i ng-repeat="_ in max track by $index" class="fa" ng-class="(floor(starRating) > $index + 1 || starRating == $index + 1 ? \'fa-star\' : floor(starRating) == $index + 1 && starRating % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\')+($last && (userNumber == 0 || (onClickStats !== undefined ? false : userNumber === undefined || userNumber == 0)) ? \' last-star\' : \'\')"></i' +
                 '></span>' +
                 '<span class="star-rating" ng-if="!readonly">' +
-                '    <a href="javascript:" ng-repeat="a in max track by $index" ng-class="{\'last-star\': $last && (userNumber == 0 || (onClickStats !== undefined ? false : !showStats))}" ng-click="toggle($index)" ng-mouseover="hoverIn($index)" ng-mouseleave="hoverOut()"><i class="fa" ng-class="(hover > 0 && hover >= $index + 1 ? \'fa-star\' : hover == 0 ? floor(starRating) > $index + 1 || starRating == $index + 1 ? \'fa-star\' : floor(starRating) == $index + 1 && starRating % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\' : \'fa-star-o\')+(userRating >= $index + 1 ? \' text-warning\' : \'\')"></i></a' +
-                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || showStats)">|<a href="javascript:" ng-if="onClickStats !== undefined" ng-click="show()" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</a><span ng-if="showStats && onClickStats === undefined" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</span></span>',
+                '    <a href="javascript:" ng-repeat="a in max track by $index" ng-class="{\'last-star\': $last && (userNumber == 0 || (onClickStats !== undefined ? false : userNumber === undefined || userNumber == 0))}" ng-click="toggle($index)" ng-mouseover="hoverIn($index)" ng-mouseleave="hoverOut()"><i class="fa" ng-class="(hover > 0 && hover >= $index + 1 ? \'fa-star\' : hover == 0 ? floor(starRating) > $index + 1 || starRating == $index + 1 ? \'fa-star\' : floor(starRating) == $index + 1 && starRating % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\' : \'fa-star-o\')+(userRating >= $index + 1 ? \' text-warning\' : \'\')"></i></a' +
+                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || userNumber !== undefined && userNumber != 0)">|<a href="javascript:" ng-if="onClickStats !== undefined" ng-click="show()" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</a><span ng-if="userNumber !== undefined && userNumber != 0 && onClickStats === undefined" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</span></span>',
             scope: {
                 starRating: '=?',
                 userNumber: '=?',
@@ -178,7 +178,7 @@ app
                 readonly: '@?',
                 //max: '&?', //optional: default is 5
                 onChange: '@?', //must return a promise
-                showStats: '=?',
+                //showStats: '=?',
                 onClickStats: '@?',
                 funcParams: '=?'
             },
@@ -201,7 +201,7 @@ app
                 scope.hover = 0;
                 scope.hoverIn = function (i) { scope.hover = i + 1 };
                 scope.hoverOut = function () { scope.hover = 0 };
-                if (scope.onChange !== undefined) var loading;
+                /*if (scope.onChange !== undefined)*/ var loading;
                 scope.toggle = function (i) { //$event,
                     scope.hoverOut(); //$event.stopPropagation();
                     if (scope.onChange !== undefined) {
@@ -285,7 +285,7 @@ app
         if (event !== undefined) {
             $scope.event = event;
             $scope.sel_cnt = 0;
-            $scope.check_disabled = function () { return sel_cnt == 0 };
+            $scope.check_disabled = function () { return $scope.sel_cnt == 0 };
             $scope.button_text = "Notify (%s)"; // interpolate(gettext("Notify (%s)"), [$scope.sel_cnt])
 
             $scope.makeSel = function (i) {
@@ -643,8 +643,8 @@ app
                 }
                 return d.$promise;
             } else {
-                d = this;
-                return this.s.query({ids: ids, no_business: cn ? this.menu || null : null}, function (result) {
+                d = this; cn = cn ? this.menu || null : null;
+                return this.s.query({ids: ids, no_business: cn, has_img_ind: cn}, function (result) {
                     if (d.unloaded[1]) return;
                     d.objs[1].push.apply(d.objs[1], result);
                     if (rel_state) for (i = 0; i < d.objs[1].length; i++) showc(i);
@@ -967,12 +967,12 @@ app
             r.setSeconds(0, 0);
             return v ? r.valueOf() : r;
         }
-        var when, index;
+        var when, id, index;
         $scope.cmb = {choices: [gettext("(Custom)")]};
         $scope.picker = {options: {minDate: subTime($rootScope.currTime, 0, -1)}};
         $scope.initRmn = function (ind){
-            if (index !== undefined && $scope.objs[ind].id == $scope.objs[index].id) return;
-            index = ind;
+            if (id !== undefined && $scope.objs[ind].id == id) return;
+            id = $scope.objs[ind].id; index = ind;
             when = new Date($scope.objs[index].when);
             $scope.picker.options.maxDate = when;
             $scope.cmb.choices.length = 1;

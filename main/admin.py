@@ -2,7 +2,7 @@ from django.contrib import admin
 from . import models
 from django.utils.translation import ugettext_lazy as _, ugettext
 from related_admin import RelatedFieldAdmin, getter_for_related_field
-from django.db.models import Count
+from django.db.models import Count, Avg
 from django.template.defaultfilters import truncatewords
 
 class BaseAdmin(admin.ModelAdmin):
@@ -32,12 +32,12 @@ class BusinessAdmin(BaseAdmin):
     search_fields = ('shortname', 'name')
 
     def get_queryset(self, request):
-        return super().get_queryset(request).annotate(like_count=Count('likes'), item_count=Count('item'), event_count=Count('event'))
+        return super().get_queryset(request).annotate(like_count=Count('likes', distinct=True), item_count=Count('item', distinct=True), event_count=Count('event', distinct=True))
 
-    like_count, item_count, event_count = getter_for_related_field('like_count', 'like__count', _("like(s)")), getter_for_related_field('item_count', 'item__count', _("item(s)")), getter_for_related_field('event_count', 'event__count', _("event(s)"))
+    like_count, item_count, event_count = getter_for_related_field('like_count', short_description=_("like(s)")), getter_for_related_field('item_count', short_description=_("item(s)")), getter_for_related_field('event_count', short_description=_("event(s)"))
 
     def review_count(self, obj):
-        return models.Comment.objects.filter(content_type__pk=models.get_content_types()['business'].pk, object_id=obj.pk).count()
+        return models.Review.objects.filter(object_id=obj.pk).count()
     review_count.short_description = _("review(s)")
 
 
@@ -49,35 +49,38 @@ class BaseObjAdmin(admin.ModelAdmin):
         return truncatewords(obj.text if hasattr(obj, 'text') else obj.name, 15)
     name_text.short_description = _("name/text")
 
-class DisLikeComment:
+def filter_relation(self, model, obj):
+    return getattr(models, model).objects.filter(content_type__pk=models.get_content_types()[type(obj)._meta.model_name if not hasattr(self, 'model_name') else self.model_name].pk, object_id=obj.pk)
+
+class DisLike:
     def like_count(self, obj):
-        return models.Like.objects.filter(content_type__pk=models.get_content_types()[type(obj)._meta.model_name].pk, object_id=obj.pk, is_dislike=False).count()
+        return filter_relation(self, 'Like', obj).filter(is_dislike=False).count()
     like_count.short_description = _("like(s)")
 
     def dislike_count(self, obj):
-        return models.Like.objects.filter(content_type__pk=models.get_content_types()[type(obj)._meta.model_name].pk, object_id=obj.pk, is_dislike=True).count()
+        return filter_relation(self, 'Like', obj).filter(is_dislike=True).count()
     dislike_count.short_description = _("dislike(s)")
 
+class Comment:
     def comment_count(self, obj):
-        return models.Comment.objects.filter(content_type__pk=models.get_content_types()[type(obj)._meta.model_name].pk, object_id=obj.pk).count()
+        return filter_relation(self, 'Comment', obj).count()
     comment_count.short_description = _("comment(s)")
 
 @admin.register(models.Event)
-class EventAdmin(BaseObjAdmin, DisLikeComment):
+class EventAdmin(BaseObjAdmin, DisLike, Comment):
     list_display = ('id', 'business', 'name_text', 'when', 'like_count', 'dislike_count', 'comment_count', 'created')
     search_fields = ('business__name', 'text')
 
 @admin.register(models.Item)
-class ItemAdmin(BaseObjAdmin, DisLikeComment):
+class ItemAdmin(BaseObjAdmin, DisLike, Comment):
     list_filter = BaseObjAdmin.list_filter + ('category', 'has_image')
-    list_display = ('id', 'business', 'category', 'name_text', 'price', 'like_count', 'dislike_count', 'comment_count', 'created', 'has_image')
+    list_display = ('id', 'business', 'category', 'name_text', 'price', 'stars_avg', 'stars_count', 'comment_count', 'created', 'has_image')
     search_fields = ('business__name', 'name', 'price')
 
-class Review(models.Comment):
-    class Meta:
-        proxy = True
-        verbose_name = _("review")
-        verbose_name_plural = _("reviews")
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(stars_count=Count('likes__stars'), stars_avg=Avg('likes__stars'))
+
+    stars_count, stars_avg = getter_for_related_field('stars_count', short_description=_("star count")), getter_for_related_field('stars_avg', short_description=_("rating"))
 
 class CommentP(models.Comment):
     class Meta:
@@ -89,29 +92,11 @@ class BaseCommentAdmin(BaseObjAdmin, RelatedFieldAdmin):
     search_fields = ('person__username', 'person__first_name', 'person__last_name', 'text')
     list_display = ('person__username', 'person__first_name', 'person__last_name', 'text', 'created')
 
-class StarsListFilter(admin.SimpleListFilter):
-    title = _("stars")
-    parameter_name = 'stars'
-
-    def lookups(self, request, model_admin):
-        return tuple((str(x), str(x)) for x in range(1, 6))
-
-    def queryset(self, request, queryset):
-        return queryset.filter(stars=self.value())
-
-@admin.register(Review)
-class ReviewAdmin(BaseCommentAdmin, DisLikeComment):
-    exclude = ('status',)
-    list_display = BaseCommentAdmin.list_display + ('stars', 'like_count', 'dislike_count', 'comment_count')
-    list_filter = BaseCommentAdmin.list_filter + (StarsListFilter,)
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(main_comment__isnull=False)
-
 @admin.register(CommentP)
 class CommentAdmin(BaseCommentAdmin):
+    list_display = ('id',) + BaseCommentAdmin.list_display
     exclude = ('main_comment', 'stars')
     list_filter = BaseCommentAdmin.list_filter + ('status',)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(main_comment__isnull=True)
+        return super().get_queryset(request).exclude(content_type__pk=models.get_content_types()['business'].pk)

@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'fbf0+@#!&9&!rb%6s4veb_#f7)r+1=u9ktofp_sc@=oi#%tnal'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = False #True #repl with
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co'] #['*'] #repl with
 
 # Application definition
 
@@ -113,7 +113,7 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_EMAIL_REQUIRED = True
 #ACCOUNT_UNIQUE_EMAIL = True
 SOCIALACCOUNT_QUERY_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "mandatory" #none #repl with
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 #EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 #ACCOUNT_LOGIN_ON_PASSWORD_RESET = True

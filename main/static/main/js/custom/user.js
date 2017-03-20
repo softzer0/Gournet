@@ -14,7 +14,8 @@ app
         }
 
         // Owner
-        $scope.setED = function (val){ $scope.edit.push({value: new Date(val), disabled: true, form: {value: new Date(val), options: {minDate: new Date('1927'), maxDate: new Date('2003')}, opened: false}}) };
+        $scope.edit = {};
+        $scope.setED = function (name, val){ $scope.edit[name] = {value: new Date(val), disabled: true, form: {value: new Date(val), options: {minDate: new Date('1927'), maxDate: new Date('2003')}, opened: false}} };
         $scope.s = APIService.init(12);
         function zeroPad(num) { //, places
             var zero = 3 - num.toString().length; //places - (...) + 1
@@ -24,15 +25,15 @@ app
         $scope.doAction = function (i){
             switch (i) {
                 case 1:
-                    $scope.execA(1, 'gender', [pgettext('after changing', "gender"), 'gender']);
+                    $scope.execA('gender', 'gender', [pgettext('after changing', "gender"), 'gender']);
                     break;
                 case 2:
-                    if ($scope.edit[2].form.value && $scope.edit[2].form.value.getTime() != $scope.edit[2].value.getTime() && $scope.edit[2].form.value < $scope.edit[2].form.options.maxDate && $scope.edit[2].form.value > $scope.edit[2].form.options.minDate) $scope.execA(2, {birthdate: $scope.edit[2].form.value.getFullYear()+'-'+zeroPad($scope.edit[2].form.value.getMonth()+1)+'-'+zeroPad($scope.edit[2].form.value.getDate())}, [pgettext('after changing', "birthdate"), 'birth'], function (){ $scope.edit[2].value = $scope.edit[2].form.value }); else $scope.disableE(2);
+                    if ($scope.edit.birth.form.value && $scope.edit.birth.form.value.getTime() != $scope.edit.birth.value.getTime() && $scope.edit.birth.form.value < $scope.edit.birth.form.options.maxDate && $scope.edit.birth.form.value > $scope.edit.birth.form.options.minDate) $scope.execA('birth', {birthdate: $scope.edit.birth.form.value.getFullYear()+'-'+zeroPad($scope.edit.birth.form.value.getMonth()+1)+'-'+zeroPad($scope.edit.birth.form.value.getDate())}, [pgettext('after changing', "birthdate"), 'birth'], function (){ $scope.edit.birth.value = $scope.edit.birth.form.value }); else $scope.disableE(2);
                     break;
                 case 3:
-                    $scope.execA(3, 'address', undefined, function (result){ for (var j in f) $scope.edit[3][f[j]] = result.address }, function (){ dialogService.show(gettext("Invalid address."), false) });
+                    $scope.execA('addr', 'address', undefined, function (result){ for (var j in f) $scope.edit.addr[f[j]] = result.address }, function (){ dialogService.show(gettext("Invalid address."), false) });
                     break;
-                default: $scope.execA(0, ['first_name', 'last_name'], [pgettext('after changing', "name"), 'name'], function (result){ for (var j in f) for (var i = 0; i < 2; i++) $scope.edit[0][f[j]][i] = i == 0 ? result.first_name : result.last_name });
+                default: $scope.execA('name', ['first_name', 'last_name'], [pgettext('after changing', "name"), 'name'], function (result){ for (var j in f) for (var i = 0; i < 2; i++) $scope.edit.name[f[j]][i] = i == 0 ? result.first_name : result.last_name });
             }
         };
     });

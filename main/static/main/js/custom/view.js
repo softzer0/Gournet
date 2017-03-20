@@ -242,7 +242,7 @@ app
             $scope.data = {value: [], tz: undefined};
             //$scope.name = angular.element('.lead.text-center.br2').text();
             var likeService = APIService.init(3), loading;
-            services = [$injector.get('$timeout'), $injector.get('CONTENT_TYPES')['business'], $injector.get('reviewService')];
+            services = [$injector.get('$timeout'), $injector.get('CONTENT_TYPES').business, $injector.get('reviewService')];
             $scope.doFavouriteAction = function () {
                 if (loading) return;
                 loading = true;
@@ -286,6 +286,7 @@ app
         }
 
         // Manager
+        $scope.edit = [];
         $scope.data = $injector.get('EDIT_DATA');
         services = [$injector.get('dialogService'), $injector.get('$uibModal'), $injector.get('BASE_MODAL')];
 
@@ -319,15 +320,15 @@ app
                 }
                 $scope.doSave = function (){
                     var d = {};
-                    if (checkField($scope.data, 1)) d['phone'] = $scope.data.form[1];
+                    if (checkField($scope.data, 1)) d.phone = $scope.data.form[1];
                     for (var i = 0; i < $scope.data.form[2].length; i++) if ($scope.data.form[2][i] == $scope.data.curr) {
                         $scope.data.form[2].splice(i, 1);
                         break;
                     }
-                    if (checkField($scope.data, 2)) d['supported_curr'] = $scope.data.form[2];
+                    if (checkField($scope.data, 2)) d.supported_curr = $scope.data.form[2];
                     if (checkField($scope.data, 3) || checkField($scope.data, 4)) {
-                        d['address'] = $scope.data.form[3];
-                        d['location'] = $scope.data.form[4];
+                        d.address = $scope.data.form[3];
+                        d.location = $scope.data.form[4];
                     }
                     var a = [0], p = ['phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'], r;
                     function f(v){ return moment(v).format('HH:mm') }
@@ -349,7 +350,7 @@ app
                             if (r < 4) $scope.data.value[r+1] = $scope.data.form[r+1]; else $scope.data.value[0][r-4] = d[a[i]];
                         }
                         if (d.address !== undefined || d.location !== undefined || r >= 4) {
-                            $scope.data.tz = result['tz'];
+                            $scope.data.tz = result.tz;
                             $rootScope.currTime = new Date();
                         }
                         $scope.close();

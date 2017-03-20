@@ -79,11 +79,13 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
     if (!OWNER_MANAGER) return;
     var services = [$injector.get('$q'), $injector.get('Upload'), $injector.get('dialogService'), $injector.get('checkField')];
 
-    $scope.gened = function (){ return {value: arguments.length > 1 ? jQuery.makeArray(arguments) : arguments[0], form: arguments.length > 1 ? jQuery.makeArray(arguments) : arguments[0], disabled: true} };
+    $scope.gened = function (arr){ return {value: arr, form: arr.slice(), disabled: true} };
     if ($scope.u === true) {
         $scope.documentClick = {};
-        $scope.edit = [];
-        $scope.setE = function (){ $scope.edit.push($scope.gened.apply(this, arguments)) };
+        $scope.setE = function (name){
+            var r = $scope.gened(arguments.length > 2 ? jQuery.makeArray(arguments).splice(1) : arguments[1]);
+            if (name != undefined) $scope.edit[name] = r; else $scope.edit.push(r);
+        };
     }
     var editf;
     $scope.disableE = function (){ editf.disabled = true };

@@ -129,7 +129,7 @@ class BusinessForm(BaseForm):
 class CaptchaForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['captcha'] = ReCaptchaField(attrs={'lang': get_language()})
+        self.fields['captcha'] = ReCaptchaField(attrs={'lang': get_language()}) #enable
 
 class ContactForm(CaptchaForm):
     email = forms.EmailField(label=ugettext_lazy("Send replies to"), widget=forms.widgets.TextInput(attrs={'placeholder': ugettext_lazy("E-mail Address")}))

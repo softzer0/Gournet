@@ -1,6 +1,6 @@
-Django==1.10.5
+Django==1.10.6
 Pillow==3.2.0
-django-allauth==0.25.2
+django-allauth==0.31.0
 django-bootstrap3==7.0.1
 django-decorator-include==1.1
 django-multiselectfield==0.1.4

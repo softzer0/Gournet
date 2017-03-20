@@ -175,8 +175,8 @@ html, body {
   height: 100%;
 }
 
-body, .mb3 p, *:not(".nw") .form-group, .nmb, .well.cmn > p {
-	margin-bottom: 0;
+body, .mb3 p, .cmn p { /* , .nmb */
+  margin-bottom: 0;
 }
 
 .navbar-toggle {

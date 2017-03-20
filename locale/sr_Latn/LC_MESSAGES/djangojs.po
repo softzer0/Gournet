@@ -100,7 +100,6 @@ msgid "Your favourites"
 msgstr "Vaši favoriti"
 
 #: main/static/main/js/custom/main.js:295
-#, fuzzy
 msgid "Favoured by"
 msgstr "Favorizovano od strane"
 
@@ -113,14 +112,12 @@ msgid "Reactions"
 msgstr "Reakcije"
 
 #: main/static/main/js/custom/main.js:330
-#, fuzzy
 msgid "Liked by"
-msgstr "Označeno da se sviđa od strane"
+msgstr "Sviđa se"
 
 #: main/static/main/js/custom/main.js:330
-#, fuzzy
 msgid "Disiked by"
-msgstr "Označeno da se ne sviđa od strane"
+msgstr "Ne sviđa se"
 
 #: main/static/main/js/custom/main.js:694
 msgid "You can't delete the last remaining item!"
@@ -135,7 +132,6 @@ msgid "Load newer"
 msgstr "Učitaj novije"
 
 #: main/static/main/js/custom/main.js:963
-#, fuzzy
 msgid "(Custom)"
 msgstr "(Osobeno)"
 
@@ -263,9 +259,8 @@ msgid "Alcoholic beverages"
 msgstr "Alkoholna pića"
 
 #: main/static/main/js/custom/view.js:71
-#, fuzzy
 msgid "Ciders"
-msgstr "Jabukovače"
+msgstr "Cideri"
 
 #: main/static/main/js/custom/view.js:72
 msgid "Whiskeys"
@@ -530,7 +525,7 @@ msgid "; supported currency:"
 msgid_plural "; supported currencies:"
 msgstr[0] "; podržana valuta:"
 msgstr[1] "; podržane valute:"
-msgstr[2] "; podržanih valuta:"
+msgstr[2] "; podržane valute:"
 
 #: main/static/main/events.html:34
 msgid ""
@@ -630,7 +625,7 @@ msgstr "Prihvati zahtev za prijateljstvo"
 
 #: main/static/main/friend.html:7
 msgid "Remove from friends"
-msgstr "Izbriši iz prijatelja"
+msgstr "Izbaci iz prijatelja"
 
 #: main/static/main/modals/base.html:12
 #: main/static/main/modals/reminder.html:12
@@ -791,3 +786,10 @@ msgstr[1] ""
 msgstr[2] ""
 "<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-"
 "users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> prijatelja"
+
+#: main/templates/user.html:44 main/templates/user.html:45
+msgid "Born {{ edit.birth.value | ageFilter }} years ago"
+msgid_plural "Born {{ edit.birth.value | ageFilter }} years ago"
+msgstr[0] "Rođen/a pre {{ edit.birth.value | ageFilter }} godinu"
+msgstr[1] "Rođen/a pre {{ edit.birth.value | ageFilter }} godine"
+msgstr[2] "Rođen/a pre {{ edit.birth.value | ageFilter }} godina"

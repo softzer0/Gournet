@@ -45,7 +45,7 @@ def save_img(image, preserve_ratio=True, image_format='JPEG', size=None):
     return ContentFile(zo.getvalue())
 
 def save(type, pk, filename, image):
-    path = os.path.join(settings.MEDIA_ROOT, 'images/'+type+'/'+str(pk)+'/')
+    path = os.path.join(settings.MEDIA_ROOT, 'images')+'/'+type+'/'+str(pk)+'/'
     try:
         os.makedirs(path)
     except:

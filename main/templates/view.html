@@ -21,7 +21,7 @@
 
 {% block rowatt %}ng-controller="BusinessCtrl" ng-init="minchar = {{ minchar }}{% if fav_state > -1 %}; fav_count = {{ fav_count }}; fav_state = {{ fav_state }}{% endif %}"{% endblock %}
 
-{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache 0 edit_data %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened({{ business.type }}, '{{ business.name }}', '{{ business.shortname }}'){% endcache %}">
+{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache 0 edit_data %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened([{{ business.type }}, '{{ business.name }}', '{{ business.shortname }}']){% endcache %}">
                         <a class="n lead text-center" ng-show="edit.disabled" ng-click="edit.disabled = false">{% verbatim %}{{ types[edit.value[0]] }} "{{ edit.value[1] }}"{% endverbatim %}</a>
                         <div ng-hide="edit.disabled">
                             <div>
@@ -44,7 +44,7 @@
 
 {% block img %}{{ business.pk }}/avatar/?business=1{% endblock %}
 
-{% block other %}<li{% if business.manager != request.user %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" show-stats="true" readonly="true"{% else %}><span star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}" user-rating="-1"{% endif %}{% endif %}></span></li>
+{% block other %}<li{% if business.manager != request.user %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" readonly="true"{% else %}><span star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}"{% endif %}{% endif %}></span></li>
                         <li
                             >{% if fav_state > -1 %}<span ng-show="fav_count > 0" translate="fav_count"><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> person has favored this<br plural><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> persons have favored this</span
                             ><span ng-show="fav_count == 0"><i class="fa fa-heart"></i> {% trans "Nobody favored this" %}</span
