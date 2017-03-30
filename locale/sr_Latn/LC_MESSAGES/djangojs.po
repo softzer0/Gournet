@@ -123,7 +123,7 @@ msgstr "Ne sviđa se"
 msgid "You can't delete the last remaining item!"
 msgstr "Ne možete obrisati posledji preostali proizvod!"
 
-#: main/static/main/js/custom/main.js:917
+#: main/static/main/events.html:66
 msgid "Load older"
 msgstr "Učitaj starije"
 
@@ -600,7 +600,6 @@ msgstr "Vaš komentar"
 msgid "Submit"
 msgstr "Pošalji"
 
-#: main/static/main/events.html:82
 #: main/static/main/modals/friends.html:12
 #: main/static/main/modals/notifications.html:9
 #: main/static/main/modals/likes.html:17

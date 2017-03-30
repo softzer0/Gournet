@@ -1,17 +1,16 @@
 app.requires.push('ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime', 'ct.ui.router.extras'); //, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'
 app
-    .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL, CONTENT_TYPES) {
+    .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
         $animateProvider.classNameFilter(/(angular-animate|tab-pane)/);
         timeAgoSettings.allowFuture = true;
 
-        var t = '', name = (window.location.pathname != '/' ? 'main.' : '') + 'showObjs';
-        for (var k in CONTENT_TYPES) t += '|'+(k != 'comment' ? k : 'review');
+        var name = (window.location.pathname != '/' ? 'main.' : '') + 'showObjs';
         if (window.location.pathname != '/') $stateProvider.state('main', {url: '/'}); else if (window.location.hash == '' || window.location.hash == '#') window.location.hash = '#/';
         $stateProvider.state(name, {
-            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:'+t.slice(1)+')}{showcomments:(?:&showcomments)?}',
+            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:business|event|item|review)}{showcomments:(?:&showcomments)?}', //important
             params: {ts: null},
             modal: true,
             templateUrl: BASE_MODAL,
@@ -73,7 +72,7 @@ app
             return params != null ? interpolate(r, [params]/*, params.constructor == Object*/) : r;
         }
     })
-    .directive('translate', function($compile, $timeout) {
+    .directive('translate', function($compile) {
         return {
             compile: function(element, attrs) {
                 if (attrs.translate == '') {
@@ -278,7 +277,7 @@ app
         };
     })
 
-    .controller('UsersModalCtrl', function ($rootScope, $scope, $timeout, $resource, $uibModalInstance, $controller, file, event, usersModalService, APIService, CONTENT_TYPES, HAS_STARS) { //, $window
+    .controller('UsersModalCtrl', function ($rootScope, $scope, $timeout, $resource, $uibModalInstance, $controller, file, event, usersModalService, APIService, HAS_STARS) { //, $window
         angular.extend(this, $controller('ModalCtrl', {$scope: $scope, $uibModalInstance: $uibModalInstance}));
 
         $scope.file = file;
@@ -314,7 +313,7 @@ app
                 break;
             case 1:
             case 2:
-                d.content_type = CONTENT_TYPES['business'];
+                d.content_type = 'business';
                 if (d.id == null || t == 2) {
                     if (d.id != null) $scope.title = gettext("Favourites"); else $scope.title = gettext("Your favourites");
                     d.is_person = 1;
@@ -322,7 +321,7 @@ app
                 } else $scope.title = gettext("Favoured by");
                 break;
             default:
-                d.content_type = CONTENT_TYPES[t];
+                d.content_type = t;
                 if (stars) $scope.title = gettext("Ratings"); else $scope.title = gettext("Reactions");
         }
         $scope.tabs = [];
@@ -332,17 +331,16 @@ app
             if ($scope.loaded !== undefined) {
                 if (st) if (stars) t.stars = $scope.tabs[i].value; else t.is_dislike = $scope.tabs[i].value;
                 $scope.loaded = false;
-                t.page = $scope.tabs[i].next_page;
+                t.cursor = $scope.tabs[i].next;
             } else if (st) t.init = 1;
             function f(result){
                 if (t.init || result.results.length > 0) {
-                    var pg;
                     if ($scope.loaded === undefined) {
                         if (st) {
                             t = 0;
                             function load() {
                                 $scope.tabs[t].elems.push.apply($scope.tabs[t].elems, result[i].results);
-                                if (result[i].has_more) $scope.tabs[t].next_page = 2;
+                                $scope.tabs[t].next = result[i].has_more;
                                 t++;
                             }
                             if (stars) {
@@ -360,8 +358,7 @@ app
                     }
                     if (!st || $scope.loaded !== undefined) {
                         $scope.tabs[i].elems.push.apply($scope.tabs[i].elems, result.results);
-                        if ($scope.tabs[i].next_page === undefined) pg = 1; else pg = $scope.tabs[i].next_page + 1;
-                        if (result.page_count != pg) $scope.tabs[i].next_page = pg; else if ($scope.tabs[i].next_page !== undefined) delete $scope.tabs[i].next_page;
+                        $scope.tabs[i].next = result.next;
                     }
                 }
                 $timeout(function(){ $scope.loaded = true });
@@ -484,7 +481,7 @@ app
         }
     })
 
-    .factory('uniService', function ($q, $timeout, $injector, APIService, COMMENT_PAGE_SIZE, CONTENT_TYPES, dialogService, USER){
+    .factory('uniService', function ($q, $timeout, $injector, APIService, dialogService, USER){
         var u = false, ld = {}, likeService = APIService.init(3), commentService = APIService.init(7), services = {}; //, rs = false
 
         function getService(name, func) {
@@ -512,8 +509,8 @@ app
                     break;
                 default: this.u = {event: APIService.init(2), item: APIService.init(8), comment: commentService, business: APIService.init(9), user: APIService.init(), feed: APIService.init(10)};
             }
-            this.page_offset = 1;
             this.remids = [];
+            this.props = {};
             this.unloaded = [false, false];
         }
 
@@ -525,33 +522,48 @@ app
                 }
             } else getService('menuService').del(e[index].category, e[index].id);
             if (l) this.remids.push(e[index].id);
-            if (!r || !u) e.splice(index, 1);
+            if (r && u) return;
+            e.splice(index, 1);
         };
 
         UniObj.prototype.getobjs = function (t, n) {
             if (t === undefined) return this.objs[2];
-            var e;
-            e = t ? this.objs[1] : this.objs[0];
+            var e = this.objs[+t];
             if (n == undefined) {
                 e.length = 0;
                 if (!t) {
-                    this.page_offset = 1;
-                    delete this.props.has_next_page;
+                    delete this.props.next;
                     ld = {};
                     if (services.markerService !== undefined) services.markerService.markers.length = 0;
                 }
             }
-            this.unloaded[t ? 1 : 0] = n === null;
+            this.unloaded[+t] = n === null;
             return n !== null ? e : $q.when();
         };
-        UniObj.prototype.props = {};
+
+        UniObj.prototype.load_p = function (s, d, t, f, ep, r, index, rev){
+            if (r === undefined) r = 0;
+            var e = this.objs[+r];
+            if (index) e = e[index];
+            var obj = [ep !== undefined ? ep : e], self = this;
+            return s.get(angular.extend({}, d, {cursor: obj[0].next || null, reverse: rev || null}),
+                function (result){
+                    if (self.unloaded[+r]) return;
+                    if (f === undefined) {
+                        if (t !== undefined && e[t] === undefined) e[t] = [];
+                        obj[1] = t !== undefined ? e[t] : e;
+                        if (rev) obj[0].unshift.apply(obj[1], result.results.reverse()); else obj[1].push.apply(result.results);
+                    } else f(result.results);
+                    obj[0].next = result.next;
+                }).$promise;
+        };
 
         UniObj.prototype.load = function (b, rel_state, cn) {
             var ids = null, self = this, d, i, j;
             if (b !== undefined) if (angular.isArray(b)) {
                 function showc(i) {
                     if (self.objs[1][i].showcomm === undefined) {
-                        self.objs[1][i].showcomm = [[false, true], true];
+                        self.objs[1][i].showcomm = [false, true];
                         self.loadComments(i, true).then(function l() { if (!self.unloaded[1]) $timeout(function () { if (!self.unloaded[1]) self.objs[1][i].showcomm[0][0] = true }) });
                     } else self.objs[1][i].showcomm[1] = true;
                 }
@@ -570,7 +582,7 @@ app
                             delete ev.user_comments;
                             delete ev.offset;
                             delete ev.comment_more;*/
-                            if (ev.showcomm !== undefined) ev.showcomm = [[true, true], false]; //delete ev.showcomm;
+                            if (ev.showcomm !== undefined) ev.showcomm = [true, false]; //delete ev.showcomm;
                             this.objs[1].push(ev);
                             if (rel_state) showc(this.objs[1].length - 1);
                             p = true;
@@ -582,22 +594,21 @@ app
                 ids = ids.slice(1);
             }
             if (ids == '') return $q.when(); else if (ids == null) {
-                if (cn !== undefined) {
+                if (cn !== undefined && cn !== true) {
                     ld.position = cn.longitude+','+cn.latitude;
-                    if (this.page_offset > 1) {
-                        this.page_offset = 1 - (services.SEARCH_PAGE_SIZE !== undefined);
+                    if (this.props.next !== undefined) {
+                        delete this.props.next;
                         cn = null;
                     }
                 }
                 this.unloaded[0] = false;
-                if (this.props.has_next_page !== undefined) if (services.SEARCH_PAGE_SIZE !== undefined) ld.offset = this.page_offset; else ld.page = this.page_offset;
                 if (b !== undefined) if (typeof(b) == 'string') ld.search = b; else ld.id = b;
                 if (rel_state === true) ld.favourites = 1; else if (rel_state !== undefined) {
                     u = rel_state == null;
                     ld.is_person = 1;
                     //rs = true;
                 }
-                if (this.page_offset == 1 && this.objs[2] == 'comment') ld.content_type = CONTENT_TYPES['business'];
+                if (this.props.next === undefined && this.objs[2] == 'comment') ld.content_type = 'business';
                 function appendResults(results) {
                     if (cn === null) if (results.length > 0) for (i = self.objs[0].length - 1; i >= 0; i--) {
                         for (j = results.length - 1; j >= 0; j--) if (self.u !== undefined ? self.objs[0][i].type == results[j].type && (self.objs[0][i].target !== undefined ? self.objs[0][i].friend.id == results[j].friend.id && self.objs[0][i].target.id == results[j].target.id : self.objs[0][i].id == results[j].id) : self.objs[0][i].id == results[j].id) {
@@ -617,37 +628,31 @@ app
                     self.objs[0].push.apply(self.objs[0], results);
                     if (cn === null && self.u === undefined) self.objs[0].sort(dynamicSortMultiple('-distance.unit', 'distance.value')); //change (for another language)
                 }
-                if (this.page_offset > 1 || b !== undefined || rel_state !== undefined || this.u !== undefined) d = (this.s || this.u.feed).get(ld,
+                if (this.props.next !== undefined || b !== undefined || rel_state !== undefined || this.u !== undefined) {
+                    if (this.u === undefined) return this.load_p(this.s, ld, undefined, appendResults, this.props).then(function (result){
+                        if ((services.markerService !== undefined || result.results.length > 0) && (ld.favourites == 1 || result.count > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, false);
+                    });
+                    return this.u.feed.get(ld, function (result){
+                        if (ld.page !== undefined) ld.page++; else ld.page = 1;
+                        self.props.next = ld.page < result.page_count;
+                        appendResults(result.results);
+                        if (services.markerService !== undefined || result.results.length > 0) getService('markerService').load(result.results, true);
+                    }).$promise;
+                }
+                return APIService.init(11).query(ld,
                     function (result) {
                         if (self.unloaded[0]) return;
-                        appendResults(result.results);
-                        if (result.count !== undefined) {
-                            getService('SEARCH_PAGE_SIZE', function (){ self.page_offset = 0 });
-                            self.page_offset += services.SEARCH_PAGE_SIZE;
-                            self.props.has_next_page = result.count > self.page_offset;
-                        } else {
-                            self.props.has_next_page = result.page_count > self.page_offset;
-                            self.page_offset++;
-                        }
-                        if ((services.markerService !== undefined || result.results.length > 0) && (ld.favourites == 1 || self.u !== undefined || result.count > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, self.u !== undefined);
-                }); else {
-                    d = APIService.init(11).query(ld,
-                        function (result) {
-                            if (self.unloaded[0]) return;
-                            USER.deftz = result[0];
-                            if (services.markerService !== undefined || result[1].results.length > 0) getService('markerService').load(result[1].results, null);
-                            appendResults(result[2].results);
-                            self.props.has_next_page = result[2].has_more;
-                            self.page_offset++;
-                        });
-                }
-                return d.$promise;
+                        USER.deftz = result[0];
+                        if (services.markerService !== undefined || result[1].results.length > 0) getService('markerService').load(result[1].results, null);
+                        appendResults(result[2].results);
+                        self.props.next = result[2].has_more;
+                    }).$promise;
             } else {
-                d = this; cn = cn ? this.menu || null : null;
+                cn = cn ? this.menu || null : null;
                 return this.s.query({ids: ids, no_business: cn, has_img_ind: cn}, function (result) {
-                    if (d.unloaded[1]) return;
-                    d.objs[1].push.apply(d.objs[1], result);
-                    if (rel_state) for (i = 0; i < d.objs[1].length; i++) showc(i);
+                    if (self.unloaded[1]) return;
+                    self.objs[1].push.apply(self.objs[1], result);
+                    if (rel_state) for (i = 0; i < self.objs[1].length; i++) showc(i);
                 }).$promise
             }
         };
@@ -659,13 +664,13 @@ app
                     d = {text: arguments[0], when: arguments[1]};
                     break;
                 case 'comment':
-                    d = {text: arguments[0], stars: arguments[1], object_id: arguments[2], content_type: CONTENT_TYPES['business']};
+                    d = {text: arguments[0], stars: arguments[1], object_id: arguments[2], content_type: 'business'};
             }
             return this.s.save(d, function (result){ if (!self.unloaded[0]) self.objs[0].unshift(result) }).$promise;
         };
 
         UniObj.prototype.del = function (index, r, par_ind, p) {
-            var e = r ? this.objs[1] : this.objs[0], self = this;
+            var e = this.objs[+r], self = this;
             if (par_ind !== undefined) {
                 if (r || index == null) var objs = [this.objs[0]];
                 e = e[par_ind];
@@ -675,13 +680,12 @@ app
                     id.push(e.main_comment.id);
                 } else id.push(e[p][index].id);
                 return commentService.delete({id: id[1]}, function (result) {
-                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (self.unloaded[+r]) return;
                     if (objs !== undefined) for (var l = 0; l < objs.length; l++) for (var i = 0; i < objs[l].length; i++) if (objs[l][i].id == id[0]) {
                         if (objs[l][i].main_comment != null && objs[l][i].main_comment.id == id[1]) if (result.id !== undefined) angular.copy(result, objs[l][i].main_comment); else delete objs[l][i].main_comment;
                         var uc = ['comments', 'user_comments'];
                         for (var k = 0; k < 2; k++) if (objs[l][i][uc[k]] !== undefined) for (var j = 0; j < objs[l][i][uc[k]].length; j++) if (objs[l][i][uc[k]][j].id == id[1]) {
                             objs[l][i][uc[k]].splice(j, 1);
-                            objs[l][i].offset--;
                             break;
                         }
                         objs[l][i].comment_count = e.comment_count - 1;
@@ -691,13 +695,12 @@ app
                         if (e.main_comment != null && e.main_comment.id == id[1]) if (result.id !== undefined) angular.copy(result, e.main_comment); else delete e.main_comment;
                         e[p].splice(index, 1);
                         e.comment_count--;
-                        e.offset--;
                     }
                 }).$promise;
             } else {
                 var is_item = e[index].name !== undefined;
                 return (this.s || this.u[e[index].type]).delete({id: e[index].id}, function (){
-                    if (!self.unloaded[r ? 1 : 0]) self.remove(e, index, r);
+                    if (!self.unloaded[+r]) self.remove(e, index, r);
                 }, function (result){
                     if (is_item && result.data !== undefined && result.data.non_field_errors !== undefined) dialogService.show(gettext("You can't delete the last remaining item!"), false);
                 }).$promise;
@@ -705,7 +708,7 @@ app
         };
 
         UniObj.prototype.setLikeStatus = function (index, r, dislike_stars, par_ind) {
-            var e = r ? this.objs[1] : this.objs[0], id, isl;
+            var e = this.objs[+r], id, isl;
             if (par_ind !== undefined) {
                 id = index != null ? e[par_ind].comments[index] : e[par_ind].main_comment;
                 par_ind = [e[par_ind], id.id, index != null];
@@ -719,10 +722,10 @@ app
             }
             var old_status = e[index].curruser_status, status, s;
             if (isl ? old_status == 1 && !dislike_stars || old_status == 2 && dislike_stars : dislike_stars == 0) {
-                s = likeService.delete({content_type: CONTENT_TYPES[e[index].type || this.objs[2]], id: id});
+                s = likeService.delete({content_type: e[index].type || this.objs[2], id: id});
                 status = 0;
             } else {
-                var d = {content_type: CONTENT_TYPES[e[index].type || this.objs[2]], object_id: id};
+                var d = {content_type: e[index].type || this.objs[2], object_id: id};
                 if (isl) d.is_dislike = dislike_stars; else d.stars = dislike_stars;
                 s = old_status > 0 ? likeService.update(d) : likeService.save(d);
                 status = isl ? dislike_stars ? 2 : 1 : dislike_stars;
@@ -730,7 +733,7 @@ app
             var self = this;
             return s.$promise.then(
                 function () {
-                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (self.unloaded[+r]) return;
                     if (status != 0) {
                         if (isl) {
                             if (status == 1) {
@@ -749,7 +752,7 @@ app
                     if (par_ind !== undefined || r || !u || status != 0) e[index].curruser_status = status;
                     var i;
                     if (self.objs[0] !== undefined && (r || par_ind !== undefined)) {
-                        var obj;
+                        var obj, k;
                         if (!u || status != 0 || par_ind !== undefined) {
                             var objs = [self.objs[0]];
                             if (par_ind !== undefined) {
@@ -774,7 +777,7 @@ app
                                     obj.person_status[0] = status;
                                     obj.person_status[1] = e[index].person_status[1];
                                 }
-                                if (!isl) var k = [obj.comments, obj.user_comments];
+                                if (!isl) k = [obj.comments, obj.user_comments];
                                 break;
                             }
                         }
@@ -791,7 +794,7 @@ app
                     if (par_ind === undefined) {
                         if (u && status == 0) self.remove(e, index, r, true);
                         if (!isl && (r || !u || status != 0)) {
-                            if (k === undefined) var k = [];
+                            if (k === undefined) k = [];
                             k.push.apply(k, [e[index].comments, e[index].user_comments]);
                             for (isl = 0; isl < k.length; isl++) if (k[isl] !== undefined) for (i = 0; i < k[isl].length; i++) if (k[isl][i].is_curruser) k[isl][i].manager_stars = status;
                         }
@@ -799,63 +802,22 @@ app
                 });
         };
 
-        UniObj.prototype.loadComments = function (index, r, l, a){
-            var self = this, e = (r ? this.objs[1] : this.objs[0])[index], o = l === undefined || l > 0;
-            if (l !== undefined) { if (l < 0) l = -l; } else l = null;
-            if (e.offset === undefined) e.offset = 0;
-            var p = commentService.get({content_type: CONTENT_TYPES[e.type || this.objs[2]], id: e.id, offset: o ? e.offset : (e.comments !== undefined ? e.comments.length : 0) - (a ? l : 0), limit: l, reverse: !o || null},
-                function (result){
-                    if (self.unloaded[r ? 1 : 0]) return;
-                    if (a !== 0) a = 0;
-                    if (e.comments === undefined) e.comments = [];
-                    var k = [e.comments, e.user_comments], no;
-                    for (var i = 0; i < result.results.length; i++) {
-                        no = false;
-                        for (var j = 0; j < 1; j++) if (k[j] !== undefined) for (var m = 0; m < k[j].length; m++) if (k[j][m].id == result.results[i].id) {
-                            if (!o && j == 1) {
-                                e.user_comments.splice(m, 1);
-                                no = null;
-                                break;
-                            }
-                            no = true;
-                            break;
-                        }
-                        if (!no) {
-                            if (o) e.comments.unshift(result.results[i]); else e.comments.push(result.results[i]);
-                            if (no === false) a++;
-                        }
-                    }
-                    e.comment_count = result.count;
-                    if (!o) e.comment_more -= a; else e.offset += l || (e.offset + COMMENT_PAGE_SIZE > e.count ? e.count - e.offset : COMMENT_PAGE_SIZE);
-                }).$promise;
-            return p.then(function (){
-                    if (self.unloaded[r ? 1 : 0]) return;
-                    if (l != null ? a != l : a != COMMENT_PAGE_SIZE && e.comment_count > (e.comments !== undefined ? e.comments.length : 0) + (e.user_comments !== undefined ? e.user_comments.length : 0)) {
-                        if (!o) return self.loadComments(index, r, a-l, true); else {
-                            if (e.comment_more === undefined) e.comment_more = COMMENT_PAGE_SIZE - a; else e.comment_more += COMMENT_PAGE_SIZE - a;
-                            return self.loadComments(index, r, COMMENT_PAGE_SIZE - a);
-                        }
-                    }
-                    return p;
-                }, function (){ return p });
-        };
+        UniObj.prototype.loadComments = function (index, r){ return this.load_p(commentService, {content_type: this.objs[+r][index].type || this.objs[2], id: this.objs[+r][index].id}, 'comments', undefined, undefined, r, index, true) };
 
         UniObj.prototype.submitComment = function (index, txt, r){
-            var e = (r ? this.objs[1] : this.objs[0])[index], self = this;
+            var e = (this.objs[+r])[index], self = this;
             if (r) var objs = this.objs[0];
-            return commentService.save({content_type: CONTENT_TYPES[e.type || this.objs[2]], object_id: e.id, text: txt, status: e.status !== undefined ? e.status.value : null},
+            return commentService.save({content_type: e.type || this.objs[2], object_id: e.id, text: txt, status: e.status !== undefined ? e.status.value : null},
                 function (result){
-                    if (self.unloaded[r ? 1 : 0]) return;
+                    if (self.unloaded[+r]) return;
                     if (e.user_comments === undefined) e.user_comments = [];
                     e.user_comments.push(result);
                     if (result.manager_stars.status !== undefined) if (e.main_comment == null) e.main_comment = angular.copy(result); else angular.copy(result, e.main_comment);
-                    e.offset++;
                     e.comment_count++;
                     if (r) for (var i = 0; i < objs.length; i++) if (objs[i].id == e.id) {
                         if (objs[i].user_comments !== undefined) {
                             objs[i].user_comments.push(result);
                             if (result.manager_stars.status !== undefined) if (objs[i].main_comment == null) objs[i].main_comment = angular.copy(result); else angular.copy(result, objs[i].main_comment);
-                            objs[i].offset++;
                         }
                         objs[i].comment_count = e.comment_count;
                         break;
@@ -869,7 +831,7 @@ app
     .factory('itemService', function (uniService) { return uniService.getInstance('item') })
     .factory('reviewService', function (uniService) { return uniService.getInstance('comment') })
 
-    .controller('BaseCtrl', function ($scope, $timeout, objService, usersModalService, COMMENT_PAGE_SIZE) {
+    .controller('BaseCtrl', function ($scope, $timeout, objService, usersModalService) {
         $scope.r = $scope.$parent.objs !== undefined;
         $scope.objs = $scope.r ? $scope.$parent.objs : objService[0].getobjs(false, false);
         if (!$scope.r) { // && $scope.objs.length == 0
@@ -888,17 +850,22 @@ app
                 } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
             /*})*/}
             if ($scope.$parent.t == 'user' || $scope.$parent.$parent.$parent.$parent.loading === undefined) load();
-            $scope.load_page = function (){
+            $scope.load_page = function (n){
                 if ($scope.wid !== undefined) {
                     navigator.geolocation.clearWatch($scope.wid);
                     $scope.$parent.$parent.$parent.$parent.wid = undefined;
                 }
-                $scope.loading = true;
-                objService[0].load().then(l, l);
+                if (!n) {
+                    $scope.loading = true;
+                    objService[0].load().then(l, l);
+                } else {
+                    $scope.loading_more = true;
+                    objService[0].load(undefined, undefined, true).then(function (){ $timeout(function() { $scope.loading_more = false })}, function () { $timeout(function() { $scope.loading_more = false })});
+                }
             };
         }
 
-        if (!$scope.r) $scope.$on('$destroy', function() { objService[0].getobjs($scope.r, null) });
+        if (!$scope.r) $scope.$on('$destroy', function () { objService[0].getobjs($scope.r, null) });
 
         if ($scope.$parent.t == 'user') return;
 
@@ -922,25 +889,23 @@ app
 
         $scope.delete = function (index, par_ind, p){ objService[0].del(index, $scope.r, par_ind, p).then(function () { if (objService.length == 2) objService[1](true) }) }; //... > 1)
 
-        $scope.com = [[gettext("Load older"), 'comments', 0], [gettext("Load newer"), 'user_comments', 1]];
+        $scope.com = ['comments', 'user_comments'];
 
-        function load_comments(index, m){
-            function l() { $timeout(function (){ $scope.objs[index].showcomm[0][m || 0] = true }) }
-            objService[0].loadComments(index, $scope.r, m === 1 ? $scope.objs[index].comment_more > COMMENT_PAGE_SIZE ? -COMMENT_PAGE_SIZE : -$scope.objs[index].comment_more : undefined).then(l, l);
+        function load_comments(index){
+            function l() { $timeout(function (){ $scope.objs[index].showcomm[0] = true }) }
+            objService[0].loadComments(index, $scope.r).then(l, l);
         }
 
         $scope.showComments = function(index) {
             if ($scope.objs[index].showcomm === undefined) {
-                $scope.objs[index].showcomm = [[false, true], true];
+                $scope.objs[index].showcomm = [false, true];
                 load_comments(index);
             } else $scope.objs[index].showcomm[1] = !$scope.objs[index].showcomm[1];
         };
 
-        $scope.show_next = function (index, m){ return $scope.objs[index].comments !== undefined && $scope.objs[index].showcomm[0][m || 0] ? m === 1 ? $scope.objs[index].comment_more !== undefined ? $scope.objs[index].comment_more > 0 : false : $scope.objs[index].comment_count > $scope.objs[index].comments.length + ($scope.objs[index].user_comments !== undefined ? $scope.objs[index].user_comments.length : 0) + ($scope.objs[index].comment_more !== undefined ? $scope.objs[index].comment_more : 0) : false };
-
-        $scope.load_next = function (index, m){
-            $scope.objs[index].showcomm[0][m || 0] = false;
-            load_comments(index, m);
+        $scope.load_next = function (index){
+            $scope.objs[index].showcomm[0] = false;
+            load_comments(index);
         };
 
         $scope.submitComment = function (index) {
@@ -958,7 +923,7 @@ app
     .controller('EventsCtrl', function($scope, $rootScope, $timeout, usersModalService, APIService) {
         $scope.notifySelect = function (index){ usersModalService.setAndOpen(null, 0, $scope.objs[index].id) };
 
-        $scope.isFuture = function (index) { return (new Date($scope.objs[index].when)).valueOf() > $rootScope.currTime };
+        $scope.isFuture = function (index) { return new Date($scope.objs[index].when) > $rootScope.currTime };
 
         function subTime(d,h,m,v){
             var r = new Date(d);
@@ -1173,11 +1138,11 @@ app
                 if ($scope.search.keywords != '') {
                     $scope.search.show = true;
                     $scope.search.loading = true;
-                    bsearchService.get({search: $scope.search.keywords, limit: 5},
+                    bsearchService.get({search: $scope.search.keywords, quick: true},
                         function (result) {
                             $scope.search.results.length = 0;
                             if (result.results.length > 0) $scope.search.results.push.apply($scope.search.results, result.results);
-                            $scope.search.count = result.count;
+                            $scope.search.has_more = result.has_more || null;
                             $timeout(function () { $scope.search.loading = false });
                             $scope.search.chngl();
                         },
@@ -1225,11 +1190,13 @@ app
                     $scope.has_next_page = result.page_count > page_num;
                 } else res = result;
                 if (res.length) {
-                    if (page_num !== undefined) if (frse && $scope.notifs.length - u > NOTIF_PAGE_SIZE) res.splice(0, ($scope.notifs.length - u) % NOTIF_PAGE_SIZE); else if (frse == false) {
-                        res.splice(0, u);
-                        frse = true;
-                    }
-                    if (page_num === undefined) {
+                    if (page_num !== undefined) {
+                        if (frse && $scope.notifs.length - u > NOTIF_PAGE_SIZE) res.splice(0, ($scope.notifs.length - u) % NOTIF_PAGE_SIZE); else if (frse == false) {
+                            res.splice(0, u);
+                            frse = true;
+                        }
+                        $scope.notifs.push.apply($scope.notifs, res);
+                    } else {
                         $scope.notifs.unshift.apply($scope.notifs, res);
                         for (var i = 0; i < res.length; i++) ids += ','+res[i].id;
                         if (!$scope.opened) {
@@ -1240,7 +1207,7 @@ app
                             }
                             $rootScope.title = '('+u+') '+$rootScope.title.slice(i);
                         } else markAllAsRead();
-                    } else $scope.notifs.push.apply($scope.notifs, res);
+                    }
                     if ($scope.opened) $scope.setSize(true);
                     if ($scope.notif_loading) $timeout(function() { $scope.notif_loading = false });
                 }

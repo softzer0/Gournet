@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'fbf0+@#!&9&!rb%6s4veb_#f7)r+1=u9ktofp_sc@=oi#%tnal'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False #True #repl with
+DEBUG = False #True #repl with False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co'] #['*'] #repl with
 
@@ -93,7 +93,7 @@ CACHES['rates'] = {
 LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'main.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'main.pagination.CursorPagination',
     'DEFAULT_METADATA_CLASS': 'main.metadata.Metadata',
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -142,8 +142,6 @@ GMAPS_API_KEY = "***REMOVED***"
 
 SETTINGS_EXPORT = [
     'NOTIFICATION_PAGE_SIZE',
-    'COMMENT_PAGE_SIZE',
-    'SEARCH_PAGE_SIZE',
     'GMAPS_API_KEY'
 ]
 

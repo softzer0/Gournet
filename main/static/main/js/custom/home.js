@@ -55,7 +55,7 @@ app
                 //var s = [];
                 function objloop(func_name, del) {
                     var r, obj, str = typeof(func_name) == 'string'; //, j
-                    for (var i = objs.length - 1; i >= 0; i--) if (!del_each || objs[i].location !== undefined || objs[i].business !== undefined) {
+                    for (var i = objs.length - 1; i >= 0; i--) if (objs[i].location !== undefined || objs[i].business !== undefined && objs[i].business.location !== undefined) {
                         obj = (del_each === undefined || del_each ? objs[i].location === undefined : nested) ? objs[i].business : objs[i];
                         /*if (!str && del_each !== null && (!nested || objs[i].location !== undefined)) for (j = 0; j < s.length; j++) if (s[j] == obj) {
                             j = true;
@@ -63,7 +63,7 @@ app
                         }
                         if (j === false) {*/
                         r = str ? func_name == obj.shortname : func_name(obj);
-                        if (del && r || !str && del_each !== undefined /*|| r === null*/) if (del_each && objs[i].location === undefined || nested) delete obj.location; else /*if (del_each === null)*/ objs.splice(i, 1); //else s.push(obj);
+                        if (del && r || !str && del_each !== undefined/* || r === null*/) if (del_each && objs[i].location === undefined || nested) delete obj.location; else /*if (del_each === null)*/ objs.splice(i, 1); //else s.push(obj);
                         if (r) return true; //|| r === null
                         //}
                     }

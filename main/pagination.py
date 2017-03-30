@@ -1,7 +1,8 @@
 from django.conf import settings
 from rest_framework import pagination
 from rest_framework.response import Response
-
+from django.utils.http import urlencode
+from base64 import b64encode
 
 class PageNumberPagination(pagination.PageNumberPagination):
     page_size = 25
@@ -21,21 +22,38 @@ class PageNumberPagination(pagination.PageNumberPagination):
 class NotificationPagination(PageNumberPagination):
     page_size = settings.NOTIFICATION_PAGE_SIZE
 
-class EventPagination(PageNumberPagination):
+class FeedPagination(PageNumberPagination):
     page_size = settings.EVENT_PAGE_SIZE
 
 
-class LimitOffsetPagination(pagination.LimitOffsetPagination):
-    default_limit = 25
+class CursorPagination(pagination.CursorPagination):
+    page_size = 25
 
-    def get_paginated_response(self, data):
-        return Response({
-            'count': self.count,
-            'results': data
-        })
+    def encode_cursor(self, cursor):
+        """
+        Given a Cursor instance, return an url with encoded cursor.
+        """
+        tokens = {}
+        if cursor.offset != 0:
+            tokens['o'] = str(cursor.offset)
+        if cursor.reverse:
+            tokens['r'] = '1'
+        if cursor.position is not None:
+            tokens['p'] = cursor.position
 
-class CommentPagination(LimitOffsetPagination):
-    default_limit = settings.COMMENT_PAGE_SIZE
+        return b64encode(urlencode(tokens, doseq=True).encode('ascii')).decode('ascii')
 
-class SearchPagination(LimitOffsetPagination):
-    default_limit = settings.SEARCH_PAGE_SIZE
+class FriendsPagination(CursorPagination):
+    ordering = '-date_joined'
+
+class EventPagination(CursorPagination):
+    page_size = settings.EVENT_PAGE_SIZE
+
+class CommentPagination(CursorPagination):
+    page_size = settings.COMMENT_PAGE_SIZE
+
+class SearchPagination(CursorPagination):
+    page_size = settings.SEARCH_PAGE_SIZE
+
+class UserPagination(SearchPagination):
+    ordering = '-date_joined'

@@ -6,7 +6,7 @@
                 <p class="text-center br3 def" data-fittext>{{ favs ? e.name : e.first_name+' '+e.last_name }}</p>
             </a>
         </div>
-        <div class="us col-xs-4 col-sm-3 col-lg-2" ng-show="tabs[0].next_page && loaded">
+        <div class="us col-xs-4 col-sm-3 col-lg-2" ng-show="tabs[0].next && loaded">
             <a href="javascript:" ng-click="load_page()" class="well n">
                 <i class="text-center fa fa-ellipsis-v fa-4x"></i>
                 <p class="text-center br3 def">{{ "Load more" | translate }}</p>

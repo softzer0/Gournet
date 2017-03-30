@@ -242,19 +242,19 @@ app
             $scope.data = {value: [], tz: undefined};
             //$scope.name = angular.element('.lead.text-center.br2').text();
             var likeService = APIService.init(3), loading;
-            services = [$injector.get('$timeout'), $injector.get('CONTENT_TYPES').business, $injector.get('reviewService')];
+            services = [$injector.get('$timeout'), $injector.get('reviewService')];
             $scope.doFavouriteAction = function () {
                 if (loading) return;
                 loading = true;
                 if ($scope.fav_state == 0) {
-                    likeService.save({content_type: services[1], object_id: $scope.$parent.id},
+                    likeService.save({content_type: 'business', object_id: $scope.$parent.id},
                         function () {
                             $scope.fav_state = 1;
                             $scope.fav_count++;
                             services[0](function() { loading = false });
                         });
                 } else {
-                    likeService.delete({content_type: services[1], id: $scope.$parent.id},
+                    likeService.delete({content_type: 'business', id: $scope.$parent.id},
                         function (){
                             $scope.fav_state = 0;
                             $scope.fav_count--;
@@ -277,9 +277,9 @@ app
                     if (cond == 1 || cond == 3) el.focus();
                     return;
                 } else $scope.forms.review.alert = 0;
-                services[2].new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
+                services[1].new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
                     $scope.showrevf = false;
-                    $scope.rating.user = services[2].getobjs(false, false)[0].stars;
+                    $scope.rating.user = services[1].getobjs(false, false)[0].stars;
                 });
             };
             return;

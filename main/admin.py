@@ -26,10 +26,19 @@ class HasItemsFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         return queryset.extra(where=[self.value()+' exists (select 1 from main_item where main_item.business_id = main_business.id)']) if self.value() is not None else queryset
 
+
+class BaseObjAdmin(admin.ModelAdmin):
+    date_hierarchy = 'created'
+    list_filter = ('created',)
+
+    def name_text(self, obj):
+        return truncatewords(obj.text if hasattr(obj, 'text') else obj.name, 15)
+    name_text.short_description = _("name/text")
+
 @admin.register(models.Business)
-class BusinessAdmin(BaseAdmin):
+class BusinessAdmin(BaseObjAdmin, BaseAdmin):
     list_filter = ('type', 'is_published', HasItemsFilter)
-    list_display = ('id', 'shortname', 'type', 'name', 'like_count', 'item_count', 'event_count', 'review_count', 'is_published')
+    list_display = ('id', 'shortname', 'type', 'name', 'like_count', 'item_count', 'event_count', 'review_count', 'created', 'is_published')
     search_fields = ('shortname', 'name')
 
     def get_queryset(self, request):
@@ -40,15 +49,6 @@ class BusinessAdmin(BaseAdmin):
     def review_count(self, obj):
         return models.Review.objects.filter(object_id=obj.pk).count()
     review_count.short_description = _("review(s)")
-
-
-class BaseObjAdmin(admin.ModelAdmin):
-    date_hierarchy = 'created'
-    list_filter = ('created',)
-
-    def name_text(self, obj):
-        return truncatewords(obj.text if hasattr(obj, 'text') else obj.name, 15)
-    name_text.short_description = _("name/text")
 
 def filter_relation(self, model, obj):
     return getattr(models, model).objects.filter(content_type__pk=ContentType.objects.get(model=type(obj)._meta.model_name if not hasattr(self, 'model_name') else self.model_name).pk, object_id=obj.pk)

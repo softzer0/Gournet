@@ -42,7 +42,7 @@ urlpatterns = [
     url(r'^api/items/(?:(?P<pk>\d+)/)?$', main_views.ItemAPIView.as_view()),
     url(r'^api/comments/(?:(?P<pk>\d+)/)?$', main_views.CommentAPIView.as_view()),
     url(r'^api/reminders/(?:(?P<pk>\d+)/)?$', main_views.ReminderAPIView.as_view()),
-    url(r'^api/likes/(?:(?P<pk>\d+)/)?$', main_views.LikeAPIView.as_view()),
+    url(r'^api/likes/(?:(?P<pk>\d+)/)?$', main_views.like_switch_view),
     url(r'^api/events/(?:(?P<pk>\d+)/)?$', main_views.EventAPIView.as_view()),
     url(r'^api/events/(?P<pk>\d+)/notify/$', main_views.send_notifications),
     url(r'^api/notifications/(?:(?P<pk>\d+)/)?$', main_views.NotificationAPIView.as_view()),

@@ -25,7 +25,6 @@ from os.path import join
 from shutil import rmtree
 
 TF_OBJ = TimezoneFinder()
-CONTENT_TYPES = {}
 
 @lru_cache()
 def get_has_stars():
@@ -35,9 +34,8 @@ def get_has_stars():
 def get_content_types_pk():
     res = []
     try:
-        for r in ('business', 'event', 'item', 'comment'):
-            CONTENT_TYPES[r] = ContentType.objects.get(model=r).pk
-            res.append(CONTENT_TYPES[r])
+        for r in ('business', 'event', 'item', 'comment'): #important
+            res.append(ContentType.objects.get(model=r).pk)
     except:
         pass
     return res
@@ -261,6 +259,7 @@ class Business(Loc):
     currency = models.CharField(_("default currency"), choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
     supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True, max_length=3)
     is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
+    created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
 

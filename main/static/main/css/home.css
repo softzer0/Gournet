@@ -116,6 +116,10 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
     margin-bottom: 13px !important;
 }
 
+.com {
+    margin-top: 5px;
+}
+
 .com .pull-left {
     margin-top: 14px;
     width: 45px;

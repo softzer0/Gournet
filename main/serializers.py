@@ -18,6 +18,7 @@ from django.core.cache import caches
 from requests import get as req_get
 from decimal import Decimal, ROUND_HALF_UP
 from .forms import clean_loc, business_clean_data
+from django.core.exceptions import ObjectDoesNotExist
 
 User = get_user_model()
 NOT_MANAGER_MSG = "You're not a manager of any business."
@@ -442,121 +443,6 @@ class BaseSerializer(serializers.ModelSerializer):
     def get_friend(self, obj):
         return get_friends(self, obj)
 
-class CurrentUserDefault(object):
-    def set_context(self, serializer_field):
-        if isinstance(serializer_field, serializers.Serializer):
-            sf = serializer_field.parent
-        else:
-            sf = serializer_field
-        self.user = sf.context['request'].user
-
-    def __call__(self):
-        return self.user
-
-    def __repr__(self):
-        return unicode_to_repr('%s()' % self.__class__.__name__)
-
-REVIEW_MIN_CHAR = 6
-
-class CommentSerializer(BaseSerializer):
-    person = UserSerializer(default=CurrentUserDefault())
-    content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.filter(pk__in=models.get_content_types_pk()), write_only=True)
-    created = DateTimeFieldWihTZ(read_only=True)
-
-    class Meta:
-        model = models.Comment
-        exclude = ('main_comment',)
-        extra_kwargs = {'object_id': {'write_only': True}}
-
-    def __init__(self, *args, **kwargs):
-        likes = extarg(kwargs, 'likes')
-        kwargs.pop('fields', None)
-        super().__init__(*args, **kwargs)
-        if not self.read_only and not likes and ('person' in self.context or 'curruser' in self.context or 'business' in self.context or 'ids' in self.context or 'feed' in self.context):
-            context = self.context.copy()
-            if 'business' not in self.context:
-                self.fields['content_object'] = BusinessSerializer(read_only=True)
-                if 'ids' not in self.context:
-                    context.pop('person', False)
-                    context.pop('feed', False)
-                    self.fields['person'] = serializers.SerializerMethodField()
-            self.fields['main_comment'] = CommentSerializer(read_only=True, context=context)
-            self.fields.pop('status')
-            self.fields['text'].validators = [MinLengthValidator(REVIEW_MIN_CHAR)]
-            self.fields['is_manager'] = serializers.SerializerMethodField()
-            if 'feed' in self.context or 'list' in self.context:
-                self.fields['distance'] = serializers.SerializerMethodField()
-        else:
-            if not likes:
-                self.fields.pop('curruser_status')
-                self.fields.pop('likestars_count')
-                self.fields.pop('dislike_count')
-                self.fields['can_delete'] = serializers.SerializerMethodField()
-                self.fields['manager_stars'] = serializers.SerializerMethodField()
-                self.fields['status'].write_only = True
-                if 'stars' in self.context:
-                    self.fields['is_curruser'] = serializers.SerializerMethodField()
-            else:
-                self.fields.pop('id')
-                self.fields.pop('person')
-                self.fields.pop('text')
-                self.fields.pop('created')
-                self.fields.pop('content_type')
-                self.fields.pop('object_id')
-            self.fields.pop('stars')
-            self.fields.pop('comment_count')
-
-    def validate(self, attrs):
-        attrs = exists(attrs)
-        if attrs['content_type'] == ContentType.objects.get(model='comment'):
-            if attrs['content_object'].content_type != ContentType.objects.get(model='business'):
-                raise serializers.ValidationError({'non_field_errors': ["Commeting on a non-review comment type currently isn't supported."]})
-            #elif self.context['request'].user == attrs['content_object'].content_object.manager:
-            #    if 'status' not in attrs:
-            #        raise serializers.ValidationError({'status': [getattr(Field, 'default_error_messages')['required']]})
-        elif attrs['content_type'] == ContentType.objects.get(model='business'):
-            if self.context['request'].user == attrs['content_object'].manager:
-                raise serializers.ValidationError({'non_field_errors': ["You can't review your own business."]})
-            if models.Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=attrs['object_id'], person=self.context['request'].user).exists():
-                raise serializers.ValidationError({'non_field_errors': ["Each business can be reviewed only once per person. Use PUT/DELETE for the existing review."]})
-        if 'status' in attrs and (attrs['content_type'] != ContentType.objects.get(model='comment') or self.context['request'].user != attrs['content_object'].content_object.manager):
-            attrs.pop('status')
-        return attrs
-
-    """def create(self, validated_data):
-        obj = models.Comment.objects.create(**validated_data)
-        if obj.status is not None:
-            obj.content_object.main_comment = obj
-            obj.content_object.save()
-        return obj"""
-
-    def p_cont(self, obj, person, manager=None, stars=False, t=False):
-        return super().p_cont(obj, person, manager if manager else obj.person, stars, t)
-
-    def get_is_curruser(self, obj):
-        return obj.person == self.context['request'].user
-
-    def get_is_manager(self, obj):
-        return obj.content_object.manager == self.context['request'].user
-
-    def get_manager_stars(self, obj):
-        if 'stars' in self.context:
-            return self.p_cont(obj.content_object, obj.person, obj.content_object.business.manager, True)
-        if obj.status is not None:
-            return CommentSerializer(obj, likes=True, context=self.context).data
-        return -1 if obj.person == (obj.content_object.content_object.manager if isinstance(obj.content_object, models.Comment) else obj.content_object.business.manager) else 0
-
-    def get_can_delete(self, obj):
-        return self.context['request'].user == obj.person or self.context['request'].user == (obj.content_object.content_object.manager if isinstance(obj.content_object, models.Comment) else obj.content_object.business.manager)
-
-    def get_person(self, obj):
-        if obj.is_liked:
-            return UserSerializer(obj.person).data
-        return None
-
-    def get_distance(self, obj):
-        return gen_distance(obj)
-
 class EventSerializer(BaseSerializer):
     when = DateTimeFieldWihTZ()
 
@@ -632,16 +518,143 @@ class ItemSerializer(BaseSerializer):
             return str(curr_convert(obj.price, obj.business.currency, self.context['request'].user.currency))
 
 
-def exists(attrs):
-    try:
-        attrs['content_object'] = attrs['content_type'].model_class().objects.get(pk=attrs['object_id'])
-    except:
-        raise serializers.ValidationError({'object_id': [getattr(PrimaryKeyRelatedField, 'default_error_messages')['does_not_exist'].format(pk_value=attrs['object_id'])]})
-    return attrs
+class CurrentUserDefault(object):
+    def set_context(self, serializer_field):
+        if isinstance(serializer_field, serializers.Serializer):
+            sf = serializer_field.parent
+        else:
+            sf = serializer_field
+        self.user = sf.context['request'].user
 
-class LikeSerializer(serializers.ModelSerializer):
+    def __call__(self):
+        return self.user
+
+    def __repr__(self):
+        return unicode_to_repr('%s()' % self.__class__.__name__)
+
+class CTPrimaryKeyRelatedField(PrimaryKeyRelatedField):
+    def to_internal_value(self, data):
+        if self.pk_field is not None:
+            data = self.pk_field.to_internal_value(data)
+        try:
+            return self.get_queryset().get(**{'model' if isinstance(data, str) else 'pk': data})
+        except ObjectDoesNotExist:
+            self.fail('does_not_exist', pk_value=data)
+        except (TypeError, ValueError):
+            self.fail('incorrect_type', data_type=type(data).__name__)
+
+class CTSerializer(serializers.Serializer):
+    content_type = CTPrimaryKeyRelatedField(queryset=ContentType.objects.filter(pk__in=models.get_content_types_pk()), write_only=True)
+
+    def validate(self, attrs):
+        try:
+            attrs['content_object'] = attrs['content_type'].model_class().objects.get(pk=attrs['object_id'])
+        except:
+            raise serializers.ValidationError({'object_id': [CTPrimaryKeyRelatedField.default_error_messages['does_not_exist'].format(pk_value=attrs['object_id'])]})
+        return attrs
+
+REVIEW_MIN_CHAR = 6
+
+class CommentSerializer(CTSerializer, BaseSerializer):
     person = UserSerializer(default=CurrentUserDefault())
-    content_type = serializers.PrimaryKeyRelatedField(queryset=ContentType.objects.filter(pk__in=models.get_content_types_pk()), write_only=True)
+    created = DateTimeFieldWihTZ(read_only=True)
+
+    class Meta:
+        model = models.Comment
+        exclude = ('main_comment',)
+        extra_kwargs = {'object_id': {'write_only': True}}
+
+    def __init__(self, *args, **kwargs):
+        likes = extarg(kwargs, 'likes')
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if not self.read_only and not likes and ('person' in self.context or 'curruser' in self.context or 'business' in self.context or 'ids' in self.context or 'feed' in self.context):
+            context = self.context.copy()
+            if 'business' not in self.context:
+                self.fields['content_object'] = BusinessSerializer(read_only=True)
+                if 'ids' not in self.context:
+                    context.pop('person', False)
+                    context.pop('feed', False)
+                    self.fields['person'] = serializers.SerializerMethodField()
+            self.fields['main_comment'] = CommentSerializer(read_only=True, context=context)
+            self.fields.pop('status')
+            self.fields['text'].validators = [MinLengthValidator(REVIEW_MIN_CHAR)]
+            self.fields['is_manager'] = serializers.SerializerMethodField()
+            if 'feed' in self.context or 'list' in self.context:
+                self.fields['distance'] = serializers.SerializerMethodField()
+        else:
+            if not likes:
+                self.fields.pop('curruser_status')
+                self.fields.pop('likestars_count')
+                self.fields.pop('dislike_count')
+                self.fields['can_delete'] = serializers.SerializerMethodField()
+                self.fields['manager_stars'] = serializers.SerializerMethodField()
+                self.fields['status'].write_only = True
+                if 'stars' in self.context:
+                    self.fields['is_curruser'] = serializers.SerializerMethodField()
+            else:
+                self.fields.pop('id')
+                self.fields.pop('person')
+                self.fields.pop('text')
+                self.fields.pop('created')
+                self.fields.pop('content_type')
+                self.fields.pop('object_id')
+            self.fields.pop('stars')
+            self.fields.pop('comment_count')
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if attrs['content_type'] == ContentType.objects.get(model='comment'):
+            if attrs['content_object'].content_type != ContentType.objects.get(model='business'):
+                raise serializers.ValidationError({'non_field_errors': ["Commeting on a non-review comment type currently isn't supported."]})
+            #elif self.context['request'].user == attrs['content_object'].content_object.manager:
+            #    if 'status' not in attrs:
+            #        raise serializers.ValidationError({'status': [getattr(Field, 'default_error_messages')['required']]})
+        elif attrs['content_type'] == ContentType.objects.get(model='business'):
+            if self.context['request'].user == attrs['content_object'].manager:
+                raise serializers.ValidationError({'non_field_errors': ["You can't review your own business."]})
+            if models.Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=attrs['object_id'], person=self.context['request'].user).exists():
+                raise serializers.ValidationError({'non_field_errors': ["Each business can be reviewed only once per person. Use PUT/DELETE for the existing review."]})
+        if 'status' in attrs and (attrs['content_type'] != ContentType.objects.get(model='comment') or self.context['request'].user != attrs['content_object'].content_object.manager):
+            attrs.pop('status')
+        return attrs
+
+    """def create(self, validated_data):
+        obj = models.Comment.objects.create(**validated_data)
+        if obj.status is not None:
+            obj.content_object.main_comment = obj
+            obj.content_object.save()
+        return obj"""
+
+    def p_cont(self, obj, person, manager=None, stars=False, t=False):
+        return super().p_cont(obj, person, manager if manager else obj.person, stars, t)
+
+    def get_is_curruser(self, obj):
+        return obj.person == self.context['request'].user
+
+    def get_is_manager(self, obj):
+        return obj.content_object.manager == self.context['request'].user
+
+    def get_manager_stars(self, obj):
+        if 'stars' in self.context:
+            return self.p_cont(obj.content_object, obj.person, obj.content_object.business.manager, True)
+        if obj.status is not None:
+            return CommentSerializer(obj, likes=True, context=self.context).data
+        return -1 if obj.person == (obj.content_object.content_object.manager if isinstance(obj.content_object, models.Comment) else obj.content_object.business.manager) else 0
+
+    def get_can_delete(self, obj):
+        return self.context['request'].user == obj.person or self.context['request'].user == (obj.content_object.content_object.manager if isinstance(obj.content_object, models.Comment) else obj.content_object.business.manager)
+
+    def get_person(self, obj):
+        if obj.is_liked:
+            return UserSerializer(obj.person).data
+        return None
+
+    def get_distance(self, obj):
+        return gen_distance(obj)
+
+class LikeSerializer(CTSerializer, serializers.ModelSerializer):
+    person = UserSerializer(default=CurrentUserDefault())
 
     class Meta:
         model = models.Like
@@ -669,7 +682,7 @@ class LikeSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError({'non_field_errors': ["You can't %s your own %s." % ("give a (dis)like to" if not 'stars' in self.fields else "rate", model)]})
 
     def validate(self, attrs):
-        attrs = exists(attrs)
+        attrs = super().validate(attrs)
         if attrs['content_type'] == ContentType.objects.get(model='comment'):
             if attrs['content_object'].content_type == ContentType.objects.get(model='comment'):
                 if attrs['content_object'].status is None:
@@ -684,7 +697,7 @@ class LikeSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class ReminderSerializer(serializers.ModelSerializer):
+class ReminderSerializer(CTSerializer):
     to_person = serializers.HiddenField(default=serializers.CurrentUserDefault())
     content_type = serializers.HiddenField(default=ContentType.objects.get(model='event'))
     when = serializers.DateTimeField()
@@ -701,7 +714,7 @@ class ReminderSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        attrs = chktime(exists(attrs), timedelta(minutes=1))
+        attrs = chktime(super().validate(attrs), timedelta(minutes=1))
         if attrs['when'] > attrs['content_object'].when:
             raise serializers.ValidationError({'content_object': "The reminder date exceeds the event date, or the event is in the past."})
         return attrs

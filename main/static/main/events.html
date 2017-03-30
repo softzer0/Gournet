@@ -63,11 +63,9 @@
             </div>
             <div ng-if="e.created !== undefined && e.main_comment != null"><div class="well bs-component clearfix br an cmn com" ng-include="'comment'" new-scope ng-init="m = {obj: e.main_comment}"></div></div>
             <div class="cmn" ng-if="e.is_opened === undefined && e.friend_count === undefined" ng-show="e.showcomm[1]">
-                <div ng-repeat="k in com">
-                    <a href="javascript:" class="mpd lm text-center" ng-show="show_next($parent.$index, k[2])" ng-click="load_next($parent.$index, k[2])">{{ k[0] }}</a>
-                    <div class="cmn mb13 loa-c" ng-if="e.showcomm[0][k[2]] == false"><i class="fa fa-spinner fa-2x"></i></div>
-                    <div class="angular-animate com" ng-if="e[k[1]] !== undefined" ng-include="'comment'" ng-repeat="c in e[k[1]]" new-scope ng-init="m = {obj: c}"></div>
-                </div>
+                <a href="javascript:" class="mpd lm text-center" ng-show="e.showcomm[0] && e.next != null" ng-click="load_next($index)">{{ "Load older" | translate }}</a>
+                <div class="cmn mb13 loa-c" ng-if="e.showcomm[0] == false"><i class="fa fa-spinner fa-2x"></i></div>
+                <div ng-repeat="k in com"><div class="angular-animate com" ng-if="e[k] !== undefined" ng-include="'comment'" ng-repeat="c in e[k]" new-scope ng-init="m = {obj: c}"></div></div>
                 <div class="form-group cmn mb7">
                     <textarea ng-attr-id="{{ t + $index }}" class="form-control" rows="1" ng-attr-placeholder="{{ 'Your comment' | translate }}" required maxlength="1000"></textarea>
                 </div>
@@ -79,7 +77,7 @@
         </div>
         <hr ng-if="toggleHr(first_name !== undefined || !t, $last && !r)" class="mpd">
     </div>
-    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="props.has_next_page && !loading" ng-click="load_page()">{{ "Load more" | translate }}</a>
+    <a href="javascript:" class="lm mb13 text-center" ng-if="!r" ng-show="!loading && props.next" ng-click="load_page()">{{ "Load more" | translate }}</a>
     <div class="loa mb13 loa-c" ng-if="!r && loading"><i class="fa fa-spinner fa-2x"></i></div>
     <div class="nev" ng-if="!objs.length && !loading && (modal_loaded === undefined || close !== undefined)"><span ng-hide="checkAnim()">{{ "No results." | translate }}</span></div>
 </div>

@@ -6,8 +6,7 @@
     {% load static %}<link rel="stylesheet" href="{% static 'main/css/home_extra.css' %}">
     <script src="{% static 'main/js/custom/map.js' %}"></script>
     <script src="{% static 'main/js/custom/home_extra.js' %}"></script>
-    <script src="{% static 'main/js/custom/home.js' %}"></script>
-    <script>app.constant('SEARCH_PAGE_SIZE', {{ settings.SEARCH_PAGE_SIZE }})</script>{% endblock %}
+    <script src="{% static 'main/js/custom/home.js' %}"></script>{% endblock %}
 
 {% block title %}{% trans "Home" %} - Gournet{% endblock %}
 {% block container %}<div ng-controller="MapCtrl">

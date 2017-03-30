@@ -28,9 +28,7 @@
     <script src="{% endcache %}{% static 'jsi18n/'|add:request.LANGUAGE_CODE|add:'/djangojs.js' %}{% cache 0 head1 %}"></script>
     <script src="{% static 'main/js/custom/main.js' %}"></script>
     <script>app.constant('BASE_MODAL', '{% static 'main/modals/base.html' %}')
-            .constant('COMMENT_PAGE_SIZE', {{ settings.COMMENT_PAGE_SIZE }})
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
-            .constant('CONTENT_TYPES', {{ '{' }}{% for k, v in content_types.items %}{{ k }}: {{ v }}{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %})
             .constant('HAS_STARS', {{ '{' }}{% for _, v in has_stars.items %}{{ v }}: true{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %}){% comment %}{% if request.user.is_manager %}{% endcomment %}
             .constant('REVIEW_STATUS', [{name: "{% trans "(None)" %}", value: null}, {% for s in review_status %}{name: "{{ s.0 }}", value: {{ forloop.counter0 }}}{% if not forloop.last %}, {% endif %}{% endfor %}])
             .constant('USER', {currency: '{% endcache %}{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url or fav_state == -1 %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% endif %}})</script>{% endblock %}
@@ -108,7 +106,7 @@
                             ><span>{% verbatim %}{{ b.type_display+' "'+b.name+'"'}}{% endverbatim %}</span>
                         </div>
                         <div class="loa tc" ng-show="search.loading"><i class="fa fa-spinner"></i></div>
-                        <a ng-if="search.count == null || search.count > 5" ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=business"><i class="fa fa-map-pin"></i> {{ '{' }}{{ '{' }} search.count != null ? "{% trans "Find other businesses..." %}" : "{% trans "Find businesses..." %}" {{ '}' }}{{ '}' }}</a>
+                        <a ng-if="search.has_more === undefined || search.has_more" ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=business"><i class="fa fa-map-pin"></i> {{ '{' }}{{ '{' }} search.count != null ? "{% trans "Find other businesses..." %}" : "{% trans "Find businesses..." %}" {{ '}' }}{{ '}' }}</a>
                         <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=event"><i class="fa fa-calendar"></i> {% trans "Find events..." %}</a>
                         <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=item"><i class="fa fa-th-list"></i> {% trans "Find items..." %}</a>
                         <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> {% trans "Find users..." %}{% cache 0 navbar_button %}</a>

@@ -33,8 +33,12 @@ class MainAppConfig(AppConfig):
         attrs['Meta'] = ReviewMeta
         attrs['__module__'] = 'main.models'
         setattr(models, 'Review', type('Review', (Model,), attrs))
-        models.Review.content_object = property(lambda: self.object)
-        ContentType._meta.default_manager._cache[ContentType._meta.default_manager.db] = {ContentType.objects.get(model='review').pk: ContentType.objects.get(model='comment'), ('main', 'review'): ContentType.objects.get(model='comment')}
+        models.Review.content_object = property(lambda o: o.object)
+        ContentType._meta.default_manager._cache[ContentType._meta.default_manager.db] = {('main', 'review'): ContentType.objects.get(model='comment')}
+        try:
+            ContentType._meta.default_manager._cache[ContentType._meta.default_manager.db][ContentType.objects.get(model='review').pk] = ContentType.objects.get(model='comment')
+        except:
+            pass
 
         class StarsListFilter(SimpleListFilter):
             title = _("stars")

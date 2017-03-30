@@ -30,7 +30,8 @@ def clean_loc(self, cleaned_data, noloc=False, retraw=False):
     if not loc:
         f = 'location' if 'shortname' in cleaned_data else 'address'
         if isinstance(self, forms.ModelForm):
-            self.add_error(f, forms.ValidationError(COORDINATES_NOT_FOUND_MSG, code='required'))
+            if cleaned_data.get('address', False) or cleaned_data.get('location', False):
+                self.add_error(f, forms.ValidationError(COORDINATES_NOT_FOUND_MSG))
         else:
             raise ValidationError({f: [COORDINATES_NOT_FOUND_MSG]})
     if retraw and loc:
