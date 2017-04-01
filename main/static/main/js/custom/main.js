@@ -33,6 +33,7 @@ app
                 $scope.file = '../events';
 
                 $scope.close = function() {
+                    w();
                     delete $scope.close;
                     $uibModalInstance.dismiss('cancel');
                 };
@@ -48,6 +49,8 @@ app
                         $scope.modal_loaded = true;
                     });
                 }); //$scope.enableAnimation(); }
+
+                var w = $scope.$watch('objs.length', function (val, oldval){ if (oldval == 1 && val == 0) $scope.close() });
             }
         });
     })

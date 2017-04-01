@@ -35,7 +35,7 @@ app
         uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places', language: LANG, key: GMAPS_API_KEY});
     })
 
-    .run(function ($rootScope, $state, $timeout) {
+    /*.run(function ($rootScope, $state, $timeout) {
         $rootScope.$on('$stateChangeStart', function (evt, toState, toParams, fromState) {
             if (fromState.name === '' && toState.name == 'showObjs') {
                 evt.preventDefault();
@@ -43,7 +43,7 @@ app
             }
         });
         if (window.ga !== undefined) $rootScope.$on('$stateChangeSuccess', function() { $timeout(function() { window.ga('send', 'pageview', window.location.pathname+window.location.hash) }) });
-    })
+    })*/
 
     .factory('markerService', function () {
         var markers = [];

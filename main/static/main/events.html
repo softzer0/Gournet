@@ -20,7 +20,7 @@
                 <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ e.price !== undefined ? '/images/'+e.id+'/avatar/64/?item=1' : '/images/'+obj.id+'/avatar/64/'+(obj.shortname !== undefined ? '?business=1' : '') }}"></a></div>
             </div>
             <div ng-if="e.text !== undefined">
-                <p>{{ e.text }} <small class="text-muted">&mdash; {{ (e.when || e.created) | timeAgo }}</small></p>
+                <p>{{ e.text }} <small class="text-muted"><a ng-href="/#/show={{ e.id }}&type={{ t }}" target="_blank">&mdash; {{ (e.when || e.created) | timeAgo }}</a></small></p>
             </div>
             <div ng-if="e.price !== undefined">
                 <img class="img-responsive bor prof margin-center" ng-if="$parent.ts != undefined && $parent.ts != 0 || e.has_image" ng-src="/images/{{ e.id }}/avatar/?item=1{{ $parent.ts != undefined && $parent.ts != 0 ? $parent.ts : '' }}">

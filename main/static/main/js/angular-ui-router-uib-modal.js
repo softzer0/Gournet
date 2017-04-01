@@ -42,7 +42,7 @@ angular.module('ui.router.modal', ['ui.router'])
 							if ($previousState.get('main') != null) {
 								$previousState.go('main');
 								$previousState.forget('main');
-							} else $state.go($state.get('^', stateName).name);
+							} else $state.go($state.get('^', stateName).name || 'main.main');
 						}
 					});
 				};
