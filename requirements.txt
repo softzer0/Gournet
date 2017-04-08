@@ -9,7 +9,8 @@ django-recaptcha==1.0.5
 django-rest-multiple-models==1.8.0
 django-settings-export==1.1.0
 django-stronghold==0.2.7
-djangorestframework==3.3.3
+djangorestframework==3.6.2
+django-filter==1.0.2
 geopy==1.11.0
 django-timezone-field==2.0
 timezonefinder==1.5.7

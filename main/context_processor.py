@@ -12,7 +12,7 @@ REVIEW_STATUS_E = ( #important
 )
 
 def base(request):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return {}
 
     recent_ord = ['-recent__' + _[1:] for _ in Recent._meta.ordering]

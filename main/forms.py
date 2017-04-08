@@ -54,6 +54,9 @@ def business_clean_data(self, cleaned_data):
         cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(',', ' ')+')')
     if isinstance(self, forms.ModelForm) or 'address' in cleaned_data or 'location' in cleaned_data:
         clean_loc(self, cleaned_data)
+    if cleaned_data.get('opened_sun', False) and not cleaned_data.get('opened_sat', False):
+        cleaned_data.pop('opened_sun')
+        cleaned_data.pop('closed_sun')
 
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)

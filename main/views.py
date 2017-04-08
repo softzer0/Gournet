@@ -49,14 +49,14 @@ User = get_user_model()
 
 @public
 def home_index(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return TemplateView.as_view(template_name='home.html')(request) # HomePageView.as_view()(request)
     return views.LoginView.as_view(template_name='index.html')(request) # IndexPageView.as_view()(request)
 
 class InfoView(StrongholdPublicMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['file'] = 'home' if self.request.user.is_authenticated() else 'main'
+        context['file'] = 'home' if self.request.user.is_authenticated else 'main'
         return context
 
 def edit_view(request):
@@ -121,7 +121,7 @@ def upload_view(request, pk_b=None):
 
 @csrf_protect
 def contact_view(request):
-    file = 'home' if request.user.is_authenticated() else 'main'
+    file = 'home' if request.user.is_authenticated else 'main'
     if request.method == 'POST':
         form = forms.ContactForm(data=request.POST)
         if form.is_valid():
@@ -173,9 +173,10 @@ def show_business(request, shortname):
     data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
     data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
     data['workh'] = {'value': []}
-    for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
-        if getattr(data['business'], f) is not None:
-            data['workh']['value'].append(time_format(getattr(data['business'], f), 'H:i'))
+    for f in ('', '_sat', '_sun'):
+        if getattr(data['business'], 'opened'+f) is not None and getattr(data['business'], 'closed'+f) is not None:
+            data['workh']['value'].append(time_format(getattr(data['business'], 'opened'+f), 'H:i'))
+            data['workh']['value'].append(time_format(getattr(data['business'], 'closed'+f), 'H:i'))
     if request.user != data['business'].manager:
         if data['business'].likes.filter(person=request.user).exists():
             increase_recent(request, data['business'])
@@ -471,7 +472,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
 
 def base_view(request, t, cont, **kwargs):
     notxt = get_param_bool(request.GET.get('notxt', False))
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         try:
             objpks = t()
         except:

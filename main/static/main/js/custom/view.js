@@ -342,7 +342,7 @@ app
                         return;
                     }
                     disablef(true);
-                    s.partial_update(d, function () {
+                    s.partial_update(d, function (result) {
                         $scope.data.error = false;
                         a = Object.keys(d);
                         for (i = 0; i < a.length; i++) {

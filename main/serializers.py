@@ -124,6 +124,7 @@ def mass_convert(qs_pk, obj, to_curr):
             obj.currency = to_curr
         obj.save()
 
+CURRENCY_ARR = tuple(i[0] for i in models.CURRENCY)
 class ManagerSerializer(serializers.ModelSerializer):
     supported_curr = serializers.MultipleChoiceField(choices=models.CURRENCY)
     tz = serializers.CharField(read_only=True)
@@ -143,7 +144,7 @@ class ManagerSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
-        if 'currency' in validated_data and validated_data['currency'] in tuple(i[0] for i in models.CURRENCY):
+        if 'currency' in validated_data and validated_data['currency'] in CURRENCY_ARR:
             mass_convert(instance.pk, instance, validated_data['currency'])
         return super().update(instance, validated_data)
 
@@ -216,7 +217,7 @@ class BaseURSerializer(serializers.ModelSerializer):
 class UsersWithoutCurrentField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         qs = User.objects.all()
-        if 'request' in self.context: #and self.context['request'].user.is_authenticated():
+        if 'request' in self.context: #and self.context['request'].user.is_authenticated:
             qs = qs.exclude(pk=self.context['request'].user.pk)
         return qs
 
@@ -413,7 +414,7 @@ class BaseSerializer(serializers.ModelSerializer):
     def p_status(self, obj, t=False):
         if t:
             person = self.context['person']
-        elif 'request' in self.context: #and self.context['request'].user.is_authenticated()
+        elif 'request' in self.context: #and self.context['request'].user.is_authenticated
             person = self.context['request'].user
         else:
             return [-1] if t else -1

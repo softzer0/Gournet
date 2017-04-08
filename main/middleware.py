@@ -5,7 +5,7 @@ from django.conf import settings
 
 class TimezoneLocaleMiddleware:
     def process_request(self, request):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             tzname = request.session.get('timezone')
             if tzname:
                 tz_activate(pytz_timezone(tzname))
