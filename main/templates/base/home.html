@@ -5,9 +5,9 @@
 
 {% block titleatt %} ng-bind="title"{% endblock %}
 
-{% block head %}{% cache 0 head %}<link rel="stylesheet" href="{% static 'main/css/angular-aside.min.css' %}">
+{% block head %}{% cache None head %}<link rel="stylesheet" href="{% static 'main/css/angular-aside.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/nya-bs-select.min.css' %}">
-    {% endcache %}{% url 'create_business' as create_url %}{% if file or request.path == create_url %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">{% endif %}{% cache 0 head0 %}
+    {% endcache %}{% url 'create_business' as create_url %}{% if file or request.path == create_url %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">{% endif %}{% cache None head0 %}
     <link rel="stylesheet" href="{% static 'main/css/home.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/sett.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/dtpicker.css' %}">
@@ -25,7 +25,7 @@
     <script src="{% static 'main/js/datetime-picker.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'main/js/angular-css.min.js' %}"></script>{% endcomment %}
-    <script src="{% endcache %}{% static 'jsi18n/'|add:request.LANGUAGE_CODE|add:'/djangojs.js' %}{% cache 0 head1 %}"></script>
+    <script src="{% endcache %}{% static 'jsi18n/'|add:request.LANGUAGE_CODE|add:'/djangojs.js' %}{% cache None head1 %}"></script>
     <script src="{% static 'main/js/custom/main.js' %}"></script>
     <script>app.constant('BASE_MODAL', '{% static 'main/modals/base.html' %}')
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
@@ -88,7 +88,7 @@
     ><span ng-if="m.obj.created === undefined || m.obj.manager_stars.status === undefined"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="{% trans "Manager" %}">{% trans "M" context 'manager' %}</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="{% trans "Stars" %}">{% verbatim %}{{ m.obj.manager_stars }}{% endverbatim %} <i class="fa fa-star"></i></span></span
     ><span ng-if="m.obj.created !== undefined && m.obj.manager_stars.status !== undefined"
         ><span ng-switch="m.obj.manager_stars.status" uib-tooltip="{% trans "Status" %}" class="lhin"
-            >{% cache 0 review_status %}{% for s in review_status %}<span ng-switch-when="{{ forloop.counter0 }}" class="label {{ s.1 }}">{{ s.0 }}</span
+            >{% cache None review_status %}{% for s in review_status %}<span ng-switch-when="{{ forloop.counter0 }}" class="label {{ s.1 }}">{{ s.0 }}</span
             >{% endfor %}{% endcache %}</span
         ><span ng-include="'likes'" new-scope ng-init="o = [m.obj.manager_stars, k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index]"></span
     ></span
@@ -109,7 +109,7 @@
                         <a ng-if="search.has_more === undefined || search.has_more" ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=business"><i class="fa fa-map-pin"></i> {{ '{' }}{{ '{' }} search.count != null ? "{% trans "Find other businesses..." %}" : "{% trans "Find businesses..." %}" {{ '}' }}{{ '}' }}</a>
                         <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=event"><i class="fa fa-calendar"></i> {% trans "Find events..." %}</a>
                         <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=item"><i class="fa fa-th-list"></i> {% trans "Find items..." %}</a>
-                        <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> {% trans "Find users..." %}{% cache 0 navbar_button %}</a>
+                        <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> {% trans "Find users..." %}{% cache None navbar_button %}</a>
                     </div>
                 </div>
             </form>

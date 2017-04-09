@@ -21,7 +21,7 @@
 
 {% block rowatt %}ng-controller="BusinessCtrl" ng-init="minchar = {{ minchar }}{% if fav_state > -1 %}; fav_count = {{ fav_count }}; fav_state = {{ fav_state }}{% endif %}"{% endblock %}
 
-{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache 0 edit_data %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened([{{ business.type }}, '{{ business.name }}', '{{ business.shortname }}']){% endcache %}">
+{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache None edit_data %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened([{{ business.type }}, '{{ business.name }}', '{{ business.shortname }}']){% endcache %}">
                         <a class="n lead text-center" ng-show="edit.disabled" ng-click="edit.disabled = false">{% verbatim %}{{ types[edit.value[0]] }} "{{ edit.value[1] }}"{% endverbatim %}</a>
                         <div ng-hide="edit.disabled">
                             <div>
@@ -102,13 +102,13 @@
                     </uib-tab>
 
                     <uib-tab index="1" heading="{% trans "Menu" %}">
-{% if fav_state == -1 %}						{% cache 0 item_form %}<div class="well bs-component clearfix wp" ng-controller="ItemCtrl">
+{% if fav_state == -1 %}						{% cache None item_form %}<div class="well bs-component clearfix wp" ng-controller="ItemCtrl">
 							<form name="forms.item" ng-submit="submitItem()" class="frm form-vertical">
                                 <uib-alert class="mpd" type="danger" close="forms.item.alert = undefined" ng-if="forms.item.alert !== undefined">{{ '{' }}{{ '{' }} forms.item.alert === true ? "{% trans "Name must must have minimum 2 characters." %}" : "{% trans "Name conflicts with the existing item." %}" {{ '}' }}{{ '}' }}</uib-alert>
                                 <div class="form-group" ng-class="{'has-error': forms.item.alert !== undefined}">
                                     <input name="name" type="text" class="form-control" required maxlength="60">
                                 </div>
-                                <fieldset class="rev" ng-init="$parent.data.curr = '{{ business.currency }}'; $parent.curr = ['{{ business.currency }}', '{% endcache %}{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{% cache 0 item_form0 %}']">
+                                <fieldset class="rev" ng-init="$parent.data.curr = '{{ business.currency }}'; $parent.curr = ['{{ business.currency }}', '{% endcache %}{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{% cache None item_form0 %}']">
                                     <select class="form-control" ng-model="$parent.curr[0]" ng-change="changedCurr()">{% for c in curr %}
                                         <option value="{{ c.0 }}">{{ c.1 }}</option>{% endfor %}
                                     </select>
