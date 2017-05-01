@@ -1,5 +1,5 @@
 Django==1.10.7
-Pillow==3.2.0
+Pillow==4.1.1
 django-allauth==0.31.0
 django-bootstrap3==7.0.1
 django-decorator-include==1.1
@@ -8,7 +8,7 @@ django-phonenumber-field==1.1.0
 django-recaptcha==1.0.5
 django-rest-multiple-models==1.8.0
 django-settings-export==1.1.0
-django-stronghold==0.2.7
+django-stronghold==0.2.8
 djangorestframework==3.6.2
 django-filter==1.0.2
 geopy==1.11.0

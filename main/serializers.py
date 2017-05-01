@@ -544,8 +544,14 @@ class CTPrimaryKeyRelatedField(PrimaryKeyRelatedField):
         except (TypeError, ValueError):
             self.fail('incorrect_type', data_type=type(data).__name__)
 
+def get_from_ct(input):
+    try:
+        return ContentType.objects.filter(**{'pk__in': models.get_content_types_pk()} if input is True else {'model': input})
+    except:
+        return None
+
 class CTSerializer(serializers.Serializer):
-    content_type = CTPrimaryKeyRelatedField(queryset=ContentType.objects.filter(pk__in=models.get_content_types_pk()), write_only=True)
+    content_type = CTPrimaryKeyRelatedField(queryset=get_from_ct(True), write_only=True)
 
     def validate(self, attrs):
         try:
@@ -700,7 +706,7 @@ class LikeSerializer(CTSerializer, serializers.ModelSerializer):
 
 class ReminderSerializer(CTSerializer):
     to_person = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    content_type = serializers.HiddenField(default=ContentType.objects.get(model='event'))
+    content_type = serializers.HiddenField(default=get_from_ct('event'))
     when = serializers.DateTimeField()
 
     class Meta:

@@ -23,4 +23,4 @@ def user_passes_test_cust(test_func):
     return decorator
 
 
-login_forbidden = user_passes_test_cust(lambda u: u.is_anonymous())
+login_forbidden = user_passes_test_cust(lambda u: u.is_anonymous)

@@ -9,11 +9,10 @@ class MainAppConfig(AppConfig):
         if len(argv) > 1 and argv[1] in ('makemigrations', 'migrate'):
             return
 
-        from . import models
+        from . import models, admin
         from django.db.models import ForeignKey, Manager, Model
         from django.contrib.admin import register, SimpleListFilter
         from django.contrib.contenttypes.models import ContentType
-        from . import admin
 
         class ReviewManager(Manager):
             def get_queryset(self):
