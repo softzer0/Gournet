@@ -548,7 +548,7 @@ def get_from_ct(input):
     try:
         return ContentType.objects.filter(**{'pk__in': models.get_content_types_pk()} if input is True else {'model': input})
     except:
-        return None
+        pass
 
 class CTSerializer(serializers.Serializer):
     content_type = CTPrimaryKeyRelatedField(queryset=get_from_ct(True), write_only=True)

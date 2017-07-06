@@ -3,6 +3,10 @@ body {
 	padding-top: 80px;
 }
 
+.navbar-brand {
+    padding: 9px 10px 0;
+}
+
 .w {
 	padding-bottom: 70px;
 }
@@ -168,6 +172,12 @@ body {
 
 header > div > div > .nav {
     max-width: 62%;
+}
+
+@media (max-width: 350px) {
+    header > div > div > .nav {
+        max-width: 50%;
+    }
 }
 
 footer {
