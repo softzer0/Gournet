@@ -668,11 +668,11 @@ msgstr "Zavedi svoj ugostiteljski objekat"
 
 #: main/templates/create_extra.html:13
 msgid "My business also works on <strong>Saturday</strong>"
-msgstr "Moj ugostiteljski objekat radi i <strong>Subotom</strong>"
+msgstr "Moj ugostiteljski objekat radi i <strong>subotom</strong>"
 
 #: main/templates/create_extra.html:18
 msgid "And on <strong>Sunday</strong>, too"
-msgstr "I <strong>Nedeljom</strong>, takođe"
+msgstr "I <strong>nedeljom</strong>, takođe"
 
 #: main/templates/create_extra.html:23 main/templates/i18n.html:23
 msgid "Save"

@@ -26,6 +26,7 @@ SECRET_KEY = 'fbf0+@#!&9&!rb%6s4veb_#f7)r+1=u9ktofp_sc@=oi#%tnal'
 DEBUG = False #True #repl with False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co'] #['*'] #repl with
+SESSION_COOKIE_DOMAIN = '.gournet.co'
 
 # Application definition
 
@@ -147,14 +148,13 @@ SETTINGS_EXPORT = [
 
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
-        'SCOPE': ['email', 'user_birthday', 'user_location'],
+        'SCOPE': ['email', 'public_profile', 'user_birthday', 'user_location'],
         'AUTH_PARAMS': {'auth_type': 'https'},
         'METHOD': 'oauth2',
         'VERIFIED_EMAIL': True
     },
     'google': {
-        #'SCOPE': ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email',],
-        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/plus.me'],
+        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/plus.me'], #, 'https://www.googleapis.com/auth/userinfo.profile'], 
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
@@ -265,3 +265,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# SMTP
+
+DEFAULT_FROM_EMAIL = 'info@gournet.co'
+SERVER_EMAIL = 'root@gournet.co'
+EMAIL_HOST = 'localhost'
+EMAIL_HOST_USER = ''
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_PORT = 25 #587
+EMAIL_USE_TLS = False
