@@ -22,33 +22,3 @@
 body > .container > * > [class*=col-] {
     padding-bottom: 20px;
 }
-
-footer > div > div > div > *:first-child {
-    width: 20%;
-}
-
-@media (max-width: 710px) {
-    footer .more {
-        display: none;
-    }
-
-    footer > div > div > div > *:first-child {
-        width: 38%;
-    }
-
-    footer .more_b {
-        display: initial;
-    }
-}
-
-@media (max-width: 395px) {
-    footer > div > div > div > *:first-child {
-        width: 43%;
-    }
-}
-
-@media (max-width: 360px) {
-    footer > div > div > div > *:first-child {
-        width: 32%;
-    }
-}

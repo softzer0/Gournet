@@ -1,0 +1,29 @@
+footer > div > div > div > *:first-child {
+    width: 23%;
+}
+
+@media (max-width: 710px) {
+    footer .more {
+        display: none;
+    }
+
+    footer > div > div > div > *:first-child {
+        width: 43%;
+    }
+
+    footer .more_b {
+        display: initial;
+    }
+}
+
+@media (max-width: 405px) {
+    footer > div > div > div > *:first-child {
+        width: 48%;
+    }
+}
+
+@media (max-width: 360px) {
+    footer > div > div > div > *:first-child {
+        width: 44%;
+    }
+}

@@ -26,7 +26,7 @@ SECRET_KEY = 'fbf0+@#!&9&!rb%6s4veb_#f7)r+1=u9ktofp_sc@=oi#%tnal'
 DEBUG = False #True #repl with False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co'] #['*'] #repl with
-SESSION_COOKIE_DOMAIN = '.gournet.co'
+SESSION_COOKIE_DOMAIN = '.gournet.co' #disable
 
 # Application definition
 
@@ -138,12 +138,13 @@ COMMENT_PAGE_SIZE = 4
 SEARCH_PAGE_SIZE = 10
 
 GMAPS_API_KEY = "***REMOVED***"
+GMAPS_API_KEY_FRONTEND = "***REMOVED***"
 
 # End custom
 
 SETTINGS_EXPORT = [
     'NOTIFICATION_PAGE_SIZE',
-    'GMAPS_API_KEY'
+    'GMAPS_API_KEY_FRONTEND'
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -268,10 +269,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # SMTP
 
-DEFAULT_FROM_EMAIL = 'info@gournet.co'
+DEFAULT_FROM_EMAIL = 'no-reply@gournet.co'
 SERVER_EMAIL = 'root@gournet.co'
-EMAIL_HOST = 'localhost'
-EMAIL_HOST_USER = ''
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_PORT = 25 #587
-EMAIL_USE_TLS = False

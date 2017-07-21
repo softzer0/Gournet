@@ -1872,6 +1872,9 @@ msgstr ""
 msgid "Enter a valid email address."
 msgstr "Unesite validnu email adresu."
 
+msgid "A user is already registered with this e-mail address."
+msgstr "Korisnik sa ovom e-mail adresom već postoji."
+
 msgid "The username and/or password you specified are not correct."
 msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."
 

@@ -7,7 +7,8 @@
     {% load static %}{% load cache %}{% cache None main_head %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/main.css' %}">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    {% endcache %}{% if user.is_anonymous %}<link rel="stylesheet" href="{% static 'main/css/index.css' %}">
+    {% endif %}{% cache None main_head0 %}<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
     <script{% comment %} src="{% static 'main/js/custom/login_signup.js' %}"{% endcomment %}>var app = angular.module('mainApp', []).controller('BaseMainCtrl', function ($scope){ $scope.switchMore = function (){ $scope.footer_more = angular.element('footer .more').toggleClass('show').hasClass('show') } })</script>
@@ -30,7 +31,11 @@
         <div class="container">
             <div>
                 <div>
-                    <div><small class="text-muted">&copy; 2016-2017 - MikiSoft</small></div>
+                    <div class="text-muted">
+                        <small>&copy; 2016-2017 - MikiSoft</small
+                        ><span class="lr5">&middot;</span
+                        ><a href="https://fb.me/gournet.co"><i class="fa fa-facebook-square"></i></a>
+                    </div>
                     <div>
                         <ul class="nav navbar-nav navbar-header more">
                             <li><a href="{% url 'contact' %}">{% trans "Contact" %}</a></li>

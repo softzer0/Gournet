@@ -7,8 +7,8 @@
 
 {% block head %}{% cache None head %}<link rel="stylesheet" href="{% static 'main/css/angular-aside.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/nya-bs-select.min.css' %}">
-    {% endcache %}{% url 'create_business' as create_url %}{% if file or request.path == create_url %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">{% endif %}{% cache None head0 %}
-    <link rel="stylesheet" href="{% static 'main/css/home.css' %}">
+    {% endcache %}{% url 'create_business' as create_url %}{% if file or request.path == create_url %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">
+    {% endif %}{% cache None head0 %}<link rel="stylesheet" href="{% static 'main/css/home.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/sett.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/dtpicker.css' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.3.2/ui-bootstrap-tpls.min.js"></script>
