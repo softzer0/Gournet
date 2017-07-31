@@ -109,7 +109,7 @@ msgstr ""
 "Pozdrav sa %(site_name)s-a!\n"
 "\n"
 "Primili ste ovaj e-mail zbog toga što korisnik %(user_display)s na "
-"%(site_domain)s  je dao Vašu e-mail adresu za povezivanje njegovog naloga.\n"
+"%(site_domain)s je dao Vašu e-mail adresu za povezivanje njegovog naloga.\n"
 "\n"
 "Za potvrđivanje tačnosti ovoga, idite na %(activate_url)s\n"
 
