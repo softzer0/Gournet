@@ -351,20 +351,20 @@ msgid "Pizzas"
 msgstr "Pice"
 
 #: main/static/main/js/custom/view.js:95
-msgid "Pastas"
-msgstr "Testenina"
+msgid "Pastas and pastries"
+msgstr "Testenina i testa"
 
 #: main/static/main/js/custom/view.js:96
-msgid "Appetizers"
-msgstr "Predjela"
+msgid "Breakfasts, appetizers"
+msgstr "Doručak, predjela"
 
 #: main/static/main/js/custom/view.js:97
-msgid "Soups"
-msgstr "Supe"
+msgid "Soups, stews"
+msgstr "Supe, čorbe i sl."
 
 #: main/static/main/js/custom/view.js:98
 msgid "Meals"
-msgstr "Obroci"
+msgstr "Obroci/jela"
 
 #: main/static/main/js/custom/view.js:99
 msgctxt "plural"
@@ -372,9 +372,12 @@ msgid "Barbecue"
 msgstr "Roštilj"
 
 #: main/static/main/js/custom/view.js:100
-msgctxt "plural"
-msgid "Seafood"
-msgstr "Morska hrana"
+msgid "Seafood, fish dishes"
+msgstr "Morska hrana, riblja jela"
+
+#: main/static/main/js/custom/view.js:100
+msgid "Food additives"
+msgstr "Prilozi"
 
 #: main/static/main/js/custom/view.js:101
 msgid "Salads"

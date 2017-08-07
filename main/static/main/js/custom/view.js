@@ -92,12 +92,13 @@ app
                     {first: false, hascontent: false, name: gettext("Food"), content: [
                         {category: 'fast_food', name: pgettext('plural', "Fast food"), content: []},
                         {category: 'pizza', name: gettext("Pizzas"), content: []},
-                        {category: 'pasta', name: gettext("Pastas"), content: []},
-                        {category: 'appetizer', name: gettext("Appetizers"), content: []},
-                        {category: 'soup', name: gettext("Soups"), content: []},
+                        {category: 'pasta_pastry', name: gettext("Pastas and pastries"), content: []},
+                        {category: 'breakfast_appetizer', name: gettext("Breakfasts, appetizers"), content: []},
+                        {category: 'soup_stew', name: gettext("Soups, stews"), content: []},
                         {category: 'meal', name: gettext("Meals"), content: []},
                         {category: 'barbecue', name: pgettext('plural', "Barbecue"), content: []},
-                        {category: 'seafood', name: pgettext('plural', "Seafood"), content: []},
+                        {category: 'seafood_fish', name: gettext("Seafood, fish dishes"), content: []},
+                        {category: 'additive', name: gettext("Food additives"), content: []},
                         {category: 'salad', name: gettext("Salads"), content: []},
                         {category: 'dessert', name: gettext("Desserts"), content: []},
                         {category: 'food_other', name: gettext("Other"), content: []}

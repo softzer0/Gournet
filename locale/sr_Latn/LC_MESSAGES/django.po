@@ -413,20 +413,20 @@ msgid "Pizza"
 msgstr "Pica"
 
 #: main/models.py:335
-msgid "Pasta"
-msgstr "Testenina"
+msgid "Pasta or pastry"
+msgstr "Testenina ili testo"
 
 #: main/models.py:336
-msgid "Appetizer"
-msgstr "Predjelo"
+msgid "Breakfast, appetizer"
+msgstr "Doručak, predjelo"
 
 #: main/models.py:337
-msgid "Soup"
-msgstr "Supa"
+msgid "Soup, stew"
+msgstr "Supa, čorba i sl."
 
 #: main/models.py:338
 msgid "Meal"
-msgstr "Obrok"
+msgstr "Obrok/jelo"
 
 #: main/models.py:339
 msgctxt "singular"
@@ -434,9 +434,12 @@ msgid "Barbecue"
 msgstr "Roštilj"
 
 #: main/models.py:340
-msgctxt "singular"
-msgid "Seafood"
-msgstr "Morska hrana"
+msgid "Seafood, fish dish"
+msgstr "Morska hrana, riblje jelo"
+
+#: main/models.py:340
+msgid "Food additive"
+msgstr "Prilog"
 
 #: main/models.py:341
 msgid "Salad"

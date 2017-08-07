@@ -224,7 +224,7 @@ def relationship_delete_notification(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
 
-FORBIDDEN = ('contact', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'static', 'images', 'my-business', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
+FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images', 'my-business', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
 def not_forbidden(value):
     if value in FORBIDDEN:
         raise ValidationError(ugettext("\"%s\" is not permitted as a shortname.") % value)
@@ -335,12 +335,13 @@ CATEGORY = (
     (_("Food"), (
             ('fast_food', pgettext_lazy('singular', "Fast food")),
             ('pizza', _("Pizza")),
-            ('pasta', _("Pasta")),
-            ('appetizer', _("Appetizer")),
-            ('soup', _("Soup")),
+            ('pasta_pastry', _("Pasta or pastry")),
+            ('breakfast_appetizer', _("Breakfast, appetizer")),
+            ('soup_stew', _("Soup, stew")),
             ('meal', _("Meal")),
             ('barbecue', pgettext_lazy('singular', "Barbecue")),
-            ('seafood', pgettext_lazy('singular', "Seafood")),
+            ('seafood_fish', _("Seafood, fish dish")),
+            ('additive', _("Food additive")),
             ('salad', _("Salad")),
             ('dessert', _("Dessert")),
             ('food_other', _("Other"))
@@ -351,7 +352,7 @@ ITEM_MIN_CHAR = 2
 
 class Item(models.Model):
     business = models.ForeignKey(Business, verbose_name=_("business"), on_delete=models.CASCADE)
-    category = models.CharField(_("category"), choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=13)
+    category = models.CharField(_("category"), choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=19) #important
     name = models.CharField(_("name"), validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
     price = models.DecimalField(_("price"), max_digits=7, decimal_places=2)
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
