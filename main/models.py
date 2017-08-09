@@ -361,7 +361,7 @@ class Item(models.Model):
 
     class Meta:
         ordering = ['business', 'category', 'name', 'price']
-        unique_together = (('business', 'name'),)
+        unique_together = (('business', 'name', 'category'),)
         #ordering = ['category', 'name', 'price']
         verbose_name = _("item")
         verbose_name_plural = _("items")

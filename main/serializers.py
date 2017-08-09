@@ -475,7 +475,7 @@ class ItemSerializer(BaseSerializer):
         validators = [
             UniqueTogetherValidator(
                 queryset=models.Item.objects.all(),
-                fields=('business', 'name'),
+                fields=('business', 'name', 'category'),
                 message="An item with the same name already exists."
             )
         ]
