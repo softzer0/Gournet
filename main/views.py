@@ -113,7 +113,7 @@ def upload_view(request, pk_b=None):
     except:
         return HttpResponse(_("Invalid image."), status=status.HTTP_400_BAD_REQUEST)
     saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.FILES[next(iter(request.FILES))]))
-    if pk_b and pk_b != 'business' and pk_b.has_image:
+    if pk_b and pk_b != 'business' and not pk_b.has_image:
         pk_b.has_image = True
         pk_b.save()
     return HttpResponse(status=status.HTTP_200_OK)
