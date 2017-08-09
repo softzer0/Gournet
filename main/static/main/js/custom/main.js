@@ -548,7 +548,7 @@ app
         UniObj.prototype.load_p = function (s, d, t, f, ep, r, index, rev){
             if (r === undefined) r = 0;
             var e = this.objs[+r];
-            if (index) e = e[index];
+            if (index != null) e = e[index];
             var obj = [ep !== undefined ? ep : e], self = this;
             return s.get(angular.extend({}, d, {cursor: obj[0].next || null, reverse: rev || null}),
                 function (result){
@@ -556,7 +556,7 @@ app
                     if (f === undefined) {
                         if (t !== undefined && e[t] === undefined) e[t] = [];
                         obj[1] = t !== undefined ? e[t] : e;
-                        if (rev) obj[0].unshift.apply(obj[1], result.results.reverse()); else obj[1].push.apply(result.results);
+                        if (rev) obj[1].unshift.apply(obj[1], result.results.reverse()); else obj[1].push.apply(result.results);
                     } else f(result.results);
                     obj[0].next = result.next;
                 }).$promise;
