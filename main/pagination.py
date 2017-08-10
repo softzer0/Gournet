@@ -55,6 +55,12 @@ class LikePagination(CursorPagination):
 class CommentPagination(CursorPagination):
     page_size = settings.COMMENT_PAGE_SIZE
 
+class CommentDefPagination(CommentPagination):
+    ordering = 'created'
+
+class UserPagePagination(CommentPagination):
+    ordering = '-sort'
+
 class SearchPagination(CursorPagination):
     page_size = settings.SEARCH_PAGE_SIZE
 

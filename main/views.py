@@ -329,7 +329,7 @@ class BusinessAPIView(SearchAPIView):
 
     def get_queryset(self):
         qs = not isinstance(self, BusinessAPIView)
-        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False).order_by(Case(When(Q(currency=self.request.user.currency) | Q(supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
+        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False) #.order_by(Case(When(Q(currency=self.request.user.currency) | Q(supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
         return qs.only('id', 'shortname', 'name') if get_param_bool(self.request.query_params.get('quick', False)) else qs.defer('manager', 'phone', 'address', 'is_published')
 
     def filter_queryset(self, queryset):
@@ -596,6 +596,7 @@ class FeedAPIView(MultipleModelAPIView):
 
 class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination
+    def_pagination_class = pagination.CommentDefPagination
     filter = 'business__manager'
     order_by = 'created'
     ct = None
@@ -608,7 +609,7 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def get_person_qs(self, person):
         qs = filter_published(self, self.main_f).filter(Q(**{self.filter: person}) | Q(likes__person=person))
-        return qs.annotate(sort=Max(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)))).order_by(F('sort').desc(), *self.model._meta.ordering) if self.order_by else qs
+        return qs.annotate(sort=Max(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)))) if self.order_by else qs
 
     def get_qs_pk(self):
         b = get_object(self.kwargs['pk'], models.Business)
@@ -642,12 +643,16 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
             qs = self.model.objects.filter(pk=self.kwargs['pk'])
         else:
             return self.model.objects.none()
-        return qs.order_by(('-' if self.s_rev == get_param_bool(self.request.query_params.get('reverse', False)) else '')+'created') if 'reverse' in self.request.query_params else qs
+        return qs
 
     def paginate_queryset(self, queryset):
         if not self.request.query_params.get('ids', False):
             if self.filter_backends and self.request.query_params.get('search', False):
                 self.pagination_class = pagination.SearchPagination
+            elif self.order_by and get_param_bool(self.request.query_params.get('is_person', False)):
+                self.pagination_class = pagination.UserPagePagination
+            elif self.s_rev != get_param_bool(self.request.query_params.get('reverse', False)):
+                self.pagination_class = self.def_pagination_class
             return super().paginate_queryset(queryset)
         return None
 
@@ -733,12 +738,19 @@ class CommentAPIView(BaseAPIView):
 
     def order_qs(self, qs):
         if not self.request.query_params.get('ids', False):
-            if 'business' in self.get_serializer_context(True):
+            """if 'business' in self.get_serializer_context(True):
                 qs = qs.order_by(Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField()), *models.Comment._meta.ordering)
+            else:"""
+            if 'reverse' not in self.request.query_params:
+                self.pagination_class = pagination.CommentDefPagination
             else:
                 self.pagination_class = pagination.CommentPagination
-                if 'reverse' not in self.request.query_params:
-                    qs = qs.order_by('created')
+        return qs
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.query_params.get('ids', False):
+            return qs.filter(content_type=ContentType.objects.filter(model='business'))
         return qs
 
     def get_serializer_context(self, kw=False):
@@ -794,7 +806,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         qs = super().getnopk()
         if self.request.query_params.get('search', False):
             self.kwargs['search'] = None
-            return get_loc(self, qs, deford=False).order_by(Case(When(Q(business__currency=self.request.user.currency) | Q(business__supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
+            return get_loc(self, qs, deford=False) #.order_by(Case(When(Q(business__currency=self.request.user.currency) | Q(business__supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
         return qs.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):
