@@ -63,7 +63,7 @@
                             <hr style="margin: 8px 13px 13px;">{% if fav_state == -1 %}
                                 <a href="javascript:" ng-click="openEdit()"><i class="fa fa-pencil"></i> {% trans "Edit" %}</a></li>
                             <li>{% endif %}
-                            <ul class="list-unstyled" ng-init="data.tz = '{{ business.tz }}'; set_data([{% for n in workh.value %}'{{ n }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% if fav_state == -1 %}, '{{ business.phone }}', [{% for c in business.supported_curr %}'{{ c }}'{% if not forloop.last %}, {% endif %}{% endfor %}], '{{ business.address }}', '{{ business.location.coords.0 }},{{ business.location.coords.1 }}'{% endif %})">
+                            <ul class="list-unstyled" ng-init="data.tz = '{{ business.tz }}'; set_data([{% for n in workh.value %}'{{ n }}'{% if not forloop.last %}, {% endif %}{% endfor %}]{% if fav_state == -1 %}, '{{ business.phone }}', [{% for c in business.supported_curr %}'{{ c }}'{% if not forloop.last %}, {% endif %}{% endfor %}], '{{ business.address }}', '{{ business.location.coords.1 }},{{ business.location.coords.0 }}'{% endif %})">
                                 <li><b ng-class="is_opened ? 'text-success' : 'text-danger'">{{ '{' }}{{ '{' }} is_opened ? "{% trans "Currently opened" %}" : "{% trans "Currently closed" %}" {{ '}' }}{{ '}' }}</b></li>
                                 <li><i class="fa fa-sign-in"></i> {% blocktrans with wf=workh.display.0 wt=workh.display.1 %}Monday-Friday, from {{ wf }} to {{ wt }}{% endblocktrans %}</li>{% if fav_state == -1 or workh.length >= 4 %}
                                 <li{% if fav_state == -1 %} ng-if="data.value[0].length >= 4"{% endif %}><i class="fa fa-sign-in"></i> {% blocktrans with wf=workh.display.2 wt=workh.display.3 %}Saturday, from {{ wf }} to {{ wt }}{% endblocktrans %}</li>{% endif %}{% if fav_state == -1 or workh.length == 6 %}
@@ -71,8 +71,8 @@
                             </ul>
                         </li>
                         <li><ul class="list-unstyled">
-                                <li><a href="https://maps.google.com/?q={{ business.address }}" target="_blank"><i class="fa fa-map-marker"></i> {% if fav_state == -1 %}{% verbatim %}{{ data.value[3] }}{% endverbatim %}{% else %}{{ business.address }}{% endif %}</a></li>
-                                <li><a {% if fav_state == -1 %}ng-href="tel:{% verbatim %}{{ data.value[1] }}{% endverbatim %}"{% else %}href="tel:{{ business.phone }}"{% endif %}><i class="fa fa-phone"></i> {% if fav_state == -1 %}{% verbatim %}{{ data.value[1] }}{% endverbatim %}{% else %}{{ business.phone }}{% endif %}</a></li>
+                                <li><a {% if fav_state == -1 %}ng-{% endif %}href="https://maps.google.com/?q={% if fav_state == -1 %}{% verbatim %}{{ data.value[4] }}{% endverbatim %}{% else %}{{ business.location.coords.1 }},{{ business.location.coords.0 }}{% endif %}" target="_blank"><i class="fa fa-map-marker"></i> {% if fav_state == -1 %}{% verbatim %}{{ data.value[3] }}{% endverbatim %}{% else %}{{ business.address }}{% endif %}</a></li>
+                                <li><a {% if fav_state == -1 %}ng-{% endif %}href="tel:{% if fav_state == -1 %}{% verbatim %}{{ data.value[1] }}{% endverbatim %}{% else %}{{ business.phone }}{% endif %}"><i class="fa fa-phone"></i> {% if fav_state == -1 %}{% verbatim %}{{ data.value[1] }}{% endverbatim %}{% else %}{{ business.phone }}{% endif %}</a></li>
                             </ul>
                         </li>{% endblock %}
 

@@ -110,8 +110,8 @@ msgid "Female"
 msgstr "Ženski"
 
 #: main/models.py:62
-msgid "longitude/latitude"
-msgstr "longituda/latituda"
+msgid "latitude/longitude"
+msgstr "latituda/longituda"
 
 #: main/models.py:62
 msgid "Enter valid coordinates."
@@ -1464,7 +1464,7 @@ msgstr "Događaji"
 #: main/templates/view.html:90
 #, python-format
 msgid "Please enter text with %(m)s or more characters."
-msgstr "Molimo unesite tekst sa %(m)s ili vise karaktera."
+msgstr "Molimo unesite tekst sa %(m)s ili više karaktera."
 
 #: main/templates/view.html:101 main/templates/view.html:122
 #: main/templates/view.html:182

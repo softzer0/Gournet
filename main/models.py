@@ -51,7 +51,7 @@ user_short_name = RegexValidator(
                 )
 
 class Loc(models.Model):
-    location = PointField(_("longitude/latitude"), geography=True, error_messages={'invalid': _("Enter valid coordinates.")}) #, geography=True
+    location = PointField(_("latitude\longitude"), geography=True, error_messages={'invalid': _("Enter valid coordinates.")}) #, geography=True
     loc_projected = PointField(srid=3857)
     address = models.CharField(_("address"), max_length=130)
     tz = TimeZoneField(verbose_name=_("time zone"), default=settings.TIME_ZONE)

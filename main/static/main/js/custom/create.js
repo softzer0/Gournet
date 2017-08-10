@@ -42,11 +42,11 @@ app
         angular.extend(this, $controller('BaseMapCtrl', {$scope: $scope, funcs: [
             function (init){
                 if (obj[fi[1]] !== undefined && obj[fi[1]] != '') { // && /^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$/.test(obj[fi[1]])
-                    obj[fi[1]] = obj[fi[1]].replace(' ','');
-                    init({latitude: obj[fi[1]].split(',')[1], longitude: obj[fi[1]].split(',')[0]});
+                    //obj[fi[1]] = obj[fi[1]].replace(' ','');
+                    init({latitude: obj[fi[1]].split(',')[0], longitude: obj[fi[1]].split(',')[1]});
                 } else if (obj[fi[0]] !== undefined && obj[fi[0]] != '') $scope.geocodeAddress(obj[fi[0]], init); else init(USER.home);
             },
-            function (){ obj[fi[1]] = $scope.map.center.longitude+','+$scope.map.center.latitude }
+            function (){ obj[fi[1]] = $scope.map.center.latitude+','+$scope.map.center.longitude }
         ]}));
 
         var l = true;
