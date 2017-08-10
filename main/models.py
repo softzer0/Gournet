@@ -23,6 +23,7 @@ from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy
 from django.utils.functional import lazy
 from os.path import join
 from shutil import rmtree
+from django.core.urlresolvers import reverse
 
 TF_OBJ = TimezoneFinder()
 
@@ -217,7 +218,7 @@ def relationship_save_notification(instance, **kwargs):
         if rel.notification.unread:
             rel.notification.unread = False
             rel.notification.save()
-    instance.notification = instance.to_person.notification_set.create(text=text, link='/user/'+instance.from_person.username+'/')
+    instance.notification = instance.to_person.notification_set.create(text=text, link=reverse('user_profile', kwargs={'username': instance.from_person.username}))
 
 @receiver(post_delete, sender=Relationship)
 def relationship_delete_notification(instance, **kwargs):

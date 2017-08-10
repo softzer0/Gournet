@@ -27,7 +27,7 @@ class FeedPagination(PageNumberPagination):
 
 
 class CursorPagination(pagination.CursorPagination):
-    page_size = 25
+    page_size = PageNumberPagination.page_size
 
     def encode_cursor(self, cursor):
         """
@@ -49,6 +49,9 @@ class FriendsPagination(CursorPagination):
 class EventPagination(CursorPagination):
     page_size = settings.EVENT_PAGE_SIZE
 
+class LikePagination(CursorPagination):
+    ordering = '-date'
+
 class CommentPagination(CursorPagination):
     page_size = settings.COMMENT_PAGE_SIZE
 
@@ -57,3 +60,7 @@ class SearchPagination(CursorPagination):
 
 class UserPagination(SearchPagination):
     ordering = '-date_joined'
+
+class ReminderPagination(CursorPagination):
+    ordering = '-when'
+

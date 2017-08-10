@@ -8,7 +8,6 @@
     <script src="{% static 'main/js/custom/home_extra.js' %}"></script>
     <script src="{% static 'main/js/custom/home.js' %}"></script>{% endblock %}
 
-{% block title %}{% trans "Home" %} - Gournet{% endblock %}
 {% block container %}<div ng-controller="MapCtrl">
             <uib-alert type="warning" ng-show="map !== undefined && map.options !== undefined && (warn !== undefined || wid === undefined)" ng-cloak>{{ '{' }}{{ '{' }} isCoord() ? "{% trans "Location information is too inaccurate." %}" : warn == 0 ? "{% trans "You have denied the permission to use the location service. Please enable it or clear the setting, and refresh this page." %}" : wid === undefined ? "{% trans "Location service is disabled." %}" : "{% trans "Location information is currently unavailable." %}" {{ '}' }}{{ '}' }} {{ '{' }}{{ '{' }} isCoord() && warn.is_init || warn == 2 ? "{% trans "Using your home location." %}"+' ' : wid === undefined || isCoord() || warn == 1 ? "{% trans "Using your last position." %}"+' ' : '' {{ '}' }}{{ '}' }}<a href="javascript:" ng-if="isCoord() || wid === undefined" ng-click="doUseEnable()">{{ '{' }}{{ '{' }} isCoord() ? "{% trans "Use the detected location, regardlessly." %}" : "{% trans "Enable." %}" {{ '}' }}{{ '}' }}</a></uib-alert>
 

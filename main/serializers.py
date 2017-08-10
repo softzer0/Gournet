@@ -256,6 +256,9 @@ class UserSerializer(BaseURSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name', 'last_name')
+        extra_kwargs = {'username': {'read_only': True},
+                        'first_name': {'read_only': True},
+                        'last_name': {'read_only': True}}
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -546,7 +549,9 @@ class CTPrimaryKeyRelatedField(PrimaryKeyRelatedField):
 
 def get_from_ct(input):
     try:
-        return ContentType.objects.filter(**{'pk__in': models.get_content_types_pk()} if input is True else {'model': input})
+        if input is True:
+            return ContentType.objects.filter(pk__in=models.get_content_types_pk())
+        return ContentType.objects.get(model=input)
     except:
         pass
 
@@ -704,9 +709,10 @@ class LikeSerializer(CTSerializer, serializers.ModelSerializer):
         return attrs
 
 
-class ReminderSerializer(CTSerializer):
+class ReminderSerializer(CTSerializer, serializers.ModelSerializer):
     to_person = serializers.HiddenField(default=serializers.CurrentUserDefault())
     content_type = serializers.HiddenField(default=get_from_ct('event'))
+    object_id = serializers.IntegerField()
     when = serializers.DateTimeField()
 
     class Meta:

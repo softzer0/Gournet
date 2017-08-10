@@ -2,6 +2,7 @@ app.requires.push('uiGmapgoogle-maps'); //, 'ct.ui.router.extras'
 app
     .config(function ($stateProvider, uiGmapGoogleMapApiProvider, LANG, GMAPS_API_KEY) {
         function gentemp(g, t) { return (g ? '<p><a href="#/"><i class="fa fa-chevron-left"></i> '+gettext("Go to main page.")+'</a></p>' : '')+'<div ng-init="t = \''+(t !== undefined ? t : '\'')+'" ng-include="\'/static/main/events.html\'"></div>' }
+        function chngtitle(t, c) { return (t[0] == '(' ? t.slice(0, t.indexOf(' '))+' ' : '')+c+' - Gournet' }
 
         $stateProvider.state('main', {
             url: '/',
@@ -12,7 +13,8 @@ app
         .state('main.search', {
             url: 'filter={keywords}&type={type:(?:user|business|item|event)}',
             templateUrl: 'search',
-            controller: function ($scope, $stateParams) {
+            controller: function ($scope, $stateParams, $rootScope) {
+                $rootScope.title = chngtitle($rootScope.title, pgettext('page', "Search"));
                 $scope.keywords = $stateParams.keywords; //.replace(/\++/g, ' ');
                 $scope.t = $stateParams.type;
                 if ($scope.$parent.search.keywords != $scope.keywords) $scope.$parent.search.keywords = $scope.keywords;
@@ -21,15 +23,18 @@ app
         })
         .state('main.friends', {
             url: 'filter=friends',
-            template: gentemp(true)
+            template: gentemp(true),
+            controller: function ($rootScope){ $rootScope.title = chngtitle($rootScope.title, gettext("Friends")) }
         })
         .state('main.favourites', {
             url: 'filter=favourites',
-            template: gentemp(true, 'event\'; is_fav = true')
+            template: gentemp(true, 'event\'; is_fav = true'),
+            controller: function ($rootScope){ $rootScope.title = chngtitle($rootScope.title, gettext("Favourites")) }
         })
         .state('main.main', {
             url: '*path',
-            template: gentemp(false, 'event\'')
+            template: gentemp(false, 'event\''),
+            controller: function ($rootScope){ $rootScope.title = chngtitle($rootScope.title, pgettext('page', "Main")) }
         });
 
         uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places', language: LANG, key: GMAPS_API_KEY});

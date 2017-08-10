@@ -237,6 +237,8 @@
     "before certain period of time\u0004before, or:": "pre, ili:",
     "distance\u0004%s away": "%s daleko",
     "from user to which business\u0004, to:": " upu\u0107uje ka:",
+    "page\u0004Main": "Po\u010detna",
+    "page\u0004Search": "Pretraga",
     "plural\u0004Barbecue": "Ro\u0161tilj",
     "plural\u0004Brandy": "Rakije, vinjaci, konjaci i sl.",
     "plural\u0004Fast food": "Brza hrana",

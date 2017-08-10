@@ -1,5 +1,5 @@
 <div class="loaded container-fluid" ng-class="{'um': loaded}">
-    <div class="row fri">
+    <div class="row fri" ng-init="active = 0">
         <uib-tabset active="active" ng-if="loaded !== null && loaded !== undefined">
             <uib-tab ng-repeat="t in tabs" index="$index">
                 <uib-tab-heading ng-bind-html="t.heading | unsafe"></uib-tab-heading>

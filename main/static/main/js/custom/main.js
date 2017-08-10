@@ -354,7 +354,7 @@ app
                                     load();
                                 }
                             } else for (i = 0; i < 2; i++) if (result[i].results.length > 0) {
-                                $scope.tabs[t] = {elems: [], value: i + 1, heading: i == 0 ? gettext("Liked by") : gettext("Disiked by")};
+                                $scope.tabs[t] = {elems: [], value: i, heading: i == 0 ? gettext("Liked by") : gettext("Disiked by")};
                                 load();
                             }
                         } else $scope.tabs[0] = {elems: []};
@@ -568,7 +568,7 @@ app
                 function showc(i) {
                     if (self.objs[1][i].showcomm === undefined) {
                         self.objs[1][i].showcomm = [false, true];
-                        self.loadComments(i, true).then(function l() { if (!self.unloaded[1]) $timeout(function () { if (!self.unloaded[1]) self.objs[1][i].showcomm[0][0] = true }) });
+                        self.loadComments(i, true).then(function (){ $timeout(function (){ if (!self.unloaded[1]) self.objs[1][i].showcomm[0] = true }) });
                     } else self.objs[1][i].showcomm[1] = true;
                 }
                 var p;
@@ -637,7 +637,7 @@ app
                         if ((services.markerService !== undefined || result.results.length > 0) && (self.ld.favourites == 1 || result.count > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, false);
                     });
                     return this.u.feed.get(this.ld, function (result){
-                        if (self.ld.page !== undefined) self.ld.page++; else self.ld.page = 1;
+                        if (self.ld.page !== undefined) self.ld.page++; else self.ld.page = 2;
                         self.props.next = self.ld.page < result.page_count;
                         appendResults(result.results);
                         if (services.markerService !== undefined || result.results.length > 0) getService('markerService').load(result.results, true);

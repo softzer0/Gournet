@@ -42,6 +42,11 @@ msgstr "Ne možete poslati sliku veću od 4.5MB!"
 msgid "Go to main page."
 msgstr "Vrati se na početnu stranicu."
 
+#: main/static/main/js/custom/main.js:17
+msgctxt "page"
+msgid "Search"
+msgstr "Pretraga"
+
 #: main/static/main/js/custom/main.js:25
 msgid "Event(s)"
 msgstr "Događaji"
@@ -53,6 +58,11 @@ msgstr "Proizvodi"
 #: main/static/main/js/custom/main.js:32
 msgid "Review(s)"
 msgstr "Recenzije"
+
+#: main/static/main/js/custom/main.js:38
+msgctxt "page"
+msgid "Main"
+msgstr "Početna"
 
 #: main/static/main/js/custom/main.js:106
 msgid "Yes"
@@ -83,6 +93,7 @@ msgid "Your friends"
 msgstr "Vaši prijatelji"
 
 #: main/static/main/js/custom/main.js:285
+#: main/static/main/js/custom/home.js:27
 msgid "Friends"
 msgstr "Prijatelji"
 
@@ -92,6 +103,7 @@ msgid "Notify (%s)"
 msgstr "Obavesti (%s)"
 
 #: main/static/main/js/custom/main.js:292
+#: main/static/main/js/custom/home.js:32
 msgid "Favourites"
 msgstr "Omiljeni"
 
