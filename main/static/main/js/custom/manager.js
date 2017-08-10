@@ -11,7 +11,7 @@ app
 
     .constant('EDIT_DATA', {value: [[]], form: [[]], tz: undefined})
 
-    .controller('EventCtrl', function($rootScope, $scope, eventService) {
+    .controller('EventCtrl', function($rootScope, $scope, $timeout, eventService) {
         //$scope.name = angular.element('.lead.text-center.br2').text();
         $scope.picker = {
             date: $scope.$parent.currTime,
@@ -28,7 +28,12 @@ app
             $rootScope.currTime.setMinutes($rootScope.currTime.getMinutes()+1);
             if ($scope.picker.date === undefined || $scope.picker.date < $rootScope.currTime) $scope.picker.date = $rootScope.currTime;
             $scope.picker.options.minDate = $rootScope.currTime;
-            eventService.new(el.val(), $scope.picker.date).then(function () { el.val('') });
+            $scope.loading = true;
+            function l(){ $timeout(function(){ delete $scope.loading }) }
+            eventService.new(el.val(), $scope.picker.date).then(function () {
+                el.val('');
+                l();
+            }, l);
         };
     })
 
@@ -47,17 +52,21 @@ app
                 return;
             }
             var ch = $scope.unpub !== undefined;
+            $scope.loading = true;
+            function l(){ $timeout(function(){ delete $scope.loading }) }
             menuService.new(el.val(), angular.element('[name=\'forms.item\'] [name=\'price\']').val(), cat).then(
                 function () {
                     el.val('');
                     if (!ch) return;
                     $scope.$parent.unpub = gettext("This message will disappear once your business is approved. When published, it will become visible/accessible to others.");
                     ch = false;
-                }/*,
-                function (result) {
+                    l();
+                }, l
+                /*function (result) {
                     if (result.data !== undefined && result.data.non_field_errors !== undefined) {
                         $scope.forms.item.alert = false;
                         el.focus();
+                        l();
                     }
                 }*/
             );

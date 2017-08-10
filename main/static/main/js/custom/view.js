@@ -188,7 +188,7 @@ app
         }
     })
 
-    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $injector, $state, APIService, menuService, itemService) {
+    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $injector, $state, $timeout, APIService, menuService, itemService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope,
@@ -278,10 +278,13 @@ app
                     if (cond == 1 || cond == 3) el.focus();
                     return;
                 } else $scope.forms.review.alert = 0;
+                $scope.loading = true;
+                function l(){ $timeout(function(){ delete $scope.loading }) }
                 services[1].new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
                     $scope.showrevf = false;
                     $scope.rating.user = services[1].getobjs(false, false)[0].stars;
-                });
+                    l();
+                }, l);
             };
             return;
         }
