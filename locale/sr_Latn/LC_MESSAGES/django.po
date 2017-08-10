@@ -689,10 +689,6 @@ msgstr "Sačuvaj"
 msgid "Create"
 msgstr "Napravi"
 
-#: main/templates/home.html:12
-msgid "Home"
-msgstr "Početna"
-
 #: main/templates/home.html:14
 msgid "Location information is too inaccurate."
 msgstr "Informacije za lokaciju su previše neprecizne."
