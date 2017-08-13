@@ -14,3 +14,18 @@ msgstr "Molimo unesite Vašu trenutnu šifru."
 #, javascript-format
 msgid "Notify (%s)"
 msgstr "Obavesti (%s)"
+
+msgid "Now"
+msgstr "Sada"
+
+msgid "Clear"
+msgstr "Očisti"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Time"
+msgstr "Vreme"
+
+msgid "Close"
+msgstr "Zatvori"

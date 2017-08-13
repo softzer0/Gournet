@@ -553,11 +553,11 @@ app
             return s.get(angular.extend({}, d, {cursor: obj[0].next || null, reverse: rev || null}),
                 function (result){
                     if (self.unloaded[+r]) return;
-                    if (f === undefined) {
+                    if (!f) { // === undefined
                         if (t !== undefined && e[t] === undefined) e[t] = [];
                         obj[1] = t !== undefined ? e[t] : e;
                         if (rev) obj[1].unshift.apply(obj[1], result.results.reverse()); else obj[1].push.apply(result.results);
-                    } else f(result.results);
+                    } //else f(result.results);
                     obj[0].next = result.next;
                 }).$promise;
         };
@@ -598,7 +598,7 @@ app
                 ids = ids.slice(1);
             }
             if (ids == '') return $q.when(); else if (ids == null) {
-                if (cn !== undefined && cn !== true) {
+                if (cn !== undefined) {
                     this.ld.position = cn.longitude+','+cn.latitude;
                     if (this.props.next !== undefined) {
                         delete this.props.next;
@@ -615,14 +615,17 @@ app
                 if (this.props.next === undefined && this.objs[2] == 'comment') this.ld.content_type = 'business';
                 function appendResults(results) {
                     if (cn === null) if (results.length > 0) for (i = self.objs[0].length - 1; i >= 0; i--) {
-                        for (j = results.length - 1; j >= 0; j--) if (self.u !== undefined ? self.objs[0][i].type == results[j].type && (self.objs[0][i].target !== undefined ? self.objs[0][i].friend.id == results[j].friend.id && self.objs[0][i].target.id == results[j].target.id : self.objs[0][i].id == results[j].id) : self.objs[0][i].id == results[j].id) {
-                            if (results[j].distance !== undefined) {
-                                self.objs[0][i].distance.value = results[j].distance.value;
-                                self.objs[0][i].distance.unit = results[j].distance.unit;
+                        for (j = results.length - 1; j >= 0; j--) {
+                            if (self.unloaded[0]) return;
+                            if (self.u !== undefined ? self.objs[0][i].type == results[j].type && (self.objs[0][i].target !== undefined ? self.objs[0][i].friend.id == results[j].friend.id && self.objs[0][i].target.id == results[j].target.id : self.objs[0][i].id == results[j].id) : self.objs[0][i].id == results[j].id) {
+                                if (results[j].distance !== undefined) {
+                                    self.objs[0][i].distance.value = results[j].distance.value;
+                                    self.objs[0][i].distance.unit = results[j].distance.unit;
+                                }
+                                results.splice(j, 1);
+                                ids = true;
+                                break;
                             }
-                            results.splice(j, 1);
-                            ids = true;
-                            break;
                         }
                         if (ids) {
                             if (results.length == 0) break;
@@ -632,24 +635,27 @@ app
                     self.objs[0].push.apply(self.objs[0], results);
                     if (cn === null && self.u === undefined) self.objs[0].sort(dynamicSortMultiple('-distance.unit', 'distance.value')); //change (for another language)
                 }
-                if (this.props.next !== undefined || b !== undefined || rel_state !== undefined || this.u !== undefined) {
-                    if (this.u === undefined) return this.load_p(this.s, this.ld, undefined, appendResults, this.props).then(function (result){
-                        if ((services.markerService !== undefined || result.results.length > 0) && (self.ld.favourites == 1 || result.count > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, false);
-                    });
-                    return this.u.feed.get(this.ld, function (result){
-                        if (self.ld.page !== undefined) self.ld.page++; else self.ld.page = 2;
-                        self.props.next = self.ld.page < result.page_count;
+                if (this.props.next != null || b !== undefined || rel_state !== undefined || this.u !== undefined) {
+                    if (this.u === undefined) return this.load_p(this.s, this.ld, undefined, true, this.props).then(function (result){
+                        if (self.unloaded[0]) return;
+                        if ((services.markerService !== undefined || result.results.length > 0) && (self.ld.favourites == 1 || result.results.length > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, false);
                         appendResults(result.results);
+                    });
+                    return this.u.feed.get(angular.extend({}, this.ld, {page: self.props.next}), function (result){
+                        if (self.unloaded[0]) return;
                         if (services.markerService !== undefined || result.results.length > 0) getService('markerService').load(result.results, true);
+                        appendResults(result.results);
+                        self.props.next = result.page_count > (self.props.next || 1) ? (self.props.next || 1)+1 : null;
                     }).$promise;
                 }
-                return APIService.init(11).query(this.ld,
+                if (services['homeService'] === undefined) services['homeService'] = APIService.init(11);
+                return services['homeService'].query(this.ld,
                     function (result) {
                         if (self.unloaded[0]) return;
                         USER.deftz = result[0];
                         if (services.markerService !== undefined || result[1].results.length > 0) getService('markerService').load(result[1].results, null);
                         appendResults(result[2].results);
-                        self.props.next = result[2].has_more;
+                        self.props.next = result[2].has_more || null;
                     }).$promise;
             } else {
                 cn = cn ? this.menu || null : null;
@@ -851,21 +857,16 @@ app
                 objService[0].load($scope.id || $scope.keywords, $scope.u ? $scope.u.rel_state !== undefined ? false : null : $scope.is_fav, $scope.$parent.t != 'user' ? $scope.coords : undefined).then(function() {
                     l();
                     if (objService.length == 2) objService[1]();
-                } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/);
+                } /*function () { $timeout(function () { if ($scope.objs.length == 0) $scope.enableAnimation() }) }*/, l);
             /*})*/}
             if ($scope.$parent.t == 'user' || $scope.$parent.$parent.$parent.$parent.loading === undefined) load();
-            $scope.load_page = function (n){
+            $scope.load_page = function (){
                 if ($scope.wid !== undefined) {
                     navigator.geolocation.clearWatch($scope.wid);
                     $scope.$parent.$parent.$parent.$parent.wid = undefined;
                 }
-                if (!n) {
-                    $scope.loading = true;
-                    objService[0].load().then(l, l);
-                } else {
-                    $scope.loading_more = true;
-                    objService[0].load(undefined, undefined, true).then(function (){ $timeout(function() { $scope.loading_more = false })}, function () { $timeout(function() { $scope.loading_more = false })});
-                }
+                $scope.loading = true;
+                objService[0].load().then(l, l);
             };
         }
 

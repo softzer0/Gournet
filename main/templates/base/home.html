@@ -25,7 +25,8 @@
     <script src="{% static 'main/js/datetime-picker.min.js' %}"></script>
     {% comment %}<script src="https://cdnjs.cloudflare.com/ajax/libs/oclazyload/1.0.9/ocLazyLoad.min.js"></script>
     <script src="{% static 'main/js/angular-css.min.js' %}"></script>
-    {% endcomment %}<script src="{% endcache %}{% static 'jsi18n/'|add:request.LANGUAGE_CODE|add:'/djangojs.js' %}{% cache None head1 %}"></script>
+    {% endcomment %}<script src="{% endcache %}{% static 'jsi18n/'|add:request.LANGUAGE_CODE|add:'/djangojs.js' %}{% if request.LANGUAGE_CODE != 'en-us' %}"></script>
+    <script src="{% static 'main/js/angular-locale_'|add:request.LANGUAGE_CODE|add:'.js' %}{% endif %}{% cache None head1 %}"></script>
     <script src="{% static 'main/js/custom/main.js' %}"></script>
     <script>app.constant('BASE_MODAL', '{% static 'main/modals/base.html' %}')
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})

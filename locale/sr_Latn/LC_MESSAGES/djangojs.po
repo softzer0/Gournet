@@ -811,3 +811,18 @@ msgid_plural "Born {{ edit.birth.value | ageFilter }} years ago"
 msgstr[0] "Rođen/a pre {{ edit.birth.value | ageFilter }} godinu"
 msgstr[1] "Rođen/a pre {{ edit.birth.value | ageFilter }} godine"
 msgstr[2] "Rođen/a pre {{ edit.birth.value | ageFilter }} godina"
+
+msgid "Now"
+msgstr "Sada"
+
+msgid "Clear"
+msgstr "Očisti"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Time"
+msgstr "Vreme"
+
+msgid "Close"
+msgstr "Zatvori"

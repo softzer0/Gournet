@@ -583,7 +583,7 @@ class CommentSerializer(CTSerializer, BaseSerializer):
         if not self.read_only and not likes and ('person' in self.context or 'curruser' in self.context or 'business' in self.context or 'ids' in self.context or 'feed' in self.context):
             context = self.context.copy()
             if 'business' not in self.context:
-                self.fields['content_object'] = BusinessSerializer(read_only=True)
+                self.fields['content_object'] = BusinessSerializer(read_only=True, location='feed' in self.context)
                 if 'ids' not in self.context:
                     context.pop('person', False)
                     context.pop('feed', False)
