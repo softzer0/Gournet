@@ -1705,9 +1705,6 @@ msgstr "Šifra je uspešno promenjena."
 msgid "Your primary e-mail address must be verified."
 msgstr "Vaša primarna e-mail adresa mora biti verifikovana."
 
-#: templates/account/password_change.html:5
-#: templates/account/password_change.html:8
-#: templates/account/password_change.html:13
 #: templates/account/password_reset_from_key.html:10
 #: templates/account/password_reset_from_key_done.html:9
 msgid "Change Password"
@@ -1791,8 +1788,6 @@ msgid "We are sorry, but the sign up is currently closed."
 msgstr "Žao nam je, ali registracije su trenutno zatvorene."
 
 #: templates/account/verification_sent.html:8
-#: templates/account/verified_email_required.html:5
-#: templates/account/verified_email_required.html:8
 msgid "Verify Your E-mail Address"
 msgstr "Verifikujte Vašu e-mail adresu"
 
@@ -1805,35 +1800,6 @@ msgstr ""
 "Mi smo Vam poslali e-mail za verifikaciju. Pratite link koji ćete dobiti da "
 "bi završili proces registracije. Molimo kontaktirajte nas ako ga ne primite "
 "u roku od par minuta."
-
-#: templates/account/verified_email_required.html:12
-msgid ""
-"This part of the site requires us to verify that\n"
-"you are who you claim to be. For this purpose, we require that you\n"
-"verify ownership of your e-mail address. "
-msgstr ""
-"Za ovaj deo sajta zahtevamo da verifikujemo\n"
-"da ste Vi ta osoba za koju tvrdite da jeste. Zato, mi zahtevamo od Vas da\n"
-"potvrdite vlasništvo Vaše e-mail adrese. "
-
-#: templates/account/verified_email_required.html:16
-msgid ""
-"We have sent an e-mail to you for\n"
-"verification. Please click on the link inside this e-mail. Please\n"
-"contact us if you do not receive it within a few minutes."
-msgstr ""
-"Mi smo Vam poslali e-mail za\n"
-"verifikaciju. Molimo kliknite na link unutar tog e-maila. Molimo\n"
-"kontaktirajte nas ako ga ne primite u roku od par minuta."
-
-#: templates/account/verified_email_required.html:20
-#, python-format
-msgid ""
-"<strong>Note:</strong> you can still <a href=\"%(email_url)s\">change your e-"
-"mail address</a>."
-msgstr ""
-"<strong>Napomena:</strong> Vi i dalje možete <a href=\"%(email_url)s"
-"\">promeniti Vašu e-mail adresu</a>."
 
 #: templates/socialaccount/authentication_error.html:8
 msgid "Social Network Login Failure"
