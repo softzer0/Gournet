@@ -57,10 +57,10 @@ app
             menuService.new(el.val(), angular.element('[name=\'forms.item\'] [name=\'price\']').val(), cat).then(
                 function () {
                     el.val('');
+                    l();
                     if (!ch) return;
                     $scope.$parent.unpub = gettext("This message will disappear once your business is approved. When published, it will become visible/accessible to others.");
                     ch = false;
-                    l();
                 }, l
                 /*function (result) {
                     if (result.data !== undefined && result.data.non_field_errors !== undefined) {
