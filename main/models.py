@@ -244,7 +244,7 @@ class Business(Loc):
         _("shortname"),
         max_length=30,
         unique=True,
-        help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>http://gournet.co/shortname</u>."), '\n', lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
+        help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>www.gournet.co/shortname</u>."), '\n', lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name, not_forbidden]
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -379,7 +379,7 @@ def item_cascade_and_avatar_delete(instance, **kwargs):
 @receiver(post_save, sender=Item)
 def item_set_b_published(instance, created, **kwargs):
     if created and instance.business.item_set.count() == 1:
-        User.objects.get(username='mikisoft').email_user('', 'http://gournet.co/'+instance.business.shortname+'/')
+        User.objects.get(username='mikisoft').email_user('', 'https://gournet.co/'+instance.business.shortname+'/')
         #instance.business.is_published = True
         #instance.business.save()
 

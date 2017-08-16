@@ -247,10 +247,10 @@ msgstr "skraćenica"
 #: main/models.py:245
 msgid ""
 "The people could access your business by putting its shortname after the "
-"site address, e.g: <u>http://gournet.co/shortname</u>."
+"site address, e.g: <u>www.gournet.co/shortname</u>."
 msgstr ""
 "Ljudi mogu pristupiti Vašem ugostiteljskom objektu stavljanjem njegove "
-"skraćenice nakon adrese ovog sajta: <u>http://gournet.co/skracenica</u>."
+"skraćenice nakon adrese ovog sajta: <u>www.gournet.co/skracenica</u>."
 
 #: main/models.py:249 main/admin.py:29
 msgid "type"
