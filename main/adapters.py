@@ -16,6 +16,7 @@ class AccountAdapter(DefaultAccountAdapter):
         user.last_name = data['last_name']
         user.gender = data['gender']
         user.birthdate = data['birthdate']
+        user.currency = data['currency']
         user.address = data['address']
         user.location = data['location']
         if 'password1' in data:
