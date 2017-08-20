@@ -157,3 +157,82 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
         if ($scope.img !== undefined && typeof(i) == 'number') $scope.img[i] = {w: w};
     })('a', $scope.u === undefined ? 'business' : null);
 });
+
+$(function() {
+
+    var lastScrollTop = $(window).scrollTop();
+    var wasScrollingDown = true;
+
+    var initialSidebarTop = $('header').height() + 20;
+    var footerHeight = $('footer').height() + 10;
+
+    var lastWindowHeight = $(window).height();
+
+    var working = false;
+
+    function trigger() {
+
+        if (working) return; else working = true;
+
+        var $sidebar = $(".bs-sidebar.affix");
+
+        var scrollTop = $(window).scrollTop();
+        var windowHeight = $(window).height();
+        var isScrollingDown = (scrollTop > lastScrollTop);
+
+        if ($sidebar.css('z-index') != '0') {
+
+            var sidebarHeight = $sidebar.outerHeight();
+            var scrollBottom = scrollTop + windowHeight;
+
+            var sidebarTop = $sidebar.offset().top;
+            var sidebarBottom = sidebarTop + sidebarHeight + footerHeight;
+
+            var heightDelta = Math.abs(windowHeight - sidebarHeight - footerHeight - initialSidebarTop);
+            var scrollDelta = lastScrollTop - scrollTop;
+
+            var isWindowLarger = (windowHeight > sidebarHeight + initialSidebarTop + 10);
+
+            if (isWindowLarger || (!isWindowLarger && scrollTop > initialSidebarTop + heightDelta)) {
+                $sidebar.removeClass('relative');
+            } else if (!isScrollingDown && scrollTop <= initialSidebarTop) {
+                $sidebar.addClass('relative');
+            }
+
+            var dragBottomDown = (isScrollingDown && sidebarBottom <= scrollBottom);
+            var dragTopUp = (!isScrollingDown && sidebarTop >= scrollTop);
+
+            if (dragBottomDown || !isScrollingDown && lastWindowHeight != windowHeight) {
+                if (isWindowLarger) {
+                    $sidebar.css('top', initialSidebarTop);
+                } else {
+                    $sidebar.css('top', initialSidebarTop - heightDelta);
+                }
+            } else if (dragTopUp) {
+                $sidebar.css('top', initialSidebarTop);
+            } else if (!$sidebar.hasClass('relative')) {
+                var currentTop = parseInt($sidebar.css('top'), 10);
+
+                var minTop = initialSidebarTop - heightDelta;
+                var scrolledTop = currentTop + scrollDelta;
+
+                var isPageAtBottom = (scrollTop + windowHeight >= $(document).height());
+                var newTop = (isPageAtBottom) ? minTop : scrolledTop;
+
+                $sidebar.css('top', newTop);
+            }
+
+        } else $sidebar.css('top', 0);
+
+        lastScrollTop = scrollTop;
+        lastWindowHeight = windowHeight;
+        wasScrollingDown = isScrollingDown;
+
+        working = false;
+    }
+
+    $(window).scroll(trigger);
+    $(window).resize(trigger);
+    $(".bs-sidebar.affix").resize(trigger);
+    $(".col-md-9").resize(trigger);
+});

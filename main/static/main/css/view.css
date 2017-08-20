@@ -93,19 +93,20 @@
 
 .bs-sidebar.affix {
 	/*right: auto !important;*/
-	top: 70px;
-}
-
-@media (max-width: 991px) {
-.bs-sidebar.affix {
+	z-index: 0;
 	top: 0;
 	width: initial;
 	position: relative;
-  }
+}
+
+.relative {
+	top: 0 !important;
+	position: relative !important;
 }
 
 @media (min-width: 992px) {
   .bs-sidebar.affix {
+	z-index: 1;
 	top: 70px;
 	width: 213px;
 	position: fixed;

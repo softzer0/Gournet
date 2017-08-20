@@ -21,7 +21,7 @@
 
 {% block rowatt %}ng-controller="BusinessCtrl" ng-init="minchar = {{ minchar }}{% if fav_state > -1 %}; fav_count = {{ fav_count }}; fav_state = {{ fav_state }}{% endif %}"{% endblock %}
 
-{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache None edit_data %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}edit = gened([{{ business.type }}, '{{ business.name }}', '{{ business.shortname }}']){% endcache %}">
+{% block name_content %}{% if fav_state == -1 %}<div class="inline namef br2" ng-cloak click-outside="co(edit, 'disabled')" ng-init="{% cache None edit_data %}{% load main_tags %}{% for n in edit_data %}{{ n }} = [{% for t in edit_data|get_item:n %}'{% if t.1|length|get_digit:'-1' > 1 %}{{ t.1 }}{% else %}{{ t }}{% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}]; {% endfor %}{% endcache %}edit = gened([{{ business.type }}, '{{ business.name }}', '{{ business.shortname }}'])">
                         <a class="n lead text-center" ng-show="edit.disabled" ng-click="edit.disabled = false">{% verbatim %}{{ types[edit.value[0]] }} "{{ edit.value[1] }}"{% endverbatim %}</a>
                         <div ng-hide="edit.disabled">
                             <div>
