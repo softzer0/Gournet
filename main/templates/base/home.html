@@ -71,7 +71,7 @@
             </ul>
         </div>
     </script>
-    <script type="text/ng-template" id="likes"
+    {% cache None like_comm request.LANGUAGE_CODE %}<script type="text/ng-template" id="likes"
         ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 1}" ng-click="giveDisLike(o[1], false, o[2])"><i class="fa fa-plus-square"></i> {% verbatim %}{{ o[0].likestars_count }}{% endverbatim %}</a
         ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-plus-square"></i> {% verbatim %}{{ o[0].likestars_count }}{% endverbatim %}</span
 
@@ -89,16 +89,16 @@
         ><span ng-if="m.obj.created === undefined || m.obj.manager_stars.status === undefined"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="{% trans "Manager" %}">{% trans "M" context 'manager' %}</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="{% trans "Stars" %}">{% verbatim %}{{ m.obj.manager_stars }}{% endverbatim %} <i class="fa fa-star"></i></span></span
         ><span ng-if="m.obj.created !== undefined && m.obj.manager_stars.status !== undefined"
             ><span ng-switch="m.obj.manager_stars.status" uib-tooltip="{% trans "Status" %}" class="lhin"
-                >{% cache None review_status %}{% for s in review_status %}<span ng-switch-when="{{ forloop.counter0 }}" class="label {{ s.1 }}">{{ s.0 }}</span
-                >{% endfor %}{% endcache %}</span
+                >{% for s in review_status %}<span ng-switch-when="{{ forloop.counter0 }}" class="label {{ s.1 }}">{{ s.0 }}</span
+                >{% endfor %}</span
             ><span ng-include="'likes'" new-scope ng-init="o = [m.obj.manager_stars, k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index]"></span
         ></span
         ><span ng-if="m.obj.can_delete"><a href="javascript:" ng-dialog-message="{% trans "Are you sure that you want to delete this comment?" %}" ng-dialog-click="delete(k !== undefined ? $parent.$parent.$parent.$parent.$index : null, k !== undefined ? $parent.$parent.$parent.$parent.$parent.$parent.$index : $parent.$parent.$parent.$index, k)"><i class="fa fa-times"></i> {% trans "Delete" %}</a></span>
         <p>{% verbatim %}{{ m.obj.text }}{% endverbatim %} <small class="text-muted">&mdash; {% verbatim %}{{ m.obj.created | timeAgo }}{% endverbatim %}</small></p>
-    </script>{% endblock %}
+    </script>{% endcache %}{% endblock %}
 
 {% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}{% block footer_extra %}{% endblock %}
-{% block navbar %}<form class="navbar-form navbar-left" role="search">
+{% block navbar %}{% cache None navbar request.LANGAUGE_CODE %}<form class="navbar-form navbar-left" role="search">
                 <div class="form-group" click-outside="co(search, 'show', true)">
                     <input type="text" class="form-control" id="sr" placeholder="{% trans "Search" %}" select-on-click ng-model="search.keywords" ng-change="search.func()" ng-focus="search.show = search.keywords != ''; search.chngl()" ng-model-options="{updateOn: 'default blur', debounce: {default: 1000, blur: 0}}">
                     <div id="quicks" ng-show="search.show" ng-cloak>
@@ -110,7 +110,7 @@
                         <a ng-if="search.has_more === undefined || search.has_more" ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=business"><i class="fa fa-map-pin"></i> {{ '{' }}{{ '{' }} search.count != null ? "{% trans "Find other businesses..." %}" : "{% trans "Find businesses..." %}" {{ '}' }}{{ '}' }}</a>
                         <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=event"><i class="fa fa-calendar"></i> {% trans "Find events..." %}</a>
                         <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=item"><i class="fa fa-th-list"></i> {% trans "Find items..." %}</a>
-                        <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> {% trans "Find users..." %}{% cache None navbar_button %}</a>
+                        <a ng-href="/#/filter={% verbatim %}{{ search.keywords }}{% endverbatim %}&type=user"><i class="fa fa-users"></i> {% trans "Find users..." %}</a>
                     </div>
                 </div>
             </form>

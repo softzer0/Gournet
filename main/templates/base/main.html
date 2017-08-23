@@ -24,10 +24,9 @@
         </div>{% endblock %}
     </header>
 
-    <div class="container w">{% block container %}
-{% endblock %}    </div>
+    <div class="container w">{% block container %}{% endblock %}    </div>
 
-    <footer class="navbar navbar-fixed-bottom">
+    {% cache None footer lang %}<footer class="navbar navbar-fixed-bottom">
         <div class="container">
             <div>
                 <div>
@@ -48,7 +47,7 @@
                 </div>
             </div>
         </div>
-    </footer>
+    </footer>{% endcache %}
 
     {% block end %}{% endblock %}
 </body>
