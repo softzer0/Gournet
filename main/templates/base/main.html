@@ -41,13 +41,13 @@
                             <li><a href="{% url 'tos' %}">{% trans "Terms of Service" %}</a></li>
                             <li><a href="{% url 'privacy-policy' %}">{% trans "Privacy Policy" %}</a></li>
                         </ul>
-                        <ul class="nav navbar-nav navbar-header more_b"><li><a href="javascript:" ng-click="switchMore()"><i class="fa" ng-class="'fa-caret-square-o-'+(footer_more ? 'down' : 'up')"></i></a></ul>{% block footer_extra %}
+                        <ul class="nav navbar-nav navbar-header more_b"><li><a href="javascript:" ng-click="switchMore()"><i class="fa" ng-class="'fa-caret-square-o-'+(footer_more ? 'down' : 'up')"></i></a></ul>{% endcache %}{% block footer_extra %}
                         <ul class="nav navbar-nav navbar-header"><li><a href="?lang={% if lang == 'sr-latn' %}en-us{% else %}sr-latn{% endif %}" class="text-right text-muted">{% if lang == 'sr-latn' %}Switch to English{% else %}Prebaci na srpski jezik{% endif %}</a></li></ul>{% endblock %}
                     </div>
                 </div>
             </div>
         </div>
-    </footer>{% endcache %}
+    </footer>
 
     {% block end %}{% endblock %}
 </body>

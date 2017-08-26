@@ -161,7 +161,6 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
 $(function() {
 
     var lastScrollTop = $(window).scrollTop();
-    var wasScrollingDown = true;
 
     var initialSidebarTop = $('header').height() + 20;
     var footerHeight = $('footer').height() + 10;
@@ -193,7 +192,7 @@ $(function() {
 
             var isWindowLarger = (windowHeight > sidebarHeight + initialSidebarTop + 10);
 
-            if (isWindowLarger || (!isWindowLarger && scrollTop > initialSidebarTop + heightDelta)) {
+            if (isWindowLarger && $sidebar.hasClass('relative') || (!isWindowLarger && scrollTop > initialSidebarTop + heightDelta)) {
                 $sidebar.removeClass('relative');
             } else if (!isScrollingDown && scrollTop <= initialSidebarTop) {
                 $sidebar.addClass('relative');
@@ -226,7 +225,6 @@ $(function() {
 
         lastScrollTop = scrollTop;
         lastWindowHeight = windowHeight;
-        wasScrollingDown = isScrollingDown;
 
         working = false;
     }
