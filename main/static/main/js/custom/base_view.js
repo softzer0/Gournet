@@ -173,7 +173,7 @@ $(function() {
 
         if (working) return; else working = true;
 
-        var $sidebar = $(".bs-sidebar.affix");
+        var $sidebar = $('.bs-sidebar.affix');
 
         var scrollTop = $(window).scrollTop();
         var windowHeight = $(window).height();
@@ -231,6 +231,6 @@ $(function() {
 
     $(window).scroll(trigger);
     $(window).resize(trigger);
-    $(".bs-sidebar.affix").resize(trigger);
-    $(".col-md-9").resize(trigger);
+    $('.bs-sidebar.affix').resize(trigger);
+    $('.col-md-9').resize(trigger);
 });
