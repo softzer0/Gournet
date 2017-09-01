@@ -151,12 +151,12 @@ SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
         'SCOPE': ['email', 'public_profile', 'user_birthday', 'user_location'],
         'AUTH_PARAMS': {'auth_type': 'https'},
-        'METHOD': 'oauth2',
-        'VERIFIED_EMAIL': True
+        'VERIFIED_EMAIL': True,
+        'FIELDS': ['id', 'email', 'first_name', 'last_name', 'gender', 'birthday', 'location']
     },
     'google': {
-        'SCOPE': ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/plus.me'], #, 'https://www.googleapis.com/auth/userinfo.profile'], 
-        'AUTH_PARAMS': {'access_type': 'online'},
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'}
     }
 }
 

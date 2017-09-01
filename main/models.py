@@ -90,7 +90,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         _("username"),
         max_length=30,
         unique=True,
-        help_text=string_concat(lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
+        help_text=string_concat(lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English alphabet (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name],
         error_messages={'unique': _("A user with that username already exists.")},
     )
@@ -244,7 +244,7 @@ class Business(Loc):
         _("shortname"),
         max_length=30,
         unique=True,
-        help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>www.gournet.co/shortname</u>."), '\n', lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English letters (case-insensitive), digits and ./-/_ only.")),
+        help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>www.gournet.co/shortname</u>."), '\n', lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English alphabet (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name, not_forbidden]
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)

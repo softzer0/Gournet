@@ -41,7 +41,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             elif sociallogin.account.extra_data['gender'] == 'female':
                 user.gender = 1
         if 'birthday' in sociallogin.account.extra_data:
-            user.birthdate = datetime.strptime(sociallogin.account.extra_data['birthday'], "%m/%d/%Y")
+            user.birthdate = datetime.strptime(sociallogin.account.extra_data['birthday'], '%m/%d/%Y').date()
         if 'location' in sociallogin.account.extra_data:
             user.address = sociallogin.account.extra_data['location']['name']
         #print(sociallogin.account.extra_data)
@@ -59,3 +59,11 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         if response and response.status_code == 200 and response.headers['content-type'] in ('image/jpeg', 'image/png', 'image/gif'):
             saveimgwiththumbs('user' if sociallogin.account.provider == 'facebook' else 0, user.pk, response.headers['content-type'][6:], ContentFile(response.content))
         return user
+
+    def get_signup_form_initial_data(self, sociallogin):
+        user = sociallogin.user
+        initial = super().get_signup_form_initial_data(sociallogin)
+        initial['gender'] = user.gender
+        initial['birthdate'] = user.birthdate
+        initial['address'] = user.address
+        return initial

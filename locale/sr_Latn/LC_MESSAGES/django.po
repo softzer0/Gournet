@@ -131,9 +131,9 @@ msgid "Maximum %d characters."
 msgstr "Maksimalno %d karaktera."
 
 #: main/models.py:101 main/models.py:245
-msgid "English letters (case-insensitive), digits and ./-/_ only."
+msgid "English alphabet (case-insensitive), digits and ./-/_ only."
 msgstr ""
-"Engleska slova (nije osetljivo na veličinu), brojevi i ./-/_ karakteri su "
+"Engleska abeceda (nije osetljivo na veličinu), brojevi i ./-/_ karakteri su "
 "samo dozvoljeni."
 
 #: main/models.py:103
