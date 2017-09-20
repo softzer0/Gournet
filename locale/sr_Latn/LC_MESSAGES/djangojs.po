@@ -616,7 +616,6 @@ msgid "Submit"
 msgstr "Pošalji"
 
 #: main/static/main/modals/friends.html:12
-#: main/static/main/modals/notifications.html:9
 #: main/static/main/modals/likes.html:17
 msgid "Load more"
 msgstr "Učitaj još"
@@ -657,10 +656,6 @@ msgstr "Nema favorita."
 #: main/static/main/modals/friends.html:18
 msgid "No friends."
 msgstr "Nema prijatelja."
-
-#: main/static/main/modals/notifications.html:13
-msgid "You don't have any notifications yet."
-msgstr "Još uvek nemate obaveštenja."
 
 #: main/static/main/modals/settings.html:2
 msgid "Password and email(s)"

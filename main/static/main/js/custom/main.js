@@ -1213,7 +1213,7 @@ app
                             $rootScope.title = '('+u+') '+$rootScope.title.slice(i);
                         } else markAllAsRead();
                     }
-                    if ($scope.opened) $scope.setSize(true);
+                    if ($scope.opened) setSize();
                     if ($scope.notif_loading) $timeout(function() { $scope.notif_loading = false });
                 }
                 if (frse === undefined) {
@@ -1223,24 +1223,26 @@ app
             });
             if (!notick) $timeout($scope.getNotifs, 10000);
         })();
-        var setScroll = function (e) {
-            var popc = e.find('.popover-content');
-            if (popc.height() < 18+popc.children('.dt').height()) popc.css('overflow-y', 'scroll'); else popc.css('overflow-y', 'hidden');
-        };
-        $scope.setSize = function (p) { $timeout(function () {
-            var e = angular.element('#notif').next();
-            //console.log(angular.element(window).width() - (e.offset().left + e.outerWidth()));
-            if (e.offset().left == 0 || e.offset().left == 1 || angular.element(window).width() - (e.offset().left + e.outerWidth()) == 66) {
-                //console.log(angular.element(window).width()+' '+(e.width()+66));
-                if (angular.element(window).width() <= e.width() + 66) {
-                    e.addClass('notif');
-                    e.children('.arrow').css('left', angular.element('#nf').offset().left + 6);
-                    //e.children('.popover-content').css('white-space', 'normal');
-                    setScroll(e); //e = e.find('.popover-content');
-                    // angular.element('#nct').scope().$apply(); // if (e.height() < 18+e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden');
-                } else if (p) setScroll(e);
-            } else $scope.setSize(p);
-        }, 1000) };
+        function setSize() {
+            function setScroll(e) {
+                var popc = e.find('.popover-content');
+                if (popc.height() < 18+popc.children('.dt').height()) popc.css('overflow-y', 'scroll'); else popc.css('overflow-y', 'hidden');
+            }
+            $timeout(function () {
+                var e = angular.element('#notif').next();
+                //console.log(angular.element(window).width() - (e.offset().left + e.outerWidth()));
+                if (e.offset().left == 0 || e.offset().left == 1 || angular.element(window).width() - (e.offset().left + e.outerWidth()) == 66) {
+                    //console.log(angular.element(window).width()+' '+(e.width()+66));
+                    if (angular.element(window).width() <= e.width() + 66) {
+                        e.addClass('fnotif');
+                        e.children('.arrow').css('left', angular.element('#nf').offset().left + 6);
+                        //e.children('.popover-content').css('white-space', 'normal');
+                        setScroll(e); //e = e.find('.popover-content');
+                        // angular.element('#nct').scope().$apply(); // if (e.height() < 18+e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden');
+                    } else setScroll(e);
+                } else setSize();
+            }, 1000);
+        }
         $scope.$watch('opened', function(value) {
             if (value === undefined) return;
             if (value && $scope.unread) {
@@ -1254,7 +1256,7 @@ app
                     $scope.has_next_page = true;
                 }
                 for (var i = 0; i < $scope.notifs.length; i++) if ($scope.notifs[i].unread) $scope.notifs[i].unread = false; else break;
-            } else $scope.setSize();
+            } else setSize();
             $scope.unread = false;
         });
         function markAllAsRead(){

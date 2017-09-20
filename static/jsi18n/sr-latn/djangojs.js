@@ -215,7 +215,6 @@
     "Yesterday": "Ju\u010de",
     "You can't delete the last remaining item!": "Ne mo\u017eete obrisati posledji preostali proizvod!",
     "You can't upload image larger than 4.5MB!": "Ne mo\u017eete poslati sliku ve\u0107u od 4.5MB!",
-    "You don't have any notifications yet.": "Jo\u0161 uvek nemate obave\u0161tenja.",
     "You have currently {{ emails.length }} email address associated with your account:": [
       "Imate trenutno {{ emails.length }} email adresu povezanu sa Va\u0161im nalogom:",
       "Imate trenutno {{ emails.length }} email adrese povezane sa Va\u0161im nalogom:",

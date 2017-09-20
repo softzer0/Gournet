@@ -36,9 +36,25 @@
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
-{% block begin %}<script type="text/ng-template" id="offcanvas">
+{% block begin %}{% cache None notif request.LANGAUGE_CODE %}
+    <script type="text/ng-template" id="notifications">
+        <div class="dt" ng-if="notifs.length">
+            <div ng-repeat="e in notifs">
+                <hr ng-if="!$first">
+                <a ng-class="{'text-info': e.unread}" href="{% verbatim %}{{ e.link }}{% endverbatim %}"><p ng-bind-html="e.text | unsafe"></p>
+                <p class="text-muted small text-left">{% verbatim %}{{ e.created | timeAgo }}{% endverbatim %}</p></a>
+            </div>
+            <div ng-show="has_next_page">
+                <hr>
+                <a ng-show="!notif_loading" href="javascript:" class="lm text-center" ng-click="getNotifs(true)">{% trans "Load more" %}</a>
+                <div class="loa loa-c" ng-if="notif_loading"><i class="fa fa-spinner"></i></div>
+            </div>
+        </div>
+        <div class="dt" ng-if="!notifs.length">{% trans "You don't have any notifications yet." %}</div>
+    </script>
+    <script type="text/ng-template" id="offcanvas">
         <div class="navmenu navmenu-default navmenu-fixed-right">
-            <a class="n" ng-click="c()" href="{% if usr == request.user %}javascript:{% else %}{% url 'user_profile' request.user.username %}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.pk }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+            <a class="n" ng-click="c()" href="{% endcache %}{% if usr == request.user %}javascript:{% else %}{% url 'user_profile' request.user.username %}{% endif %}"><img class="bor imo img-rounded" src="/images/{{ request.user.pk }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
             <ul class="nav navmenu-nav">
                 {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
                 <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url or business and business.manager == request.user %}javascript:{% else %}{{ create_url }}{% endif %}">{% trans "My business" %}</a></li>
@@ -115,7 +131,7 @@
                 </div>
             </form>
             <div id="nct" class="navbar-header pull-right" style="width: 105px;">
-                <a id="notif" class="clickable" popover-placement="bottom-right" uib-popover-template="'{% static 'main/modals/notifications.html' %}'" popover-trigger="outsideClick" popover-is-open="opened"><i id="nf" class="fa" ng-class="unread ? 'fa-bell' : 'fa-bell-o'"></i></a>
+                <a id="notif" class="clickable" popover-placement="bottom-right" uib-popover-template="'notifications'" popover-trigger="outsideClick" popover-is-open="opened"><i id="nf" class="fa" ng-class="unread ? 'fa-bell' : 'fa-bell-o'"></i></a>
                 <button type="button" class="navbar-toggle" ng-click="showOffcanvas()">
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>

@@ -542,6 +542,14 @@ msgstr "status"
 msgid "(None)"
 msgstr "(Ništa)"
 
+#: main/templates/base/home.html:49
+msgid "Load more"
+msgstr "Učitaj još"
+
+#: main/templates/base/home.html:53
+msgid "You don't have any notifications yet."
+msgstr "Još uvek nemate obaveštenja."
+
 #: main/templates/base/home.html:48
 msgid "My business"
 msgstr "Moj ugostiteljski objekat"

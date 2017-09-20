@@ -222,11 +222,11 @@ body, .mb3 p, .cmn p { /* , .nmb */
     padding: 9px 14px;
 }
 
-.notif {
+.fnotif {
     left: 1px !important;
     white-space: normal !important;
 }
-/*.notif > .arrow {
+/*.fnotif > .arrow {
     left: 85% !important;
 }*/
 
