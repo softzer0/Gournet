@@ -5,9 +5,12 @@ from related_admin import RelatedFieldAdmin, getter_for_related_field
 from django.db.models import Count, Avg
 from django.template.defaultfilters import truncatewords
 from django.contrib.contenttypes.models import ContentType
+from django.forms import ModelForm, TextInput
+from django.contrib.gis.db.models import PointField
 
 class BaseAdmin(admin.ModelAdmin):
     exclude = ('loc_projected',)
+    formfield_overrides = {PointField: {'widget': TextInput}}
 
 @admin.register(models.User)
 class UserAdmin(BaseAdmin):
@@ -35,11 +38,18 @@ class BaseObjAdmin(admin.ModelAdmin):
         return truncatewords(obj.text if hasattr(obj, 'text') else obj.name, 15)
     name_text.short_description = _("name/text")
 
+class BusinessForm(ModelForm):
+    class Meta:
+        model = models.Business
+        widgets = {'manager': TextInput}
+        fields = '__all__'
+
 @admin.register(models.Business)
 class BusinessAdmin(BaseObjAdmin, BaseAdmin):
     list_filter = ('type', 'is_published', HasItemsFilter)
     list_display = ('id', 'shortname', 'type', 'name', 'like_count', 'item_count', 'event_count', 'review_count', 'created', 'is_published')
     search_fields = ('shortname', 'name')
+    form = BusinessForm
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(like_count=Count('likes', distinct=True), item_count=Count('item', distinct=True), event_count=Count('event', distinct=True))
@@ -89,9 +99,16 @@ class CommentP(models.Comment):
         verbose_name = _("comment")
         verbose_name_plural = _("comments")
 
+class CommentForm(ModelForm):
+    class Meta:
+        model = CommentP
+        widgets = {'person': TextInput}
+        fields = '__all__'
+
 class BaseCommentAdmin(BaseObjAdmin, RelatedFieldAdmin):
     search_fields = ('person__username', 'person__first_name', 'person__last_name', 'text')
     list_display = ('person__username', 'person__first_name', 'person__last_name', 'text', 'created')
+    form = CommentForm
 
 @admin.register(CommentP)
 class CommentAdmin(BaseCommentAdmin):

@@ -68,7 +68,7 @@ app
                         }
                         if (j === false) {*/
                         r = num ? func_num == obj.obj_id : func_num(obj);
-                        if (del && r || !num && del_each !== undefined/* || r === null*/) if (del_each || objs[i].location === undefined) delete obj.location; else /*if (del_each === null)*/ objs.splice(i, 1); //else s.push(obj);
+                        if (del && r || !num && del_each !== undefined/* || r === null*/) if (del_each || obj.location !== undefined) delete obj.location; else /*if (del_each === null)*/ objs.splice(i, 1); //else s.push(obj);
                         if (r) return true; //|| r === null
                         //}
                     }
@@ -103,22 +103,23 @@ app
         $scope.$parent.loading = true;
         $scope.markers = markerService.markers;
         $scope.click = markerService.click;
-        $scope.isCoord = function (){ return typeof($scope.warn) == 'object' };
+        $scope.isCoord = function (){ return $scope.warn !== null && typeof($scope.warn) == 'object' };
         function getObjs() { return angular.element('[class*=\'objsfalse\']') }
         function disableWatch() {
             if ($scope.wid === undefined) return;
             navigator.geolocation.clearWatch($scope.wid);
             $scope.$parent.wid = undefined;
         }
-        function setWarnPos(position, isinit) {
+        function setWarnPos(position) {
             disableWatch();
-            $scope.warn = {latitude: position.coords.latitude, longitude: position.coords.longitude};
-            if (isinit) $scope.warn.is_init = true;
+            if ($scope.warn === null) $scope.warn = {is_init: null}; else if ($scope.map === undefined) $scope.warn = {is_init: true}; else if (typeof($scope.warn) != 'object') $scope.warn = {};
+            $scope.warn.latitude = position.coords.latitude;
+            $scope.warn.longitude = position.coords.longitude;
         }
         function initPos(init, position) {
             var obj;
-            if (position === undefined || position.coords.accuracy > 100) {
-                if (position !== undefined) setWarnPos(position, true);
+            if (position === undefined || position.coords.accuracy >= 100) {
+                if (position !== undefined) setWarnPos(position);
                 obj = USER.home;
             } else obj = position.coords;
             init({latitude: obj.latitude, longitude: obj.longitude}).then(function () {
@@ -136,7 +137,8 @@ app
                     if ($scope.map === undefined) initPos(init, position);
                     else if (position.coords.accuracy < 100) {
                         if ($scope.warn !== undefined) $scope.warn = undefined;
-                        if (position.coords.latitude != $scope.map.marker.latitude || position.coords.longitude != $scope.map.marker.longitude) $scope.setCoords(position.coords);
+                        if (Math.abs(position.coords.latitude - $scope.$parent.coords.latitude) * Math.pow(10, 7) < 500 && Math.abs(position.coords.longitude - $scope.$parent.coords.longitude) * Math.pow(10, 7) < 500) return;
+                        $scope.setCoords(position.coords);
                     } else setWarnPos(position);
                 },
                 function (error) {
@@ -158,14 +160,19 @@ app
                 function (init) { enableWatch(init) },
                 function (args) {
                     var ctrl = getObjs(), state = ctrl.injector().get('$state');
-                    if (ctrl[0].className.indexOf('user') == -1 && (state.current.name == 'main.main' || ctrl.scope().objs.length > 0)) ctrl.scope().load(); else state.go('main.main');
-                    if (args.length) disableWatch();
+                    if (ctrl[0].className.indexOf('user') == -1 && (state.current.name == 'main.main' || ctrl.scope().objs.length > 0)) ctrl.scope().load(); else if (ctrl[0].className.indexOf('user') == -1 || args.length) state.go('main.main');
+                    if (args.length) {
+                        disableWatch();
+                        $scope.warn = null;
+                    }
                 }
             ]}));
         });
         $scope.doUseEnable = function (){
-            if ($scope.isCoord()) $scope.setCoords($scope.warn); else enableWatch();
-            $scope.warn = undefined;
+            if ($scope.isCoord()) {
+                $scope.setCoords($scope.warn);
+                $scope.warn = 1;
+            } else enableWatch();
         };
         $scope.setCenterHome = function (home){ $scope.setCoords(home ? USER.home : $scope.map.control.getGMap().getCenter(), false) };
     })

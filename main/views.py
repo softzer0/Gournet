@@ -173,11 +173,12 @@ def show_business(request, shortname):
     data['fav_count'] = data['business'].likes.count()
     data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
     data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
-    data['workh'] = {'value': []}
-    for f in ('', '_sat', '_sun'):
-        if getattr(data['business'], 'opened'+f) is not None and getattr(data['business'], 'closed'+f) is not None:
-            data['workh']['value'].append(time_format(getattr(data['business'], 'opened'+f), 'H:i'))
-            data['workh']['value'].append(time_format(getattr(data['business'], 'closed'+f), 'H:i'))
+    def popl():
+        data['workh'] = {'value': []}
+        for f in ('', '_sat', '_sun'):
+            if getattr(data['business'], 'opened'+f) is not None and getattr(data['business'], 'closed'+f) is not None:
+                data['workh']['value'].append(time_format(getattr(data['business'], 'opened'+f), 'H:i'))
+                data['workh']['value'].append(time_format(getattr(data['business'], 'closed'+f), 'H:i'))
     if request.user != data['business'].manager:
         if data['business'].likes.filter(person=request.user).exists():
             increase_recent(request, data['business'])
@@ -189,13 +190,16 @@ def show_business(request, shortname):
             data['rating'].append(models.Review.objects.filter(object_id=data['business'].pk, person=request.user).stars)
         except:
             data['rating'].append(0)
-        data['workh']['display'] = data['workh']['value']
+        if data['business'].opened != data['business'].closed or data['business'].opened_sat:
+            popl()
+            data['workh']['display'] = data['workh']['value']
     else:
         data['fav_state'] = -1
         if not cache.get(make_template_fragment_key('edit_data')):
             data['edit_data'] = {'types': models.BUSINESS_TYPE, 'forbidden': models.FORBIDDEN}
             data['curr'] = models.CURRENCY
             data['form'] = forms.DummyCategory()
+        popl()
         data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
     return render(request, 'view.html', data)

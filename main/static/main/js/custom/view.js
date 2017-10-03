@@ -1,4 +1,6 @@
 app
+    .filter('revc', function() { return function(input) { return input.split(',')[1]+','+input.split(',')[0] } })
+
     .factory('menuService', function ($q, APIService){
         var itemService = APIService.init(8), menu, defer = $q.defer(); //, category
 
@@ -226,10 +228,12 @@ app
             $rootScope.$watch('currTime', $scope.ref_is_opened);
         };
         $scope.ref_is_opened = function (){
-            var now = moment().tz($scope.data.tz), day = now.weekday(), d = [moment.tz(day == 6 && workh.length >= 4 ? workh[2] : day == 7 && workh.length == 6 ? workh[4] : workh[0], 'HH:mm', $scope.data.tz), moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz)];
-            day = now.date();
-            for (var i = 0; i < 2; i++) if (day > d[i].date()) d[i].add(day - d[i].date(), 'days'); else if (d[i].date() > day) d[i].subtract(d[i].date() - day, 'days');
-            if (d[1].isBefore(d[0]) || d[1].isSame(d[0])) if (now.isBefore(d[0])) $scope.is_opened = now.isBefore(d[1]); else $scope.is_opened = true; else $scope.is_opened = now.isBefore(d[1]) && (d[0].isBefore(now) || d[0].isSame(now));
+            if (workh[0] != workh[1] || workh.length >= 4 && workh[2] != workh[3] && (workh.length != 6 || workh[4] != workh[5])) {
+                var now = moment().tz($scope.data.tz), day = now.weekday(), d = [moment.tz(day == 6 && workh.length >= 4 ? workh[2] : day == 7 && workh.length == 6 ? workh[4] : workh[0], 'HH:mm', $scope.data.tz), moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz)];
+                day = now.date();
+                for (var i = 0; i < 2; i++) if (day > d[i].date()) d[i].add(day - d[i].date(), 'days'); else if (d[i].date() > day) d[i].subtract(d[i].date() - day, 'days');
+                if (d[1].isBefore(d[0]) || d[1].isSame(d[0])) if (now.isBefore(d[0])) $scope.is_opened = now.isBefore(d[1]); else $scope.is_opened = true; else $scope.is_opened = now.isBefore(d[1]) && (d[0].isBefore(now) || d[0].isSame(now));
+            } else $scope.is_opened = null;
         };
 
         $scope.dismissI = function() {
@@ -340,7 +344,7 @@ app
                         a[1] = i;
                         r = checkField($scope.data, a, false, f);
                         if (r) d[p[i+4]] = r;
-                    }
+                    } else if ($scope.data.value[0].length > i) d[p[i+4]] = null;
                     if (Object.keys(d).length == 0) {
                         $scope.close();
                         return;
@@ -351,7 +355,13 @@ app
                         a = Object.keys(d);
                         for (i = 0; i < a.length; i++) {
                             r = p.indexOf(a[i]);
-                            if (r < 4) $scope.data.value[r+1] = $scope.data.form[r+1]; else $scope.data.value[0][r-4] = d[a[i]];
+                            if (r >= 4) {
+                                if (r >= 6 && !$scope.work[r < 8 ? 0 : 1]) {
+                                    $scope.data.value[0].splice(r-4);
+                                    break;
+                                }
+                                $scope.data.value[0][r-4] = d[a[i]];
+                            } else $scope.data.value[r+1] = $scope.data.form[r+1];
                         }
                         if (d.address !== undefined || d.location !== undefined || r >= 4) {
                             $scope.data.tz = result.tz;

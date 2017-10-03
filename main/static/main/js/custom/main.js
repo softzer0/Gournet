@@ -600,10 +600,8 @@ app
             if (ids == '') return $q.when(); else if (ids == null) {
                 if (cn !== undefined) {
                     this.ld.position = cn.longitude+','+cn.latitude;
-                    if (this.props.next !== undefined) {
-                        delete this.props.next;
-                        cn = null;
-                    }
+                    cn = null;
+                    if (this.props.next !== undefined) delete this.props.next;
                 }
                 this.unloaded[0] = false;
                 if (b !== undefined) if (typeof(b) == 'string') this.ld.search = b; else this.ld.id = b;

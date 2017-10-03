@@ -51,7 +51,7 @@ user_short_name = RegexValidator(
                 )
 
 class Loc(models.Model):
-    location = PointField(_("latitude/longitude"), geography=True, error_messages={'invalid': _("Enter valid coordinates.")}) #, geography=True
+    location = PointField(_("longitude/latitude"), geography=True, error_messages={'invalid': _("Enter valid coordinates.")}) #, geography=True
     loc_projected = PointField(srid=3857)
     address = models.CharField(_("address"), max_length=130)
     tz = TimeZoneField(verbose_name=_("time zone"), default=settings.TIME_ZONE)
@@ -258,7 +258,7 @@ class Business(Loc):
     closed_sat = models.TimeField(_("closing time on Saturday"), null=True, blank=True)
     closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
     currency = models.CharField(_("default currency"), choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
-    supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True, max_length=3)
+    supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True)
     is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')

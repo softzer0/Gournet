@@ -2,6 +2,25 @@ footer > div > div > div > *:first-child {
     width: 23%;
 }
 
+@media (max-width: 405px) {
+    footer > div > div > div > .sr-latn + div > .nav > li > * {
+        /*padding: 10px 5px;*/
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    /*footer {
+        min-height: 40px !important;
+    }*/
+}
+
+@media (max-width: 435px) {
+    footer > div > div > div > .en-us + div > .nav > li > * {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+}
+
 @media (max-width: 710px) {
     footer .more {
         display: none;
@@ -17,13 +36,37 @@ footer > div > div > div > *:first-child {
 }
 
 @media (max-width: 405px) {
-    footer > div > div > div > *:first-child {
-        width: 48%;
+    footer > div > div > div > .sr-latn {
+        width: 49%;
     }
 }
 
 @media (max-width: 360px) {
-    footer > div > div > div > *:first-child {
+    footer > div > div > div > .sr-latn {
+        width: 45.8%;
+    }
+}
+
+@media (max-width: 305px) {
+    footer > div > div > div > .sr-latn {
         width: 44%;
+    }
+}
+
+@media (max-width: 415px) {
+    footer > div > div > div > .en-us {
+        width: 50%;
+    }
+}
+
+@media (max-width: 385px) {
+    footer > div > div > div > .en-us {
+        width: 46%;
+    }
+}
+
+@media (max-width: 360px) {
+    footer > div > div > div > .en-us {
+        width: 37%;
     }
 }

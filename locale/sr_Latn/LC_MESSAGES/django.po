@@ -110,8 +110,8 @@ msgid "Female"
 msgstr "Ženski"
 
 #: main/models.py:62
-msgid "latitude/longitude"
-msgstr "latituda/longituda"
+msgid "longitude/latitude"
+msgstr "longituda/latituda"
 
 #: main/models.py:62
 msgid "Enter valid coordinates."
@@ -1433,6 +1433,10 @@ msgstr[2] "<strong>%(counter)s</strong></a> osoba je favorizovalo ovo"
 #: main/templates/view.html:69
 msgid "Edit"
 msgstr "Izmeni"
+
+#: main/templates/view.html:73
+msgid "Always opened"
+msgstr "Uvek otvoreno"
 
 #: main/templates/view.html:73
 msgid "Currently opened"
