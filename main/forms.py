@@ -37,7 +37,7 @@ def clean_loc(self, cleaned_data, noloc=False, retraw=False):
     if retraw and loc:
         return loc.raw
 
-def business_clean_data(self, cleaned_data):
+def business_clean_data(self, cleaned_data, upd=False):
     if cleaned_data.get('name', False):
         cleaned_data['name'] = cleaned_data['name'].replace('"', '\'')
     if cleaned_data.get('supported_curr', False) and cleaned_data.get('currency', False):
@@ -54,9 +54,12 @@ def business_clean_data(self, cleaned_data):
         cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(',', ' ')+')')
     if isinstance(self, forms.ModelForm) or 'address' in cleaned_data or 'location' in cleaned_data:
         clean_loc(self, cleaned_data)
+    if upd:
+        return
     if cleaned_data.get('opened_sun', False) and not cleaned_data.get('opened_sat', False):
-        cleaned_data.pop('opened_sun')
-        cleaned_data.pop('closed_sun')
+        cleaned_data.pop('closed_sat', None)
+        cleaned_data.pop('opened_sun', None)
+        cleaned_data.pop('closed_sun', None)
 
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)

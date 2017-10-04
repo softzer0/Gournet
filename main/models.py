@@ -273,6 +273,14 @@ class Business(Loc):
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
+@receiver(pre_save, sender=Business)
+def business_check_time(instance, **kwargs):
+    for f in ('sat', 'sun'):
+        if getattr(instance, 'opened_'+f) and not getattr(instance, 'closed_'+f):
+            setattr(instance, 'opened_'+f, None)
+        elif getattr(instance, 'closed_'+f) and not getattr(instance, 'opened_'+f):
+            setattr(instance, 'closed_'+f, None)
+
 @receiver(pre_delete, sender=Business)
 def business_review_and_avatar_delete(instance, **kwargs):
     Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=instance.pk).delete()
@@ -374,7 +382,6 @@ class Item(models.Model):
 def item_cascade_and_avatar_delete(instance, **kwargs):
     cascade_delete('item', instance.pk)
     rem_avatar(instance)
-
 
 @receiver(post_save, sender=Item)
 def item_set_b_published(instance, created, **kwargs):

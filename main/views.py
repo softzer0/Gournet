@@ -176,7 +176,7 @@ def show_business(request, shortname):
     def popl():
         data['workh'] = {'value': []}
         for f in ('', '_sat', '_sun'):
-            if getattr(data['business'], 'opened'+f) is not None and getattr(data['business'], 'closed'+f) is not None:
+            if getattr(data['business'], 'opened'+f) is not None:
                 data['workh']['value'].append(time_format(getattr(data['business'], 'opened'+f), 'H:i'))
                 data['workh']['value'].append(time_format(getattr(data['business'], 'closed'+f), 'H:i'))
     if request.user != data['business'].manager:
@@ -190,7 +190,7 @@ def show_business(request, shortname):
             data['rating'].append(models.Review.objects.filter(object_id=data['business'].pk, person=request.user).stars)
         except:
             data['rating'].append(0)
-        if data['business'].opened != data['business'].closed or data['business'].opened_sat:
+        if data['business'].opened != data['business'].closed or not data['business'].opened_sat or data['business'].opened_sat != data['business'].closed_sat or not data['business'].opened_sun or data['business'].opened_sun != data['business'].closed_sun:
             popl()
             data['workh']['display'] = data['workh']['value']
     else:
@@ -847,7 +847,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
             self.kwargs['currency'] = request.data.pop('currency')[0] if hasattr(request.data, '_mutable') else request.data.pop('currency')
             request.method = 'GET'
             return super().list(request, *args, **kwargs)
-        request.data.pop('name', False)
+        request.data.pop('name', None)
         return super().update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):

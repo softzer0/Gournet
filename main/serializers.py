@@ -140,7 +140,7 @@ class ManagerSerializer(serializers.ModelSerializer):
             self.fields[f].format = '%H:%M'
 
     def validate(self, attrs):
-        business_clean_data(self, attrs)
+        business_clean_data(self, attrs, True)
         return attrs
 
     def update(self, instance, validated_data):
@@ -585,8 +585,8 @@ class CommentSerializer(CTSerializer, BaseSerializer):
             if 'business' not in self.context:
                 self.fields['content_object'] = BusinessSerializer(read_only=True, location='feed' in self.context)
                 if 'ids' not in self.context:
-                    context.pop('person', False)
-                    context.pop('feed', False)
+                    context.pop('person', None)
+                    context.pop('feed', None)
                     self.fields['person'] = serializers.SerializerMethodField()
             self.fields['main_comment'] = CommentSerializer(read_only=True, context=context)
             self.fields.pop('status')
