@@ -1239,7 +1239,7 @@ app
                         // angular.element('#nct').scope().$apply(); // if (e.height() < 18+e.children('.dt').height()) e.css('overflow-y', 'scroll'); else e.css('overflow-y', 'hidden');
                     } else setScroll(e);
                 } else setSize();
-            }, 1000);
+            }, 200);
         }
         $scope.$watch('opened', function(value) {
             if (value === undefined) return;
