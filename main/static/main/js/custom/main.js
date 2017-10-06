@@ -1173,13 +1173,11 @@ app
         var notifService = APIService.init(4);
 
         $scope.notif_loading = false;
-        $scope.notifs = [];
         var ids = '', frse, u = 0;
         ($scope.getNotifs = function (notick) {
-            if (notick) {
-                $scope.notif_loading = true;
-                var page_num = Math.floor(($scope.notifs.length - u) / NOTIF_PAGE_SIZE) + 1;
-            }
+            if ($scope.notifs === undefined || notick) $scope.notif_loading = true;
+            if ($scope.notifs === undefined) $scope.notifs = [];
+            if (notick) var page_num = Math.floor(($scope.notifs.length - u) / NOTIF_PAGE_SIZE) + 1;
             var ret;
             if (page_num === undefined) {
                 var d = {};
@@ -1212,12 +1210,11 @@ app
                         } else markAllAsRead();
                     }
                     if ($scope.opened) setSize();
-                    if ($scope.notif_loading) $timeout(function() { $scope.notif_loading = false });
                 }
                 if (frse === undefined) {
                     frse = false;
                     $scope.getNotifs(true);
-                }
+                } else if ($scope.notif_loading) $timeout(function() { $scope.notif_loading = false });
             });
             if (!notick) $timeout($scope.getNotifs, 10000);
         })();

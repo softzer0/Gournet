@@ -50,7 +50,7 @@
                 <div class="loa loa-c" ng-if="notif_loading"><i class="fa fa-spinner"></i></div>
             </div>
         </div>
-        <div class="dt" ng-if="!notifs.length">{% trans "You don't have any notifications yet." %}</div>
+        <div class="dt" ng-if="!notifs.length">{{ '{' }}{{ '{' }} !notif_loading ? '{% trans "You don't have any notifications yet." %}' : '...' {{ '}' }}{{ '}' }}</div>
     </script>
     <script type="text/ng-template" id="offcanvas">
         <div class="navmenu navmenu-default navmenu-fixed-right">
