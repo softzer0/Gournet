@@ -275,11 +275,16 @@ class Business(Loc):
 
 @receiver(pre_save, sender=Business)
 def business_check_time(instance, **kwargs):
-    for f in ('sat', 'sun'):
-        if getattr(instance, 'opened_'+f) and not getattr(instance, 'closed_'+f):
-            setattr(instance, 'opened_'+f, None)
-        elif getattr(instance, 'closed_'+f) and not getattr(instance, 'opened_'+f):
-            setattr(instance, 'closed_'+f, None)
+    t = datetime.time(0, 0)
+    for f in ('', '_sat', '_sun'):
+        if f != '':
+            if getattr(instance, 'opened'+f) and not getattr(instance, 'closed'+f):
+                setattr(instance, 'opened'+f, None)
+            elif getattr(instance, 'closed'+f) and not getattr(instance, 'opened'+f):
+                setattr(instance, 'closed'+f, None)
+        if (f == '' or getattr(instance, 'opened'+f)) and getattr(instance, 'opened'+f) == getattr(instance, 'closed'+f) and getattr(instance, 'opened'+f) != t:
+            setattr(instance, 'opened'+f, t)
+            setattr(instance, 'closed'+f, t)
 
 @receiver(pre_delete, sender=Business)
 def business_review_and_avatar_delete(instance, **kwargs):

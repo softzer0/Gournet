@@ -5,37 +5,6 @@ app
         var itemService = APIService.init(8), menu, defer = $q.defer(); //, category
 
         function chngmenu() { if (!menu[0].hascontent) menu[1].name = gettext("Drinks"); else menu[1].name = gettext("Other drinks") } //menu[0].name == "Other drinks" / if (menu.length)
-
-        /*name = {
-            'cider': menu[0].content[0].content,
-            'whiscategory': menu[0].content[1].content,
-            'wine': menu[0].content[2].content,
-            'beer': menu[0].content[3].content,
-            'vodka': menu[0].content[4].content,
-            'brandy': menu[0].content[5].content,
-            'liqueur': menu[0].content[6].content,
-            'cocktail': menu[0].content[7].content,
-            'tequila': menu[0].content[8].content,
-            'gin': menu[0].content[9].content,
-            'rum': menu[0].content[10].content,
-
-            'coffee': menu[1].content[0].content,
-            'soft_drink': menu[1].content[1].content,
-            'juice': menu[1].content[2].content,
-            'tea': menu[1].content[3].content,
-            'hot_chocolate': menu[1].content[4].content,
-            'water': menu[1].content[5].content,
-
-            'fast_food': menu[2].content[0].content,
-            'appetizer': menu[2].content[1].content,
-            'soup': menu[2].content[2].content,
-            'meal': menu[2].content[3].content,
-            'barbecue': menu[2].content[4].content,
-            'seafood': menu[2].content[5].content,
-            'salad': menu[2].content[6].content,
-            'dessert': menu[2].content[7].content
-        };*/
-
         function add(item) {
             var c = false, f;
             for (var i = 0; i < menu.length; i++) {
@@ -111,20 +80,7 @@ app
             load: function (id){
                 return itemService.query({id: id, menu: 1},
                     function (result){
-                        //var i;
                         for (var i = 0; i < result.length; i++) add(result[i]);
-                        /*for (i = 0; i < menu.length; i++) {
-                            for (c = 0; c < menu[i].content.length; c++) {
-                                if (!menu[i].content[c].content.length) {
-                                    menu[i].content.splice(c, 1);
-                                    c--;
-                                }
-                            }
-                            if (!menu[i].content.length) {
-                                menu.splice(i, 1);
-                                i--;
-                            }
-                        }*/
                         end(result);
                     }
                 ).$promise;
@@ -219,7 +175,7 @@ app
             delete $scope.set_data;
             if ($scope.data.form !== undefined) {
                 for (var i = 0; i < h.length; i++) $scope.data.form[0][i] = moment(h[i], 'HH:mm').toDate();
-                for (; i < 7; i++) $scope.data.form[0][i] = new Date(0, 0, 0, i % 2 ? 0 : 8, 0);
+                for (; i < 6; i++) $scope.data.form[0][i] = new Date(0, 0, 0, i % 2 ? 0 : 8, 0);
                 workh = ['value', 'form'];
                 for (i = 0; i < 2; i++) for (var j = 1; j < 5; j++) $scope.data[workh[i]][j] = arguments[j];
                 workh = $scope.data.value[0];
@@ -267,11 +223,6 @@ app
                         });
                 }
             };
-            /*$scope.$parent.$watch('rel_state', function (value) {
-                $scope.rel_state_msg = "Are you sure that you want to ";
-                if (value == 0) $scope.rel_state_msg += "set a favourite this business"; else $scope.rel_state_msg += "remove from favourites this business";
-                //$scope.rel_state_msg += ' <strong>'+$scope.name+'</strong>?'
-            })*/
 
             $scope.submitReview = function () {
                 var el = angular.element('[name="forms.review"] [name="text"]'), cond;
@@ -338,8 +289,15 @@ app
                         d.address = $scope.data.form[3];
                         d.location = $scope.data.form[4];
                     }
-                    var a = [0], p = ['phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'], r;
                     function f(v){ return moment(v).format('HH:mm') }
+                    for (i = 0; i < 3; i++) {
+                        if (i > 0 && !$scope.work[i-1]) break;
+                        if ($scope.data.form[0][2*i].getTime() == $scope.data.form[0][2*i+1].getTime() && f($scope.data.form[0][2*i]) != '00:00') {
+                            $scope.data.form[0][2*i] = new Date(0, 0, 0, 0, 0);
+                            $scope.data.form[0][2*i+1] = new Date(0, 0, 0, 0, 0);
+                        }
+                    }
+                    var a = [0], p = ['phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'], r;
                     for (i = 0; i < 6; i++) if (i < 2 || $scope.work[i < 4 ? 0 : 1]) {
                         a[1] = i;
                         r = checkField($scope.data, a, false, f);
