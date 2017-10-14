@@ -149,7 +149,7 @@ SETTINGS_EXPORT = [
 
 SOCIALACCOUNT_PROVIDERS = {
     'facebook': {
-        'SCOPE': ['email', 'public_profile', 'user_birthday', 'user_location'],
+        'SCOPE': ['email', 'public_profile', 'user_birthday', 'user_location', 'user_hometown'],
         'AUTH_PARAMS': {'auth_type': 'https'},
         'VERIFIED_EMAIL': True,
         'FIELDS': ['id', 'email', 'first_name', 'last_name', 'gender', 'birthday', 'location']
