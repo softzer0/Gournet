@@ -152,7 +152,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'SCOPE': ['email', 'public_profile', 'user_birthday', 'user_location', 'user_hometown'],
         'AUTH_PARAMS': {'auth_type': 'https'},
         'VERIFIED_EMAIL': True,
-        'FIELDS': ['id', 'email', 'first_name', 'last_name', 'gender', 'birthday', 'location']
+        'FIELDS': ['id', 'email', 'first_name', 'last_name', 'gender', 'birthday', 'location', 'hometown']
     },
     'google': {
         'SCOPE': ['profile', 'email'],

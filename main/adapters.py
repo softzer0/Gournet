@@ -53,11 +53,12 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
     def save_user(self, request, sociallogin, form=None):
         user = super().save_user(request, sociallogin, form)
-        response = None
         if sociallogin.account.provider == 'facebook':
             response = get('https://graph.facebook.com/v2.9/'+sociallogin.account.extra_data['id']+'/picture?width=128&height=128')
         elif sociallogin.account.provider == 'google':
             response = get(sociallogin.account.extra_data['picture']+'?sz=128')
+        else:
+            response = None
         if response and response.status_code == 200 and response.headers['content-type'] in ('image/jpeg', 'image/png', 'image/gif'):
             saveimgwiththumbs('user' if sociallogin.account.provider == 'facebook' else 0, user.pk, response.headers['content-type'][6:], ContentFile(response.content))
         return user
