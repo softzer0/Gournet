@@ -257,3 +257,5 @@
 :not(td) > .inline > div:not(.mpd):not(.form-group) > div > div > a {
 	border-left-width: 10px;
 }
+
+.pac-container { z-index: 100000; }

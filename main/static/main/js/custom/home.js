@@ -125,7 +125,6 @@ app
             init({latitude: obj.latitude, longitude: obj.longitude}).then(function () {
                 $scope.$parent.coords = $scope.map.marker.coords;
                 $scope.map.options = {clickableIcons: false, styles: [{featureType: 'poi', stylers: [{visibility: 'simplified'}]}, {featureType: 'poi.business', stylers: [{visibility: 'off'}]}]};
-                $scope.map.events = {places_changed: function (searchBox){ $scope.geocodeAddress(searchBox.gm_accessors_.places.Gc.l, function (coords){ $scope.setCoords(coords, false) }) }};
                 var ctrl = getObjs();
                 if (ctrl[0].className.indexOf('user') == -1) ctrl.scope().load(true);
             });

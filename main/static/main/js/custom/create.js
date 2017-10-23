@@ -26,9 +26,9 @@ if (window.location.pathname == '/my-business/') { //important
     });
 }
 app
-    .config(function(uiGmapGoogleMapApiProvider, LANG, GMAPS_API_KEY) { uiGmapGoogleMapApiProvider.configure({libraries: 'visualization', language: LANG, key: GMAPS_API_KEY}) })
+    .config(function(uiGmapGoogleMapApiProvider, LANG, GMAPS_API_KEY) { uiGmapGoogleMapApiProvider.configure({libraries: 'visualization,places', language: LANG, key: GMAPS_API_KEY}) })
 
-    .controller('CreateCtrl', function ($scope, $controller, $timeout, $injector, USER) {
+    .controller('CreateCtrl', function ($scope, $controller, $injector, USER) {
         $scope.work = [];
         $scope.isOpen = [false, false, false, false, false, false];
         $scope.date = [];
@@ -36,29 +36,18 @@ app
         if (window.location.pathname == '/my-business/' /* important */) {
             var speakingurl = $injector.get('$speakingurl');
             $scope.genshort = function () { $scope.shortname = speakingurl.getSlug($scope.name) };
-            obj = $scope; fi = ['address', 'location'];
-        } else { obj = $scope.data.form; fi = [3, 4] }
+            obj = $scope; fi = 'location';
+        } else { obj = $scope.data.form; fi = 4 }
 
         angular.extend(this, $controller('BaseMapCtrl', {$scope: $scope, funcs: [
             function (init){
-                if (obj[fi[1]] !== undefined && obj[fi[1]] != '') { // && /^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$/.test(obj[fi[1]])
-                    //obj[fi[1]] = obj[fi[1]].replace(' ','');
-                    init({latitude: obj[fi[1]].split(',')[1], longitude: obj[fi[1]].split(',')[0]});
-                } else if (obj[fi[0]] !== undefined && obj[fi[0]] != '') $scope.geocodeAddress(obj[fi[0]], init); else init(USER.home);
+                if (obj[fi] !== undefined && obj[fi] != '') { // && /^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$/.test(obj[fi])
+                    //obj[fi] = obj[fi].replace(' ','');
+                    init({latitude: obj[fi].split(',')[1], longitude: obj[fi].split(',')[0]});
+                } else init(USER.home);
             },
-            function (){ obj[fi[1]] = $scope.map.center.longitude+','+$scope.map.center.latitude }
+            function (){ obj[fi] = $scope.map.center.longitude+','+$scope.map.center.latitude }
         ]}));
 
-        var l = true;
-        $scope.geocode = function (f) {
-            if ($scope.map === undefined) {
-                $timeout(function() { $scope.geocode(true) }, 1000);
-                return;
-            }
-            if (obj[fi[0]] !== undefined && obj[fi[0]] != '' && (!f || l)) {
-                $scope.geocodeAddress(obj[fi[0]], $scope.setCoords);
-                l = false;
-            } else if (f) l = obj[fi[0]] == '';
-        };
         $scope.refresh = function () { $scope.setCoords($scope.map.control.getGMap().getCenter()) };
     });

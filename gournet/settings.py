@@ -106,6 +106,13 @@ REST_FRAMEWORK = {
     ),
 }
 
+BOOTSTRAP3 = {
+    'field_renderers': {
+        'default': 'main.renderer.FieldRenderer',
+        'inline': 'bootstrap3.renderers.InlineFieldRenderer'
+    }
+}
+
 ROOT_URLCONF = 'gournet.urls'
 AUTH_USER_MODEL = 'main.User'
 LOGIN_URL = '/'

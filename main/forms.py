@@ -16,11 +16,11 @@ def clean_loc(self, cleaned_data, noloc=False, retraw=False):
     loc = cleaned_data.get('location', False) if not noloc else False
     try:
         if loc and not cleaned_data.get('address', False):
-            data = GOOGLEV3_OBJ.reverse(cleaned_data['location'])[0].address
+            data = GOOGLEV3_OBJ.reverse(cleaned_data['location'].split(',')[1]+','+cleaned_data['location'].split(',')[0], exactly_one=True).address
             if isinstance(self, forms.ModelForm):
                 cleaned_data['address'] = data
         elif cleaned_data.get('address', False) and not loc:
-            loc = GOOGLEV3_OBJ.geocode(cleaned_data['address'])
+            loc = GOOGLEV3_OBJ.geocode(cleaned_data['address'], exactly_one=True)
             cleaned_data['location'] = Point(loc.longitude, loc.latitude, srid=4326)
             if noloc:
                 cleaned_data['address'] = loc.raw['formatted_address']
@@ -28,7 +28,7 @@ def clean_loc(self, cleaned_data, noloc=False, retraw=False):
         loc = None
         pass
     if not loc:
-        f = 'location' if 'shortname' in cleaned_data else 'address'
+        f = 'address' if 'username' in cleaned_data else 'location'
         if isinstance(self, forms.ModelForm):
             if cleaned_data.get('address', False) or cleaned_data.get('location', False):
                 self.add_error(f, forms.ValidationError(COORDINATES_NOT_FOUND_MSG))
@@ -45,11 +45,8 @@ def business_clean_data(self, cleaned_data, upd=False):
             cleaned_data['supported_curr'].remove(cleaned_data['currency'])
         except:
             pass
-    if cleaned_data.get('shortname', False) and Business.objects.filter_by_natural_key(cleaned_data['shortname']).exists():
-        if isinstance(self, forms.ModelForm):
-            self.add_error('shortname', forms.ValidationError(SHORTNAME_EXISTS_MSG, code='unique'))
-        else:
-            raise ValidationError({'shortname': [SHORTNAME_EXISTS_MSG]})
+    if not isinstance(self, forms.ModelForm) and cleaned_data.get('shortname', False) and Business.objects.filter_by_natural_key(cleaned_data['shortname']).exists():
+        raise ValidationError({'shortname': [SHORTNAME_EXISTS_MSG]})
     if cleaned_data.get('location', False):
         cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(',', ' ')+')')
     if isinstance(self, forms.ModelForm) or 'address' in cleaned_data or 'location' in cleaned_data:
@@ -65,11 +62,8 @@ class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)
 
 class BaseForm(forms.ModelForm):
-    address = forms.CharField(required=False, max_length=130, widget=forms.TextInput({
-       'ng-change': 'geocode(true)',
-       'ng-model-options': '{updateOn: \'default blur\', debounce: {default: 1000, blur: 0}}'
-    }))
-    location = forms.RegexField(r'^-?[\d]+(\.[\d]+)?(,|,? )-?[\d]+(\.?[\d]+)?$')
+    address = forms.CharField(required=False, max_length=130)
+    location = forms.RegexField(r'^-?[\d]+(?:\.[\d]+)?,-?[\d]+(?:\.?[\d]+)?$')
 
     class Meta:
         exclude = ('type', 'name', 'shortname', 'currency', 'manager', 'is_published', 'tz', 'loc_projected')
@@ -82,13 +76,14 @@ class BaseForm(forms.ModelForm):
         if not_b:
             self.fields['phone'].widget.attrs['ng-model'] = 'data.form[1]'
             self.fields['supported_curr'].widget.attrs['ng-model'] = 'data.form[2]'
+            self.fields['address'].widget.attrs['ng-model'] = 'ngModel'
             for f in ('phone', 'supported_curr', 'address'):
                 self.fields[f].widget.attrs['ng-disabled'] = 'data.disabled'
         else:
+            self.fields['shortname'].error_messages['unique'] = SHORTNAME_EXISTS_MSG
             self.fields['location'].widget.attrs['ng-initial'] = ''
         for f in ('phone', 'location'):
             self.fields[f].widget.attrs['title'] = ''
-        self.fields['address'].widget.attrs['ng-model'] = 'data.form[3]' if not_b else 'address'
         for f in ('address', 'location'):
             self.fields[f].label = Loc._meta.get_field(f).verbose_name.capitalize()
         self.fields['location'].widget.attrs['geom_type'] = ''

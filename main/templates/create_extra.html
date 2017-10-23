@@ -1,9 +1,10 @@
                     {% load bootstrap3 %}{% load i18n %}{% url 'create_business' as create_url %}{% if request.path != create_url %}{% bootstrap_field form.phone %}
                     {% endif %}{% bootstrap_field form.supported_curr %}
                     <hr>
-                    {% bootstrap_field form.address addon_after='<button class="btn btn-default" type="button" ng-click="geocode()" ng-disabled="geocoder == undefined'|add:f.1|add:'"><i class="fa fa-refresh"></i></button>' %}
+                    {% bootstrap_field form.address %}
                     {% bootstrap_field form.location addon_after='<button class="btn btn-default" type="button" ng-click="refresh()" ng-disabled="map == undefined'|add:f.1|add:'"><i class="fa fa-dot-circle-o"></i></button>' %}
                     <ui-gmap-google-map ng-if="map !== undefined" control="map.control" center="map.center" zoom="map.zoom">
+                        <ui-gmap-search-box template="'searchbox'" parentdiv="'sbparent'" options="map.searchbox.options" events="map.searchbox.events"{% if request.path != create_url %} ng-model="data.form[3]"{% endif %}></ui-gmap-search-box>
                         <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
                     </ui-gmap-google-map>
                     <div class="loa loa-c" ng-if="map === undefined"><i class="fa fa-spinner fa-2x"></i></div>

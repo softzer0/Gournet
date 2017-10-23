@@ -1,13 +1,4 @@
 app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
-    $scope.geocodeAddress = function(address, callback) {
-        $scope.geocoder[0].geocode({address: address, componentRestrictions: {country: 'RS'}}, function (results, status) {
-            if (status == $scope.geocoder[1]) {
-                callback(results[0].geometry.location);
-            } else {
-                console.log('Geocode was not successful for the following reason: ' + status);
-            }
-        });
-    };
     $scope.setCoords = function(coords, nom) {
         var is_f = coords.latitude === undefined;
         function setC(obj) {
@@ -18,8 +9,8 @@ app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
         setC($scope.map.center);
         funcs[1](jQuery.makeArray(arguments).splice(1)); //if (funcs.length > 1)
     };
+
     uiGmapGoogleMapApi.then(function(maps) {
-        $scope.geocoder = [new maps.Geocoder(), maps.GeocoderStatus.OK];
         funcs[0](
             function (coords){
                 var is_f = coords.latitude === undefined;
@@ -33,14 +24,15 @@ app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
                         options: {draggable: true},
                         events: {dragend: function (marker) { $scope.setCoords(marker.getPosition(), true) }}
                     },
-                    /*events: {
-                        resize: function() {
-                            $scope.map.center.latitude = $scope.map.marker.coords.longitude;
-                            $scope.map.center.latitude = $scope.map.marker.coords.latitude;
-                        }
-                    },*/
                     //search: {places_changed: function (){ $scope.geocode(true) }},
-                    control: {}
+                    control: {},
+                    searchbox: {
+                        options: {autocomplete: true, componentRestrictions: {country: 'RS'}},
+                        events: {place_changed: function (autocomplete) {
+                            var p = autocomplete.getPlace();
+                            if (p.geometry !== undefined) $scope.setCoords(p.geometry.location, false);
+                        }}
+                    }
                 };
                 maps.event.addDomListener(window, 'resize', function() {
                     if ($scope.map.control.length == 0) return;
@@ -49,6 +41,7 @@ app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
                     map.setCenter(center);
                 });
                 return $q.when();
-            });
+            }
+        );
     });
 });
