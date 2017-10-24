@@ -117,7 +117,7 @@ class BusinessForm(BaseForm):
         self.fields['name'].label = pgettext("name of business", "Its name")
         self.fields['name'].widget.attrs['placeholder'] = Business._meta.get_field('name').verbose_name.capitalize()
         self.fields['name'].widget.attrs['ng-model'] = 'name'
-        for f in ('name', 'shortname', 'address'):
+        for f in ('name', 'shortname'):
             self.fields[f].widget.attrs['ng-initial'] = ''
         self.fields['name'].widget.attrs['ng-change'] = 'genshort()'
         self.fields['shortname'].label = _("Shortname (a part of the URL)")
