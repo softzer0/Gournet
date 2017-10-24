@@ -27,32 +27,93 @@
     height: 18px;
     width: auto;
     display: inline-block;
-    border: 1px solid #009be0;
+    border: 1px solid #ff641f;
     white-space: nowrap;
     box-shadow: 3px 3px 5px rgba(0,0,0,0.15);
 }
 
-.angular-google-map-container .form-control {
-    top: 10px !important;
-    width: 245px;
+.pac-controls {
+  margin-top: 11px;
+  border: 1px solid transparent;
+  border-radius: 2px 0 0 2px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  height: 32px !important;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-@media (max-width: 426px) {
-    .angular-google-map-container .form-control {
+#pac-input {
+  background-color: #fff;
+  padding: 3px 9px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 300;
+  text-overflow: ellipsis;
+  width: 245px;
+}
+
+#pac-input:focus {
+  border-color: #4d90fe;
+  margin-left: -1px;
+  padding-left: 4px;
+  width: 246px;
+}
+
+@media (max-width: 460px) {
+    #pac-input {
         width: 205px;
     }
+
+    #pac-input:focus {
+        width: 206px;
+    }
 }
 
-@media (max-width: 386px) {
-    .angular-google-map-container .form-control {
+@media (max-width: 425px) {
+    #pac-input {
         width: 175px;
     }
+
+    #pac-input:focus {
+        width: 176px;
+    }
 }
 
-@media (max-width: 355px) {
-    .angular-google-map-container .form-control {
+@media (max-width: 391px) {
+    #pac-input {
         width: 141px;
     }
+
+    #pac-input:focus {
+        width: 142px;
+    }
+}
+
+@media (max-width: 357px) {
+    #pac-input {
+        width: 121px;
+    }
+
+    #pac-input:focus {
+        width: 122px;
+    }
+}
+
+.pac-container {
+  font-family: 'Open Sans', sans-serif;
+}
+
+#type-selector {
+  color: #fff;
+  background-color: #4d90fe;
+  padding: 5px 11px 0 11px;
+}
+
+#type-selector label {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
 }
 
 .angular-google-map-container button {

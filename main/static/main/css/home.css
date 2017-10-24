@@ -504,12 +504,6 @@ img.prof, .prof > img, .nw hr {
     background-color: #fffccc;
 }
 
-.angular-google-map-container .form-control, td > .inline > div > div > div > div > div > * {
-    height: 32px;
-    padding: 3px 9px;
-    font-size: 12px;
-}
-
 footer > div > div > div > *:first-child {
     width: 29%;
 }
@@ -527,3 +521,5 @@ footer > div > div > div > *:first-child {
         display: initial;
     }
 }
+
+.angular-google-map img { max-width: inherit; } /* fix for Twitter Bootstrap handling of responsive images */

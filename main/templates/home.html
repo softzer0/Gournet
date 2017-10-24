@@ -12,12 +12,12 @@
         <div ng-controller="MapCtrl">
             <uib-alert type="warning" ng-show="map !== undefined && map.options !== undefined && (warn !== undefined || wid === undefined)" ng-cloak>{{ '{' }}{{ '{' }} isCoord() ? "{% trans "Location information is too inaccurate." %}" : warn === 0 ? "{% trans "You have denied the permission to use the location service. Please enable it or clear the setting, and refresh this page." %}" : wid === undefined ? "{% trans "Location service is disabled." %}" : "{% trans "Location information is currently unavailable." %}" {{ '}' }}{{ '}' }} {{ '{' }}{{ '{' }} isCoord() && warn.is_init || warn == 2 || warn === 0 ? "{% trans "Using your home location." %}"+' ' : isCoord() && warn.is_init === null || warn === 1 ? "{% trans "Using your last position." %}"+' ' : '' {{ '}' }}{{ '}' }}<a href="javascript:" ng-show="isCoord() || wid === undefined && warn !== 0" ng-click="doUseEnable()">{{ '{' }}{{ '{' }} isCoord() ? "{% trans "Use the detected location, regardlessly." %}" : "{% trans "Enable." %}" {{ '}' }}{{ '}' }}</a></uib-alert>
 
-            <script type="text/ng-template" id="searchbox"><input class="form-control" type="text" placeholder="{% trans "Search" %}" select-on-click></script>
+            <script type="text/ng-template" id="searchbox"><input id="pac-input" class="pac-controls" type="text" placeholder="{% trans "Search" %}" select-on-click></script>
             <div class="bor" id="home_map" style="position: relative; height: 250px; margin-bottom: 40px;">
                 <ui-gmap-google-map ng-if="map !== undefined && map.options !== undefined" control="map.control" options="map.options" center="map.center" zoom="map.zoom">
                     <ui-gmap-search-box template="'searchbox'" options="map.searchbox.options" events="map.searchbox.events"></ui-gmap-search-box>
-                    <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" idkey="map.marker.id"></ui-gmap-marker>
-                    <ui-gmap-markers models="markers" coords="'self'" options="'options'" click="click" icon="{url: '//chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|37455C|FFFFFF'}"></ui-gmap-markers>
+                    <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
+                    <ui-gmap-markers models="markers" coords="'self'" options="'options'" click="click" icon="{url: '//chart.apis.google.com/chart?chst=d_map_pin_letter&chld=|CC3300|FFFFFF'}"></ui-gmap-markers>
                     <ui-gmap-map-control position="bottom-center"><button ng-click="setCenterHome()" title="{% trans "Move marker to the center" %}"><i class="fa fa-dot-circle-o"></i></button></ui-gmap-map-control>
                     <ui-gmap-map-control position="bottom-left"><button ng-click="setCenterHome(true)" title="{% trans "Set marker to the home location" %}"><i class="fa fa-home"></i></button></ui-gmap-map-control>
                 </ui-gmap-google-map>
