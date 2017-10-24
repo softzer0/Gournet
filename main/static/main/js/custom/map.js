@@ -29,6 +29,7 @@ app.controller('BaseMapCtrl', function ($scope, $q, uiGmapGoogleMapApi, funcs) {
                     searchbox: {
                         options: {autocomplete: true, componentRestrictions: {country: 'RS'}},
                         events: {place_changed: function (autocomplete) {
+                            if ($scope.data !== undefined) angular.element('#id_address').trigger('input');
                             var p = autocomplete.getPlace();
                             if (p.geometry !== undefined) $scope.setCoords(p.geometry.location, false);
                         }}
