@@ -56,7 +56,7 @@
 #pac-input:focus {
   border-color: #4d90fe;
   margin-left: -1px;
-  padding-left: 4px;
+  padding-left: 10px;
   width: 246px;
 }
 
