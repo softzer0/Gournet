@@ -53,12 +53,13 @@ urlpatterns = [
     url(r'^api/emails/$', main_views.EmailAPIView.as_view()),
     url(r'^api/account/$', main_views.AccountAPIView.as_view()),
     url(r'^api/manager/$', main_views.ManagerAPIView.as_view()),
+    url(r'^api/recent/$', main_views.RecentAPIView.as_view()),
     #url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
 
     # Other
     url(r"^terms-of-service/$", main_views.InfoView.as_view(template_name='tos.html'), name="tos"),
     url(r"^privacy-policy/$", main_views.InfoView.as_view(template_name='pp.html'), name="privacy-policy"),
-    url(r"^contact/$", public(main_views.contact_view), name="contact"),
+    url(r"^contact/$", main_views.ContactView.as_view(), name="contact"),
     url(r"^edit\.html$", main_views.edit_view, name="edit"),
     url(r"^i18n/$", main_views.i18n_view, name="i18n"),
     url(r"^upload/(?:(?P<pk_b>([\d]+|business))/)?$", main_views.upload_view, name="upload"),

@@ -195,7 +195,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
                 'django_settings_export.settings_export',
-                'main.context_processor.base'
             ],
         },
     },

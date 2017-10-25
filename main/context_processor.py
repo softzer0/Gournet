@@ -11,17 +11,14 @@ REVIEW_STATUS_E = ( #important
     (REVIEW_STATUS[7][1], 'feedback') #Need feedback
 )
 
-def base(request):
-    if not request.user.is_authenticated:
-        return {}
+recent_ord = ['-recent__' + _[1:] for _ in Recent._meta.ordering]
+def gen_qs(request, model):
+    return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)
 
-    recent_ord = ['-recent__' + _[1:] for _ in Recent._meta.ordering]
-    def gen_qs(model):
-        return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)[:5]
-
+def recent(request):
     return {
         'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars(),
-        'favs': gen_qs(Business),
-        'friends': gen_qs(User)
+        'favs': gen_qs(request, Business)[:5],
+        'friends': gen_qs(request, User)[:5]
     }

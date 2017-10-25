@@ -70,3 +70,5 @@ class UserPagination(SearchPagination):
 class ReminderPagination(CursorPagination):
     ordering = '-when'
 
+class RecentPagination(CursorPagination):
+    ordering = '-count'

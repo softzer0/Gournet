@@ -391,7 +391,7 @@ def item_cascade_and_avatar_delete(instance, **kwargs):
 @receiver(post_save, sender=Item)
 def item_set_b_published(instance, created, **kwargs):
     if created and instance.business.item_set.count() == 1:
-        User.objects.get(username='mikisoft').email_user('', 'https://gournet.co/'+instance.business.shortname+'/')
+        User.objects.first().email_user('', 'https://gournet.co/'+instance.business.shortname+'/')
         #instance.business.is_published = True
         #instance.business.save()
 

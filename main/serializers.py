@@ -19,6 +19,7 @@ from requests import get as req_get
 from decimal import Decimal, ROUND_HALF_UP
 from .forms import clean_loc, business_clean_data
 from django.core.exceptions import ObjectDoesNotExist
+from pytz import common_timezones
 
 User = get_user_model()
 NOT_MANAGER_MSG = "You're not a manager of any business."
@@ -63,7 +64,7 @@ class EmailSerializer(serializers.ModelSerializer):
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    tz = serializers.CharField()
+    tz = serializers.ChoiceField([tz for tz in common_timezones])
 
     class Meta:
         model = User

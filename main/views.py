@@ -1,21 +1,21 @@
 from django.shortcuts import render, redirect
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView as DefTemplateView, FormView
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Case, When, Value, IntegerField, F, Q, Max, Avg, Count
+from django.db.models import Case, When, IntegerField, F, Q, Max, Avg, Count
 # from django.conf.urls.static import static
 # from django.shortcuts import get_object_or_404
 # from django.db.models.functions import Coalesce
-from django.views.decorators.csrf import csrf_protect
 # from django.core.paginator import Paginator, InvalidPage
 # from itertools import chain
 from rest_framework.exceptions import NotFound #, MethodNotAllowed
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
 from stronghold.views import StrongholdPublicMixin
-from allauth.account import views
+from allauth.account.views import LoginView, PasswordChangeView as DefPasswordChangeView, EmailView as DefEmailView
+from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -45,14 +45,27 @@ from django.utils.translation import ungettext, ugettext as _, pgettext, npgette
 from django.core.cache.utils import make_template_fragment_key
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
+from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs
 
 User = get_user_model()
+
+
+def render_with_recent(request, template, context={}):
+    context.update(gen_recent_context(request))
+    return render(request, template, context)
+
+class TemplateView(DefTemplateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context.update(gen_recent_context(self.request))
+        return context
 
 @public
 def home_index(request):
     if request.user.is_authenticated:
         return TemplateView.as_view(template_name='home.html')(request) # HomePageView.as_view()(request)
-    return views.LoginView.as_view(template_name='index.html')(request) # IndexPageView.as_view()(request)
+    return LoginView.as_view(template_name='index.html')(request) # IndexPageView.as_view()(request)
 
 class InfoView(StrongholdPublicMixin, TemplateView):
     def get_context_data(self, **kwargs):
@@ -67,8 +80,6 @@ def edit_view(request):
 def get_param_bool(param):
     return param and param in ('1', 'true', 'True', 'TRUE')
 
-
-@csrf_protect
 def i18n_view(request):
     st = None
     if request.method == 'POST':
@@ -87,7 +98,6 @@ def i18n_view(request):
     return render(request, 'i18n.html', {'timezones': common_timezones, 'langs': settings.LANGUAGES, 'currencies': models.CURRENCY} if not cache.get(make_template_fragment_key('i18n')) else None, status=st)
 
 
-@csrf_protect
 def upload_view(request, pk_b=None):
     if not any(request.FILES):
         return HttpResponse("Image is missing.", status=status.HTTP_400_BAD_REQUEST)
@@ -120,20 +130,20 @@ def upload_view(request, pk_b=None):
     return HttpResponse(status=status.HTTP_200_OK)
 
 
-@csrf_protect
-def contact_view(request):
-    file = 'home' if request.user.is_authenticated else 'main'
-    if request.method == 'POST':
-        form = forms.ContactForm(data=request.POST)
-        if form.is_valid():
-            models.User.objects.get(username='mikisoft').email_user(form.cleaned_data['email'], form.cleaned_data['message'])
-            return render(request, 'contact_sent.html', {'file': file})
-    else:
-        form = forms.ContactForm()
-    return render(request, 'contact.html', {'form': form, 'file': file})
+class ContactView(StrongholdPublicMixin, FormView, TemplateView):
+    template_name = 'contact.html'
+    form_class = forms.ContactForm
 
+    def form_valid(self, form):
+        models.User.objects.first().email_user(form.cleaned_data['email'], form.cleaned_data['message'])
+        self.template_name = 'contact_sent.html'
+        return self.render_to_response(self.get_context_data())
 
-@csrf_protect
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({'file': 'home' if self.request.user.is_authenticated else 'main'})
+        return context
+
 def create_business(request):
     try:
         b = models.Business.objects.get(manager=request.user)
@@ -156,7 +166,7 @@ def create_business(request):
             return redirect('/'+form.cleaned_data['shortname']+'/')
     else:
         form = forms.BusinessForm()
-    return render(request, 'create.html', {'form': form, 'f': ['date', '', '']})
+    return render_with_recent(request, 'create.html', {'form': form, 'f': ['date', '', '']})
 
 
 def increase_recent(request, obj):
@@ -202,7 +212,7 @@ def show_business(request, shortname):
         popl()
         data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
-    return render(request, 'view.html', data)
+    return render_with_recent(request, 'view.html', data)
 
 def show_profile(request, username):
     try:
@@ -223,7 +233,7 @@ def show_profile(request, username):
     if request.user != data['usr'] or request.user.birthdate_changed:
         data['born'] = timezone.now()
         data['born'] = data['born'].year - data['usr'].birthdate.year - ((data['born'].month, data['born'].day) < (data['usr'].birthdate.month, data['usr'].birthdate.day))
-    return render(request, 'user.html', data)
+    return render_with_recent(request, 'user.html', data)
 
 
 def return_avatar(request, pk, size):
@@ -262,10 +272,10 @@ class BaseAuthView:
         # noinspection PyUnresolvedReferences
         return super().post(request, *args, **kwargs)
 
-class PasswordChangeView(BaseAuthView, views.PasswordChangeView):
+class PasswordChangeView(BaseAuthView, DefPasswordChangeView):
     pass
 
-class EmailView(BaseAuthView, views.EmailView):
+class EmailView(BaseAuthView, DefEmailView):
     pass
 
 
@@ -598,7 +608,12 @@ class FeedAPIView(MultipleModelAPIView):
         context['feed'] = None
         return context
 
-class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+class IsOwnerOrReadOnly(APIView):
+    def __init__(self):
+        super().__init__()
+        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
+
+class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination
     def_pagination_class = pagination.CommentDefPagination
     filter = 'business__manager'
@@ -608,7 +623,6 @@ class BaseAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
     def __init__(self):
         super().__init__()
-        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
         self.main_f = self.ct or True
 
     def get_person_qs(self, person):
@@ -676,10 +690,8 @@ def get_t_pkn(obj, dic=None, s=False):
     @type obj: django.views.generic.base.View
     """
     if 'ct_pkn' not in obj.kwargs:
-        obj.kwargs['ct_pkn'] = obj.request.data.get('content_type', False) or obj.request.query_params.get('content_type', False)
-        if not obj.kwargs['ct_pkn']:
-            obj.kwargs['ct_pkn'] = None
-        elif isinstance(obj.kwargs['ct_pkn'], str) and obj.kwargs['ct_pkn'].isdigit():
+        obj.kwargs['ct_pkn'] = obj.request.data.get('content_type', None) or obj.request.query_params.get('content_type', None)
+        if obj.kwargs['ct_pkn'] and isinstance(obj.kwargs['ct_pkn'], str) and obj.kwargs['ct_pkn'].isdigit():
             obj.kwargs['ct_pkn'] = int(obj.kwargs['ct_pkn'])
     pkn = obj.kwargs['ct_pkn']
     if dic and pkn and (pkn not in dic if isinstance(dic, list) or isinstance(pkn, int) else (pkn not in dic.values() and pkn not in dic)):
@@ -697,9 +709,7 @@ def get_type(obj):
             try:
                 pkn = ContentType.objects.get(**{'pk' if isinstance(pkn, int) else 'model': pkn})
             except:
-                pkn = False
-        if not pkn:
-            raise NotFound("Content type not found.")
+                raise NotFound("Content type not found.")
         obj.kwargs['ct'] = pkn
     return obj.kwargs['ct']
 
@@ -709,7 +719,7 @@ def get_qs(obj_v, model):
     """
     ct = get_type(obj_v)
     obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else models.Event)
-    return model.objects.filter(content_type=ct if ct else ContentType.objects.get(model='event'), object_id=obj.pk)
+    return model.objects.filter(content_type=ct or ContentType.objects.get(model='event'), object_id=obj.pk)
 
 def set_t(obj_v, context):
     """
@@ -943,11 +953,7 @@ class InitLikeAPIView(BaseLikeView, MultiBaseAPIView):
         qs = get_qs(self, models.Like)
         return self.gen_qs(qs, 'stars', range(1, 6)) if 'stars' in self.get_serializer_context(True) else self.gen_qs(qs, 'is_dislike', [False, True])
 
-class LikeAPIView(BaseLikeView, generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
-    def __init__(self):
-        super().__init__()
-        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
-
+class LikeAPIView(IsOwnerOrReadOnly, BaseLikeView, generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
     def get_serializer_class(self):
         if self.request.method == 'GET' and 'is_user' in self.kwargs:
             if self.kwargs['is_user']:
@@ -984,17 +990,12 @@ class LikeAPIView(BaseLikeView, generics.ListCreateAPIView, generics.UpdateAPIVi
         return qs #serializers.sort_related(, self.request.user)
 
     def get_object(self):
-        ct = get_type(self)
-        return get_object_or_404(models.Like, content_type=ct if ct else ContentType.objects.get(model='event'), object_id=self.kwargs['pk'], person=self.request.user)
+        return get_object_or_404(models.Like, content_type=get_type(self) or ContentType.objects.get(model='event'), object_id=self.kwargs['pk'], person=self.request.user)
 
 
-class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
+class ReminderAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.DestroyAPIView):
     serializer_class = serializers.ReminderSerializer
     pagination_class = pagination.ReminderPagination
-
-    def __init__(self):
-        super().__init__()
-        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
     def get_queryset(self):
         if self.request.method == 'GET':
@@ -1004,3 +1005,15 @@ class ReminderAPIView(generics.ListCreateAPIView, generics.DestroyAPIView):
                 person = self.request.user"""
             return models.EventNotification.objects.filter(to_person=self.request.user, comment_type=None) #person
         return models.EventNotification.objects.filter(pk=self.kwargs['pk']) if self.kwargs['pk'] else models.EventNotification.objects.none()
+
+
+class RecentAPIView(generics.ListAPIView):
+    pagination_class = pagination.RecentPagination
+
+    def get_serializer_class(self):
+        if get_param_bool(self.request.query_params.get('user', False)):
+            return serializers.UserSerializer
+        return serializers.BusinessSerializer
+
+    def get_queryset(self):
+        return gen_recent_qs(self.request, models.User if get_param_bool(self.request.query_params.get('user', False)) else models.Business).annotate(count=F('recent__count'))
