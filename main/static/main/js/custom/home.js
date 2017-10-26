@@ -99,7 +99,7 @@ app
     .factory('userService', function (uniService) { return uniService.getInstance('user') })
     .factory('mixedService', function (uniService) { return uniService.getInstance() })
 
-    .controller('MapCtrl', function ($scope, $controller, markerService, USER) {
+    .controller('MapCtrl', function ($scope, $controller, $interval, markerService, USER) {
         $scope.$parent.loading = true;
         $scope.markers = markerService.markers;
         $scope.click = markerService.click;
@@ -107,7 +107,7 @@ app
         function getObjs() { return angular.element('[class*=\'objsfalse\']') }
         function disableWatch() {
             if ($scope.wid === undefined) return;
-            navigator.geolocation.clearWatch($scope.wid);
+            $interval.cancel($scope.wid);
             $scope.$parent.wid = undefined;
         }
         function setWarnPos(position) {
@@ -130,27 +130,36 @@ app
             });
         }
         function enableWatch(init) {
-            //if (init === undefined) navigator.geolocation.getCurrentPosition(s, e, o);
-            $scope.$parent.wid = navigator.geolocation.watchPosition(
-                function (position){
-                    if ($scope.map === undefined) initPos(init, position);
-                    else if (position.coords.accuracy < 100) {
-                        if ($scope.warn !== undefined) $scope.warn = undefined;
-                        if (Math.abs(position.coords.latitude - $scope.$parent.coords.latitude) * Math.pow(10, 7) < 500 && Math.abs(position.coords.longitude - $scope.$parent.coords.longitude) * Math.pow(10, 7) < 500) return;
-                        $scope.setCoords(position.coords);
-                    } else setWarnPos(position);
-                },
-                function (error) {
-                    console.log(error.message);
-                    var l = 0;
-                    if ($scope.map === undefined) {
-                        if (error.code == error.PERMISSION_DENIED) $scope.warn = 0;
-                        initPos(init);
-                        l++;
-                    }
-                    if ($scope.warn === undefined) $scope.warn = 1 + l;
-                },
-            {enableHighAccuracy: true, maximumAge: 600000, timeout: 27000});
+            var working, getpos = function (){
+                navigator.geolocation.getCurrentPosition(
+                    function (position){
+                        working = false;
+                        if ($scope.map === undefined) initPos(init, position);
+                        else if (position.coords.accuracy < 100) {
+                            if ($scope.warn !== undefined) $scope.warn = undefined;
+                            if (Math.abs(position.coords.latitude - $scope.$parent.coords.latitude) * Math.pow(10, 7) < 500 && Math.abs(position.coords.longitude - $scope.$parent.coords.longitude) * Math.pow(10, 7) < 500) return;
+                            $scope.setCoords(position.coords);
+                        } else setWarnPos(position);
+                    },
+                    function (error) {
+                        working = false;
+                        console.log(error.message);
+                        var l = 0;
+                        if ($scope.map === undefined) {
+                            if (error.code == error.PERMISSION_DENIED) $scope.warn = 0;
+                            initPos(init);
+                            l++;
+                        }
+                        if ($scope.warn === undefined) $scope.warn = 1 + l;
+                    },
+                    {enableHighAccuracy: true, maximumAge: 600000, timeout: 27000});
+            };
+            getpos();
+            $scope.$parent.wid = $interval(function (){
+                if (working) return;
+                working = true;
+                getpos();
+            }, 5000);
         }
         var unregister = $scope.$watch(function (){ return getObjs().length }, function (val) {
             if (val == 0) return;
