@@ -46,9 +46,13 @@ from django.core.cache.utils import make_template_fragment_key
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs
+from rest_framework_simplejwt.views import TokenViewBase
 
 User = get_user_model()
 
+
+class TokenObtainPairView(TokenViewBase):
+    serializer_class = serializers.TokenObtainPairSerializer
 
 def render_with_recent(request, template, context={}):
     context.update(gen_recent_context(request))

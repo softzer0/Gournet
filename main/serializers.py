@@ -20,6 +20,8 @@ from decimal import Decimal, ROUND_HALF_UP
 from .forms import clean_loc, business_clean_data
 from django.core.exceptions import ObjectDoesNotExist
 from pytz import common_timezones
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as DefTokenObtainPairSerializer
+from django.conf import settings
 
 User = get_user_model()
 NOT_MANAGER_MSG = "You're not a manager of any business."
@@ -55,6 +57,14 @@ def sort_related(query, first=None, where=None, retothers=False):
         s = 0
     cases += [When(pk=obj.pk, then=Value(i+s)) for i, obj in enumerate(others.all())]
     return query.order_by(Case(*cases, output_field=IntegerField()), *query.model._meta.ordering) if len(cases) > 0 else query
+
+
+class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        attrs['NOTIF_PAGE_SIZE'] = settings.NOTIFICATION_PAGE_SIZE
+        attrs['user'] = {'currency': self.user.currency, 'home': {'latitude': self.user.location.coords[1], 'longitude': self.user.location.coords[0]}}
+        return attrs
 
 
 class EmailSerializer(serializers.ModelSerializer):
