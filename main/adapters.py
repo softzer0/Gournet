@@ -5,6 +5,8 @@ from datetime import datetime
 from requests import get
 from django.core.files.base import ContentFile
 from .thumbs import saveimgwiththumbs
+from inspect import currentframe
+from .middleware import Resp
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -27,6 +29,12 @@ class AccountAdapter(DefaultAccountAdapter):
         if commit:
             user.save()
         return user
+
+    def login(self, request, user):
+        if request.COOKIES.get('nohf', None) is None or not currentframe().f_back.f_locals['signup']:
+            super().login(request, user)
+        else:
+            raise Resp()
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):

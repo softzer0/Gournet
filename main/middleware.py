@@ -1,7 +1,11 @@
 from pytz import timezone as pytz_timezone
 from django.utils.timezone import activate as tz_activate
-from django.utils.translation import activate as lang_activate, get_language
+from django.utils.translation import activate as lang_activate
 from django.conf import settings
+from django.http import JsonResponse
+
+class Resp(Exception):
+    pass
 
 class TimezoneLocaleMiddleware:
     def process_request(self, request):
@@ -28,3 +32,7 @@ class TimezoneLocaleMiddleware:
         if 'Content-Language' not in response:
             response['Content-Language'] = getattr(request, 'LANGUAGE_CODE', settings.LANGUAGE_CODE)
         return response
+
+    def process_exception(self, request, exception):
+        if isinstance(exception, Resp):
+            return JsonResponse({'username': request.POST['username'], 'password': request.POST['password']})
