@@ -275,8 +275,10 @@ def return_avatar(request, pk, size):
 class BaseAuthView:
     success_url = '/'
 
-    def get(self, *args, **kwargs):
-        return redirect('/')
+    def get(self, request, *args, **kwargs):
+        request.POST._mutable = True
+        request.POST.update(request.GET)
+        return self.post(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         request.is_ajax = lambda: True
@@ -849,7 +851,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         if 'currency' in self.kwargs:
             context['currency'] = None
             self.kwargs.pop('currency')
-        elif self.request.method in ('PUT', 'PATCH'):
+        elif self.request.method in ('PATCH', 'PUT'):
             context['edit'] = None
         elif self.request.query_params.get('ids', False):
             context['ids'] = get_param_bool(self.request.query_params.get('has_img_ind', False))
