@@ -6,6 +6,7 @@ from datetime import timedelta
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.relations import PrimaryKeyRelatedField
+from allauth.account import signals
 from allauth.account.models import EmailAddress
 from . import models
 from django.contrib.auth import get_user_model
@@ -67,10 +68,57 @@ class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
         return attrs
 
 
+def send_signal_email_changed(request, from_email, to_email):
+    signals.email_changed \
+        .send(sender=request.user.__class__,
+              request=request,
+              user=request.user,
+              from_email_address=from_email,
+              to_email_address=to_email)
+
+def primary_first_email(obj, request, msg):
+    o = obj.user.emailaddress_set.exclude(pk=obj.pk).filter(verified=True).first()
+    if o:
+        o.set_as_primary()
+        send_signal_email_changed(request, obj, o)
+    else:
+        raise serializers.ValidationError({'non_field_errors': [msg]})
+
 class EmailSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
         model = EmailAddress
         exclude = ('id', 'user')
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if self.context['request'].method not in ('PUT', 'PATCH'):
+            self.fields['primary'].read_only = True
+            self.fields['verified'].read_only = True
+        else:
+            self.fields['email'].read_only = True
+
+    def update(self, instance, validated_data):
+        if 'primary' in validated_data:
+            if not validated_data['primary']:
+                primary_first_email(instance, self.context['request'], "Can't change primary status of the only verified email address.")
+            elif not instance.verified:
+                raise serializers.ValidationError({'non_field_errors': ["Can't set unverified email address as primary."]})
+            instance.set_as_primary()
+            send_signal_email_changed(self.context['request'], None, instance)
+        if validated_data.get('verified') and not instance.verified:
+            instance.send_confirmation(self.context['request'])
+        return instance
+
+    def create(self, validated_data):
+        obj = super().create(validated_data)
+        signals.email_added.send(sender=self.context['request'].user.__class__,
+                                 request=self.context['request'],
+                                 user=self.context['request'].user,
+                                 email_address=obj)
+        return obj
 
 
 class AccountSerializer(serializers.ModelSerializer):

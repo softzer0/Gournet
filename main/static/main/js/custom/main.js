@@ -385,7 +385,7 @@ app
                         n = 'notifications';
                         break;
                     case 5:
-                        n = 'emails';
+                        n = 'email';
                         break;
                     case 6:
                         n = 'reminders';
@@ -1261,37 +1261,32 @@ app
     })
 
     .factory('emailService', function($rootScope, $resource, APIService) {
-        var emails = [];
-        var selected = 0;
-
-        function _sendreq(action, email){
-            return $rootScope.sendreq('email/', 'action_' + action + '=&email=' + email)
-        }
+        var emails = [], selected = 0, service = APIService.init(5);
 
         return {
             emails: emails,
             selected: selected,
             setCurrent: function(curr){ selected = curr },
             load: function(){
-                return APIService.init(5).query({}, function (result) { emails.push.apply(emails, result) }).$promise;
+                return service.query({}, function (result) { emails.push.apply(emails, result) }).$promise;
             },
             add: function(email) {
-                return _sendreq('add', email).then(function (){ emails.push({email: email, primary: false, verified: false}) });
+                return service.save({email: email}, function (){ emails.push({email: email, primary: false, verified: false}) }).$promise;
             },
             remove: function() {
-                return _sendreq('remove', emails[selected].email).then(function (){ return emails.splice(selected, 1)[0].email; });
+                return service.delete({id: emails[selected].email}, function (){ return emails.splice(selected, 1)[0].email }).$promise;
             },
             resend: function() {
-                return _sendreq('send', emails[selected].email);
+                return service.update({object_id: emails[selected].email, verified: true}).$promise;
             },
             primary: function() {
-                return _sendreq('primary', emails[selected].email).then(function (){
+                return service.update({object_id: emails[selected].email, primary: true}, function (){
                     var t = emails[0];
                     t.primary = false;
                     emails[selected].primary = true;
                     emails[0] = emails[selected];
                     emails[selected] = t;
-                });
+                }).$promise;
             }
         }
 

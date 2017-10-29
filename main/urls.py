@@ -21,7 +21,7 @@ urlpatterns = [
     #url(r"^inactive/$", allauth_views.account_inactive, name="account_inactive"),
 
     # E-mail
-    url(r"^email/$", views.EmailView.as_view(), name="account_email"),
+    #url(r"^email/$", views.EmailView.as_view(), name="account_email"),
     url(r"^email/confirm/$", allauth_views.email_verification_sent,
         name="account_email_verification_sent"),
     url(r"^email/confirm/(?P<key>[-:\w]+)/$", allauth_views.confirm_email,
@@ -51,7 +51,7 @@ urlpatterns = [
     url(r'^api/users/(?:(?P<pk>\d+)/)?$', views.UserAPIView.as_view()),
     url(r'^api/businesses/$', views.BusinessAPIView.as_view()),
     url(r'^api/home/$', views.HomeAPIView.as_view()),
-    url(r'^api/emails/$', views.EmailAPIView.as_view()),
+    url(r'^api/email/(?:(?P<email>(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})))/)?$', views.EmailAPIView.as_view()),
     url(r'^api/account/$', views.AccountAPIView.as_view()),
     url(r'^api/manager/$', views.ManagerAPIView.as_view()),
     url(r'^api/recent/$', views.RecentAPIView.as_view()),

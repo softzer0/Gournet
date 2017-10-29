@@ -14,7 +14,8 @@ from rest_framework.exceptions import NotFound #, MethodNotAllowed
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
 from stronghold.views import StrongholdPublicMixin
-from allauth.account.views import signup as def_signup, LoginView, PasswordChangeView as DefPasswordChangeView, EmailView as DefEmailView
+from allauth.account.views import signup as def_signup, LoginView, PasswordChangeView as DefPasswordChangeView #, EmailView as DefEmailView
+from allauth.account import signals
 from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -272,7 +273,7 @@ def return_avatar(request, pk, size):
     return HttpResponse(open(avatar, 'rb'), content_type='image/'+mimeext, status=st)
 
 
-class BaseAuthView:
+class PasswordChangeView(DefPasswordChangeView):
     success_url = '/'
 
     def get(self, request, *args, **kwargs):
@@ -285,11 +286,28 @@ class BaseAuthView:
         # noinspection PyUnresolvedReferences
         return super().post(request, *args, **kwargs)
 
-class PasswordChangeView(BaseAuthView, DefPasswordChangeView):
-    pass
+#class EmailView(BaseAuthView, DefEmailView):
+#    pass
 
-class EmailView(BaseAuthView, DefEmailView):
-    pass
+
+class EmailAPIView(generics.ListCreateAPIView, generics.UpdateAPIView):
+    serializer_class = serializers.EmailSerializer
+    pagination_class = None
+    lookup_field = 'email'
+
+    def get_queryset(self):
+        return EmailAddress.objects.filter(user=self.request.user).order_by('-primary', '-verified')
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.primary:
+            serializers.primary_first_email(obj, request, "The only verified email address can't be deleted.")
+        obj.delete()
+        signals.email_removed.send(sender=request.user.__class__,
+                                   request=request,
+                                   user=request.user,
+                                   email_address=obj)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AccountAPIView(generics.RetrieveUpdateAPIView):
@@ -298,12 +316,6 @@ class AccountAPIView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
-class EmailAPIView(generics.ListAPIView):
-    serializer_class = serializers.EmailSerializer
-    pagination_class = None
-
-    def get_queryset(self):
-        return EmailAddress.objects.filter(user=self.request.user).order_by('-primary', '-verified')
 
 def get_b_from(user):
     try:
@@ -386,7 +398,7 @@ def get_object(pk, cl=User):
     except:
         raise NotFound(cl._meta.model_name.capitalize()+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
 
-class UserAPIView(SearchAPIView, generics.CreateAPIView, generics.DestroyAPIView):
+class UserAPIView(SearchAPIView, generics.CreateAPIView):
     search_pag_class = pagination.UserPagination
     pagination_class = pagination.FriendsPagination
     filter_backends = (SearchFilter,)
