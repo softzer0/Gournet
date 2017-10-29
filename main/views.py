@@ -291,14 +291,12 @@ class EmailView(BaseAuthView, DefEmailView):
 
 
 class AccountAPIView(generics.RetrieveUpdateAPIView):
-    permission_classes = ()
     serializer_class = serializers.AccountSerializer
 
     def get_object(self):
         return self.request.user
 
 class EmailAPIView(generics.ListAPIView):
-    permission_classes = ()
     serializer_class = serializers.EmailSerializer
     pagination_class = None
 
@@ -312,7 +310,6 @@ def get_b_from(user):
         raise NotFound(serializers.NOT_MANAGER_MSG)
 
 class ManagerAPIView(generics.RetrieveUpdateAPIView):
-    permission_classes = ()
     serializer_class = serializers.ManagerSerializer
 
     def get_object(self):
@@ -320,7 +317,6 @@ class ManagerAPIView(generics.RetrieveUpdateAPIView):
 
 
 class SearchAPIView(generics.ListAPIView):
-    permission_classes = ()
     search_pag_class = pagination.SearchPagination
     filter_backends = (SearchFilter,)
 
