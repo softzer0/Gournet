@@ -1,3 +1,8 @@
 {% extends 'base/main.html' %}
 
 {% block title %}{% load i18n %}{% trans "Signup on Gournet" %}{% endblock %}
+
+{% block bodyatt %}{{ block.super }}{% if request.GET.nohf or request.COOKIES.nohf != None %} style="padding-top: 15px;"{% endif %}{% endblock %}
+{% block header %}{% if not request.GET.nohf and request.COOKIES.nohf == None %}{{ block.super }}{% endif %}{% endblock %}
+{% block containerstyle %}{% if not request.GET.nohf and request.COOKIES.nohf == None %}{{ block.super }}{% endif %}{% endblock %}
+{% block footer %}{% if not request.GET.nohf and request.COOKIES.nohf == None %}{{ block.super }}{% endif %}{% endblock %}

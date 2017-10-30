@@ -11,7 +11,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 urlpatterns = [
     # Allauth related
 
-    url(r"^signup/$", views.signup, name="account_signup"),
+    url(r"^signup/$", public(views.basenohf), {'': allauth_views.signup}, name="account_signup"),
     url(r"^$", views.home_index, name="account_login"),
     url(r"^logout/$", allauth_views.logout, name="account_logout"),
 
@@ -28,7 +28,7 @@ urlpatterns = [
         name="account_confirm_email"),
 
     # password reset
-    url(r"^password/reset/$", allauth_views.password_reset,
+    url(r"^password/reset/$", views.basenohf, {'': allauth_views.password_reset},
         name="account_reset_password"),
     url(r"^password/reset/done/$", allauth_views.password_reset_done,
         name="account_reset_password_done"),

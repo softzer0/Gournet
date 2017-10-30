@@ -16,19 +16,19 @@
     <script{% comment %} src="{% static 'main/js/custom/login_signup.js' %}"{% endcomment %}>var app = angular.module('mainApp', []).controller('BaseMainCtrl', function ($scope){ $scope.switchMore = function (){ $scope.footer_more = angular.element('footer .more').toggleClass('show').hasClass('show') } })</script>
     {% endcache %}{% block head %}<link rel="stylesheet" href="{% static 'main/css/login_signup.css' %}">{% endblock %}
 </head>
-<body{% block bodyatt %} ng-controller="BaseMainCtrl"{% endblock %}{% if request.GET.nohf != None or request.COOKIES.nohf != None %} style="padding-top: 15px;"{% endif %}>
+<body{% block bodyatt %} ng-controller="BaseMainCtrl"{% endblock %}>
     {% block begin %}{% endblock %}
 
-    {% if request.GET.nohf == None and request.COOKIES.nohf == None %}<header class="navbar navbar-default navbar-fixed-top">
+    {% block header %}<header class="navbar navbar-default navbar-fixed-top">
         {% block navbar_container %}<div class="container">
             {% endblock %}<a href="/" class="navbar-brand"><img src="{% static 'main/logo.png' %}" width="98" height="33"></a>
             {% block navbar %}{% endblock %}{% block navbar_container_end %}
         </div>{% endblock %}
-    </header>{% endif %}
+    </header>{% endblock %}
 
-    <div class="container{% if request.GET.nohf == None and request.COOKIES.nohf == None %} w{% endif %}">{% block container %}{% endblock %}    </div>
+    <div class="container{% block containerstyle %} w{% endblock %}">{% block container %}{% endblock %}    </div>
 
-    {% if request.GET.nohf == None and request.COOKIES.nohf == None %}{% cache None footer lang %}<footer class="navbar navbar-fixed-bottom">
+    {% block footer %}{% cache None footer lang %}<footer class="navbar navbar-fixed-bottom">
         <div class="container">
             <div>
                 <div>
@@ -49,7 +49,7 @@
                 </div>
             </div>
         </div>
-    </footer>{% endif %}
+    </footer>{% endblock %}
 
     {% block end %}{% endblock %}
 </body>

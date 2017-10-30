@@ -14,7 +14,7 @@ from rest_framework.exceptions import NotFound #, MethodNotAllowed
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
 from stronghold.views import StrongholdPublicMixin
-from allauth.account.views import signup as def_signup, LoginView, PasswordChangeView as DefPasswordChangeView #, EmailView as DefEmailView
+from allauth.account.views import LoginView, PasswordChangeView as DefPasswordChangeView #, EmailView as DefEmailView
 from allauth.account import signals
 from rest_framework.views import APIView
 from rest_framework import generics, status
@@ -51,7 +51,6 @@ from rest_framework_simplejwt.views import TokenViewBase
 
 User = get_user_model()
 
-
 class TokenObtainPairView(TokenViewBase):
     serializer_class = serializers.TokenObtainPairSerializer
 
@@ -66,9 +65,8 @@ class TemplateView(DefTemplateView):
             context.update(gen_recent_context(self.request))
         return context
 
-@public
-def signup(request):
-    response = def_signup(request)
+def basenohf(request, **kwargs):
+    response = kwargs[''](request)
     if request.GET.get('nohf'):
         response.set_cookie('nohf', None)
     return response
