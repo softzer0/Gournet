@@ -1,11 +1,13 @@
-{% extends "account/base.html" %}
-
+{% extends 'base/signup.html' %}
 {% load i18n %}
 
-{% block head_title %}{% trans "Sign Up Closed" %}{% endblock %}
-
-{% block content %}
-<h1>{% trans "Sign Up Closed" %}</h1>
-
-<p>{% trans "We are sorry, but the sign up is currently closed." %}</p>
+{% block container %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="well bs-component" style="max-width: 500px;">
+                    <legend>{% trans "Sign Up Closed" %}</legend>
+                    <p class="fbot">{% trans "We are sorry, but the sign up is currently closed." %}</p>
+                </div>
+            </div>
+        </div>
 {% endblock %}

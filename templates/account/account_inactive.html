@@ -1,11 +1,13 @@
-{% extends "account/base.html" %}
-
+{% extends 'base/signup.html' %}
 {% load i18n %}
 
-{% block head_title %}{% trans "Account Inactive" %}{% endblock %}
-
-{% block content %}
-<h1>{% trans "Account Inactive" %}</h1>
-
-<p>{% trans "This account is inactive." %}</p>
+{% block container %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="well bs-component" style="max-width: 400px;">
+                    <legend>{% trans "Account Inactive" %}</legend>
+                    <p class="fbot">{% trans "This account is inactive." %}</p>
+                </div>
+            </div>
+        </div>
 {% endblock %}
