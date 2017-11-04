@@ -2,7 +2,7 @@
     <div class="row fri">
         <div class="us" ng-class="favs ? 'col-xs-5 col-sm-4 col-lg-3' : 'col-xs-4 col-sm-3 col-lg-2'" ng-repeat="e in tabs[0].elems">
             <a class="oh well clickable n ns" ng-href="{{ event === undefined ? '/'+(favs ? e.shortname : 'user/'+e.username)+'/' : '' }}" ng-click="makeSel($index)" ng-class="{'bc': e.selected}">
-                <img class="img-thumbnail margin-center prof" ng-src="/images/{{ favs ? 'business' : 'users' }}/{{ e.id }}/avatar/">
+                <img class="img-thumbnail margin-center prof" ng-src="/images/{{ favs ? 'business' : 'user' }}/{{ e.id }}/avatar/">
                 <p class="text-center br3 def" data-fittext>{{ favs ? e.name : e.first_name+' '+e.last_name }}</p>
             </a>
         </div>

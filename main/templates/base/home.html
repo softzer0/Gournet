@@ -119,7 +119,7 @@
                     <input type="text" class="form-control" id="sr" placeholder="{% trans "Search" %}" select-on-click ng-model="search.keywords" ng-change="search.func()" ng-focus="search.show = search.keywords != ''; search.chngl()" ng-model-options="{updateOn: 'default blur', debounce: {default: 1000, blur: 0}}">
                     <div id="quicks" ng-show="search.show" ng-cloak>
                         <div class="bu" ng-repeat="b in search.results" such-href="/{% verbatim %}{{ b.shortname }}{% endverbatim %}/">
-                            <img class="bor mr7" ng-src="/images/business/{% verbatim %}{{ b.id }}{% endverbatim %}/avatar/32/?business=1"
+                            <img class="bor mr7" ng-src="/images/business/{% verbatim %}{{ b.id }}{% endverbatim %}/avatar/32/"
                             ><span>{% verbatim %}{{ b.type_display+' "'+b.name+'"'}}{% endverbatim %}</span>
                         </div>
                         <div class="loa tc" ng-show="search.loading"><i class="fa fa-spinner"></i></div>

@@ -56,10 +56,11 @@ def business_clean_data(self, cleaned_data, upd=False):
         clean_loc(self, cleaned_data)
     if upd:
         return
-    if cleaned_data.get('opened_sun', False) and not cleaned_data.get('opened_sat', False):
-        cleaned_data.pop('closed_sat', None)
-        cleaned_data.pop('opened_sun', None)
-        cleaned_data.pop('closed_sun', None)
+    if (cleaned_data.get('opened_sun', False) or cleaned_data.get('closed_sun', False)) and (not cleaned_data.get('opened_sat', False) or not cleaned_data.get('closed_sat', False)):
+        cleaned_data.pop('opened_sat')
+        cleaned_data.pop('closed_sat')
+        cleaned_data.pop('opened_sun')
+        cleaned_data.pop('closed_sun')
 
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)

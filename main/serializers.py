@@ -400,7 +400,7 @@ class BusinessSerializer(serializers.ModelSerializer):
             self.fields['rating'] = serializers.SerializerMethodField()
 
     def validate(self, attrs):
-        business_clean_data(self, attrs, True)
+        business_clean_data(self, attrs, self.context['request'].method != 'POST')
         return attrs
 
     def validate_manager(self, obj):
