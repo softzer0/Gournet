@@ -27,7 +27,7 @@ urlpatterns = [
         name="account_confirm_email"),
 
     # password reset
-    url(r"^password/reset/$", views.basenohf, {'': password_reset},
+    url(r"^password/reset/$", password_reset,
         name="account_reset_password"),
     url(r"^password/reset/done/$", password_reset_done,
         name="account_reset_password_done"),
