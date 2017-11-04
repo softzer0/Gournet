@@ -17,9 +17,9 @@ from django.db.models import Count, Avg, Case, When, Value, IntegerField
 from django.core.cache import caches
 from requests import get as req_get
 from decimal import Decimal, ROUND_HALF_UP
-from .forms import clean_loc, business_clean_data, SHORTNAME_EXISTS_MSG
+from .forms import clean_loc, business_clean_data
 from django.core.exceptions import ObjectDoesNotExist
-from pytz import common_timezones
+from pytz import timezone as get_timezone, common_timezones
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as DefTokenObtainPairSerializer
 from django.conf import settings
 
@@ -354,8 +354,8 @@ class BusinessSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Business
-        exclude = ('manager', 'currency', 'location', 'loc_projected', 'is_published', 'created')
-        extra_kwargs = {'shortname': {'required': False}, 'currency': {'required': False}, 'supported_curr': {'required': False}, 'phone': {'required': False}, 'address': {'required': False}}
+        exclude = ('manager', 'currency', 'location', 'loc_projected', 'is_published', 'tz', 'created')
+        extra_kwargs = {'address': {'required': False}}
 
     def __init__(self, *args, **kwargs):
         currency = extarg(kwargs, 'currency')
@@ -385,7 +385,6 @@ class BusinessSerializer(serializers.ModelSerializer):
             self.fields.pop('closed')
             self.fields.pop('closed_sat')
             self.fields.pop('closed_sun')
-            self.fields.pop('tz')
             if 'list' not in self.context and 'feed' not in self.context:
                 self.fields.pop('supported_curr')
             if loc or 'home' in self.context or 'feed' in self.context:
@@ -393,7 +392,8 @@ class BusinessSerializer(serializers.ModelSerializer):
                 if 'feed' in self.context or 'list' in self.context:
                     self.fields['distance'] = serializers.SerializerMethodField()
         else:
-            self.fields['location'] = CoordinatesField()
+            self.fields['manager'] = serializers.HiddenField(default=serializers.CurrentUserDefault())
+            self.fields['location'] = CoordinatesField(required=False)
             self.fields['tz'] = serializers.CharField(read_only=True)
             for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
                 self.fields[f].format = '%H:%M'
@@ -403,10 +403,10 @@ class BusinessSerializer(serializers.ModelSerializer):
         business_clean_data(self, attrs, True)
         return attrs
 
-    def validate_shortname(self, value):
-        if models.Business.objects.filter_by_natural_key(value).exists():
-            raise serializers.ValidationError(SHORTNAME_EXISTS_MSG)
-        return value
+    def validate_manager(self, obj):
+        if models.Business.objects.filter(manager=obj).exists():
+            raise serializers.ValidationError("You already have your own business.", code='unique')
+        return obj
 
     def update(self, instance, validated_data):
         if 'currency' in validated_data and validated_data['currency'] in CURRENCY_ARR:
@@ -417,6 +417,8 @@ class BusinessSerializer(serializers.ModelSerializer):
         return gen_distance(obj)
 
     def get_is_opened(self, obj):
+        if isinstance(obj.tz, str):
+            obj.tz = get_timezone(obj.tz)
         now = obj.tz.normalize(timezone.now())
         day = now.weekday()
         opened = obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened
@@ -437,8 +439,13 @@ class BusinessSerializer(serializers.ModelSerializer):
         return gen_coords(obj.location)
 
     def get_rating(self, obj):
-        qs = models.Review.objects.filter(object_id=obj.pk).aggregate(Count('stars'), Avg('stars'))
-        return [qs['stars__avg'] or 0, qs['stars__count'] or 0, qs.get(person=self.context['request'].user).stars if self.context['request'].user != obj.manager else -1]
+        qs = models.Review.objects.filter(object_id=obj.pk)
+        if self.context['request'].user != obj.manager:
+            o = qs.filter(person=self.context['request'].user).first()
+        else:
+            o = -1
+        qs = qs.aggregate(Count('stars'), Avg('stars'))
+        return [qs['stars__avg'] or 0, qs['stars__count'] or 0, o.stars if o and o != -1 else o or 0]
 
 class CurrentBusinessDefault(object):
     def set_context(self, serializer_field):

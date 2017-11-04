@@ -191,8 +191,8 @@ def show_business(request, shortname):
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
     data['fav_count'] = data['business'].likes.count()
-    qs = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
-    data['rating'] = [qs['stars__avg'] or 0, qs['stars__count'] or 0]
+    data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
+    data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
     def popl():
         data['workh'] = {'value': []}
         for f in ('', '_sat', '_sun'):
@@ -207,7 +207,7 @@ def show_business(request, shortname):
             data['fav_state'] = 0
         data['minchar'] = serializers.REVIEW_MIN_CHAR
         try:
-            data['rating'].append(qs.get(person=request.user).stars)
+            data['rating'].append(models.Review.objects.get(object_id=data['business'].pk, person=request.user).stars)
         except:
             data['rating'].append(0)
         if data['business'].opened != data['business'].closed or not data['business'].opened_sat or data['business'].opened_sat != data['business'].closed_sat or not data['business'].opened_sun or data['business'].opened_sun != data['business'].closed_sun:
@@ -326,7 +326,7 @@ class FakePag:
     def get_results(self, _):
         pass
 
-class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView):
+class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
     serializer_class = serializers.BusinessSerializer
     search_fields = ('name', 'shortname')
     max = 5

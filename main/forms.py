@@ -8,7 +8,6 @@ from django.utils.translation import ugettext as _, ugettext_lazy, pgettext, get
 from captcha.fields import ReCaptchaField
 from django.conf import settings
 
-SHORTNAME_EXISTS_MSG = ugettext_lazy("A business with that shortname already exists.")
 COORDINATES_NOT_FOUND_MSG = ugettext_lazy("Either coordinates for specified address are not found, or there's some internal error.")
 GOOGLEV3_OBJ = GoogleV3(api_key=settings.GMAPS_API_KEY)
 
@@ -84,7 +83,6 @@ class BaseForm(forms.ModelForm):
             for f in ('phone', 'supported_curr', 'address'):
                 self.fields[f].widget.attrs['ng-disabled'] = 'data.disabled'
         else:
-            self.fields['shortname'].error_messages['unique'] = SHORTNAME_EXISTS_MSG
             self.fields['location'].widget.attrs['ng-initial'] = ''
         for f in ('phone', 'location'):
             self.fields[f].widget.attrs['title'] = ''

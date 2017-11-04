@@ -244,6 +244,7 @@ class Business(Loc):
         _("shortname"),
         max_length=30,
         unique=True,
+        error_messages={'unique': _("A business with that shortname already exists.")},
         help_text=string_concat(_("The people could access your business by putting its shortname after the site address, e.g: <u>www.gournet.co/shortname</u>."), '\n', lazy(lambda c: ugettext("Maximum %d characters.") % c)(30), ' ', _("English alphabet (case-insensitive), digits and ./-/_ only.")),
         validators=[user_short_name, not_forbidden]
     )
