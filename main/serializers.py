@@ -130,10 +130,7 @@ class EmailSerializer(serializers.ModelSerializer):
 
 
 def get_rate(f, t):
-    try:
-        return caches['rates'].get_or_set(f+t, Decimal(req_get('https://download.finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s='+f+t+'=X').text.split(',')[1]))
-    except:
-        pass
+    return caches['rates'].get_or_set(f+t, Decimal(req_get('https://finance.google.com/finance/converter?a=1&from='+f+'&to='+t).text.split('class=bld>')[1].split(' ')[0]))
 
 ZERO_DECIMAL = Decimal(0)
 def curr_convert(v, f, t=None):
@@ -147,8 +144,6 @@ def mass_convert(qs_pk, obj, to_curr):
     if not qs_pk.exists():
         return
     rate = get_rate(obj.currency, to_curr)
-    if not rate:
-        raise serializers.ValidationError({'non_field_errors': ["There was some internal error with getting currency rate."]})
     rem = None
     try:
         obj.supported_curr.remove(to_curr)
