@@ -16,7 +16,7 @@ app
         // Owner
         $scope.edit = {};
         $scope.setED = function (name, val){ $scope.edit[name] = {value: new Date(val), disabled: true, form: {value: new Date(val), options: {minDate: new Date('1927'), maxDate: new Date('2003')}, opened: false}} };
-        $scope.s = APIService.init(12);
+        $scope.s = APIService.init();
         function zeroPad(num) { //, places
             var zero = 3 - num.toString().length; //places - (...) + 1
             return new Array(+(zero > 0 && zero)).join('0') + num;

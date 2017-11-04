@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 #    'autoslug',
 #    'cities_light',
 #    'modeltranslation',
+    'rest_auth',
     'phonenumber_field',
     'multiselectfield',
     'bootstrap3',
@@ -119,6 +120,7 @@ AUTH_USER_MODEL = 'main.User'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/'
 
+OLD_PASSWORD_FIELD_ENABLED = True
 ACCOUNT_EMAIL_REQUIRED = True
 #ACCOUNT_UNIQUE_EMAIL = True
 SOCIALACCOUNT_QUERY_EMAIL = True

@@ -148,7 +148,7 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
                 }
                 if ($scope.img[i].file.size <= 4500000) {
                     upload($scope.img[i].file, a !== undefined ? a : i).then(function () {
-                        $scope.img[i].ts = '&' + (+new Date());
+                        $scope.img[i].ts = '?' + (+new Date());
                         $timeout(reset);
                     }, function (msg) { if (msg.indexOf('\n') == -1) showmsg(msg); else reset() });
                 } else showmsg(gettext("You can't upload image larger than 4.5MB!"));

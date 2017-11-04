@@ -250,7 +250,7 @@ app
         services = [$injector.get('dialogService'), $injector.get('$uibModal'), $injector.get('BASE_MODAL')];
 
         //$rootScope.$watch('currTime', function (val){ if (val !== undefined) });
-        var s = APIService.init(13);
+        var s = APIService.init(9);
         $scope.s = s;
         function showerr(msg){
             services[0].show(msg, false);

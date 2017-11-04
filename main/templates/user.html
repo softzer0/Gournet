@@ -23,7 +23,7 @@
                         </div>
                     </div>{% else %}<p class="br2 lead text-center ww">{% block name %}{{ usr.first_name }} {{ usr.last_name }}{% endblock %}</p>{% endif %}{% endblock %}
 
-{% block img %}{{ usr.pk }}/avatar/?{% endblock %}
+{% block img %}user/{{ usr.pk }}{% endblock %}
 
 {% block other %}<li>{% trans "Male" context 'display' as m_t %}{% trans "Female" context 'display' as f_t %}{% if rel_state == -1 and not request.user.gender_changed %}<div class="inline namef" ng-cloak click-outside="co(edit.gender, 'disabled')" in-scope="documentClick.gender" ng-init="setE('gender', '{{ usr.gender }}')">
                             <a class="n" ng-if="edit.gender.disabled !== undefined" ng-show="edit.gender.disabled" ng-click="edit.gender.disabled = false"><i class="fa" ng-class="edit.gender.value == 0 ? 'fa-mars' : 'fa-venus'"></i> {{ '{' }}{{ '{' }} edit.gender.value == 0 ? '{{ m_t }}' : '{{ f_t }}' {{ '}' }}{{ '}' }}</a>

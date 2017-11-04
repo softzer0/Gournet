@@ -12,13 +12,12 @@ from . import models
 from django.contrib.auth import get_user_model
 from rest_framework.compat import unicode_to_repr
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Avg
 from os import path
-from django.db.models import Case, When, Value, IntegerField
+from django.db.models import Count, Avg, Case, When, Value, IntegerField
 from django.core.cache import caches
 from requests import get as req_get
 from decimal import Decimal, ROUND_HALF_UP
-from .forms import clean_loc, business_clean_data
+from .forms import clean_loc, business_clean_data, SHORTNAME_EXISTS_MSG
 from django.core.exceptions import ObjectDoesNotExist
 from pytz import common_timezones
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as DefTokenObtainPairSerializer
@@ -60,11 +59,20 @@ def sort_related(query, first=None, where=None, retothers=False):
     return query.order_by(Case(*cases, output_field=IntegerField()), *query.model._meta.ordering) if len(cases) > 0 else query
 
 
+REVIEW_MIN_CHAR = 6
+
+def gen_coords(obj):
+    return {'lat': obj.coords[1], 'lng': obj.coords[0]}
+
 class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
     def validate(self, attrs):
         attrs = super().validate(attrs)
         attrs['NOTIF_PAGE_SIZE'] = settings.NOTIFICATION_PAGE_SIZE
-        attrs['user'] = {'currency': self.user.currency, 'home': {'latitude': self.user.location.coords[1], 'longitude': self.user.location.coords[0]}}
+        if self.user.is_manager:
+            attrs['EVENT_MIN_CHAR'] = models.EVENT_MIN_CHAR
+            attrs['ITEM_MIN_CHAR'] = models.ITEM_MIN_CHAR
+        attrs['REVIEW_MIN_CHAR'] = REVIEW_MIN_CHAR
+        attrs['user'] = {'id': self.user.pk, 'username': self.user.username, 'first_name': self.user.first_name, 'last_name': self.user.last_name, 'currency': self.user.currency, 'home': gen_coords(self.user.location)}
         return attrs
 
 
@@ -108,45 +116,18 @@ class EmailSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'non_field_errors': ["Can't set unverified email address as primary."]})
             instance.set_as_primary()
             send_signal_email_changed(self.context['request'], None, instance)
-        if validated_data.get('verified') and not instance.verified:
+        if 'verified' in validated_data and not instance.verified:
             instance.send_confirmation(self.context['request'])
         return instance
 
     def create(self, validated_data):
-        obj = super().create(validated_data)
+        obj = EmailAddress.objects.add_email(self.context['request'], self.context['request'].user, self.validated_data['email'], confirm=True)
         signals.email_added.send(sender=self.context['request'].user.__class__,
                                  request=self.context['request'],
                                  user=self.context['request'].user,
                                  email_address=obj)
         return obj
 
-
-class AccountSerializer(serializers.ModelSerializer):
-    tz = serializers.ChoiceField([tz for tz in common_timezones])
-
-    class Meta:
-        model = User
-        fields = ('first_name', 'last_name', 'gender', 'birthdate', 'address', 'currency', 'language', 'tz')
-
-    def validate(self, attrs):
-        if 'birthdate' in attrs and (attrs['birthdate'].year > 2015 or attrs['birthdate'].year < 1927):
-            raise serializers.ValidationError({'birthdate': ["Invalid birthdate."]})
-        if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
-            raise serializers.ValidationError({'non_field_errors': ["Your name was already changed once."]})
-        for f in ('gender', 'birthdate'):
-            if f in attrs and getattr(self.context['request'].user, f+'_changed') and attrs[f] != getattr(self.context['request'].user, f):
-                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % f]}) #models.User._meta.get_field(f).verbose_name
-        return attrs
-
-    def update(self, instance, validated_data):
-        if 'address' in validated_data:
-            instance.location = clean_loc(self, validated_data, True)
-        if not self.context['request'].user.name_changed:
-            instance.name_change = 'first_name' in validated_data and validated_data['first_name'] != instance.first_name or 'last_name' in validated_data and validated_data['last_name'] != instance.last_name
-        for f in ('gender', 'birthdate'):
-            if not getattr(instance, f+'_changed'):
-                setattr(instance, f+'_changed', f in validated_data and validated_data[f] != getattr(instance, f))
-        return super().update(instance, validated_data)
 
 def get_rate(f, t):
     try:
@@ -182,30 +163,6 @@ def mass_convert(qs_pk, obj, to_curr):
         if not isinstance(qs_pk, int):
             obj.currency = to_curr
         obj.save()
-
-CURRENCY_ARR = tuple(i[0] for i in models.CURRENCY)
-class ManagerSerializer(serializers.ModelSerializer):
-    supported_curr = serializers.MultipleChoiceField(choices=models.CURRENCY)
-    tz = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = models.Business
-        exclude = ('id', 'manager', 'loc_projected', 'is_published')
-
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('fields', None)
-        super().__init__(*args, **kwargs)
-        for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
-            self.fields[f].format = '%H:%M'
-
-    def validate(self, attrs):
-        business_clean_data(self, attrs, True)
-        return attrs
-
-    def update(self, instance, validated_data):
-        if 'currency' in validated_data and validated_data['currency'] in CURRENCY_ARR:
-            mass_convert(instance.pk, instance, validated_data['currency'])
-        return super().update(instance, validated_data)
 
 
 class DateTimeFieldWihTZ(serializers.DateTimeField):
@@ -311,27 +268,62 @@ class RelationshipSerializer(BaseURSerializer):
     def get_target(self, obj):
         return UserSerializer(obj.from_person if obj.rev_dir else obj.to_person).data
 
+
+TIMEZONES = [tz for tz in common_timezones]
 class UserSerializer(BaseURSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name')
-        extra_kwargs = {'username': {'read_only': True},
-                        'first_name': {'read_only': True},
-                        'last_name': {'read_only': True}}
+        fields = ('id', 'username', 'first_name', 'last_name', 'gender', 'birthdate', 'address', 'currency', 'language')
+        extra_kwargs = {'username': {'read_only': True}, 'first_name': {'required': False}, 'last_name': {'required': False}, 'birthdate': {'required': False}, 'address': {'required': False}}
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        self.read_only = True
         if 'list' in self.context:
             self.fields['rel_state'] = serializers.SerializerMethodField()
         if 'noid' in self.context:
             self.fields.pop('id')
         if 'status' in self.context:
             self.fields['status'] = serializers.SerializerMethodField()
+        if 'single' not in self.context:
+            self.fields['first_name'].read_only = True
+            self.fields['last_name'].read_only = True
+            self.fields.pop('gender')
+            self.fields.pop('birthdate')
+            self.fields.pop('address')
+        else:
+            self.fields['tz'] = serializers.ChoiceField(TIMEZONES)
+            self.fields['born'] = serializers.SerializerMethodField()
+        if 'owner' not in self.context:
+            self.fields.pop('currency')
+            self.fields.pop('language')
 
-    def get_status(self, obj):
+    def validate(self, attrs):
+        if 'birthdate' in attrs and (attrs['birthdate'].year > 2015 or attrs['birthdate'].year < 1927):
+            raise serializers.ValidationError({'birthdate': ["Invalid birthdate."]})
+        if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
+            raise serializers.ValidationError({'non_field_errors': ["Your name was already changed once."]})
+        for f in ('gender', 'birthdate'):
+            if f in attrs and getattr(self.context['request'].user, f+'_changed') and attrs[f] != getattr(self.context['request'].user, f):
+                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % f]}) #models.User._meta.get_field(f).verbose_name
+        return attrs
+
+    def update(self, instance, validated_data):
+        if 'address' in validated_data:
+            instance.location = clean_loc(self, validated_data, True)
+        if not self.context['request'].user.name_changed:
+            instance.name_change = 'first_name' in validated_data and validated_data['first_name'] != instance.first_name or 'last_name' in validated_data and validated_data['last_name'] != instance.last_name
+        for f in ('gender', 'birthdate'):
+            if not getattr(instance, f+'_changed'):
+                setattr(instance, f+'_changed', f in validated_data and validated_data[f] != getattr(instance, f))
+        return super().update(instance, validated_data)
+
+    def get_status(self, _):
         return self.context['status']
+
+    def get_born(self, obj):
+        now = timezone.now()
+        return now.year - obj.birthdate.year - ((now.month, now.day) < (obj.birthdate.month, obj.birthdate.day))
 
 
 def get_friends(s, obj):
@@ -351,39 +343,75 @@ def get_friends(s, obj):
 def gen_distance(obj):
     return {'value': round(obj.distance.km, 1), 'unit': 'km'} if obj.distance.km > 0.8 else {'value': round(obj.distance.m), 'unit': 'm'}
 
+
+class CoordinatesField(serializers.CharField):
+    def to_representation(self, obj):
+        return gen_coords(obj)
+
+CURRENCY_ARR = tuple(i[0] for i in models.CURRENCY)
 class BusinessSerializer(serializers.ModelSerializer):
+    supported_curr = serializers.MultipleChoiceField(choices=models.CURRENCY)
+
     class Meta:
         model = models.Business
-        #exclude = ('manager', 'type', 'phone')
-        fields = ('id', 'shortname', 'name') #, business
-        extra_kwargs = {
-            'shortname': {'read_only': True},
-            'name': {'read_only': True}
-        }
+        exclude = ('manager', 'currency', 'location', 'loc_projected', 'is_published', 'created')
+        extra_kwargs = {'shortname': {'required': False}, 'currency': {'required': False}, 'supported_curr': {'required': False}, 'phone': {'required': False}, 'address': {'required': False}}
 
     def __init__(self, *args, **kwargs):
         currency = extarg(kwargs, 'currency')
         loc = extarg(kwargs, 'location')
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        self.read_only = True
-        if 'list' in self.context or 'feed' in self.context or currency:
+        if 'single' in self.context or 'list' in self.context or 'feed' in self.context or currency:
             if 'feed' in self.context:
                 self.fields['sort_field'] = serializers.DateTimeField()
                 self.fields['friend'] = serializers.SerializerMethodField()
-            self.fields['currency'] = serializers.CharField() #, source='get_currency_display'
+            self.fields['currency'] = serializers.ChoiceField(choices=models.CURRENCY) #, source='get_currency_display'
             if not currency:
-                self.fields['supported_curr'] = serializers.ListField()
                 self.fields['is_opened'] = serializers.SerializerMethodField()
-                self.fields['item_count'] = serializers.IntegerField(source='item_set.count')
+                self.fields['item_count'] = serializers.IntegerField(source='item_set.count', read_only=True)
                 self.fields['curruser_status'] = serializers.SerializerMethodField()
-                self.fields['likestars_count'] = serializers.IntegerField(source='likes.count')
-        if 'notype' not in self.context:
-            self.fields['type_display'] = serializers.CharField(source='get_type_display')
-        if loc or 'home' in self.context or 'feed' in self.context:
-            self.fields['location'] = serializers.SerializerMethodField()
-            if 'feed' in self.context or 'list' in self.context:
-                self.fields['distance'] = serializers.SerializerMethodField()
+                self.fields['likestars_count'] = serializers.IntegerField(source='likes.count', read_only=True)
+        if 'single' not in self.context:
+            if 'notype' not in self.context:
+                self.fields['type_display'] = serializers.CharField(source='get_type_display', read_only=True)
+            self.fields['shortname'].read_only = True
+            self.fields['name'].read_only = True
+            self.fields.pop('type')
+            self.fields.pop('phone')
+            self.fields.pop('opened')
+            self.fields.pop('opened_sat')
+            self.fields.pop('opened_sun')
+            self.fields.pop('closed')
+            self.fields.pop('closed_sat')
+            self.fields.pop('closed_sun')
+            self.fields.pop('tz')
+            if 'list' not in self.context and 'feed' not in self.context:
+                self.fields.pop('supported_curr')
+            if loc or 'home' in self.context or 'feed' in self.context:
+                self.fields['location'] = serializers.SerializerMethodField()
+                if 'feed' in self.context or 'list' in self.context:
+                    self.fields['distance'] = serializers.SerializerMethodField()
+        else:
+            self.fields['location'] = CoordinatesField()
+            self.fields['tz'] = serializers.CharField(read_only=True)
+            for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
+                self.fields[f].format = '%H:%M'
+            self.fields['rating'] = serializers.SerializerMethodField()
+
+    def validate(self, attrs):
+        business_clean_data(self, attrs, True)
+        return attrs
+
+    def validate_shortname(self, value):
+        if models.Business.objects.filter_by_natural_key(value).exists():
+            raise serializers.ValidationError(SHORTNAME_EXISTS_MSG)
+        return value
+
+    def update(self, instance, validated_data):
+        if 'currency' in validated_data and validated_data['currency'] in CURRENCY_ARR:
+            mass_convert(instance.pk, instance, validated_data['currency'])
+        return super().update(instance, validated_data)
 
     def get_distance(self, obj):
         return gen_distance(obj)
@@ -406,7 +434,11 @@ class BusinessSerializer(serializers.ModelSerializer):
         return get_friends(self, obj)
 
     def get_location(self, obj):
-        return {'lat': obj.location.coords[1], 'lng': obj.location.coords[0]}
+        return gen_coords(obj.location)
+
+    def get_rating(self, obj):
+        qs = models.Review.objects.filter(object_id=obj.pk).aggregate(Count('stars'), Avg('stars'))
+        return [qs['stars__avg'] or 0, qs['stars__count'] or 0, qs.get(person=self.context['request'].user).stars if self.context['request'].user != obj.manager else -1]
 
 class CurrentBusinessDefault(object):
     def set_context(self, serializer_field):
@@ -623,8 +655,6 @@ class CTSerializer(serializers.Serializer):
         except:
             raise serializers.ValidationError({'object_id': [CTPrimaryKeyRelatedField.default_error_messages['does_not_exist'].format(pk_value=attrs['object_id'])]})
         return attrs
-
-REVIEW_MIN_CHAR = 6
 
 class CommentSerializer(CTSerializer, BaseSerializer):
     person = UserSerializer(default=CurrentUserDefault())

@@ -17,7 +17,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if isinstance(obj, Event) or isinstance(obj, Item):
             user = obj.business.manager
         else:
-            user = getattr(obj, 'person', obj.user)
+            user = getattr(obj, 'person', getattr(obj, 'user', getattr(obj, 'manager', obj)))
 
         if isinstance(obj, Comment) and user != request.user:
             return request.user == (obj.content_object.content_object.manager if isinstance(obj.content_object, Comment) else obj.content_object.business.manager)

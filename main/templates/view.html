@@ -42,7 +42,7 @@
                         </div>
                     </div>{% else %}<p class="br2 lead text-center ww">{% block name %}{{ business.get_type_display }} "{{ business.name }}"{% endblock %}</p>{% endif %}{% endblock %}
 
-{% block img %}{{ business.pk }}/avatar/?business=1{% endblock %}
+{% block img %}business/{{ business.pk }}{% endblock %}
 
 {% block other %}<li{% if business.manager != request.user %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" readonly="true"{% else %}><span star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}"{% endif %}{% endif %}></span></li>
                         <li
@@ -136,7 +136,7 @@
                                             <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state > -1 %}clickable" ng-click="showItem(i.id){% endif %}">
                                                 <td{% if fav_state == -1 %} class="clickable" ng-class="{'esh': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% endif %}>
                                                     {% if fav_state == -1 %}<div class="img_p">
-                                                        {% endif %}<img class="bor" ng-src="/images/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/?item=1{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"
+                                                        {% endif %}<img class="bor" ng-src="/images/item/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"
                                                         ><div class="img_l" ng-show="img[i.id].file"><div class="loa loa-c"><i class="fa fa-spinner"></i></div></div
                                                     ></div{% else %}"{% endif %}
                                                     ><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div>

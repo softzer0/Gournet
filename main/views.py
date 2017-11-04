@@ -14,17 +14,17 @@ from rest_framework.exceptions import NotFound #, MethodNotAllowed
 from django.contrib.auth import get_user_model
 from stronghold.decorators import public
 from stronghold.views import StrongholdPublicMixin
-from allauth.account.views import LoginView, PasswordChangeView as DefPasswordChangeView #, EmailView as DefEmailView
-from allauth.account import signals
+from allauth.account.views import LoginView
 from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import Cursor
+from allauth.account import signals
+from allauth.account.models import EmailAddress
 from drf_multiple_model.views import MultipleModelAPIView
 from drf_multiple_model.mixins import Query
-from allauth.account.models import EmailAddress
 from . import permissions, pagination, serializers, forms, models
 from rest_framework.serializers import ValidationError
 from os import path
@@ -191,8 +191,8 @@ def show_business(request, shortname):
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
     data['fav_count'] = data['business'].likes.count()
-    data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
-    data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
+    qs = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
+    data['rating'] = [qs['stars__avg'] or 0, qs['stars__count'] or 0]
     def popl():
         data['workh'] = {'value': []}
         for f in ('', '_sat', '_sun'):
@@ -207,7 +207,7 @@ def show_business(request, shortname):
             data['fav_state'] = 0
         data['minchar'] = serializers.REVIEW_MIN_CHAR
         try:
-            data['rating'].append(models.Review.objects.filter(object_id=data['business'].pk, person=request.user).stars)
+            data['rating'].append(qs.get(person=request.user).stars)
         except:
             data['rating'].append(0)
         if data['business'].opened != data['business'].closed or not data['business'].opened_sat or data['business'].opened_sat != data['business'].closed_sat or not data['business'].opened_sun or data['business'].opened_sun != data['business'].closed_sun:
@@ -241,19 +241,12 @@ def show_profile(request, username):
     else:
         data['rel_state'] = -1
     if request.user != data['usr'] or request.user.birthdate_changed:
-        data['born'] = timezone.now()
-        data['born'] = data['born'].year - data['usr'].birthdate.year - ((data['born'].month, data['born'].day) < (data['usr'].birthdate.month, data['usr'].birthdate.day))
+        data['born'] = serializers.UserSerializer.get_born(None, data['usr'])
     return render_with_recent(request, 'user.html', data)
 
 
-def return_avatar(request, pk, size):
-    if get_param_bool(request.GET.get('business', False)):
-        t = 'business'
-    elif get_param_bool(request.GET.get('item', False)):
-        t = 'item'
-    else:
-        t = 'user'
-    img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+t+'/'
+def return_avatar(request, type, pk, size):
+    img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+type+'/'
     avatar = img_folder+pk+'/avatar'
     s = '.'
     st = None
@@ -269,23 +262,6 @@ def return_avatar(request, pk, size):
         avatar = img_folder+'avatar'+s+'png'
         st = status.HTTP_404_NOT_FOUND
     return HttpResponse(open(avatar, 'rb'), content_type='image/'+mimeext, status=st)
-
-
-class PasswordChangeView(DefPasswordChangeView):
-    success_url = '/'
-
-    def get(self, request, *args, **kwargs):
-        request.POST._mutable = True
-        request.POST.update(request.GET)
-        return self.post(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        request.is_ajax = lambda: True
-        # noinspection PyUnresolvedReferences
-        return super().post(request, *args, **kwargs)
-
-#class EmailView(BaseAuthView, DefEmailView):
-#    pass
 
 
 class EmailAPIView(generics.ListCreateAPIView, generics.UpdateAPIView):
@@ -308,29 +284,17 @@ class EmailAPIView(generics.ListCreateAPIView, generics.UpdateAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class AccountAPIView(generics.RetrieveUpdateAPIView):
-    serializer_class = serializers.AccountSerializer
-
-    def get_object(self):
-        return self.request.user
-
-
-def get_b_from(user):
-    try:
-        return models.Business.objects.get(manager=user)
-    except:
-        raise NotFound(serializers.NOT_MANAGER_MSG)
-
-class ManagerAPIView(generics.RetrieveUpdateAPIView):
-    serializer_class = serializers.ManagerSerializer
-
-    def get_object(self):
-        return get_b_from(self.request.user)
-
-
-class SearchAPIView(generics.ListAPIView):
+class SearchAPIView(generics.ListAPIView, generics.RetrieveUpdateAPIView):
     search_pag_class = pagination.SearchPagination
     filter_backends = (SearchFilter,)
+
+    def if_info(self):
+        return not self.request.query_params.get('search', False)
+
+    def list(self, request, *args, **kwargs):
+        if self.if_info():
+            return self.retrieve(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     def paginate_queryset(self, queryset):
         if self.request.query_params.get('search', False):
@@ -341,7 +305,20 @@ class SearchAPIView(generics.ListAPIView):
         context = super().get_serializer_context()
         if self.request.query_params.get('search', False) and not self.request.query_params.get('limit', '').isdigit():
             context['list'] = None
+        if self.if_info():
+            context['single'] = None
         return context
+
+class IsOwnerOrReadOnly(APIView):
+    def __init__(self):
+        super().__init__()
+        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
+
+def get_b_from(user):
+    try:
+        return models.Business.objects.get(manager=user)
+    except:
+        raise NotFound(serializers.NOT_MANAGER_MSG)
 
 class FakePag:
     display_page_controls = False
@@ -349,10 +326,13 @@ class FakePag:
     def get_results(self, _):
         pass
 
-class BusinessAPIView(SearchAPIView):
+class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView):
     serializer_class = serializers.BusinessSerializer
     search_fields = ('name', 'shortname')
     max = 5
+
+    def get_object(self):
+        return models.Business.objects.get(pk=self.kwargs['pk']) if self.kwargs['pk'] else get_b_from(self.request.user)
 
     def paginate_queryset(self, queryset):
         if not get_param_bool(self.request.query_params.get('quick', False)):
@@ -402,10 +382,16 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
     filter_backends = (SearchFilter,)
     search_fields = ('first_name', 'last_name', 'username')
 
+    def if_info(self):
+        return get_param_bool(self.request.query_params.get('info', False))
+
     def get_serializer_class(self):
-        if self.request.method != 'GET':
+        if self.request.method == 'POST':
             return serializers.RelationshipSerializer
         return serializers.UserSerializer
+
+    def get_object(self):
+        return models.User.objects.get(pk=self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
 
     def get_queryset(self):
         if self.request.query_params.get('search', False):
@@ -415,6 +401,12 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
         if person != self.request.user:
             return serializers.sort_related(qs, self.request.user)"""
         return serializers.friends_from(person, True) #serializers.sort_related(qs, where=serializers.gen_where('user', self.request.user.pk, 'recent', 'user', ct=ContentType.objects.get(model='user').pk))"""
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if 'single' in context and not self.kwargs['pk']:
+            context['owner'] = None
+        return context
 
     def delete(self, request, *args, **kwargs):
         person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
@@ -464,7 +456,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                 txt = _("%s has reviewed your business.") % txt['name'] if len(curr['persons']) == 1 else ungettext("%d have reviewed your business.", "%d have reviewed your business.", len(curr['persons'])) % len(curr['persons'])
         else:
             txt = ungettext("%(name)s notifies you about %(count)d event.", "%(name)s notifies you about %(count)d events.", txt['count']) % txt
-        self.create_notif([txt, (curr['ct'].model+('&showcomments' if len(curr['pks']) == 1 else '') if curr['ct'].model != 'comment' else 'review') if curr['typ'] is not None else 'event'], curr['pks'], created)
+        self.create_notif([txt, ((curr['ct'].model if curr['ct'].model != 'comment' else 'review')+('&showcomments' if len(curr['pks']) == 1 else '')) if curr['typ'] is not None else 'event'], curr['pks'], created)
 
     def get_queryset(self):
         if self.request.query_params.get('page', False):
@@ -627,10 +619,6 @@ class FeedAPIView(MultipleModelAPIView):
         context['feed'] = None
         return context
 
-class IsOwnerOrReadOnly(APIView):
-    def __init__(self):
-        super().__init__()
-        self.permission_classes.append(permissions.IsOwnerOrReadOnly)
 
 class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination

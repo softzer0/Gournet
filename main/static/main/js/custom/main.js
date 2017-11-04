@@ -397,7 +397,7 @@ app
                         n = 'items';
                         break;
                     case 9:
-                        n = 'businesses';
+                        n = 'business';
                         break;
                     case 10:
                         n = 'feed';
@@ -406,10 +406,7 @@ app
                         n = 'home';
                         break;
                     case 12:
-                        n = 'account';
-                        break;
-                    case 13:
-                        n = 'manager';
+                        n = 'password';
                         break;
                     default: n = 'users'
                 }
@@ -1292,7 +1289,7 @@ app
 
     })
 
-    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, emailService, USER) { //, $animate
+    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, APIService, emailService, USER) { //, $animate
         $scope.close = function() { $uibModalInstance.dismiss('cancel') };
         $scope.set_modal_loaded = function (s){ if ($scope.obj.active == 0 || s) $timeout(function() { $scope.modal_loaded = true; if (s) delete $scope.set_modal_loaded }) };
         $scope.title = gettext("Settings");
@@ -1389,26 +1386,24 @@ app
                     }
                     $scope.dismissError();
                     $scope.obj.changing = true;
-                    $rootScope.sendreq('password/', 'oldpassword='+$scope.obj.pass[0]+'&password1='+$scope.obj.pass[1]+'&password2='+$scope.obj.pass[2]).then(function (){
+                    APIService.init(12).save({old_password: $scope.obj.pass[0], new_password1: $scope.obj.pass[1], new_password2: $scope.obj.pass[2]}, function (){
                         $scope.pass_err = 0;
                         for (i = 0; i < 3; i++) $scope.obj.pass[i] = '';
                         delete $scope.obj.changing;
-                    }, function (response){
-                        if (response.data !== undefined && response.data.form_errors !== undefined) {
-                            var err = 0;
-                            $scope.pass_err_txt = '';
-                            for (var e in response.data.form_errors) {
-                                //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
-                                if (e == 'oldpassword') err += 1; else err += 2;
-                                for (i = 0; i < response.data.form_errors[e].length; i++) {
-                                    if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
-                                    $scope.pass_err_txt += response.data.form_errors[e][i];
-                                }
+                    }, function (result){
+                        var err = 0;
+                        $scope.pass_err_txt = '';
+                        for (var e in result.data) {
+                            //if ($scope.pass_err_txt != '') $scope.pass_err_txt += '\r\n';
+                            if (e == 'old_password') err += 1; else err += 2;
+                            for (i = 0; i < result.data[e].length; i++) {
+                                if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
+                                $scope.pass_err_txt += result.data[e][i] == 'Invalid password' ? gettext("Invalid current password.") : result.data[e][i];
                             }
-                            $scope.pass_err = err;
-                            if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
-                            delete $scope.obj.changing;
                         }
+                        $scope.pass_err = err;
+                        if (err == 1 || err == 3) pw_fields[0].focus(); else pw_fields[1].focus();
+                        delete $scope.obj.changing;
                     });
                 };
             } else if (value == 1 && $scope.setD === undefined) {

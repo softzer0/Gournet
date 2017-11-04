@@ -15,7 +15,7 @@
                 <div class="well bs-sidebar affix">
                     {% block name_content %}{% endblock %}
                     {% if fav_state == -1 or rel_state == -1 %}<div class="img_p margin-center prof"{% if fav_state == -1 %} ng-init="drag_txt = '{% load i18n %}{% trans "You can also drag an new image here" %}'"{% endif %}>
-                        {% endif %}<img ng-src="/images/{% block img %}{% endblock %}{% verbatim %}{{ img.a.ts || '' }}{% endverbatim %}" class="img-thumbnail margin-center{% if fav_state == -1 or rel_state == -1 %}" ng-init="img = {a: {file: null}}" uib-tooltip="{% if business %}{% verbatim %}{{ drag_txt }}{% endverbatim %}{% else %}You can also drag an new image here{% endif %}" ngf-drop ngf-select ng-model="img.a.file" ng-disabled="img.a.file" ng-class="{'clickable': !img.a.file}">
+                        {% endif %}<img ng-src="/images/{% block img %}{% endblock %}/avatar/{% verbatim %}{{ img.a.ts || '' }}{% endverbatim %}" class="img-thumbnail margin-center{% if fav_state == -1 or rel_state == -1 %}" ng-init="img = {a: {file: null}}" uib-tooltip="{% if business %}{% verbatim %}{{ drag_txt }}{% endverbatim %}{% else %}You can also drag an new image here{% endif %}" ngf-drop ngf-select ng-model="img.a.file" ng-disabled="img.a.file" ng-class="{'clickable': !img.a.file}">
                         <div class="img_l" ng-show="img.a.file"><div class="loa loa-c"><i class="fa fa-spinner fa-2x"></i></div></div>
                     </div{% else %} prof"{% endif %}>
                     <ul class="br1 list-unstyled text-center ls" ng-cloak>

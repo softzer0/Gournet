@@ -45,10 +45,14 @@ def business_clean_data(self, cleaned_data, upd=False):
             cleaned_data['supported_curr'].remove(cleaned_data['currency'])
         except:
             pass
-    if not isinstance(self, forms.ModelForm) and cleaned_data.get('shortname', False) and Business.objects.filter_by_natural_key(cleaned_data['shortname']).exists():
-        raise ValidationError({'shortname': [SHORTNAME_EXISTS_MSG]})
     if cleaned_data.get('location', False):
-        cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(',', ' ')+')')
+        try:
+            cleaned_data['location'] = fromstr('POINT('+cleaned_data['location'].replace(',', ' ')+')')
+        except:
+            try:
+                cleaned_data['location'] = fromstr(cleaned_data['location'])
+            except ValueError as e:
+                raise ValidationError({'location': [e]})
     if isinstance(self, forms.ModelForm) or 'address' in cleaned_data or 'location' in cleaned_data:
         clean_loc(self, cleaned_data)
     if upd:

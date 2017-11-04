@@ -140,6 +140,7 @@
     "If you change the business currency now, then item prices in the menu will be converted to that new currency.": "Ako promenite valutu Va\u0161eg ugostiteljskog objekta sada, onda \u0107e cene proizvoda biti preba\u010dene u tu novu valutu.",
     "Internationalization": "Internacionalizacija",
     "Invalid address.": "Neta\u010dna adresa.",
+    "Invalid current password.": "Neta\u010dno uneta trenutna \u0161ifra.",
     "Is my friend": "Moj je prijatelj",
     "Is my friend, too": "Tako\u0111e je i moj prijatelj",
     "Item(s)": "Proizvodi",
