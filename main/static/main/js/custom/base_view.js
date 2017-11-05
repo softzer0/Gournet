@@ -123,9 +123,11 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
 
     function upload(file, pk) {
         var deferred = services[0].defer();
-        services[1].upload({
-            url: '/upload/' + (pk ? pk + '/' : ''),
-            file: file
+        services[1].http({
+            url: '/api/upload/' + (pk ? pk + '/' : ''),
+            method: 'PUT',
+            data: file,
+            headers: {'Content-Disposition': 'attachment; filename='+file.name, 'Content-Type': '*/*'}
         }).then(function (resp) {
             deferred.resolve();
             console.log('Success ' + resp.config.file.name + ' uploaded.');
@@ -150,7 +152,7 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
                     upload($scope.img[i].file, a !== undefined ? a : i).then(function () {
                         $scope.img[i].ts = '?' + (+new Date());
                         $timeout(reset);
-                    }, function (msg) { if (msg.indexOf('\n') == -1) showmsg(msg); else reset() });
+                    }, function (data) { if (data.detail) showmsg(data.detail); else reset() });
                 } else showmsg(gettext("You can't upload image larger than 4.5MB!"));
             } else if ($scope.img === undefined) w();
         });

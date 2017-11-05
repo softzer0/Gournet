@@ -24,7 +24,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as De
 from django.conf import settings
 
 User = get_user_model()
-NOT_MANAGER_MSG = "You're not a manager of any business."
 
 APP_LABEL = path.basename(path.dirname(__file__))
 def gen_where(model, pk=None, table=None, column=None, target=None, ct=None, where=None): #, col_add=None, additional_obj=None
@@ -72,7 +71,7 @@ class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
             attrs['EVENT_MIN_CHAR'] = models.EVENT_MIN_CHAR
             attrs['ITEM_MIN_CHAR'] = models.ITEM_MIN_CHAR
         attrs['REVIEW_MIN_CHAR'] = REVIEW_MIN_CHAR
-        attrs['user'] = {'id': self.user.pk, 'username': self.user.username, 'first_name': self.user.first_name, 'last_name': self.user.last_name, 'currency': self.user.currency, 'home': gen_coords(self.user.location)}
+        attrs['user'] = {'id': self.user.pk, 'username': self.user.username, 'first_name': self.user.first_name, 'last_name': self.user.last_name, 'currency': self.user.currency, 'location': gen_coords(self.user.location)}
         return attrs
 
 
@@ -442,6 +441,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         qs = qs.aggregate(Count('stars'), Avg('stars'))
         return [qs['stars__avg'] or 0, qs['stars__count'] or 0, o.stars if o and o != -1 else o or 0]
 
+
 class CurrentBusinessDefault(object):
     def set_context(self, serializer_field):
         if isinstance(serializer_field, serializers.Serializer):
@@ -464,6 +464,7 @@ def chktime(attrs, td=timedelta()):
         attrs['when'] = timezone.now()+td
     return attrs
 
+NOT_MANAGER_MSG = "You're not a manager of any business."
 def chkbusiness(business):
     if not business:
         raise serializers.ValidationError({'non_field_errors': [NOT_MANAGER_MSG]})

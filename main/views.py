@@ -48,6 +48,7 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs
 from rest_framework_simplejwt.views import TokenViewBase
+from rest_framework.parsers import FileUploadParser
 
 User = get_user_model()
 
@@ -107,37 +108,42 @@ def i18n_view(request):
         return HttpResponse(dumps({'altered': c}), status=st)
     return render(request, 'i18n.html', {'timezones': common_timezones, 'langs': settings.LANGUAGES, 'currencies': models.CURRENCY} if not cache.get(make_template_fragment_key('i18n')) else None, status=st)
 
+def gen_resp(msg):
+    return {'detail': msg}
 
-def upload_view(request, pk_b=None):
-    if not any(request.FILES):
-        return HttpResponse("Image is missing.", status=status.HTTP_400_BAD_REQUEST)
-    if pk_b:
-        if pk_b == 'business':
-            try:
-                business = models.Business.objects.get(manager=request.user)
-            except:
-                return HttpResponse(serializers.NOT_MANAGER_MSG, status=status.HTTP_400_BAD_REQUEST)
-            t = pk_b
+class UploadView(APIView):
+    parser_classes = (FileUploadParser,)
+
+    def put(self, request, pk_b=None, format=None):
+        if 'file' not in request.data:
+            return Response(gen_resp("Image is missing."), status=status.HTTP_400_BAD_REQUEST)
+        if pk_b:
+            if pk_b == 'business':
+                try:
+                    business = models.Business.objects.get(manager=request.user)
+                except:
+                    return Response(gen_resp(serializers.NOT_MANAGER_MSG), status=status.HTTP_400_BAD_REQUEST)
+                t = pk_b
+            else:
+                try:
+                    pk_b = models.Item.objects.get(pk=pk_b, business__manager=request.user)
+                except:
+                    return Response(gen_resp("Item isn't found, or it's not yours."), status=status.HTTP_400_BAD_REQUEST)
+                t = 'item'
         else:
-            try:
-                pk_b = models.Item.objects.get(pk=pk_b, business__manager=request.user)
-            except:
-                return HttpResponse("Item isn't found, or it's not yours.", status=status.HTTP_400_BAD_REQUEST)
-            t = 'item'
-    else:
-        t = 'user'
-    try:
-        image = Image.open(request.FILES[next(iter(request.FILES))])
-        if image.format not in ('JPEG', 'PNG', 'GIF'):
-            return HttpResponse(_("Image format not supproted."), status=status.HTTP_403_FORBIDDEN)
-        image.verify()
-    except:
-        return HttpResponse(_("Invalid image."), status=status.HTTP_400_BAD_REQUEST)
-    saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.FILES[next(iter(request.FILES))]))
-    if pk_b and pk_b != 'business' and not pk_b.has_image:
-        pk_b.has_image = True
-        pk_b.save()
-    return HttpResponse(status=status.HTTP_200_OK)
+            t = 'user'
+        try:
+            image = Image.open(request.data['file'])
+            if image.format not in ('JPEG', 'PNG', 'GIF'):
+                return Response(gen_resp(_("Image format not supproted.")), status=status.HTTP_403_FORBIDDEN)
+            image.verify()
+        except:
+            return Response(gen_resp(_("Invalid image.")), status=status.HTTP_400_BAD_REQUEST)
+        saveimgwiththumbs(t, business.pk if pk_b == 'business' else pk_b.pk if pk_b else request.user.pk, image.format, Image.open(request.data['file']))
+        if pk_b and pk_b != 'business' and not pk_b.has_image:
+            pk_b.has_image = True
+            pk_b.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ContactView(StrongholdPublicMixin, FormView, TemplateView):
@@ -510,7 +516,7 @@ def base_view(request, t, cont, **kwargs):
         st = status.HTTP_403_FORBIDDEN
         text = "Authentication credentials were not provided." if not notxt else None
 
-    res = JSONRenderer().render({'detail': text}) if text else ''
+    res = JSONRenderer().render(gen_resp(text)) if text else ''
     return HttpResponse(res, status=st)
 
 def notifs_set_all_read(request):
