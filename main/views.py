@@ -397,12 +397,12 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
         return serializers.UserSerializer
 
     def get_object(self):
-        return models.User.objects.get(pk=self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
+        return models.User.objects.get(pk=self.kwargs['pk']) if self.kwargs['pk'] and int(self.kwargs['pk']) != self.request.user.pk else self.request.user
 
     def get_queryset(self):
         if self.request.query_params.get('search', False):
             return User.objects.exclude(pk=self.request.user.pk).order_by(Distance('loc_projected', self.request.user.loc_projected), *User._meta.ordering)
-        person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
+        person = get_object(self.kwargs['pk'])
         """qs = serializers.friends_from(person, True)
         if person != self.request.user:
             return serializers.sort_related(qs, self.request.user)"""
@@ -410,12 +410,12 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if 'single' in context and not self.kwargs['pk']:
+        if 'single' in context and (not self.kwargs['pk'] or int(self.kwargs['pk']) == self.request.user.pk):
             context['owner'] = None
         return context
 
     def delete(self, request, *args, **kwargs):
-        person = get_object(self.kwargs['pk']) if self.kwargs['pk'] else self.request.user
+        person = get_object(self.kwargs['pk'])
         try:
             models.Relationship.objects.get(from_person=request.user, to_person=person).delete()
         except:

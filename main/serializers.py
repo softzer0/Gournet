@@ -283,14 +283,16 @@ class UserSerializer(BaseURSerializer):
             self.fields['first_name'].read_only = True
             self.fields['last_name'].read_only = True
             self.fields.pop('gender')
-            self.fields.pop('birthdate')
             self.fields.pop('address')
         else:
-            self.fields['tz'] = serializers.ChoiceField(TIMEZONES)
+            if 'owner' in self.context:
+                self.fields['tz'] = serializers.ChoiceField(TIMEZONES)
+                self.fields['location'] = serializers.SerializerMethodField()
             self.fields['born'] = serializers.SerializerMethodField()
         if 'owner' not in self.context:
             self.fields.pop('currency')
             self.fields.pop('language')
+            self.fields.pop('birthdate')
 
     def validate(self, attrs):
         if 'birthdate' in attrs and (attrs['birthdate'].year > 2015 or attrs['birthdate'].year < 1927):
@@ -311,6 +313,9 @@ class UserSerializer(BaseURSerializer):
             if not getattr(instance, f+'_changed'):
                 setattr(instance, f+'_changed', f in validated_data and validated_data[f] != getattr(instance, f))
         return super().update(instance, validated_data)
+
+    def get_location(self, obj):
+        return gen_coords(obj.location)
 
     def get_status(self, _):
         return self.context['status']
