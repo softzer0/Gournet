@@ -51,7 +51,8 @@ urlpatterns = [
     url(r'^api/business/(?:(?P<pk>\d+)/)?$', views.BusinessAPIView.as_view()),
     url(r'^api/home/$', views.HomeAPIView.as_view()),
     url(r'^api/recent/$', views.RecentAPIView.as_view()),
-    url(r"^api/upload/(?:(?P<pk_b>([\d]+|business))/)?$", views.UploadView.as_view(), name="upload"),
+    url(r"^api/images/(?P<type>user|business|item)/(?:(?P<pk>[\d]+)/)?avatar/(?:(?P<size>(32|48|64))/)?$", views.ImageAPIView.as_view(), name="avatar"),
+    url(r"^api/upload/(?:(?P<pk_b>([\d]+|business))/)?avatar/$", views.UploadAPIView.as_view(), name="upload"),
     url(r'^api/token/$', views.TokenObtainPairView.as_view()),
     url(r'^api/token/refresh/$', TokenRefreshView.as_view()),
     #url(r'^api-auth/', decorator_include(public, 'rest_framework.urls', namespace='rest_framework')),
@@ -71,7 +72,6 @@ urlpatterns = [
     url(r"^edit\.html$", views.edit_view, name="edit"),
     url(r"^i18n/$", views.i18n_view, name="i18n"),
     url(r'^my-business/$', views.create_business, name="create_business"),
-    url(r"^images/(?P<type>user|business|item)/(?P<pk>[\d]+)/avatar/(?:(?P<size>(32|48|64))/)?$", views.return_avatar, name="avatar"),
     url(r"^user/(?P<username>[\w.-]+)/$", views.show_profile, name="user_profile"),
     url(r"^(?P<shortname>[\w.-]+)/$", views.show_business, name="business_profile"),
 ]

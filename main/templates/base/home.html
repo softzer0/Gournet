@@ -54,7 +54,7 @@
     </script>
     <script type="text/ng-template" id="offcanvas">
         <div class="navmenu navmenu-default navmenu-fixed-right">
-            <a class="n" ng-click="c()" href="{% endcache %}{% if usr == request.user %}javascript:{% else %}{% url 'user_profile' request.user.username %}{% endif %}"><img class="bor imo img-rounded" src="/images/user/{{ request.user.pk }}/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+            <a class="n" ng-click="c()" href="{% endcache %}{% if usr == request.user %}javascript:{% else %}{% url 'user_profile' request.user.username %}{% endif %}"><img class="bor imo img-rounded" src="/api/images/user/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
             <ul class="nav navmenu-nav">
                 {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
                 <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url or business and business.manager == request.user %}javascript:{% else %}{{ create_url }}{% endif %}">{% trans "My business" %}</a></li>
@@ -99,7 +99,7 @@
     ></script>
     <script type="text/ng-template" id="comment">
         <a class="prf" ng-href="/user/{% verbatim %}{{ m.obj.person.username }}{% endverbatim %}/">
-            <div class="pb7 pull-left"><img class="bor media-object" ng-src="/images/user/{% verbatim %}{{ m.obj.person.id }}{% endverbatim %}/avatar/32/"></div>
+            <div class="pb7 pull-left"><img class="bor media-object" ng-src="/api/images/user/{% verbatim %}{{ m.obj.person.id }}{% endverbatim %}/avatar/32/"></div>
             <strong>{% verbatim %}{{ m.obj.person.first_name }}{% endverbatim %} {% verbatim %}{{ m.obj.person.last_name }}{% endverbatim %}</strong
         ></a
         ><span ng-if="m.obj.created === undefined || m.obj.manager_stars.status === undefined"><span ng-if="m.obj.manager_stars == -1" class="label label-info lh" uib-tooltip="{% trans "Manager" %}">{% trans "M" context 'manager' %}</span><span ng-if="m.obj.is_curruser !== undefined && m.obj.manager_stars > 0" class="label label-warning lh" uib-tooltip="{% trans "Stars" %}">{% verbatim %}{{ m.obj.manager_stars }}{% endverbatim %} <i class="fa fa-star"></i></span></span
@@ -119,7 +119,7 @@
                     <input type="text" class="form-control" id="sr" placeholder="{% trans "Search" %}" select-on-click ng-model="search.keywords" ng-change="search.func()" ng-focus="search.show = search.keywords != ''; search.chngl()" ng-model-options="{updateOn: 'default blur', debounce: {default: 1000, blur: 0}}">
                     <div id="quicks" ng-show="search.show" ng-cloak>
                         <div class="bu" ng-repeat="b in search.results" such-href="/{% verbatim %}{{ b.shortname }}{% endverbatim %}/">
-                            <img class="bor mr7" ng-src="/images/business/{% verbatim %}{{ b.id }}{% endverbatim %}/avatar/32/"
+                            <img class="bor mr7" ng-src="/api/images/business/{% verbatim %}{{ b.id }}{% endverbatim %}/avatar/32/"
                             ><span>{% verbatim %}{{ b.type_display+' "'+b.name+'"'}}{% endverbatim %}</span>
                         </div>
                         <div class="loa tc" ng-show="search.loading"><i class="fa fa-spinner"></i></div>

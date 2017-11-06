@@ -108,13 +108,42 @@ def i18n_view(request):
         return HttpResponse(dumps({'altered': c}), status=st)
     return render(request, 'i18n.html', {'timezones': common_timezones, 'langs': settings.LANGUAGES, 'currencies': models.CURRENCY} if not cache.get(make_template_fragment_key('i18n')) else None, status=st)
 
+
+def get_b_from(user):
+    try:
+        return models.Business.objects.get(manager=user)
+    except:
+        raise NotFound(serializers.NOT_MANAGER_MSG)
+
 def gen_resp(msg):
     return {'detail': msg}
 
-class UploadView(APIView):
+class ImageAPIView(APIView):
+    def get(self, request, type, pk=None, size=None):
+        img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+type+'/'
+        if not pk and type == 'item':
+            return Response(gen_resp("Missing ID parameter for item."), status=status.HTTP_400_BAD_REQUEST)
+        avatar = img_folder+(pk or str(request.user.pk if type == 'user' else get_b_from(request.user).pk))+'/avatar'
+        s = '.'
+        st = None
+        if size:
+            s += size+'x'+size+'.'
+        mimeext = 'png'
+        if path.isfile(avatar+s+'jpg'):
+            avatar += s+'jpg'
+            mimeext = 'jpeg'
+        elif path.isfile(avatar+s+'png'):
+            avatar += s+'png'
+        else:
+            avatar = img_folder+'avatar'+s+'png'
+            st = status.HTTP_404_NOT_FOUND
+        return HttpResponse(open(avatar, 'rb'), content_type='image/'+mimeext, status=st)
+
+
+class UploadAPIView(APIView):
     parser_classes = (FileUploadParser,)
 
-    def put(self, request, pk_b=None, format=None):
+    def put(self, request, pk_b=None):
         if 'file' not in request.data:
             return Response(gen_resp("Image is missing."), status=status.HTTP_400_BAD_REQUEST)
         if pk_b:
@@ -319,12 +348,6 @@ class IsOwnerOrReadOnly(APIView):
     def __init__(self):
         super().__init__()
         self.permission_classes.append(permissions.IsOwnerOrReadOnly)
-
-def get_b_from(user):
-    try:
-        return models.Business.objects.get(manager=user)
-    except:
-        raise NotFound(serializers.NOT_MANAGER_MSG)
 
 class FakePag:
     display_page_controls = False

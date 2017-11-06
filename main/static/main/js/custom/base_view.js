@@ -124,10 +124,10 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
     function upload(file, pk) {
         var deferred = services[0].defer();
         services[1].http({
-            url: '/api/upload/' + (pk ? pk + '/' : ''),
+            url: '/api/upload/'+(pk ? pk+'/' : '')+'avatar/',
             method: 'PUT',
             data: file,
-            headers: {'Content-Disposition': 'attachment; filename='+file.name, 'Content-Type': '*/*'}
+            headers: {'Content-Disposition': 'attachment; filename="'+file.name+'"', 'Content-Type': '*/*'}
         }).then(function (resp) {
             deferred.resolve();
             console.log('Success ' + resp.config.file.name + ' uploaded.');
