@@ -267,14 +267,7 @@ def show_profile(request, username):
     if serializers.friends_from(request.user).filter(pk=data['usr'].pk).exists():
         increase_recent(request, data['usr'])
     data['friend_count'] = serializers.friends_from(data['usr']).count()
-    if request.user != data['usr']:
-        data['rel_state'] = 0
-        if models.Relationship.objects.filter(from_person=request.user, to_person=data['usr']).exists():
-            data['rel_state'] = 1
-        if models.Relationship.objects.filter(from_person=data['usr'], to_person=request.user).exists():
-            data['rel_state'] += 2
-    else:
-        data['rel_state'] = -1
+    data['rel_state'] = serializers.get_rel_state(request, data['usr'])
     if request.user != data['usr'] or request.user.birthdate_changed:
         data['born'] = serializers.UserSerializer.get_born(None, data['usr'])
     return render_with_recent(request, 'user.html', data)
@@ -425,7 +418,7 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
     def get_queryset(self):
         if self.request.query_params.get('search', False):
             return User.objects.exclude(pk=self.request.user.pk).order_by(Distance('loc_projected', self.request.user.loc_projected), *User._meta.ordering)
-        person = get_object(self.kwargs['pk'])
+        person = self.get_object()
         """qs = serializers.friends_from(person, True)
         if person != self.request.user:
             return serializers.sort_related(qs, self.request.user)"""

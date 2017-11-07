@@ -193,11 +193,21 @@ def friends_from(user, only=False, qs=None):
         qs = qs.extra(where=[gen_where(qs.model.__name__.lower(), user.pk, 'relationship', 'id', 'user', where='(%s_relationship.to_person_id = %d and %s)' % (APP_LABEL, user.pk, where))])
     return qs.only('id', 'username', 'first_name', 'last_name') if only else qs
 
+def get_rel_state(request, person):
+    if request.user != person:
+        res = 0
+        if models.Relationship.objects.filter(from_person=request.user, to_person=person).exists():
+            res = 1
+        if models.Relationship.objects.filter(from_person=person, to_person=request.user).exists():
+            res += 2
+        return res
+    return -1
+
 class BaseURSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if 'list' in self.context or 'feed' in self.context:
+        if 'single' in self.context or 'list' in self.context or 'feed' in self.context:
             self.fields['friend_count'] = serializers.SerializerMethodField()
             self.fields['rel_state'] = serializers.SerializerMethodField()
 
@@ -214,15 +224,7 @@ class BaseURSerializer(serializers.ModelSerializer):
         return [friends.count(), sort_related(friends, self.context['request'].user, retothers=True).count()]
 
     def get_rel_state(self, obj):
-        person = self.get_p(obj)
-        if self.context['request'].user != person:
-            r = 0
-            if models.Relationship.objects.filter(from_person=self.context['request'].user, to_person=person).exists():
-                r = 1
-            if models.Relationship.objects.filter(from_person=person, to_person=self.context['request'].user).exists():
-                r += 2
-            return r
-        return -1
+        return get_rel_state(self.context['request'], self.get_p(obj))
 
 class UsersWithoutCurrentField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
@@ -288,7 +290,7 @@ class UserSerializer(BaseURSerializer):
             if 'owner' in self.context:
                 self.fields['tz'] = serializers.ChoiceField(TIMEZONES)
                 self.fields['location'] = serializers.SerializerMethodField()
-            self.fields['born'] = serializers.SerializerMethodField()
+            self.fields['born_ago'] = serializers.SerializerMethodField()
         if 'owner' not in self.context:
             self.fields.pop('currency')
             self.fields.pop('language')
@@ -320,7 +322,7 @@ class UserSerializer(BaseURSerializer):
     def get_status(self, _):
         return self.context['status']
 
-    def get_born(self, obj):
+    def get_born_ago(self, obj):
         now = timezone.now()
         return now.year - obj.birthdate.year - ((now.month, now.day) < (obj.birthdate.month, obj.birthdate.day))
 
