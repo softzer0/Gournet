@@ -180,7 +180,7 @@ class ContactView(StrongholdPublicMixin, FormView, TemplateView):
     form_class = forms.ContactForm
 
     def form_valid(self, form):
-        models.User.objects.first().email_user(form.cleaned_data['email'], form.cleaned_data['message'])
+        models.User.objects.get(username='mikisoft').email_user(form.cleaned_data['email'], form.cleaned_data['message'])
         self.template_name = 'contact_sent.html'
         return self.render_to_response(self.get_context_data())
 
