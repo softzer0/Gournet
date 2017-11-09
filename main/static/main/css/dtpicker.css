@@ -80,3 +80,7 @@
 .rmn + .popover .datetime-picker-dropdown {
     left: -60px !important;
 }
+
+.datetime-picker-dropdown {
+    z-index: 10000;
+}
