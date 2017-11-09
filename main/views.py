@@ -597,7 +597,7 @@ def get_loc(self, qs, f=True, loc=False, store=False, deford=True):
         else:
             f = ''
         if loc:
-            qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=self.request.query_params.get('distance', 5)))})
+            qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=self.request.query_params['distance'] if 'distance' in self.request.query_params and self.request.query_params['distance'].replace('.','',1).isdigit() else 5))})
         if loc is not None:
             qs = qs.annotate(distance=Distance(f+'loc_projected', pos)).order_by('distance')
         return qs.order_by(*qs.model._meta.ordering) if deford else qs
