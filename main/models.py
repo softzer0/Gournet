@@ -291,6 +291,8 @@ def business_check_time(instance, **kwargs):
 def business_review_and_avatar_delete(instance, **kwargs):
     Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=instance.pk).delete()
     rem_avatar(instance)
+    instance.manager.is_manager = False
+    instance.manager.save()
 
 
 EVENT_MIN_CHAR = 15

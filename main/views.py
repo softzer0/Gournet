@@ -269,7 +269,7 @@ def show_profile(request, username):
     data['friend_count'] = serializers.friends_from(data['usr']).count()
     data['rel_state'] = serializers.get_rel_state(request, data['usr'])
     if request.user != data['usr'] or request.user.birthdate_changed:
-        data['born'] = serializers.UserSerializer.get_born(None, data['usr'])
+        data['born'] = serializers.UserSerializer.get_born_ago(None, data['usr'])
     return render_with_recent(request, 'user.html', data)
 
 
