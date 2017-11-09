@@ -670,12 +670,12 @@ msgstr "Poruka poslata"
 #: main/templates/contact_sent.html:9
 msgid ""
 "Your message has been sent to the support. You will be contacted as soon as "
-"possible. Please contact us again if you do not receive the answer within "
-"reasonable time."
+"possible. Please mind to check your Spam folder too, or contact us again if "
+"you do not receive the answer within reasonable time."
 msgstr ""
 "Vaša poruka je poslata našoj podršci. Bićete kontaktirani što je skorije "
-"moguće. Molimo da nas kontaktirate opet ako ne dobijete odgovor u razumnom "
-"roku."
+"moguće. Molimo da proverite i vaš Spam folder takođe, ili da nas "
+"kontaktirate opet ako ne dobijete odgovor u razumnom roku."
 
 #: main/templates/create.html:15
 msgid "Create Your Business"
@@ -1756,11 +1756,11 @@ msgstr ""
 
 #: templates/account/password_reset_done.html:13
 msgid ""
-"We have sent you an e-mail. Please contact us if you do not receive it "
-"within a few minutes."
+"We have sent you an e-mail. Please mind to check your Spam folder too, or "
+"contact us if you do not receive it within a few minutes."
 msgstr ""
-"Poslali smo vam e-mail. Molimo kontaktirajte nas ako ga ne primite u roku od "
-"par minuta."
+"Poslali smo vam e-mail. Molimo proverite i vaš Spam folder takođe, ili nas "
+"kontaktirajte ako ga ne primite u roku od par minuta."
 
 #: templates/account/password_reset_from_key.html:10
 msgid "Bad Token"
