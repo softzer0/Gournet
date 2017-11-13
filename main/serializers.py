@@ -379,6 +379,7 @@ class BusinessSerializer(serializers.ModelSerializer):
             self.fields['shortname'].read_only = True
             self.fields['name'].read_only = True
             self.fields.pop('type')
+            self.fields.pop('address')
             self.fields.pop('phone')
             self.fields.pop('opened')
             self.fields.pop('opened_sat')
