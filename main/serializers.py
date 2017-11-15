@@ -22,6 +22,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from pytz import timezone as get_timezone, common_timezones
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as DefTokenObtainPairSerializer
 from django.conf import settings
+from django.utils.dateformat import format
 
 User = get_user_model()
 
@@ -64,6 +65,12 @@ def gen_coords(obj):
     return {'lat': obj.coords[1], 'lng': obj.coords[0]}
 
 class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['pw_l_c'] = int(format(user.pass_last_changed, 'U'))
+        return token
+
     def validate(self, attrs):
         attrs = super().validate(attrs)
         attrs['NOTIF_PAGE_SIZE'] = settings.NOTIFICATION_PAGE_SIZE

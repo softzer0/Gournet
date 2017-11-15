@@ -59,18 +59,17 @@ class Loc(models.Model):
     class Meta:
         abstract = True
 
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        new = super().from_db(db, field_names, values)
-        new._loaded_location = new.location
-        return new
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.pk:
+            self._location = self.location
 
     def save(self, *args, **kwargs):
-        if not hasattr(self, '_loaded_location') or self._loaded_location != self.location:
+        if not hasattr(self, '_location') or self._location != self.location:
             self.loc_projected = self.location.transform(3857, True)
             self.tz = TF_OBJ.timezone_at(lat=self.location.coords[1], lng=self.location.coords[0])
         super().save(*args, **kwargs)
-
+        self._location = self.location
 
 class MyUserManager(UserManager):
     """def create_user(self, username, email=None, password=None, **extra_fields):
@@ -111,6 +110,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     name_changed = models.BooleanField(_("name already changed?"), default=False)
     gender_changed = models.BooleanField(_("gender already changed?"), default=False)
     birthdate_changed = models.BooleanField(_("birthdate already changed?"), default=False)
+    pass_last_changed = models.DateTimeField(default=timezone.now)
 
     currency = models.CharField(_("currency"), choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
     language = models.CharField(_("language"), choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
@@ -144,6 +144,8 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
         verbose_name_plural = _("users")
 
     def save(self, *args, **kwargs):
+        if self._password:
+            self.pass_last_changed = timezone.now()
         self.first_name = self.first_name.capitalize()
         self.last_name = self.last_name.capitalize()
         super().save(*args, **kwargs)
