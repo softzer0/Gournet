@@ -1267,17 +1267,17 @@ app
             load: function(){
                 return service.query({}, function (result) { emails.push.apply(emails, result) }).$promise;
             },
-            add: function(email) {
-                return service.save({email: email}, function (){ emails.push({email: email, primary: false, verified: false}) }).$promise;
+            add: function(pass, email) {
+                return service.save({password: pass, email: email}, function (){ emails.push({email: email, primary: false, verified: false}) }).$promise;
             },
-            remove: function() {
-                return service.delete({id: emails[selected].email}, function (){ return emails.splice(selected, 1)[0].email }).$promise;
+            remove: function(pass) {
+                return service.update({password: pass, object_id: emails[selected].email}, function (){ return emails.splice(selected, 1)[0].email }).$promise;
             },
-            resend: function() {
-                return service.update({object_id: emails[selected].email, verified: true}).$promise;
+            resend: function(pass) {
+                return service.update({password: pass, object_id: emails[selected].email, verified: true}).$promise;
             },
-            primary: function() {
-                return service.update({object_id: emails[selected].email, primary: true}, function (){
+            primary: function(pass) {
+                return service.update({password: pass, object_id: emails[selected].email, primary: true}, function (){
                     var t = emails[0];
                     t.primary = false;
                     emails[selected].primary = true;
@@ -1289,7 +1289,7 @@ app
 
     })
 
-    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, APIService, emailService, USER) { //, $animate
+    .controller('SettModalCtrl', function($rootScope, $scope, $timeout, $uibModalInstance, index, APIService, emailService, USER, dialogService) { //, $animate
         $scope.close = function() { $uibModalInstance.dismiss('cancel') };
         $scope.set_modal_loaded = function (s){ if ($scope.obj.active == 0 || s) $timeout(function() { $scope.modal_loaded = true; if (s) delete $scope.set_modal_loaded }) };
         $scope.title = gettext("Settings");
@@ -1303,6 +1303,23 @@ app
         //var load;
         var deact = $scope.$watch('obj.active', function (value) {
             if (value == 0 && $scope.emails === undefined) {
+                function get_pw_fields() { return angular.element('input[type="password"]') }
+                $scope.e = function (func) {
+                    if ($scope.obj.pass[0] === undefined || $scope.obj.pass[0] == '') {
+                        $scope.pass_err = 1;
+                        get_pw_fields()[0].focus();
+                    } else {
+                        delete $scope.pass_err;
+                        func();
+                    }
+                };
+                var invalid = gettext("Invalid current password.");
+                function check_pass(result){
+                    if (result.data.non_field_errors !== undefined && result.data.non_field_errors[0] == 'Invalid password') {
+                        $scope.pass_err = 1;
+                        $scope.pass_err_txt = invalid;
+                    } else $scope.dismissError();
+                }
                 //$scope.obj.selected = 0;
                 $scope.emails = emailService.emails;
                 $scope.sent = [];
@@ -1312,39 +1329,50 @@ app
                 $scope.addEmail = function () {
                     if ($scope.obj.email == '' || $scope.obj.email === undefined) return;
                     for (var e in $scope.emails) if ($scope.emails[e].email == $scope.obj.email) return;
-                    $scope.obj.adding = true;
-                    emailService.add($scope.obj.email).then(function (){
-                        $scope.sent.push($scope.obj.email);
-                        $scope.obj.email = '';
-                        delete $scope.obj.adding;
-                    }, function (){ delete $scope.obj.adding });
+                    $scope.e(function () {
+                        $scope.obj.adding = true;
+                        emailService.add($scope.obj.pass[0], $scope.obj.email).then(function () {
+                            $scope.dismissError();
+                            $scope.sent.push($scope.obj.email);
+                            $scope.obj.email = '';
+                            delete $scope.obj.adding;
+                        }, function (result) {
+                            check_pass(result);
+                            delete $scope.obj.adding;
+                        });
+                    });
                 };
                 $scope.removeEmail = function () {
-                    emailService.remove().then(function (e) {
-                        for (var i = 0; i < $scope.sent.length; i++) {
-                            if ($scope.sent[i]==e) {
-                                $scope.sent.splice(i, 1);
-                                break
+                    dialogService.show(interpolate(gettext("Are you sure that you want to remove email <strong>%s</strong>?"), [$scope.emails[$scope.obj.selected].email])).then(function() {
+                        emailService.remove($scope.obj.pass[0]).then(function (e) {
+                            $scope.dismissError();
+                            for (var i = 0; i < $scope.sent.length; i++) {
+                                if ($scope.sent[i]==e) {
+                                    $scope.sent.splice(i, 1);
+                                    break
+                                }
                             }
-                        }
-                    })
+                        }, check_pass);
+                    });
                 };
                 $scope.resendConfirmationEmail = function () {
                     var t = $scope.emails[$scope.obj.selected].email;
-                    emailService.resend().then(function (){
+                    emailService.resend($scope.obj.pass[0]).then(function (){
+                        $scope.dismissError();
                         for (var i = 0; i < $scope.sent.length; i++) if ($scope.sent[i]==t) t = null;
                         if (t != null) $scope.sent.push(t);
-                    });
+                    }, check_pass);
                 };
                 var loading;
                 $scope.makePrimaryEmail = function () {
                     if (loading) return;
                     loading = true;
-                    emailService.primary().then(function (){
+                    emailService.primary($scope.obj.pass[0]).then(function (){
+                        $scope.dismissError();
                         /*$scope.obj.selected = 0;
                         $scope.EmailSelected();*/
                         $timeout(function() { loading = false });
-                    });
+                    }, check_pass);
                 };
                 $scope.EmailSelected = function () {
                     emailService.setCurrent($scope.obj.selected);
@@ -1366,7 +1394,7 @@ app
                 };
                 $scope.changePassword = function () {
                     for (var i = 0; i < 3; i++) if ($scope.obj.pass[i] === undefined) return; //!$scope.changepw.$valid
-                    var pw_fields = angular.element('input[type="password"]');
+                    var pw_fields = get_pw_fields();
                     if ($scope.obj.pass[1] != $scope.obj.pass[2]) {
                         //if ($scope.pass_err != 4) {
                         $scope.pass_err_txt = gettext("New password fields don't match.");
@@ -1398,7 +1426,7 @@ app
                             if (e == 'old_password') err += 1; else err += 2;
                             for (i = 0; i < result.data[e].length; i++) {
                                 if ($scope.pass_err_txt != ''/*i>0*/) $scope.pass_err_txt += ' ';
-                                $scope.pass_err_txt += result.data[e][i] == 'Invalid password' ? gettext("Invalid current password.") : result.data[e][i];
+                                $scope.pass_err_txt += result.data[e][i] == 'Invalid password' ? invalid : result.data[e][i];
                             }
                         }
                         $scope.pass_err = err;

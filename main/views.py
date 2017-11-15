@@ -21,7 +21,6 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import Cursor
-from allauth.account import signals
 from allauth.account.models import EmailAddress
 from drf_multiple_model.views import MultipleModelAPIView
 from drf_multiple_model.mixins import Query
@@ -300,16 +299,14 @@ class EmailAPIView(generics.ListCreateAPIView, generics.UpdateAPIView):
     def get_queryset(self):
         return EmailAddress.objects.filter(user=self.request.user).order_by('-primary', '-verified')
 
-    def delete(self, request, *args, **kwargs):
-        obj = self.get_object()
-        if obj.primary:
-            serializers.primary_first_email(obj, request, "The only verified email address can't be deleted.")
-        obj.delete()
-        signals.email_removed.send(sender=request.user.__class__,
-                                   request=request,
-                                   user=request.user,
-                                   email_address=obj)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=kwargs.pop('partial', False))
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+        return Response(serializer.data) if serializer.data['email'] else Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SearchAPIView(generics.ListAPIView, generics.RetrieveUpdateAPIView):
@@ -892,7 +889,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
         if obj.business.item_set.count() == 1:
-            raise ValidationError({'non_field_errors': ["The last remaining item can't be deleted."]})
+            raise ValidationError("The last remaining item can't be deleted.")
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

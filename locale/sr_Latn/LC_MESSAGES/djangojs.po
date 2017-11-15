@@ -674,8 +674,8 @@ msgid "Please type your current password."
 msgstr "Molimo unesite Vašu trenutnu šifru."
 
 #: main/static/main/modals/settings.html:8
-msgid "Enter your current password before changing:"
-msgstr "Unesite Vašu trenutnu lozinku pre menjanja:"
+msgid "Enter your current password before any changes:"
+msgstr "Unesite Vašu trenutnu lozinku pre bilo kakvih izmena:"
 
 #: main/static/main/modals/settings.html:9
 msgid "Current password"
@@ -823,4 +823,4 @@ msgid "Close"
 msgstr "Zatvori"
 
 msgid "Invalid current password."
-msgstr "Netačno uneta trenutna šifra."
+msgstr "Netačno uneta trenutna lozinka."

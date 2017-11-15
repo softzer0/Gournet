@@ -82,24 +82,10 @@ class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
         return attrs
 
 
-def send_signal_email_changed(request, from_email, to_email):
-    signals.email_changed \
-        .send(sender=request.user.__class__,
-              request=request,
-              user=request.user,
-              from_email_address=from_email,
-              to_email_address=to_email)
-
-def primary_first_email(obj, request, msg):
-    o = obj.user.emailaddress_set.exclude(pk=obj.pk).filter(verified=True).first()
-    if o:
-        o.set_as_primary()
-        send_signal_email_changed(request, obj, o)
-    else:
-        raise serializers.ValidationError({'non_field_errors': [msg]})
 
 class EmailSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    password = serializers.CharField(max_length=128, required=True, write_only=True)
 
     class Meta:
         model = EmailAddress
@@ -114,16 +100,46 @@ class EmailSerializer(serializers.ModelSerializer):
         else:
             self.fields['email'].read_only = True
 
+    def validate(self, attrs):
+        if not self.context['request'].user.check_password(attrs['password']):
+            raise serializers.ValidationError("Invalid password")
+        return attrs
+
+    def send_signal_email_changed(self, from_email, to_email):
+        signals.email_changed \
+            .send(sender=self.context['request'].user.__class__,
+                  request=self.context['request'],
+                  user=self.context['request'].user,
+                  from_email_address=from_email,
+                  to_email_address=to_email)
+
+    def primary_first_email(self, obj, msg):
+        o = obj.user.emailaddress_set.exclude(pk=obj.pk).filter(verified=True).first()
+        if o:
+            o.set_as_primary()
+            self.send_signal_email_changed(obj, o)
+        else:
+            raise serializers.ValidationError(msg)
+
     def update(self, instance, validated_data):
         if 'primary' in validated_data:
             if not validated_data['primary']:
-                primary_first_email(instance, self.context['request'], "Can't change primary status of the only verified email address.")
+                self.primary_first_email(instance, "Can't change primary status of the only verified email address.")
             elif not instance.verified:
-                raise serializers.ValidationError({'non_field_errors': ["Can't set unverified email address as primary."]})
+                raise serializers.ValidationError("Can't set unverified email address as primary.")
             instance.set_as_primary()
-            send_signal_email_changed(self.context['request'], None, instance)
+            self.send_signal_email_changed(None, instance)
         if 'verified' in validated_data and not instance.verified:
             instance.send_confirmation(self.context['request'])
+        else:
+            if instance.primary:
+                self.primary_first_email(instance, "The only verified email address can't be deleted.")
+            instance.delete()
+            signals.email_removed.send(sender=self.context['request'].user.__class__,
+                                       request=self.context['request'],
+                                       user=self.context['request'].user,
+                                       email_address=instance)
+            del instance.email, instance.primary, instance.verified
         return instance
 
     def create(self, validated_data):
@@ -307,10 +323,10 @@ class UserSerializer(BaseURSerializer):
         if 'birthdate' in attrs and (attrs['birthdate'].year > 2015 or attrs['birthdate'].year < 1927):
             raise serializers.ValidationError({'birthdate': ["Invalid birthdate."]})
         if self.context['request'].user.name_changed and ('first_name' in attrs and attrs['first_name'] != self.context['request'].user.first_name or 'last_name' in attrs and attrs['last_name'] != self.context['request'].user.last_name):
-            raise serializers.ValidationError({'non_field_errors': ["Your name was already changed once."]})
+            raise serializers.ValidationError("Your name was already changed once.")
         for f in ('gender', 'birthdate'):
             if f in attrs and getattr(self.context['request'].user, f+'_changed') and attrs[f] != getattr(self.context['request'].user, f):
-                raise serializers.ValidationError({'non_field_errors': ["Your %s was already changed once." % f]}) #models.User._meta.get_field(f).verbose_name
+                raise serializers.ValidationError("Your %s was already changed once." % f) #models.User._meta.get_field(f).verbose_name
         return attrs
 
     def update(self, instance, validated_data):
@@ -482,7 +498,7 @@ def chktime(attrs, td=timedelta()):
 NOT_MANAGER_MSG = "You're not a manager of any business."
 def chkbusiness(business):
     if not business:
-        raise serializers.ValidationError({'non_field_errors': [NOT_MANAGER_MSG]})
+        raise serializers.ValidationError(NOT_MANAGER_MSG)
 
 class BaseSerializer(serializers.ModelSerializer):
     likestars_count = serializers.SerializerMethodField()
@@ -725,15 +741,15 @@ class CommentSerializer(CTSerializer, BaseSerializer):
         attrs = super().validate(attrs)
         if attrs['content_type'] == ContentType.objects.get(model='comment'):
             if attrs['content_object'].content_type != ContentType.objects.get(model='business'):
-                raise serializers.ValidationError({'non_field_errors': ["Commeting on a non-review comment type currently isn't supported."]})
+                raise serializers.ValidationError("Commeting on a non-review comment type currently isn't supported.")
             #elif self.context['request'].user == attrs['content_object'].content_object.manager:
             #    if 'status' not in attrs:
             #        raise serializers.ValidationError({'status': [getattr(Field, 'default_error_messages')['required']]})
         elif attrs['content_type'] == ContentType.objects.get(model='business'):
             if self.context['request'].user == attrs['content_object'].manager:
-                raise serializers.ValidationError({'non_field_errors': ["You can't review your own business."]})
+                raise serializers.ValidationError("You can't review your own business.")
             if models.Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=attrs['object_id'], person=self.context['request'].user).exists():
-                raise serializers.ValidationError({'non_field_errors': ["Each business can be reviewed only once per person. Use PUT/DELETE for the existing review."]})
+                raise serializers.ValidationError("Each business can be reviewed only once per person. Use PUT/DELETE for the existing review.")
         if 'status' in attrs and (attrs['content_type'] != ContentType.objects.get(model='comment') or self.context['request'].user != attrs['content_object'].content_object.manager):
             attrs.pop('status')
         return attrs
@@ -798,19 +814,19 @@ class LikeSerializer(CTSerializer, serializers.ModelSerializer):
             self.fields['is_dislike'] = serializers.NullBooleanField(write_only='showtype' not in self.context)
 
     def own_like_err(self, model):
-        raise serializers.ValidationError({'non_field_errors': ["You can't %s your own %s." % ("give a (dis)like to" if not 'stars' in self.fields else "rate", model)]})
+        raise serializers.ValidationError("You can't %s your own %s." % ("give a (dis)like to" if not 'stars' in self.fields else "rate", model))
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
         if attrs['content_type'] == ContentType.objects.get(model='comment'):
             if attrs['content_object'].content_type == ContentType.objects.get(model='comment'):
                 if attrs['content_object'].status is None:
-                    raise serializers.ValidationError({'non_field_errors': ["Liking an user comment currently isn't supported."]})
+                    raise serializers.ValidationError("Liking an user comment currently isn't supported.")
             elif attrs['content_object'].person == self.context['request'].user:
                 self.own_like_err('review')
         elif attrs['content_type'] == ContentType.objects.get(model='business'):
             if attrs['content_object'].manager == self.context['request'].user:
-                raise serializers.ValidationError({'non_field_errors': ["You can't make your own business as favourite."]})
+                raise serializers.ValidationError("You can't make your own business as favourite.")
         elif attrs['content_object'].business.manager == self.context['request'].user:
             self.own_like_err(attrs['content_type'].model)
         return attrs
