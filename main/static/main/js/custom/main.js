@@ -910,8 +910,9 @@ app
 
         $scope.submitComment = function (index) {
             var el = angular.element('#'+$scope.$parent.t+index), bu = angular.element('#'+$scope.$parent.t+index+'b');
+            if (el.val() == '') return;
             bu.attr('disabled', true);
-            if (el.val() != '') objService[0].submitComment(index, el.val(), $scope.r).then(
+            objService[0].submitComment(index, el.val(), $scope.r).then(
                 function () {
                     el.val('');
                     bu.attr('disabled', false);
