@@ -122,16 +122,7 @@ class EmailSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(msg)
 
     def update(self, instance, validated_data):
-        if 'primary' in validated_data:
-            if not validated_data['primary']:
-                self.primary_first_email(instance, "Can't change primary status of the only verified email address.")
-            elif not instance.verified:
-                raise serializers.ValidationError("Can't set unverified email address as primary.")
-            instance.set_as_primary()
-            self.send_signal_email_changed(None, instance)
-        if 'verified' in validated_data and not instance.verified:
-            instance.send_confirmation(self.context['request'])
-        else:
+        if 'primary' not in validated_data and 'verified' not in validated_data:
             if instance.primary:
                 self.primary_first_email(instance, "The only verified email address can't be deleted.")
             instance.delete()
@@ -140,6 +131,16 @@ class EmailSerializer(serializers.ModelSerializer):
                                        user=self.context['request'].user,
                                        email_address=instance)
             del instance.email, instance.primary, instance.verified
+        else:
+            if 'primary' in validated_data:
+                if not validated_data['primary']:
+                    self.primary_first_email(instance, "Can't change primary status of the only verified email address.")
+                elif not instance.verified:
+                    raise serializers.ValidationError("Can't set unverified email address as primary.")
+                instance.set_as_primary()
+                self.send_signal_email_changed(None, instance)
+            if 'verified' in validated_data and not instance.verified:
+                instance.send_confirmation(self.context['request'])
         return instance
 
     def create(self, validated_data):
