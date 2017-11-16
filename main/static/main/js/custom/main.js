@@ -909,8 +909,9 @@ app
         };
 
         $scope.submitComment = function (index) {
-            var el = angular.element('#'+$scope.$parent.t+index), bu = angular.element('#'+$scope.$parent.t+index+'b');
+            var el = angular.element('#'+$scope.$parent.t+index);
             if (el.val() == '') return;
+            var bu = angular.element('#'+$scope.$parent.t+index+'b');
             bu.attr('disabled', true);
             objService[0].submitComment(index, el.val(), $scope.r).then(
                 function () {
@@ -1316,7 +1317,7 @@ app
                 };
                 var invalid = gettext("Invalid current password.");
                 function check_pass(result){
-                    if (result.data.non_field_errors !== undefined && result.data.non_field_errors[0] == 'Invalid password') {
+                    if (result.data.password !== undefined) {
                         $scope.pass_err = 1;
                         $scope.pass_err_txt = invalid;
                     } else $scope.dismissError();

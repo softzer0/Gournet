@@ -100,10 +100,10 @@ class EmailSerializer(serializers.ModelSerializer):
         else:
             self.fields['email'].read_only = True
 
-    def validate(self, attrs):
-        if not self.context['request'].user.check_password(attrs['password']):
+    def validate_password(self, value):
+        if not self.context['request'].user.check_password(value):
             raise serializers.ValidationError("Invalid password")
-        return attrs
+        return value
 
     def send_signal_email_changed(self, from_email, to_email):
         signals.email_changed \
