@@ -25,7 +25,6 @@ from allauth.account.models import EmailAddress
 from drf_multiple_model.views import MultipleModelAPIView
 from drf_multiple_model.mixins import Query
 from . import permissions, pagination, serializers, forms, models
-from rest_framework.serializers import ValidationError
 from os import path
 # from . import permissions
 # from .decorators import login_forbidden
@@ -889,7 +888,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
         if obj.business.item_set.count() == 1:
-            raise ValidationError("The last remaining item can't be deleted.")
+            raise serializers.gen_err("The last remaining item can't be deleted.")
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

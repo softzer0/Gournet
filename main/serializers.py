@@ -82,6 +82,8 @@ class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
         return attrs
 
 
+def gen_err(msg):
+    return serializers.ValidationError({'non_field_errors': [msg]})
 
 class EmailSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -119,7 +121,7 @@ class EmailSerializer(serializers.ModelSerializer):
             o.set_as_primary()
             self.send_signal_email_changed(obj, o)
         else:
-            raise serializers.ValidationError(msg)
+            raise gen_err(msg)
 
     def update(self, instance, validated_data):
         if 'primary' not in validated_data and 'verified' not in validated_data:
@@ -136,7 +138,7 @@ class EmailSerializer(serializers.ModelSerializer):
                 if not validated_data['primary']:
                     self.primary_first_email(instance, "Can't change primary status of the only verified email address.")
                 elif not instance.verified:
-                    raise serializers.ValidationError("Can't set unverified email address as primary.")
+                    raise gen_err("Can't set unverified email address as primary.")
                 instance.set_as_primary()
                 self.send_signal_email_changed(None, instance)
             if 'verified' in validated_data and not instance.verified:
