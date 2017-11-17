@@ -53,6 +53,9 @@ User = get_user_model()
 class TokenObtainPairView(TokenViewBase):
     serializer_class = serializers.TokenObtainPairSerializer
 
+class TokenRefreshView(TokenViewBase):
+    serializer_class = serializers.TokenRefreshSerializer
+
 def render_with_recent(request, template, context={}):
     context.update(gen_recent_context(request))
     return render(request, template, context)

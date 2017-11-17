@@ -24,6 +24,7 @@ from django.utils.functional import lazy
 from os.path import join
 from shutil import rmtree
 from django.core.urlresolvers import reverse
+from rest_framework_simplejwt.utils import datetime_to_epoch
 
 TF_OBJ = TimezoneFinder()
 
@@ -80,6 +81,9 @@ class MyUserManager(UserManager):
     def get_by_natural_key(self, username):
         return self.get(username__iexact=username)
 
+def get_curr_epoch():
+    return datetime_to_epoch(timezone.now())
+
 class User(AbstractBaseUser, Loc, PermissionsMixin):
     """
     An class implementing a fully featured User model with
@@ -110,7 +114,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     name_changed = models.BooleanField(_("name already changed?"), default=False)
     gender_changed = models.BooleanField(_("gender already changed?"), default=False)
     birthdate_changed = models.BooleanField(_("birthdate already changed?"), default=False)
-    pass_last_changed = models.DateTimeField(default=timezone.now)
+    pass_last_changed = models.BigIntegerField(default=get_curr_epoch)
 
     currency = models.CharField(_("currency"), choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
     language = models.CharField(_("language"), choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
@@ -145,7 +149,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if self._password:
-            self.pass_last_changed = timezone.now()
+            self.pass_last_changed = get_curr_epoch()
         self.first_name = self.first_name.capitalize()
         self.last_name = self.last_name.capitalize()
         super().save(*args, **kwargs)

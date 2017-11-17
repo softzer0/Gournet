@@ -20,9 +20,9 @@ from decimal import Decimal, ROUND_HALF_UP
 from .forms import clean_loc, business_clean_data
 from django.core.exceptions import ObjectDoesNotExist
 from pytz import timezone as get_timezone, common_timezones
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as DefTokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenRefreshSerializer as DefTokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from django.utils.dateformat import format
 
 User = get_user_model()
 
@@ -64,22 +64,32 @@ REVIEW_MIN_CHAR = 6
 def gen_coords(obj):
     return {'lat': obj.coords[1], 'lng': obj.coords[0]}
 
-class TokenObtainPairSerializer(DefTokenObtainPairSerializer):
+def gen_token(token):
+    return {'token': str(token), 'exp': token['exp']}
+
+class TokenObtainPairSerializer(TokenObtainSerializer):
     @classmethod
     def get_token(cls, user):
-        token = super().get_token(user)
-        token['pw_l_c'] = int(format(user.pass_last_changed, 'U'))
+        token = RefreshToken.for_user(user)
+        token['pw_l_c'] = user.pass_last_changed
         return token
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
-        attrs['NOTIF_PAGE_SIZE'] = settings.NOTIFICATION_PAGE_SIZE
+        data = super().validate(attrs)
+        refresh = self.get_token(self.user)
+        data['refresh'] = gen_token(refresh)
+        data['access'] = gen_token(refresh.access_token)
+        data['NOTIF_PAGE_SIZE'] = settings.NOTIFICATION_PAGE_SIZE
         if self.user.is_manager:
-            attrs['EVENT_MIN_CHAR'] = models.EVENT_MIN_CHAR
-            attrs['ITEM_MIN_CHAR'] = models.ITEM_MIN_CHAR
-        attrs['REVIEW_MIN_CHAR'] = REVIEW_MIN_CHAR
-        attrs['user'] = {'id': self.user.pk, 'username': self.user.username, 'first_name': self.user.first_name, 'last_name': self.user.last_name, 'currency': self.user.currency, 'location': gen_coords(self.user.location)}
-        return attrs
+            data['EVENT_MIN_CHAR'] = models.EVENT_MIN_CHAR
+            data['ITEM_MIN_CHAR'] = models.ITEM_MIN_CHAR
+        data['REVIEW_MIN_CHAR'] = REVIEW_MIN_CHAR
+        data['user'] = {'id': self.user.pk, 'username': self.user.username, 'first_name': self.user.first_name, 'last_name': self.user.last_name, 'currency': self.user.currency, 'location': gen_coords(self.user.location)}
+        return data
+
+class TokenRefreshSerializer(DefTokenRefreshSerializer):
+    def validate(self, attrs):
+        return gen_token(RefreshToken(attrs['refresh']).access_token)
 
 
 def gen_err(msg):
