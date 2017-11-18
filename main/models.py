@@ -212,7 +212,7 @@ def relationship_save_notification(instance, **kwargs):
     if instance.notification:
         return
     #instance.full_clean()
-    text = '<strong>'+instance.from_person.first_name+' '+instance.from_person.last_name+'</strong> '
+    text = '<strong>'+instance.from_person.first_name+' '+instance.from_person.last_name+'</strong>'
     lang_activate(instance.to_person.language)
     try:
         rel = Relationship.objects.get(from_person=instance.to_person, to_person=instance.from_person)
