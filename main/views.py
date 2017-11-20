@@ -1006,13 +1006,7 @@ class ReminderAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.De
         return models.EventNotification.objects.filter(pk=self.kwargs['pk']) if self.kwargs['pk'] else models.EventNotification.objects.none()
 
 
-class RecentAPIView(generics.ListAPIView):
-    pagination_class = pagination.RecentPagination
-
-    def get_serializer_class(self):
-        if get_param_bool(self.request.query_params.get('user', False)):
-            return serializers.UserSerializer
-        return serializers.BusinessSerializer
-
-    def get_queryset(self):
-        return gen_recent_qs(self.request, models.User if get_param_bool(self.request.query_params.get('user', False)) else models.Business).annotate(count=F('recent__count'))
+class RecentAPIView(MultipleModelAPIView):
+    def get_queryList(self):
+        return [(gen_recent_qs(self.request, models.User)[:5], serializers.UserSerializer),
+                 (gen_recent_qs(self.request, models.Business)[:5], serializers.BusinessSerializer)]
