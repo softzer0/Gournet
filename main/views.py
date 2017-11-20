@@ -18,7 +18,6 @@ from allauth.account.views import LoginView
 from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import Cursor
 from allauth.account.models import EmailAddress
@@ -274,25 +273,6 @@ def show_profile(request, username):
     return render_with_recent(request, 'user.html', data)
 
 
-def return_avatar(request, type, pk, size):
-    img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+type+'/'
-    avatar = img_folder+pk+'/avatar'
-    s = '.'
-    st = None
-    if size:
-        s += size+'x'+size+'.'
-    mimeext = 'png'
-    if path.isfile(avatar+s+'jpg'):
-        avatar += s+'jpg'
-        mimeext = 'jpeg'
-    elif path.isfile(avatar+s+'png'):
-        avatar += s+'png'
-    else:
-        avatar = img_folder+'avatar'+s+'png'
-        st = status.HTTP_404_NOT_FOUND
-    return HttpResponse(open(avatar, 'rb'), content_type='image/'+mimeext, status=st)
-
-
 class EmailAPIView(generics.ListCreateAPIView, generics.UpdateAPIView):
     serializer_class = serializers.EmailSerializer
     pagination_class = None
@@ -517,58 +497,49 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
             return self.request.user.notification_set.filter(pk__gt=last, unread=True)
         return self.request.user.notification_set.filter(unread=True)
 
-def base_view(request, t, cont, **kwargs):
-    notxt = get_param_bool(request.GET.get('notxt', False))
-    if request.user.is_authenticated:
+
+class BaseNotifAPIView(APIView):
+    def get(self, *args, **kwargs):
         try:
-            objpks = t()
+            objpks = self.t()
         except:
             st = status.HTTP_400_BAD_REQUEST
-            text = "Invalid parameter provided." if not notxt else None
+            text = "Invalid parameter provided."
         else:
-            st, text = cont(objpks, notxt, **kwargs)
-    else:
-        st = status.HTTP_403_FORBIDDEN
-        text = "Authentication credentials were not provided." if not notxt else None
+            st, text = self.cont(objpks, **kwargs)
+        return Response(gen_resp(text), status=st)
 
-    res = JSONRenderer().render(gen_resp(text)) if text else ''
-    return HttpResponse(res, status=st)
+class SetNotifsReadAPIView(BaseNotifAPIView):
+    def t(self):
+        return models.Notification.objects.filter(pk__in=[n for n in self.request.query_params['ids'].split(',') if n.isdigit()])
 
-def notifs_set_all_read(request):
-    def t():
-        return models.Notification.objects.filter(pk__in=[n for n in request.GET['ids'].split(',') if n.isdigit()])
-    def cont(objpks, notxt, **kwargs):
+    def cont(self, objpks, **kwargs):
         for notif in objpks:
             if notif.unread:
                 notif.unread = False
                 notif.save()
-        return status.HTTP_200_OK, str(objpks.count())+" notifications have been marked as read." if not notxt else None
-    return base_view(request, t, cont)
+        return status.HTTP_200_OK, str(objpks.count())+" notifications have been marked as read."
 
-def send_notifications(request, pk):
-    def t():
-        return [n for n in request.GET['to'].split(',') if n.isdigit()]
-    def cont(objpks, notxt, **kwargs):
+class SendNotifsAPIView(BaseNotifAPIView):
+    def t(self):
+        return [n for n in self.request.query_params['to'].split(',') if n.isdigit()]
+
+    def cont(self, objpks, **kwargs):
         try:
             event = models.Event.objects.get(pk=kwargs['pk'])
         except:
             st = status.HTTP_404_NOT_FOUND
-            text = "Event not found." if not notxt else None
+            text = "Event not found."
         else:
             persons = User.objects.filter(pk__in=objpks)
-            if not notxt:
-                cnt = 0
+            cnt = 0
             for person in persons:
-                if request.user != person and not models.EventNotification.objects.filter(from_person=request.user, to_person=person, content_type=ContentType.objects.get(model='event'), object_id=event.pk).exists():
-                    models.EventNotification.objects.create(from_person=request.user, to_person=person, content_type=ContentType.objects.get(model='event'), object_id=event.pk)
-                    if not notxt:
-                        # noinspection PyUnboundLocalVariable
-                        cnt += 1
+                if self.request.user != person and not models.EventNotification.objects.filter(from_person=self.request.user, to_person=person, content_type=ContentType.objects.get(model='event'), object_id=event.pk).exists():
+                    models.EventNotification.objects.create(from_person=self.request.user, to_person=person, content_type=ContentType.objects.get(model='event'), object_id=event.pk)
+                    cnt += 1
             st = status.HTTP_200_OK
-            # noinspection PyUnboundLocalVariable
-            text = str(cnt)+" persons have been notified." if not notxt else None
+            text = str(cnt)+" persons have been notified."
         return st, text
-    return base_view(request, t, cont, pk=pk)
 
 
 def get_loc(self, qs, f=True, loc=False, store=False, deford=True):

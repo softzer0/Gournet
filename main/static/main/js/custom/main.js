@@ -302,7 +302,7 @@ app
                 $scope.working = true;
                 var to = '';
                 for (i = 0; i < $scope.tabs[0].elems.length; i++) if ($scope.tabs[0].elems[i].selected) to += ',' + $scope.tabs[0].elems[i].id;
-                $rootScope.sendreq('api/events/'+$scope.event+'/notify/?notxt=1&to='+to.slice(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
+                $rootScope.sendreq('api/events/'+$scope.event+'/notify/?format=json&to='+to.slice(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
             }
         }
 
@@ -1254,7 +1254,7 @@ app
             $scope.unread = false;
         });
         function markAllAsRead(){
-            $rootScope.sendreq('api/notifications/read/?notxt=1&ids='+ids.slice(1));
+            $rootScope.sendreq('api/notifications/read/?format=json&ids='+ids.slice(1));
             ids = '';
         }
     })
