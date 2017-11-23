@@ -55,12 +55,12 @@ app
 
         return {
             markers: markers,
-            load: function (objs, del_each) {
+            load: function (objs) { //, del_each
                 //if (del_each === false && objs.length > 0) var nested = objs[0].location === undefined;
                 //var s = [];
-                function objloop(func_num, del) {
+                function objloop(func_num) { //, del
                     var r, obj, num = typeof(func_num) == 'number'; //, j
-                    for (var i = objs.length - 1; i >= 0; i--) if (objs[i].location !== undefined || del_each !== null && (objs[i].business !== undefined && objs[i].business.location !== undefined || del_each && objs[i].content_object !== undefined && objs[i].content_object.location !== undefined)) {
+                    for (var i = objs.length - 1; i >= 0; i--) if (objs[i].location !== undefined || objs[i].business !== undefined || /*del_each &&*/ objs[i].content_object !== undefined && objs[i].content_object.location !== undefined) {
                         obj = objs[i].location === undefined ? (objs[i].business || objs[i].content_object) : objs[i];
                         /*if (!str && del_each !== null && (!nested || objs[i].location !== undefined)) for (j = 0; j < s.length; j++) if (s[j] == obj) {
                             j = true;
@@ -68,15 +68,14 @@ app
                         }
                         if (j === false) {*/
                         r = num ? func_num == obj.obj_id : func_num(obj);
-                        if (del && r || !num && del_each !== undefined/* || r === null*/) if (del_each || obj.location !== undefined) delete obj.location; else /*if (del_each === null)*/ objs.splice(i, 1); //else s.push(obj);
+                        //if (del && r || !num && del_each !== undefined/* || r === null*/) if (del_each || obj.location !== undefined) delete obj.location; else /*if (del_each === null)*/ objs.splice(i, 1); //else s.push(obj);
                         if (r) return true; //|| r === null
                         //}
                     }
                 }
-                function check(id) { for (var i = markers.length - 1; i >= 0; i--) if (!id) { if (!objloop(markers[i].obj_id, true)) markers.splice(i, 1); } else if (markers[i].obj_id == id) return true }
-                if (del_each !== undefined) check();
                 objloop(function (obj){
-                    if (check(obj.obj_id)) return;
+                    var id = obj.business !== undefined ? obj.business.id : obj.content_object !== undefined ? obj.content_object.id : obj.id;
+                    for (var i = markers.length - 1; i >= 0; i--) if (markers[i].obj_id == id) return;
                     markers.push({
                         id: markers.length,
                         latitude: obj.location.lat,
@@ -87,7 +86,7 @@ app
                             labelContent: '<span>' + obj.type_display + ' "' + obj.name + '"</span>'
                         },
                         shortname: obj.shortname,
-                        obj_id: obj.id
+                        obj_id: id
                     });
                 });
             },
