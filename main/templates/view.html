@@ -142,7 +142,7 @@
                                                     ><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div>
                                                 </td>
                                                 <td><div{% if fav_state == -1 %} class="inline" ng-init="edit_i[i.id] = {form: i.price, disabled: true}" click-outside="co(edit_i[i.id], 'disabled')">
-                                                    <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="edit_i[i.id].disabled = false"{% endif %}>{% verbatim %}{{ (i.converted || i.price)|currency:'' }}{% endverbatim %} {% if fav_state == -1 %}{% verbatim %}{{ curr[1] }}{% endverbatim %}</a>
+                                                    <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="edit_i[i.id].disabled = false"{% endif %}>{{ '{' }}{{ '{' }} (i.converted || i.price)|currency:{% if fav_state == -1 %}curr[1] {{ '}' }}{{ '}' }}</a>
                                                     <div ng-hide="edit_i[i.id].disabled">
                                                         <div>
                                                             <div>
@@ -156,7 +156,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                {% else %}{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{% endif %}</div></td>
+                                                {% else %}'{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{{ "' }" }}{{ '}' }}{% endif %}</div></td>
                                             </tr>
                                         </tbody>
                                     </table>
