@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.db.models.signals import pre_delete, post_delete, pre_save, post_save
+from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
@@ -177,7 +177,7 @@ def rem_avatar(instance):
     except:
         pass
 
-@receiver(pre_delete, sender=User)
+@receiver(post_delete, sender=User)
 def user_avatar_delete(instance, **kwargs):
     rem_avatar(instance)
 
@@ -227,9 +227,10 @@ def relationship_save_notification(instance, **kwargs):
     instance.notification = instance.to_person.notification_set.create(text=text, link=reverse('user_profile', kwargs={'username': instance.from_person.username}))
 
 @receiver(post_delete, sender=Relationship)
-def relationship_delete_notification(instance, **kwargs):
+def relationship_delete_notification_recent(instance, **kwargs):
     if instance.notification:
         instance.notification.delete()
+    Recent.objects.filter(user=instance.from_person, content_type=ContentType.objects.get(model='user'), object_id=instance.to_person.pk).delete()
 
 FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images', 'my-business', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
 def not_forbidden(value):
@@ -293,8 +294,8 @@ def business_check_time(instance, **kwargs):
             setattr(instance, 'opened'+f, t)
             setattr(instance, 'closed'+f, t)
 
-@receiver(pre_delete, sender=Business)
-def business_review_and_avatar_delete(instance, **kwargs):
+@receiver(post_delete, sender=Business)
+def business_review_avatar_delete(instance, **kwargs):
     Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=instance.pk).delete()
     rem_avatar(instance)
     instance.manager.is_manager = False
@@ -325,7 +326,7 @@ def cascade_delete(type, pk):
         qs = model.objects.filter(content_type=ContentType.objects.get(model=type), object_id=pk)
         qs._raw_delete(qs.db)
 
-@receiver(pre_delete, sender=Event)
+@receiver(post_delete, sender=Event)
 def event_cascade_delete(instance, **kwargs):
     cascade_delete('event', instance.pk)
 
@@ -392,7 +393,7 @@ class Item(models.Model):
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
 
-@receiver(pre_delete, sender=Item)
+@receiver(post_delete, sender=Item)
 def item_cascade_and_avatar_delete(instance, **kwargs):
     cascade_delete('item', instance.pk)
     rem_avatar(instance)
@@ -462,7 +463,7 @@ def del_notif(from_person, ct, obj_pk, to_person):
     EventNotification.objects.filter(count__gt=0, from_person=from_person, content_type=ct, object_id=obj_pk, to_person=to_person).update(count=models.F('count') - 1)
     EventNotification.objects.filter(count=0).delete()
 
-@receiver(pre_delete, sender=Comment)
+@receiver(post_delete, sender=Comment)
 def comment_cascade_delete(instance, **kwargs):
     del_notif(instance.person, instance.content_type, instance.object_id, instance.content_object.manager if isinstance(instance.content_object, Business) else instance.content_object.content_object.manager if isinstance(instance.content_object, Comment) else instance.content_object.business.manager)
     if isinstance(instance.content_object, Comment):
@@ -484,6 +485,11 @@ class Like(CT):
 
     def __str__(self):
         return 'User %s, %s on %s #%d' % (self.person.username, 'dislike' if self.is_dislike else 'like' if self.content_type_id not in get_has_stars() else str(self.stars)+' stars', self.content_type.model, self.object_id)
+
+@receiver(post_delete, sender=Like)
+def like_delete_recent(instance, **kwargs):
+    if instance.content_type.model == 'business':
+        Recent.objects.filter(user=instance.person, content_type=ContentType.objects.get(model='business'), object_id=instance.object_id).delete()
 
 
 class EventNotification(CT):
