@@ -5,7 +5,7 @@
                 <uib-tab-heading ng-bind-html="t.heading | unsafe"></uib-tab-heading>
                 <div class="us col-xs-4 col-sm-3 col-lg-2" ng-repeat="e in t.elems">
                     <a class="oh well n" ng-href="/user/{{ e.person.username }}/">
-                        <img class="img-thumbnail margin-center prof" ng-src="/api/images/user/{{ e.person.id }}/avatar/">
+                        <img class="img-thumbnail margin-center prof" ng-src="/images/user/{{ e.person.id }}/avatar/">
                         <p class="text-center br3 def" data-fittext>{{ e.person.first_name }} {{ e.person.last_name }}</p>
                     </a>
                 </div>

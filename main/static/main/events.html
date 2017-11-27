@@ -17,13 +17,13 @@
         <div class="well bs-component clearfix pb18">
             <div ng-if="$parent.ts == undefined && (first_name !== undefined || u || id === undefined) || e.person !== undefined" ng-init="obj = e.business !== undefined ? e.business : e.target !== undefined ? e.target : e.person != undefined ? e.person : e.content_object !== undefined ? e.content_object : e">
                 <legend><a class="n" ng-href="/{{ obj.shortname || 'user/'+obj.username }}/">{{ obj.name !== undefined ? obj.type_display+' "'+obj.name+'"' : obj.first_name+' '+obj.last_name }}</a><span ng-if="e.person != undefined && e.content_object !== undefined">{{ ", to:" | translate:null:'from user to which business' }} <a class="n" ng-href="/{{ e.content_object.shortname }}/">{{ e.content_object.type_display+' "'+e.content_object.name+'"' }}</a></span> <small ng-if="e.distance !== undefined" class="text-muted">&mdash; {{ "%s away" | translate:e.distance.value+e.distance.unit:'distance' }}</small></legend>
-                <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ '/api/images/'+(e.price !== undefined ? 'item' : obj.shortname !== undefined ? 'business' : 'user')+'/'+(e.price !== undefined ? e.id : obj.id)+'/avatar/64/' }}"></a></div>
+                <div class="pb8 pull-left"><a ng-href="/{{ obj.shortname || 'user/'+obj.username }}/"><img class="bor media-object" ng-src="{{ '/images/'+(e.price !== undefined ? 'item' : obj.shortname !== undefined ? 'business' : 'user')+'/'+(e.price !== undefined ? e.id : obj.id)+'/avatar/64/' }}"></a></div>
             </div>
             <div ng-if="e.text !== undefined">
                 <p>{{ e.text }} <small class="text-muted"><a ng-href="/#/show={{ e.id }}&type={{ t }}&showcomments" target="_blank">&mdash; {{ (e.when || e.created) | timeAgo }}</a></small></p>
             </div>
             <div ng-if="e.price !== undefined">
-                <img class="img-responsive bor prof margin-center" ng-if="e.business === undefined && e.has_image" ng-src="/api/images/item/{{ e.id }}/avatar/{{ $parent.ts != undefined && $parent.ts != 0 ? $parent.ts : '' }}">
+                <img class="img-responsive bor prof margin-center" ng-if="e.business === undefined && e.has_image" ng-src="/images/item/{{ e.id }}/avatar/{{ $parent.ts != undefined && $parent.ts != 0 ? $parent.ts : '' }}">
                 <p><strong>{{ e.category_display }}:</strong> {{ e.name }} &mdash; {{ (e.converted || e.price)|currency:e.converted === null ? e.business.currency || e.currency : user_curr }}</p>
             </div>
             <div ng-if="e.is_opened !== undefined">
