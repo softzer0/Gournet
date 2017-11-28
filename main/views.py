@@ -349,8 +349,7 @@ class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
         if get_param_bool(self.request.query_params.get('quick', False)):
-            if queryset.count() >= self.max:
-                self.kwargs['more'] = queryset.count() > self.max
+            self.kwargs['more'] = queryset.count() > self.max
             queryset = queryset[:self.max]
         return queryset
 
@@ -874,13 +873,12 @@ class MultiBaseAPIView(MultipleModelAPIView):
             cursor = self.pagination_class
         if cursor:
             self.ordering = cursor.ordering
-        self.request.query_params._mutable = True
         def chk(queryset, request, *args, **kwargs):
+            self.kwargs[queryset.model.__name__] = True if queryset.count() == self.kwargs['page_size'] + 1 else None
             if queryset.count() >= self.kwargs['page_size']:
-                request.query_params[None] = queryset.count() == self.kwargs['page_size'] + 1
                 queryset = queryset[:self.kwargs['page_size']]
-                if request.query_params[None] and cursor:
-                    request.query_params[None] = cursor.encode_cursor(self, Cursor(offset=0, reverse=False, position=cursor._get_position_from_instance(self, list(queryset)[-1], cursor.get_ordering(self, request, queryset, None))))
+                if self.kwargs[queryset.model.__name__] and cursor:
+                    self.kwargs[queryset.model.__name__] = cursor.encode_cursor(self, Cursor(offset=0, reverse=False, position=cursor._get_position_from_instance(self, list(queryset)[-1], cursor.get_ordering(self, request, queryset, None))))[0]
             return queryset
         self.kwargs['chk_fn'] = chk
 
@@ -893,9 +891,8 @@ class MultiBaseAPIView(MultipleModelAPIView):
         if self.flat:
             return super().format_data(new_data, query, results)
         new_data = {'results': new_data}
-        hm = self.request.query_params.pop(None, None)
-        if hm is not None:
-            new_data['has_more'] = hm[0]
+        if query.queryset.model.__name__ in self.kwargs:
+            new_data['next'] = self.kwargs.pop(query.queryset.model.__name__)
         results.append(new_data)
         return results
 

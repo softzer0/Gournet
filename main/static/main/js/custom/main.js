@@ -343,7 +343,7 @@ app
                             t = 0;
                             function load() {
                                 $scope.tabs[t].elems.push.apply($scope.tabs[t].elems, result[i].results);
-                                $scope.tabs[t].next = result[i].has_more;
+                                $scope.tabs[t].next = result[i].next;
                                 t++;
                             }
                             if (stars) {
@@ -535,7 +535,6 @@ app
                 if (!t) {
                     delete this.props.next;
                     this.ld = {};
-                    if (services.markerService !== undefined) services.markerService.markers.length = 0;
                 }
             }
             this.unloaded[+t] = n === null;
@@ -633,7 +632,7 @@ app
                 if (this.props.next != null || b !== undefined || rel_state !== undefined || this.u !== undefined) {
                     if (this.u === undefined) return this.load_p(this.s, this.ld, undefined, true, this.props).then(function (result){
                         if (self.unloaded[0]) return;
-                        if ((services.markerService !== undefined || result.results.length > 0) && (self.ld.favourites == 1 || result.results.length > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results);
+                        if ((services.markerService !== undefined || result.results.length > 0) && (self.ld.favourites == 1 || result.results.length > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, b !== undefined);
                         appendResults(result.results);
                     });
                     return this.u.feed.get(angular.extend({}, this.ld, {page: self.props.next}), function (result){
@@ -650,7 +649,7 @@ app
                         USER.deftz = result[0];
                         if (services.markerService !== undefined || result[1].results.length > 0) getService('markerService').load(result[1].results);
                         appendResults(result[2].results);
-                        self.props.next = result[2].has_more || null;
+                        self.props.next = result[2].next;
                     }).$promise;
             } else {
                 cn = cn ? this.menu || null : null;
@@ -1144,7 +1143,7 @@ app
                         function (result) {
                             $scope.search.results.length = 0;
                             if (result.results.length > 0) $scope.search.results.push.apply($scope.search.results, result.results);
-                            $scope.search.has_more = result.has_more || null;
+                            $scope.search.has_more = result.has_more;
                             $timeout(function () { $scope.search.loading = false });
                             $scope.search.chngl();
                         },

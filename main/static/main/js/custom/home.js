@@ -55,28 +55,41 @@ app
 
         return {
             markers: markers,
-            load: function (objs) {
-                var obj, id;
-                for (var i = objs.length - 1; i >= 0; i--) if (objs[i].location !== undefined || objs[i].business !== undefined || /*del_each &&*/ objs[i].content_object !== undefined && objs[i].content_object.location !== undefined) {
-                    obj = objs[i].location === undefined ? (objs[i].business || objs[i].content_object) : objs[i];
-                    id = obj.business !== undefined ? obj.business.id : obj.content_object !== undefined ? obj.content_object.id : obj.id;
-                    for (var j = markers.length - 1; j >= 0; j--) if (markers[j].obj_id == id) {
-                        id = undefined;
-                        break;
+            load: function (objs, del) {
+                function objloop(func_id){
+                    var obj, id;
+                    for (var i = objs.length - 1; i >= 0; i--) if (objs[i].location !== undefined || objs[i].business !== undefined && objs[i].business.location !== undefined || /*del_each &&*/ objs[i].content_object !== undefined && objs[i].content_object.location !== undefined) {
+                        obj = objs[i].location === undefined ? (objs[i].business || objs[i].content_object) : objs[i];
+                        id = obj.business !== undefined ? obj.business.id : obj.content_object !== undefined ? obj.content_object.id : obj.id;
+                        if (typeof func_id != 'number') func_id(id, obj); else if (id == func_id) return obj;
                     }
-                    if (id !== undefined) markers.push({
-                        id: markers.length,
-                        latitude: obj.location.lat,
-                        longitude: obj.location.lng,
-                        options: {
-                            labelClass: 'marker_label',
-                            labelAnchor: '0 54',
-                            labelContent: '<span>' + obj.type_display + ' "' + obj.name + '"</span>'
-                        },
-                        shortname: obj.shortname,
-                        obj_id: id
-                    });
                 }
+                var j;
+                if (del) {
+                    for (j = markers.length - 1; j >= 0; j--) {
+                        var obj = objloop(markers[j].obj_id);
+                        if (obj) delete obj.location; else markers.splice(j, 1);
+                    }
+                }
+                objloop(
+                    function (id, obj){
+                        for (j = markers.length - 1; j >= 0; j--) if (markers[j].obj_id == id) {
+                            id = undefined;
+                            break;
+                        }
+                        if (id !== undefined) markers.push({
+                            id: markers.length,
+                            latitude: obj.location.lat,
+                            longitude: obj.location.lng,
+                            options: {
+                                labelClass: 'marker_label',
+                                labelAnchor: '0 54',
+                                labelContent: '<span>' + obj.type_display + ' "' + obj.name + '"</span>'
+                            },
+                            shortname: obj.shortname,
+                            obj_id: id
+                        });
+                    });
             },
             click: function (i, n, o) { window.location.href = '/'+o.shortname+'/' }
         }
