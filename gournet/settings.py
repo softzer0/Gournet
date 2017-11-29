@@ -181,6 +181,7 @@ STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = (
     r'/social/',
     r'/api/',
+    r'/images/',
     r'/password/reset/',
     r'/email/confirm/',
     r'/logout/',
