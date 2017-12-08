@@ -123,7 +123,6 @@ app
                 obj = USER.home;
             } else obj = position.coords;
             init({latitude: obj.latitude, longitude: obj.longitude}).then(function () {
-                $scope.$parent.coords = $scope.map.marker.coords;
                 $scope.map.options = {clickableIcons: false, styles: [{featureType: 'poi', stylers: [{visibility: 'simplified'}]}, {featureType: 'poi.business', stylers: [{visibility: 'off'}]}]};
                 var ctrl = getObjs();
                 if (ctrl[0].className.indexOf('user') == -1) ctrl.scope().load(true);
@@ -133,16 +132,15 @@ app
             var working, getpos = function (){
                 navigator.geolocation.getCurrentPosition(
                     function (position){
-                        working = false;
                         if ($scope.map === undefined) initPos(init, position);
                         else if (position.coords.accuracy < 100) {
                             if ($scope.warn !== undefined) $scope.warn = undefined;
-                            if (Math.abs(position.coords.latitude - $scope.$parent.coords.latitude) * Math.pow(10, 7) < 500 && Math.abs(position.coords.longitude - $scope.$parent.coords.longitude) * Math.pow(10, 7) < 500) return;
+                            if (Math.abs(position.coords.latitude - $scope.map.marker.coords.latitude) * Math.pow(10, 7) < 500 && Math.abs(position.coords.longitude - $scope.map.marker.coords.longitude) * Math.pow(10, 7) < 500) return;
                             $scope.setCoords(position.coords);
                         } else setWarnPos(position);
+                        working = false;
                     },
                     function (error) {
-                        working = false;
                         console.log(error.message);
                         var l = 0;
                         if ($scope.map === undefined) {
@@ -151,6 +149,7 @@ app
                             l++;
                         }
                         if ($scope.warn === undefined) $scope.warn = 1 + l;
+                        working = false;
                     },
                     {enableHighAccuracy: true, maximumAge: 600000, timeout: 27000});
             };
