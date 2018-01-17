@@ -186,6 +186,7 @@
     "Reviews": "Recenzije",
     "Rums": "Rum",
     "Salads": "Salate",
+    "Sandwiches": "Sendvi\u010di",
     "Save": "Sa\u010duvaj",
     "Seafood, fish dishes": "Morska hrana, riblja jela",
     "Select friend(s)": "Odaberi prijatelja/e",

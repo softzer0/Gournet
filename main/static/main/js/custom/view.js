@@ -62,6 +62,7 @@ app
                     ]},
                     {first: false, hascontent: false, name: gettext("Food"), content: [
                         {category: 'fast_food', name: pgettext('plural', "Fast food"), content: []},
+                        {category: 'sandwich', name: gettext("Sandwiches"), content: []},
                         {category: 'pizza', name: gettext("Pizzas"), content: []},
                         {category: 'pasta_pastry', name: gettext("Pastas and pastries"), content: []},
                         {category: 'breakfast_appetizer', name: gettext("Breakfasts, appetizers"), content: []},

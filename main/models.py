@@ -358,6 +358,7 @@ CATEGORY = (
     ),
     (_("Food"), (
             ('fast_food', pgettext_lazy('singular', "Fast food")),
+            ('sandwich', _("Sandwich")),
             ('pizza', _("Pizza")),
             ('pasta_pastry', _("Pasta or pastry")),
             ('breakfast_appetizer', _("Breakfast, appetizer")),

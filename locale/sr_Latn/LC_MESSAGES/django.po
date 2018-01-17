@@ -408,6 +408,10 @@ msgctxt "singular"
 msgid "Fast food"
 msgstr "Brza hrana"
 
+#: main/models.py:333
+msgid "Sandwich"
+msgstr "Sendvič"
+
 #: main/models.py:334
 msgid "Pizza"
 msgstr "Pica"

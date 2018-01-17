@@ -359,6 +359,10 @@ msgid "Fast food"
 msgstr "Brza hrana"
 
 #: main/static/main/js/custom/view.js:94
+msgid "Sandwiches"
+msgstr "Sendviči"
+
+#: main/static/main/js/custom/view.js:94
 msgid "Pizzas"
 msgstr "Pice"
 
