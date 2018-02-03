@@ -1628,23 +1628,44 @@ msgid ""
 "%(site_domain)s has given yours as an e-mail address to connect their "
 "account.\n"
 "\n"
-"To confirm this is correct, go to %(activate_url)s\n"
+"To confirm this is correct, go to:"
 msgstr ""
 "Pozdrav sa %(site_name)s-a!\n"
 "\n"
 "Primili ste ovaj e-mail zbog toga što korisnik %(user_display)s na "
 "%(site_domain)s je dao Vašu e-mail adresu za povezivanje njegovog naloga.\n"
 "\n"
-"Za potvrđivanje tačnosti ovoga, idite na %(activate_url)s\n"
+"Za potvrđivanje tačnosti ovoga, idite na:"
+
+#: templates/account/email/email_confirmation_message.html:1
+#, python-format
+msgid ""
+"<p>Hello from <strong>%(site_name)s</strong>!</p>\n"
+"<p>You're receiving this e-mail because user <strong>%(user_display)s</strong>"
+" at <a href=\"%(site_domain)s\">%(site_name)s</a> has given yours as an e-mail "
+"address to connect their account.</p>\n"
+"<p>To confirm this is correct, go to:</p>"
+msgstr ""
+"<p>Pozdrav sa <strong>%(site_name)s</strong>!-a!</p>\n"
+"<p>Primili ste ovaj e-mail zbog toga što korisnik "
+"<strong>%(user_display)s</strong> na "
+"<a href=\"%(site_domain)s\">%(site_name)s-u</a> je dao Vašu e-mail adresu za "
+"povezivanje njegovog naloga.</p>\n"
+"<p>Za potvrđivanje tačnosti ovoga, idite na:</p>"
 
 #: templates/account/email/email_confirmation_message.txt:7
 #, python-format
 msgid ""
-"Thank you from %(site_name)s!\n"
-"%(site_domain)s"
+"Thank you from %(site_name)s!"
 msgstr ""
-"Vaš %(site_name)s\n"
-"%(site_domain)s"
+"Vaš %(site_name)s"
+
+#: templates/account/email/email_confirmation_message.html:7
+#, python-format
+msgid ""
+"<p>Thank you from <strong>%(site_name)s</strong>!</p>"
+msgstr ""
+"<p>Vaš <strong>%(site_name)s</strong></p>"
 
 #: templates/account/email/email_confirmation_subject.txt:3
 msgid "Please Confirm Your E-mail Address"
@@ -1664,7 +1685,7 @@ msgstr ""
 "\n"
 "Vi ste primili ovaj e-mail pošto ste Vi zatražili šifru Vašeg naloga na "
 "%(site_domain)s, ili je to bio neko drugi.\n"
-"Možete ovo slobdno ignorisati ako niste Vi zatražili resetovanje šifre. "
+"Možete ovo slobodno ignorisati ako niste Vi zatražili resetovanje šifre. "
 "Kliknite na link ispod da bi resetovali Vašu šifru."
 
 #: templates/account/email/password_reset_key_message.txt:8
@@ -1675,11 +1696,40 @@ msgstr "U slučaju da ste zaboravili, Vaše korisničko ime je %(username)s."
 #: templates/account/email/password_reset_key_message.txt:10
 #, python-format
 msgid ""
-"Thank you for using %(site_name)s!\n"
-"%(site_domain)s"
+"Thank you for using %(site_name)s!"
 msgstr ""
-"Hvala Vam što koristite %(site_name)s!\n"
-"%(site_domain)s"
+"Hvala Vam što koristite %(site_name)s!"
+
+#: templates/account/email/password_reset_key_message.html:1
+#, python-format
+msgid ""
+"<p>Hello from <strong>%(site_name)s</strong>!</p>\n"
+"<p>You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at "
+"<a href=\"%(site_domain)s\">%(site_name)s</a>.</p>\n"
+"<p>It can be safely ignored if you did not request a password reset. Click "
+"the link below to reset your password.</p>"
+msgstr ""
+"<p>Pozdrav sa <strong>%(site_name)s-a</strong>!</p>\n"
+"<p>Vi ste primili ovaj e-mail pošto ste Vi zatražili šifru Vašeg naloga na "
+"<a href=\"%(site_domain)s\">%(site_name)s-u</a>, ili je to bio neko "
+"drugi.</p>\n"
+"<p>Možete ovo slobodno ignorisati ako niste Vi zatražili resetovanje šifre. "
+"Kliknite na link ispod da bi resetovali Vašu šifru.</p>"
+
+#: templates/account/email/password_reset_key_message.html:8
+#, python-format
+msgid "<p>In case you forgot, your username is "
+"<strong>%(username)s</strong>.</p>"
+msgstr "<p>U slučaju da ste zaboravili, Vaše korisničko ime je "
+"<strong>%(username)s</strong>.</p>"
+
+#: templates/account/email/password_reset_key_message.html:10
+#, python-format
+msgid ""
+"<p>Thank you for using <strong>%(site_name)s</strong>!</p>"
+msgstr ""
+"<p>Hvala Vam što koristite <strong>%(site_name)s</strong>!</p>"
 
 #: templates/account/email/password_reset_key_subject.txt:3
 msgid "Password Reset E-mail"
@@ -1818,12 +1868,12 @@ msgstr "Verifikujte Vašu e-mail adresu"
 #: templates/account/verification_sent.html:9
 msgid ""
 "We have sent an e-mail to you for verification. Follow the link provided to "
-"finalize the signup process. Please contact us if you do not receive it "
-"within a few minutes."
+"finalize the signup process. Please mind to check your Spam folder too, or "
+"contact us if you do not receive it within a few minutes."
 msgstr ""
 "Mi smo Vam poslali e-mail za verifikaciju. Pratite link koji ćete dobiti da "
-"bi završili proces registracije. Molimo kontaktirajte nas ako ga ne primite "
-"u roku od par minuta."
+"bi završili proces registracije. Molimo da proverite i vaš Spam folder "
+"takođe, ili da nas kontaktirate opet ako ne dobijete odgovor u razumnom roku."
 
 #: templates/socialaccount/authentication_error.html:8
 msgid "Social Network Login Failure"
