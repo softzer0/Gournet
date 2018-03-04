@@ -123,6 +123,7 @@ app
                 obj = USER.home;
             } else obj = position.coords;
             init({latitude: obj.latitude, longitude: obj.longitude}).then(function () {
+                $scope.$parent.coords = $scope.map.marker.coords;
                 $scope.map.options = {clickableIcons: false, styles: [{featureType: 'poi', stylers: [{visibility: 'simplified'}]}, {featureType: 'poi.business', stylers: [{visibility: 'off'}]}]};
                 var ctrl = getObjs();
                 if (ctrl[0].className.indexOf('user') == -1) ctrl.scope().load(true);
