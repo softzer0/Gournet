@@ -3,8 +3,13 @@
     overflow-x: auto;
 }
 
-[class*=col-] .well {
-    margin: 0 auto auto;
+[class*=col-] .well:not(.oh):not(.us) {
+    margin-bottom: 0;
+}
+
+[class*=col-] .well, .nji {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 [class*="-12"] .well {
