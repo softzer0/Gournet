@@ -753,7 +753,7 @@ class CommentAPIView(BaseAPIView):
             """if 'business' in self.get_serializer_context(True):
                 qs = qs.order_by(Case(When(person=self.request.user, then=Value(0)), output_field=IntegerField()), *models.Comment._meta.ordering)
             else:"""
-            if 'reverse' not in self.request.query_params:
+            if not get_param_bool(self.request.query_params.get('reverse', False)):
                 self.pagination_class = pagination.CommentDefPagination
             else:
                 self.pagination_class = pagination.CommentPagination
