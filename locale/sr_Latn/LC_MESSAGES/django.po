@@ -1986,6 +1986,10 @@ msgstr "recenzije"
 msgid "Enter a valid phone number."
 msgstr "Unesi validan broj telefona."
 
+#: disposable_email_checker/validators.py:26
+msgid "Blocked email provider."
+msgstr "Dalje nećeš moći :-)"
+
 #, python-format
 msgid ""
 "This password is too short. It must contain at least %(min_length)d "

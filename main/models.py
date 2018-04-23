@@ -25,6 +25,7 @@ from os.path import join
 from shutil import rmtree
 from django.core.urlresolvers import reverse
 from rest_framework_simplejwt.utils import datetime_to_epoch
+from disposable_email_checker.fields import DisposableEmailField
 
 TF_OBJ = TimezoneFinder()
 
@@ -99,7 +100,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     )
     first_name = models.CharField(_("first name"), max_length=30, validators=[RegexValidator(r'^[^\W\d_]+$', _("Invalid first name."))]) # Removed 'blank' attribute
     last_name = models.CharField(_("last name"), max_length=30, validators=[RegexValidator(r'^[^\W\d_]+(\-[^\W\d_]+)?$', _("Invalid last name."))]) # Removed 'blank' attribute
-    email = models.EmailField(_("email address"), unique=True) # Changed from 'blank' to 'unique' attribute
+    email = DisposableEmailField(_("email address"), unique=True) # Changed from 'blank' to 'unique' attribute
 
     # Added custom fields [BEGIN]
 

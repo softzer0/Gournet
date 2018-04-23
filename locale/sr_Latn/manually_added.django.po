@@ -160,3 +160,7 @@ msgstr ""
 #: templates/account/email/password_reset_key_subject.txt:3
 msgid "Password Reset E-mail"
 msgstr "Resetovanje šifre preko e-maila"
+
+#: disposable_email_checker/validators.py:26
+msgid "Blocked email provider."
+msgstr "Blokiran e-mail provajder."
