@@ -327,13 +327,22 @@ class FakePag:
     def get_results(self, _):
         pass
 
+def get_object(pk, cl=User):
+    """
+    @type cl: django.db.models.Model
+    """
+    try:
+        return cl.objects.get(pk=pk)
+    except:
+        raise NotFound(cl._meta.model_name.capitalize()+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
+
 class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
     serializer_class = serializers.BusinessSerializer
     search_fields = ('name', 'shortname')
     max = 5
 
     def get_object(self):
-        return models.Business.objects.get(pk=self.kwargs['pk']) if self.kwargs['pk'] else get_b_from(self.request.user)
+        return get_object(self.kwargs['pk'], models.Business) if self.kwargs['pk'] else get_b_from(self.request.user)
 
     def paginate_queryset(self, queryset):
         if not get_param_bool(self.request.query_params.get('quick', False)):
@@ -367,15 +376,6 @@ class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
         return Response(r)
 
 
-def get_object(pk, cl=User):
-    """
-    @type cl: django.db.models.Model
-    """
-    try:
-        return cl.objects.get(pk=pk)
-    except:
-        raise NotFound(cl._meta.model_name.capitalize()+" not found.") #Response(status=status.HTTP_400_BAD_REQUEST)
-
 class UserAPIView(SearchAPIView, generics.CreateAPIView):
     search_pag_class = pagination.UserPagination
     pagination_class = pagination.FriendsPagination
@@ -391,7 +391,7 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
         return serializers.UserSerializer
 
     def get_object(self):
-        return models.User.objects.get(pk=self.kwargs['pk']) if self.kwargs['pk'] and int(self.kwargs['pk']) != self.request.user.pk else self.request.user
+        return get_object(self.kwargs['pk']) if self.kwargs['pk'] and int(self.kwargs['pk']) != self.request.user.pk else self.request.user
 
     def get_queryset(self):
         if self.request.query_params.get('search', False):
@@ -824,10 +824,10 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     def get_queryset(self):
         self.kwargs['business'] = None
         qs = super().get_queryset()
-        if not self.request.query_params.get('ids', False) and ('currency' in self.kwargs or get_param_bool(self.request.query_params.get('menu', False))):
-            qs = qs.order_by() #'name', 'category'
-            if 'currency' in self.kwargs:
-                serializers.mass_convert(qs, self.kwargs['business'] or qs[0].business, self.kwargs['currency'])
+        if not self.request.query_params.get('ids', False) and 'currency' in self.kwargs: #or get_param_bool(self.request.query_params.get('menu', False)))
+            #qs = qs.order_by() #'name', 'category'
+            #if 'currency' in self.kwargs:
+            serializers.mass_convert(qs, self.kwargs['business'] or qs[0].business, self.kwargs['currency'])
         return qs
 
     def paginate_queryset(self, queryset):
@@ -851,7 +851,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         if hasattr(request.data, '_mutable'):
             request.data._mutable = True
-        if not self.request.query_params.get('ids', False) and 'currency' in request.data and request.data['currency'] in tuple(i[0] for i in models.CURRENCY):
+        if 'currency' in request.data and request.data['currency'] in tuple(i[0] for i in models.CURRENCY):
             self.kwargs['currency'] = request.data.pop('currency')[0] if hasattr(request.data, '_mutable') else request.data.pop('currency')
             request.method = 'GET'
             return super().list(request, *args, **kwargs)
@@ -996,7 +996,7 @@ class ReminderAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.De
     def get_queryset(self):
         if self.request.method == 'GET':
             """if self.kwargs['pk']:
-                person = get_object(self.kwargs['pk'], User)
+                person = get_object(self.kwargs['pk'])
             else:
                 person = self.request.user"""
             return models.EventNotification.objects.filter(to_person=self.request.user, comment_type=None) #person

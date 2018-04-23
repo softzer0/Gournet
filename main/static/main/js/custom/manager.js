@@ -1,4 +1,74 @@
 app
+    .directive('dragToReorder', function() {
+        return {
+            link: function(scope, element, attrs) {
+                var dragOverHandler, draggingClassName, dropHandler, droppingAboveClassName, droppingBelowClassName, droppingClassName, theList;
+                theList = scope.$eval(attrs.dragToReorder);
+                if (theList == null) throw 'Must specify the list to reorder';
+
+                /*
+                drag stuff
+                */
+                draggingClassName = 'dragging';
+                element.attr('draggable', true);
+                element.on('dragstart', function(e) {
+                    element.addClass(draggingClassName);
+                    return e.originalEvent.dataTransfer.setData('text/plain', scope.$index);
+                });
+                element.on('dragend', function() { return element.removeClass(draggingClassName) });
+
+                /*
+                drop stuff
+                */
+                droppingClassName = 'dropping';
+                droppingAboveClassName = 'dropping-above';
+                droppingBelowClassName = 'dropping-below';
+                dragOverHandler = function(e) {
+                    var offsetY;
+                    e.preventDefault();
+                    offsetY = e.offsetY || e.layerY;
+                    if (offsetY < (this.offsetHeight / 2)) {
+                        element.removeClass(droppingBelowClassName);
+                        return element.addClass(droppingAboveClassName);
+                    } else {
+                        element.removeClass(droppingAboveClassName);
+                        return element.addClass(droppingBelowClassName);
+                    }
+                };
+                dropHandler = function(e) {
+                    var droppedItemIndex, newIndex;
+                    e.preventDefault();
+                    droppedItemIndex = parseInt(e.originalEvent.dataTransfer.getData('text/plain'), 10);
+                    newIndex = null;
+                    if (element.hasClass(droppingAboveClassName)) if (droppedItemIndex < scope.$index) newIndex = scope.$index - 1; else newIndex = scope.$index; else if (droppedItemIndex < scope.$index) newIndex = scope.$index; else newIndex = scope.$index + 1;
+                    function end(){
+                        element.removeClass(droppingClassName);
+                        element.removeClass(droppingAboveClassName);
+                        element.removeClass(droppingBelowClassName);
+                        return element.off('drop', dropHandler);
+                    }
+                    scope.$eval(attrs.dragCallback)(theList[droppedItemIndex], newIndex).then(function() {
+                        theList.splice(newIndex, 0, theList.splice(droppedItemIndex, 1)[0]);
+                        end();
+                    }, end);
+                };
+                element.on('dragenter', function(e) {
+                    if (element.hasClass(draggingClassName)) return;
+                    element.addClass(droppingClassName);
+                    element.on('dragover', dragOverHandler);
+                    return element.on('drop', dropHandler);
+                });
+                return element.on('dragleave', function(e) {
+                    element.removeClass(droppingClassName);
+                    element.removeClass(droppingAboveClassName);
+                    element.removeClass(droppingBelowClassName);
+                    element.off('dragover', dragOverHandler);
+                    return element.off('drop', dropHandler);
+                });
+            }
+        };
+    })
+
     .directive('stringToNumber', function() {
         return {
             require: 'ngModel',
@@ -102,4 +172,6 @@ app
                 }, function () { $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true });
             } else $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true;
         };
+
+        $scope.$parent.dragFn = function (e, i) { return s.partial_update({object_id: e.id, order: i}).$promise };
     });

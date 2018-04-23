@@ -13,6 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.11/moment-timezone-with-data-2010-2020.min.js"></script>
     {% endif %}{% load static %}<script src="{% static 'main/js/custom/view.js' %}"></script>{% if fav_state == -1 %}
     {% include 'base/home_extra.html' %}
+    <script src="{% static 'main/js/DragDropTouch.min.js' %}"></script>
     <script src="{% static 'main/js/custom/manager.js' %}"></script>
     <script src="{% static 'main/js/custom/map.js' %}"></script>
     <script src="{% static 'main/js/custom/create.js' %}"></script>{% endif %}{% endblock %}
@@ -133,7 +134,7 @@
                                             </tr>
                                         </thead>{% endcomment %}
                                         <tbody>
-                                            <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state > -1 %}clickable" ng-click="showItem(i.id){% endif %}">
+                                            <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state > -1 %}clickable" ng-click="showItem(i.id){% else %}" drag-to-reorder="sc.content" drag-callback="dragFn{% endif %}">
                                                 <td{% if fav_state == -1 %} class="clickable" ng-class="{'esh': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% endif %}>
                                                     {% if fav_state == -1 %}<div class="img_p">
                                                         {% endif %}<img class="bor" ng-src="/images/item/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"

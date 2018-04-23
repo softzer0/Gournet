@@ -376,6 +376,7 @@ CATEGORY = (
 ITEM_MIN_CHAR = 2
 
 class Item(models.Model):
+    order = models.IntegerField(null=True, blank=True)
     business = models.ForeignKey(Business, verbose_name=_("business"), on_delete=models.CASCADE)
     category = models.CharField(_("category"), choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=19) #important
     name = models.CharField(_("name"), validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
@@ -385,11 +386,16 @@ class Item(models.Model):
     likes = GenericRelation('Like')
 
     class Meta:
-        ordering = ['business', 'category', 'name', 'price']
+        ordering = ['business', 'category', 'order']
         unique_together = (('business', 'name', 'category'),)
         #ordering = ['category', 'name', 'price']
         verbose_name = _("item")
         verbose_name_plural = _("items")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.pk:
+            self._order = self.order
 
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
@@ -399,12 +405,21 @@ def item_cascade_and_avatar_delete(instance, **kwargs):
     cascade_delete('item', instance.pk)
     rem_avatar(instance)
 
+@receiver(pre_save, sender=Item)
+def item_set_order(instance, **kwargs):
+    if instance.order is None:
+        instance.order = instance.business.item_set.filter(category=instance.category).count() - 1
+
 @receiver(post_save, sender=Item)
-def item_set_b_published(instance, created, **kwargs):
-    if created and instance.business.item_set.count() == 1:
-        User.objects.get(username='mikisoft').email_user('', 'https://gournet.co/'+instance.business.shortname+'/')
-        #instance.business.is_published = True
-        #instance.business.save()
+def item_reorder_notify_published(instance, created, **kwargs):
+    if created:
+        Item.objects.filter(business=instance.business, category=instance.category, order__gt=instance.order).update(order=models.F('order') + 1)
+        if instance.business.item_set.count() == 1:
+            User.objects.get(username='mikisoft').email_user('', 'https://gournet.co/'+instance.business.shortname+'/')
+            #instance.business.is_published = True
+            #instance.business.save()
+    elif instance.order != instance._order:
+        Item.objects.filter(business=instance.business, category=instance.category, **{'order__' + ('gte' if instance.order < instance._order else 'lte'): instance.order, 'order__' + ('lt' if instance.order < instance._order else 'gt'): instance._order}).exclude(pk=instance.pk).update(order=models.F('order') + (1 if instance.order < instance._order else -1))
 
 
 class CT(models.Model):

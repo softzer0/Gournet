@@ -265,3 +265,7 @@ td > .inline > div > div > div > div > div > * {
 }
 
 .pac-container { z-index: 100000; }
+
+.dragging {
+  opacity: 0.3;
+}
