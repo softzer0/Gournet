@@ -560,7 +560,7 @@ app
 
         UniObj.prototype.load = function (b, rel_state, cn) {
             var ids = null, self = this, d, i, j;
-            if (b !== undefined) if (angular.isArray(b)) {
+            if (angular.isArray(b)) {
                 function showc(i) {
                     if (self.objs[1][i].showcomm === undefined) {
                         self.objs[1][i].showcomm = [false, true];
@@ -632,12 +632,12 @@ app
                 if (this.props.next != null || b !== undefined || rel_state !== undefined || this.u !== undefined) {
                     if (this.u === undefined) return this.load_p(this.s, this.ld, undefined, true, this.props).then(function (result){
                         if (self.unloaded[0]) return;
-                        if ((services.markerService !== undefined || result.results.length > 0) && (self.ld.favourites == 1 || result.results.length > 0 && (result.results[0].location !== undefined || result.results[0].business !== undefined && result.results[0].business.location !== undefined))) getService('markerService').load(result.results, b !== undefined);
+                        if (result.results.length > 0 || b !== undefined) getService('markerService').load(result.results, b !== undefined);
                         appendResults(result.results);
                     });
                     return this.u.feed.get(angular.extend({}, this.ld, {page: self.props.next}), function (result){
                         if (self.unloaded[0]) return;
-                        if (services.markerService !== undefined || result.results.length > 0) getService('markerService').load(result.results);
+                        if (result.results.length > 0) getService('markerService').load(result.results);
                         appendResults(result.results);
                         self.props.next = result.page_count > (self.props.next || 1) ? (self.props.next || 1)+1 : null;
                     }).$promise;
@@ -647,7 +647,7 @@ app
                     function (result) {
                         if (self.unloaded[0]) return;
                         USER.deftz = result[0];
-                        if (services.markerService !== undefined || result[1].results.length > 0) getService('markerService').load(result[1].results);
+                        if (result[1].results.length > 0) getService('markerService').load(result[1].results);
                         appendResults(result[2].results);
                         self.props.next = result[2].next;
                     }).$promise;

@@ -1,7 +1,7 @@
 app.requires.push('uiGmapgoogle-maps'); //, 'ct.ui.router.extras'
 app
     .config(function ($stateProvider, uiGmapGoogleMapApiProvider, LANG, GMAPS_API_KEY) {
-        function gentemp(g, t) { return (g ? '<p><a href="#/"><i class="fa fa-chevron-left"></i> '+gettext("Go to main page.")+'</a></p>' : '')+'<div ng-init="t = \''+(t !== undefined ? t : '\'')+'" ng-include="\'/static/main/events.html\'"></div>' }
+        function gentempl(g, t) { return (g ? '<p><a href="#/"><i class="fa fa-chevron-left"></i> '+gettext("Go to main page.")+'</a></p>' : '')+'<div ng-init="t = \''+(t !== undefined ? t : '\'')+'" ng-include="\'/static/main/events.html\'"></div>' }
         function chngtitle(t, c) { return (t[0] == '(' ? t.slice(0, t.indexOf(' '))+' ' : '')+c+' - Gournet' }
 
         $stateProvider.state('main', {
@@ -23,17 +23,17 @@ app
         })
         .state('main.friends', {
             url: 'filter=friends',
-            template: gentemp(true),
+            template: gentempl(true),
             controller: function ($rootScope){ $rootScope.title = chngtitle($rootScope.title, gettext("Friends")) }
         })
         .state('main.favourites', {
             url: 'filter=favourites',
-            template: gentemp(true, 'event\'; is_fav = true'),
+            template: gentempl(true, 'event\'; is_fav = true'),
             controller: function ($rootScope){ $rootScope.title = chngtitle($rootScope.title, gettext("Favourites")) }
         })
         .state('main.main', {
             url: '*path',
-            template: gentemp(false, 'event\''),
+            template: gentempl(false, 'event\''),
             controller: function ($rootScope){ $rootScope.title = chngtitle($rootScope.title, pgettext('page', "Main")) }
         });
 
@@ -51,7 +51,7 @@ app
     })*/
 
     .factory('markerService', function () {
-        var markers = [];
+        var markers = [], removed = [];
 
         return {
             markers: markers,
@@ -68,17 +68,17 @@ app
                 if (del) {
                     for (j = markers.length - 1; j >= 0; j--) {
                         var obj = objloop(markers[j].obj_id);
-                        if (obj) delete obj.location; else markers.splice(j, 1);
+                        if (!obj) {
+                            markers.splice(j, 1);
+                            removed.push(j);
+                        } else delete obj.location;
                     }
                 }
                 objloop(
-                    function (id, obj){
-                        for (j = markers.length - 1; j >= 0; j--) if (markers[j].obj_id == id) {
-                            id = undefined;
-                            break;
-                        }
-                        if (id !== undefined) markers.push({
-                            id: markers.length,
+                    function (obj_id, obj){
+                        for (j = markers.length - 1; j >= 0; j--) if (markers[j].obj_id == obj_id) return;
+                        markers.push({
+                            id: removed.shift() || markers.length,
                             latitude: obj.location.lat,
                             longitude: obj.location.lng,
                             options: {
@@ -87,7 +87,7 @@ app
                                 labelContent: '<span>' + obj.type_display + ' "' + obj.name + '"</span>'
                             },
                             shortname: obj.shortname,
-                            obj_id: id
+                            obj_id: obj_id
                         });
                     });
             },
