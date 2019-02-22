@@ -16,6 +16,7 @@ from os import path
 from django.db.models import Count, Avg, Case, When, Value, IntegerField
 from django.core.cache import caches
 from requests import get as req_get
+from json import loads
 from decimal import Decimal, ROUND_HALF_UP
 from .forms import clean_loc, business_clean_data
 from django.core.exceptions import ObjectDoesNotExist
@@ -165,7 +166,13 @@ class EmailSerializer(serializers.ModelSerializer):
 
 
 def get_rate(f, t):
-    return caches['rates'].get_or_set(f+t, Decimal(req_get('https://finance.google.com/finance/converter?a=1&from='+f+'&to='+t).text.split('class=bld>')[1].split(' ')[0]))
+    r = caches['rates'].get(f+t)
+    if r:
+        return r
+    r = loads(req_get('http://data.fixer.io/api/latest?access_key=***REMOVED***').text)['rates']
+    r = Decimal(r[t]/r[f])
+    caches['rates'].set(f+t, r)
+    return r
 
 ZERO_DECIMAL = Decimal(0)
 def curr_convert(v, f, t=None):
