@@ -295,11 +295,11 @@ class SearchAPIView(generics.ListAPIView, generics.RetrieveUpdateAPIView):
     search_pag_class = pagination.SearchPagination
     filter_backends = (SearchFilter,)
 
-    def if_info(self):
-        return not self.request.query_params.get('search', False)
+    # def if_info(self):
+    #     return not self.request.query_params.get('search', False)
 
     def list(self, request, *args, **kwargs):
-        if self.if_info():
+        if not self.request.query_params.get('search', False): #self.if_info()
             return self.retrieve(request, *args, **kwargs)
         return super().list(request, *args, **kwargs)
 
@@ -381,9 +381,6 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
     pagination_class = pagination.FriendsPagination
     filter_backends = (SearchFilter,)
     search_fields = ('first_name', 'last_name', 'username')
-
-    def if_info(self):
-        return get_param_bool(self.request.query_params.get('info', False))
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
