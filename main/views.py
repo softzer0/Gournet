@@ -312,7 +312,7 @@ class SearchAPIView(generics.ListAPIView, generics.RetrieveUpdateAPIView):
         context = super().get_serializer_context()
         if self.request.query_params.get('search', False) and not self.request.query_params.get('limit', '').isdigit():
             context['list'] = None
-        if self.if_info():
+        if not self.request.query_params.get('search', False): #self.if_info()
             context['single'] = None
         return context
 
