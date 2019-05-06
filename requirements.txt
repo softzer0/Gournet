@@ -1,5 +1,5 @@
 Django==1.10.7
-Pillow==4.1.1
+Pillow==5.2.0
 django-allauth==0.31.0
 django-bootstrap3==7.0.1
 django-decorator-include==1.1
