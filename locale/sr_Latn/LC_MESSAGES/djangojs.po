@@ -367,12 +367,20 @@ msgid "Pizzas"
 msgstr "Pice"
 
 #: main/static/main/js/custom/view.js:95
-msgid "Pastas and pastries"
-msgstr "Testenina i testa"
+msgid "Pastas"
+msgstr "Testenine"
+
+#: main/static/main/js/custom/view.js:95
+msgid "Pastries"
+msgstr "Testa"
 
 #: main/static/main/js/custom/view.js:96
-msgid "Breakfasts, appetizers"
-msgstr "Doručak, predjela"
+msgid "Breakfasts"
+msgstr "Doručak"
+
+#: main/static/main/js/custom/view.js:96
+msgid "Appetizers"
+msgstr "Predjela"
 
 #: main/static/main/js/custom/view.js:97
 msgid "Soups, stews"

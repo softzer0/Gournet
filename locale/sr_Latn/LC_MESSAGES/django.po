@@ -417,12 +417,20 @@ msgid "Pizza"
 msgstr "Pica"
 
 #: main/models.py:335
-msgid "Pasta or pastry"
-msgstr "Testenina ili testo"
+msgid "Pasta"
+msgstr "Testenina"
 
 #: main/models.py:336
-msgid "Breakfast, appetizer"
-msgstr "Doručak, predjelo"
+msgid "Pastry"
+msgstr "Testo"
+
+#: main/models.py:336
+msgid "Breakfast"
+msgstr "Doručak"
+
+#: main/models.py:336
+msgid "Appetizer"
+msgstr "Predjelo"
 
 #: main/models.py:337
 msgid "Soup, stew"
