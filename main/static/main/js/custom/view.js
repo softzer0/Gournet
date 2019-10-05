@@ -66,7 +66,7 @@ app
                         {category: 'pizza', name: gettext("Pizzas"), content: []},
                         {category: 'pasta', name: gettext("Pastas"), content: []},
                         {category: 'pastry', name: gettext("Pastries"), content: []},
-                        {category: 'breakfast', name: gettext("Breakfasts"),
+                        {category: 'breakfast', name: gettext("Breakfasts"), content: []},
                         {category: 'appetizer', name: gettext("Appetizers"), content: []},
                         {category: 'soup_stew', name: gettext("Soups, stews"), content: []},
                         {category: 'meal', name: gettext("Meals"), content: []},
