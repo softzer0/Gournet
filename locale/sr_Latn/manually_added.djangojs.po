@@ -8,7 +8,7 @@
 
 #: main/static/main/modals/settings.html:6
 msgid "Please type your current password."
-msgstr "Molimo unesite Vašu trenutnu šifru."
+msgstr "Molimo unesite Vašu trenutnu lozinku."
 
 #: main/static/main/js/custom/main.js:268
 #, javascript-format
@@ -31,4 +31,4 @@ msgid "Close"
 msgstr "Zatvori"
 
 msgid "Invalid current password."
-msgstr "Netačno uneta trenutna šifra."
+msgstr "Netačno uneta trenutna lozinka."

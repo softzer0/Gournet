@@ -55,7 +55,7 @@ msgstr "napravljeno"
 
 #, python-format
 msgid "The password is too similar to the %(verbose_name)s."
-msgstr "Šifra je previše slična sa podatkom unetim u polje: %(verbose_name)s."
+msgstr "Lozinka je previše slična sa podatkom unetim u polje: %(verbose_name)s."
 
 msgid "Enter a valid phone number."
 msgstr "Unesi validan broj telefona."
@@ -67,15 +67,15 @@ msgid ""
 msgid_plural ""
 "This password is too short. It must contain at least %(min_length)d "
 "characters."
-msgstr[0] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karakter."
-msgstr[1] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
-msgstr[2] "Ova šifra je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+msgstr[0] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karakter."
+msgstr[1] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+msgstr[2] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
 
 msgid "This password is too common."
-msgstr "Ova šifra je previše učestala."
+msgstr "Ova lozinka je previše učestala."
 
 msgid "This password is entirely numeric."
-msgstr "Ova šifra je skroz brojčana."
+msgstr "Ova lozinka je skroz brojčana."
 
 #: templates/account/messages/email_confirmation_sent.txt:2
 #, python-format
@@ -89,7 +89,7 @@ msgstr "Potvrdili ste %(email)s."
 
 #: templates/account/messages/password_changed.txt:2
 msgid "Password successfully changed."
-msgstr "Šifra je uspešno promenjena."
+msgstr "Lozinka je uspešno promenjena."
 
 #: templates/account/messages/unverified_primary_email.txt:2
 msgid "Your primary e-mail address must be verified."
@@ -138,10 +138,10 @@ msgid ""
 msgstr ""
 "Pozdrav sa %(site_name)s-a!\n"
 "\n"
-"Vi ste primili ovaj e-mail pošto ste Vi zatražili šifru Vašeg naloga na "
+"Vi ste primili ovaj e-mail pošto ste Vi zatražili lozinku Vašeg naloga na "
 "%(site_domain)s, ili je to bio neko drugi.\n"
-"Možete ovo slobdno ignorisati ako niste Vi zatražili resetovanje šifre. "
-"Kliknite na link ispod da bi resetovali Vašu šifru."
+"Možete ovo slobdno ignorisati ako niste Vi zatražili resetovanje lozinke. "
+"Kliknite na link ispod da bi resetovali Vašu lozinku."
 
 #: templates/account/email/password_reset_key_message.txt:8
 #, python-format
@@ -159,7 +159,7 @@ msgstr ""
 
 #: templates/account/email/password_reset_key_subject.txt:3
 msgid "Password Reset E-mail"
-msgstr "Resetovanje šifre preko e-maila"
+msgstr "Resetovanje lozinke preko e-maila"
 
 #: disposable_email_checker/validators.py:26
 msgid "Blocked email provider."

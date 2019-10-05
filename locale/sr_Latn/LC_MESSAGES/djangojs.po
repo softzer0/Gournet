@@ -217,11 +217,11 @@ msgstr "Podešavanja"
 
 #: main/static/main/js/custom/main.js:1402
 msgid "New password fields don't match."
-msgstr "Polja za unos nove šifre se ne poklapaju."
+msgstr "Polja za unos nove lozinke se ne poklapaju."
 
 #: main/static/main/js/custom/main.js:1420
 msgid "Your new password matches the current entered password, choose a different one."
-msgstr "Vaša nova šifra se poklapa sa trenutnom, izaberite drugu."
+msgstr "Vaša nova lozinka se poklapa sa trenutnom, izaberite drugu."
 
 #: main/static/main/js/custom/manager.js:65
 msgid ""
@@ -671,19 +671,19 @@ msgstr "Nema prijatelja."
 
 #: main/static/main/modals/settings.html:2
 msgid "Password and email(s)"
-msgstr "Šifra i email-ovi"
+msgstr "Lozinka i email-ovi"
 
 #: main/static/main/modals/settings.html:3
 msgid "Password must contain at least 8 characters"
-msgstr "Šifra mora da sadrži minimum 8 karaktera"
+msgstr "Lozinka mora da sadrži minimum 8 karaktera"
 
 #: main/static/main/modals/settings.html:6
 msgid "Your password has been changed."
-msgstr "Vaša šifra je promenjena."
+msgstr "Vaša lozinka je promenjena."
 
 #: main/static/main/modals/settings.html:6
 msgid "Please type your current password."
-msgstr "Molimo unesite Vašu trenutnu šifru."
+msgstr "Molimo unesite Vašu trenutnu lozinku."
 
 #: main/static/main/modals/settings.html:8
 msgid "Enter your current password before any changes:"
@@ -695,19 +695,19 @@ msgstr "Trenutna lozinka"
 
 #: main/static/main/modals/settings.html:10
 msgid "Enter new password:"
-msgstr "Unesite novu šifru:"
+msgstr "Unesite novu lozinku:"
 
 #: main/static/main/modals/settings.html:11
 msgid "New password"
-msgstr "Nova šifra"
+msgstr "Nova lozinka"
 
 #: main/static/main/modals/settings.html:12
 msgid "Repeat new password:"
-msgstr "Ponovite novu šifru:"
+msgstr "Ponovite novu lozinku:"
 
 #: main/static/main/modals/settings.html:13
 msgid "New password (again)"
-msgstr "Nova šifra (opet)"
+msgstr "Nova lozinka (opet)"
 
 #: main/static/main/modals/settings.html:14
 msgid "Save"
@@ -745,7 +745,7 @@ msgstr "Primarno"
 
 #: main/static/main/modals/settings.html:29
 msgid "Make Primary"
-msgstr "Napravi primarnim"
+msgstr "Napravi primarnom"
 
 #: main/static/main/modals/settings.html:30
 msgid "Re-send Verification"
