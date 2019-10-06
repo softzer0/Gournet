@@ -632,7 +632,7 @@ app
                 if (this.props.next != null || b !== undefined || rel_state !== undefined || this.u !== undefined) {
                     if (this.u === undefined) return this.load_p(this.s, this.ld, undefined, true, this.props).then(function (result){
                         if (self.unloaded[0]) return;
-                        if (getService('markerService') !== undefined && (result.results.length > 0 || b !== undefined)) getService('markerService').load(result.results, b !== undefined);
+                        if ($injector.has('markerService') && (result.results.length > 0 || b !== undefined)) getService('markerService').load(result.results, b !== undefined);
                         appendResults(result.results);
                     });
                     return this.u.feed.get(angular.extend({}, this.ld, {page: self.props.next}), function (result){

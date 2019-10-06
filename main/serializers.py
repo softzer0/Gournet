@@ -250,7 +250,7 @@ class BaseURSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if 'single' in self.context or 'list' in self.context or 'feed' in self.context:
+        if isinstance(self, UserSerializer) and ('single' in self.context or 'list' in self.context or 'feed' in self.context):
             self.fields['friend_count'] = serializers.SerializerMethodField()
             self.fields['rel_state'] = serializers.SerializerMethodField()
 
@@ -318,8 +318,6 @@ class UserSerializer(BaseURSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if 'list' in self.context:
-            self.fields['rel_state'] = serializers.SerializerMethodField()
         if 'noid' in self.context:
             self.fields.pop('id')
         if 'status' in self.context:
