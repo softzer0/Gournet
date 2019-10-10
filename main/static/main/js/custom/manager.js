@@ -162,15 +162,24 @@ app
             }, function (){ $scope.$parent.curr[0] = $scope.data.curr });
         };
 
-        $scope.$parent.doIAction = function (e){
+        function do_enable_disable_form (sc, e, v){
+            sc.form_disabled = v;
+            $scope.$parent.$parent.$parent.edit_i[e.id].disabled = v;
+        }
+        $scope.$parent.doIAction = function (sc, e){
             if ($scope.edit_i[e.id].form != '' && $scope.edit_i[e.id].form != e.price) {
-                $scope.$parent.$parent.$parent.edit_i[e.id].disabled = null;
+                do_enable_disable_form(sc, e, null);
                 s.partial_update({object_id: e.id, price: $scope.edit_i[e.id].form}, function (result) {
                     e.price = result.price;
                     e.converted = result.converted;
-                    $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true;
-                }, function () { $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true });
-            } else $scope.$parent.$parent.$parent.edit_i[e.id].disabled = true;
+                    do_enable_disable_form(sc, e, true);
+                }, function () { do_enable_disable_form(sc, e, true) });
+            } else do_enable_disable_form(sc, e, true);
+        };
+
+        $scope.$parent.enableForm = function (sc, e) {
+            $scope.$parent.$parent.$parent.edit_i[e.id].disabled = false;
+            $timeout(function () { sc.form_disabled = false });
         };
 
         $scope.$parent.dragFn = function (e, i) { return s.partial_update({object_id: e.id, order: i}).$promise };

@@ -135,15 +135,15 @@
                                         </thead>{% endcomment %}
                                         <tbody>
                                             <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state > -1 %}clickable" ng-click="showItem(i.id){% else %}" drag-to-reorder="sc.content" drag-callback="dragFn{% endif %}">
-                                                <td{% if fav_state == -1 %} class="clickable" ng-class="{'esh': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% endif %}>
+                                                <td{% if fav_state == -1 %} class="clickable" ng-class="{'esh': sc.form_disabled !== undefined && sc.form_disabled !== true, 'eshc': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% endif %}>
                                                     {% if fav_state == -1 %}<div class="img_p">
                                                         {% endif %}<img class="bor" ng-src="/images/item/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"
                                                         ><div class="img_l" ng-show="img[i.id].file"><div class="loa loa-c"><i class="fa fa-spinner"></i></div></div
                                                     ></div{% else %}"{% endif %}
                                                     ><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div>
                                                 </td>
-                                                <td><div{% if fav_state == -1 %} class="inline" ng-init="edit_i[i.id] = {form: i.price, disabled: true}" click-outside="co(edit_i[i.id], 'disabled')">
-                                                    <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="edit_i[i.id].disabled = false"{% endif %}>{{ '{' }}{{ '{' }} (i.converted || i.price)|currency:{% if fav_state == -1 %}curr[1] {{ '}' }}{{ '}' }}</a>
+                                                <td><div{% if fav_state == -1 %} class="inline" ng-init="edit_i[i.id] = {form: i.price, disabled: true}" click-outside="co(edit_i[i.id], 'disabled'); sc.form_disabled = true">
+                                                    <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="enableForm(sc, i)"{% endif %}>{{ '{' }}{{ '{' }} (i.converted || i.price)|currency:{% if fav_state == -1 %}curr[1] {{ '}' }}{{ '}' }}</a>
                                                     <div ng-hide="edit_i[i.id].disabled">
                                                         <div>
                                                             <div>
@@ -153,7 +153,7 @@
                                                                         <span class="input-group-addon" ng-bind="data.curr"></span>
                                                                     </div>
                                                                 </div>
-                                                                <a class="fa fa-check n clickable text-center" ng-show="edit_i[i.id].disabled === false" ng-click="doIAction(i)"></a>
+                                                                <a class="fa fa-check n clickable text-center" ng-show="edit_i[i.id].disabled === false" ng-click="doIAction(sc, i)"></a>
                                                             </div>
                                                         </div>
                                                     </div>

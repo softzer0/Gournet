@@ -1,23 +1,24 @@
-app.requires.push('ngFileUpload');
-
-if (OWNER_MANAGER) app.factory('checkField', function(){
-    return function(obj, j, o, f) {
-        function getsetf(v, d){
-            var r, f = v ? 'value' : 'form';
-            if (j !== undefined) {
-                r = obj[f];
-                if (typeof(j) == 'object') {
-                    r = r[j[0]];
-                    f = j[1];
-                } else f = j;
-            } else r = obj;
-            if (d !== undefined) r[f] = d; else return r[f];
+if (OWNER_MANAGER) {
+    app.requires.push('ngFileUpload');
+    app.factory('checkField', function(){
+        return function(obj, j, o, f) {
+            function getsetf(v, d){
+                var r, f = v ? 'value' : 'form';
+                if (j !== undefined) {
+                    r = obj[f];
+                    if (typeof(j) == 'object') {
+                        r = r[j[0]];
+                        f = j[1];
+                    } else f = j;
+                } else r = obj;
+                if (d !== undefined) r[f] = d; else return r[f];
+            }
+            var v = typeof(f) == 'function' ? f(getsetf()) : getsetf(), n = v !== undefined && v !== '';
+            if (o || !n) if (n) getsetf(true, v); else getsetf(undefined, getsetf(true));
+            return !o ? n && (typeof(v) == 'object' ? !angular.equals(v, getsetf(true)) : v != getsetf(true)) ? typeof(f) == 'function' ? v : true : false : n;
         }
-        var v = typeof(f) == 'function' ? f(getsetf()) : getsetf(), n = v !== undefined && v !== '';
-        if (o || !n) if (n) getsetf(true, v); else getsetf(undefined, getsetf(true));
-        return !o ? n && (typeof(v) == 'object' ? !angular.equals(v, getsetf(true)) : v != getsetf(true)) ? typeof(f) == 'function' ? v : true : false : n;
-    }
-});
+    });
+}
 
 app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $injector, tabs) {
     // Tabs
@@ -130,7 +131,7 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
             headers: {'Content-Disposition': 'attachment; filename="'+file.name+'"', 'Content-Type': '*/*'}
         }).then(function (resp) {
             deferred.resolve();
-            console.log('Success ' + resp.config.file.name + ' uploaded.');
+            console.log('Success ' + resp.config.data.file.name + ' uploaded.');
         }, function (resp) {
             deferred.reject(resp.data);
             console.log('Error status: ' + resp.status);

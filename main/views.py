@@ -479,10 +479,8 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
                         self.add_notif(curr, notif.when)
                         curr['pks'][:] = [notif.object_id]
                         curr['persons'][:] = [notif.from_person]
-                        if curr['typ'] != notif.comment_type:
-                            curr['typ'] = notif.comment_type
-                        else:
-                            curr['ct'] = notif.content_type
+                        curr['typ'] = notif.comment_type
+                        curr['ct'] = notif.content_type
                     if notif.object_id not in curr['pks']:
                         curr['pks'].append(notif.object_id)
                     if notif.from_person != curr['persons'][-1]:
