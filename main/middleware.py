@@ -29,8 +29,14 @@ class TimezoneLocaleMiddleware:
                     request.session['language'] = lang
             else:
                 request.session['language'] = lang
+            if 'table' in request.session:
+                tzname = request.session.get('tz')
+                if tzname:
+                    tz_activate(pytz_timezone(tzname))
+                request.TIME_ZONE = tzname or settings.TIME_ZONE
             lang_activate(lang)
             request.LANGUAGE_CODE = lang
+            request.CURRENCY = request.session.get('currency', settings.DEFAULT_CURRENCY)
 
     def process_response(self, request, response):
         if 'Content-Language' not in response:

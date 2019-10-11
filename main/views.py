@@ -92,16 +92,20 @@ def edit_view(request):
 def get_param_bool(param):
     return param and param in ('1', 'true', 'True', 'TRUE')
 
-@table_session_check()
+@table_session_check(True)
 def i18n_view(request):
     st = None
     if request.method == 'POST':
         c = []
         for f in ('tz', 'language', 'currency'):
-            if f in request.POST and f == 'tz' and request.user.tz.zone != request.POST[f] or f != 'tz' and getattr(request.user, f) != request.POST[f]:
-                setattr(request.user, f, request.POST[f])
+            if request.user.is_authenticated:
+                if f in request.POST and f == 'tz' and request.user.tz.zone != request.POST[f] or f != 'tz' and getattr(request.user, f) != request.POST[f]:
+                    setattr(request.user, f, request.POST[f])
+                    c.append(f)
+            elif f in request.POST and f == 'tz' and request.session.get('tz') != request.POST[f] or f != 'tz' and request.session.get(f) != request.POST[f]:
+                request.session[f] = request.POST[f]
                 c.append(f)
-        if c:
+        if request.user.is_authenticated and c:
             try:
                 request.user.save()
             except:
