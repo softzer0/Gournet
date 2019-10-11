@@ -3,10 +3,10 @@
 
 {% block title %}{% block name %}{% endblock %} - Gournet{% endblock %}
 {% block head %}{{ block.super }}
-    <link rel="stylesheet" href="{% static 'main/css/view.css' %}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/danialfarid-angular-file-upload/12.2.13/ng-file-upload.min.js"></script>
+    <link rel="stylesheet" href="{% static 'main/css/view.css' %}">{% if request.user.is_authenticated %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/danialfarid-angular-file-upload/12.2.13/ng-file-upload.min.js"></script>{% endif %}
     <script src="{% static 'main/js/jquery.resize.js' %}"></script>
-    <script>var OWNER_MANAGER = {% if fav_state == -1 or rel_state == -1 %}true{% else %}false{% endif %}</script>
+    <script>var OWNER_MANAGER = {% if fav_state != -1 and rel_state != -1 %}{% if 'table' in request.session %}null{% else %}false{% endif %}{% else %}true{% endif %}</script>
     <script src="{% static 'main/js/custom/base_view.js' %}"></script>{% endblock %}
 
 {% block container %}

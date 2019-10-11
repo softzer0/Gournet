@@ -46,6 +46,7 @@ from django.core.urlresolvers import reverse
 from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs
 from rest_framework_simplejwt.views import TokenViewBase
 from rest_framework.parsers import FileUploadParser
+from .decorators import table_session_check
 
 User = get_user_model()
 
@@ -118,6 +119,7 @@ def get_b_from(user):
 def gen_resp(msg):
     return {'detail': msg}
 
+@table_session_check()
 class ImageAPIView(APIView):
     def get(self, request, type, pk=None, size=None):
         img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+type+'/'
@@ -218,6 +220,7 @@ def increase_recent(request, obj):
     models.increment(models.Recent, {'user': request.user, 'content_type': ContentType.objects.get_for_model(obj), 'object_id': obj.pk})
 
 WORKH = ['{{ data.value[0]['+str(i)+'] }}' for i in range(0, 6)]
+@table_session_check()
 def show_business(request, shortname):
     try:
         data = {'business': models.Business.objects.get_by_natural_key(shortname)}
@@ -235,7 +238,7 @@ def show_business(request, shortname):
                 data['workh']['value'].append(time_format(getattr(data['business'], 'opened'+f), 'H:i'))
                 data['workh']['value'].append(time_format(getattr(data['business'], 'closed'+f), 'H:i'))
     if request.user != data['business'].manager:
-        if data['business'].likes.filter(person=request.user).exists():
+        if request.user.is_authenticated and data['business'].likes.filter(person=request.user).exists():
             increase_recent(request, data['business'])
             data['fav_state'] = 1
         else:
@@ -730,6 +733,7 @@ def set_t(obj_v, context):
         return False
     return True
 
+@table_session_check()
 class CommentAPIView(BaseAPIView):
     serializer_class = serializers.CommentSerializer
     model = models.Comment
@@ -788,6 +792,7 @@ class CommentAPIView(BaseAPIView):
             obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+@table_session_check()
 class EventAPIView(BaseAPIView):
     serializer_class = serializers.EventSerializer
     model = models.Event
@@ -806,6 +811,7 @@ class EventAPIView(BaseAPIView):
             return get_loc(self, qs.extra(where=[serializers.gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=ContentType.objects.get(model='business').pk)]))
         return get_loc(self, qs, loc=not self.request.query_params.get('search', False)) #, store=not isinstance(self, EventAPIView)
 
+@table_session_check(True)
 class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     serializer_class = serializers.ItemSerializer
     model = models.Item

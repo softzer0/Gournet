@@ -26,6 +26,7 @@ from shutil import rmtree
 from django.core.urlresolvers import reverse
 from rest_framework_simplejwt.utils import datetime_to_epoch
 from disposable_email_checker.fields import DisposableEmailField
+from pyotp import random_base32
 
 TF_OBJ = TimezoneFinder()
 
@@ -82,6 +83,9 @@ class MyUserManager(UserManager):
     def get_by_natural_key(self, username):
         return self.get(username__iexact=username)
 
+    def filter_by_natural_key(self, username):
+        return self.filter(username__iexact=username)
+
 def get_curr_epoch():
     return datetime_to_epoch(timezone.now())
 
@@ -117,7 +121,7 @@ class User(AbstractBaseUser, Loc, PermissionsMixin):
     birthdate_changed = models.BooleanField(_("birthdate already changed?"), default=False)
     pass_last_changed = models.BigIntegerField(default=get_curr_epoch)
 
-    currency = models.CharField(_("currency"), choices=CURRENCY, default='EUR', validators=[MinLengthValidator(3)], max_length=3)
+    currency = models.CharField(_("currency"), choices=CURRENCY, default=settings.DEFAULT_CURRENCY, validators=[MinLengthValidator(3)], max_length=3)
     language = models.CharField(_("language"), choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE, validators=[MinLengthValidator(5)], max_length=7)
 
     recent = GenericRelation('Recent')
@@ -266,9 +270,10 @@ class Business(Loc):
     closed = models.TimeField(_("closing time"), default=datetime.time(0, 0))
     closed_sat = models.TimeField(_("closing time on Saturday"), null=True, blank=True)
     closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
-    currency = models.CharField(_("default currency"), choices=CURRENCY, default='RSD', validators=[MinLengthValidator(3)], max_length=3)
+    currency = models.CharField(_("default currency"), choices=CURRENCY, default=settings.DEFAULT_CURRENCY, validators=[MinLengthValidator(3)], max_length=3)
     supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True)
     is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
+    table_secret = models.CharField(max_length=16, default=random_base32)
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
@@ -379,17 +384,17 @@ CATEGORY = (
 ITEM_MIN_CHAR = 2
 
 class Item(models.Model):
-    order = models.IntegerField(null=True, blank=True)
+    ordering = models.IntegerField(null=True, blank=True)
     business = models.ForeignKey(Business, verbose_name=_("business"), on_delete=models.CASCADE)
     category = models.CharField(_("category"), choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=19) #important
     name = models.CharField(_("name"), validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
-    price = models.DecimalField(_("price"), max_digits=7, decimal_places=2)
+    price = models.DecimalField(_("price"), max_digits=8, decimal_places=2)
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
     has_image = models.BooleanField(_("has image?"), default=False)
     likes = GenericRelation('Like')
 
     class Meta:
-        ordering = ['business', 'category', 'order']
+        ordering = ['business', 'category', 'ordering']
         unique_together = (('business', 'name', 'category'),)
         #ordering = ['category', 'name', 'price']
         verbose_name = _("item")
@@ -398,7 +403,7 @@ class Item(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.pk:
-            self._order = self.order
+            self._ordering = self.ordering
 
     def __str__(self):
         return '%s: %s (%s %s)' % (self.get_category_display(), self.name, self.price, self.business.currency)
@@ -410,19 +415,46 @@ def item_cascade_and_avatar_delete(instance, **kwargs):
 
 @receiver(pre_save, sender=Item)
 def item_set_order(instance, **kwargs):
-    if instance.order is None:
-        instance.order = instance.business.item_set.filter(category=instance.category).count() - 1
+    if instance.ordering is None:
+        instance.ordering = instance.business.item_set.filter(category=instance.category).count() - 1
 
 @receiver(post_save, sender=Item)
 def item_reorder_notify_published(instance, created, **kwargs):
     if created:
-        Item.objects.filter(business=instance.business, category=instance.category, order__gt=instance.order).update(order=models.F('order') + 1)
-        if instance.business.item_set.count() == 1:
-            User.objects.get(username='mikisoft').email_user('', 'https://gournet.co/'+instance.business.shortname+'/')
+        Item.objects.filter(business=instance.business, category=instance.category, ordering__gt=instance.ordering).update(ordering=models.F('ordering') + 1)
+        # if instance.business.item_set.count() == 1:
+            # User.objects.get(username='mikisoft').email_user('', 'https://gournet.co/'+instance.business.shortname+'/')
             #instance.business.is_published = True
             #instance.business.save()
-    elif instance.order != instance._order:
-        Item.objects.filter(business=instance.business, category=instance.category, **{'order__' + ('gte' if instance.order < instance._order else 'lte'): instance.order, 'order__' + ('lt' if instance.order < instance._order else 'gt'): instance._order}).exclude(pk=instance.pk).update(order=models.F('order') + (1 if instance.order < instance._order else -1))
+    elif instance.ordering != instance._ordering:
+        Item.objects.filter(business=instance.business, category=instance.category, **{'ordering__' + ('gte' if instance.ordering < instance._ordering else 'lte'): instance.ordering, 'ordering__' + ('lt' if instance.ordering < instance._ordering else 'gt'): instance._ordering}).exclude(pk=instance.pk).update(ordering=models.F('ordering') + (1 if instance.ordering < instance._ordering else -1))
+
+
+class Table(models.Model):
+    business = models.ForeignKey(Business, on_delete=models.CASCADE)
+    number = models.PositiveSmallIntegerField()
+    waiter = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    counter = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return '%s: Table #%s (@%s)' % (self.business, self.number, self.counter)
+
+class Order(models.Model):
+    person = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    session = models.CharField(max_length=32, null=True, blank=True)
+    table = models.ForeignKey(Table, on_delete=models.CASCADE)
+    ordered_items = models.ManyToManyField(Item, through='OrderedItem')
+
+    def __str__(self):
+        return 'Items [%s], table [%s]' % (self.ordereditem_set.all(), self.table)
+
+class OrderedItem(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(default=1)
+
+    def __str__(self):
+        return 'Item [%s] x%s' % (self.item, self.quantity)
 
 
 class CT(models.Model):
@@ -533,20 +565,6 @@ class Recent(CT):
 
 
 """TESTING:
-from main.models import User
-from django.contrib.gis.geos import Point
-a = User(username='mikisoft', email='mihailosoft@gmail.com', first_name='Mihailo', last_name='Popović', gender=0, birthdate='***REMOVED***', address='Vranje, Srbija', currency='RSD', location=Point(21.9002712, 42.5450345, srid=4326))
-a.set_password('PASSWORD')
-a.is_staff = True
-a.is_superuser = True
-a.save()
-# try to login to site
-from allauth.account.models import EmailAddress
-a = EmailAddress.objects.first()
-a.primary = True
-a.verified = True
-a.save()
-
 from main.models import User
 from django.contrib.gis.geos import Point
 a = User.objects.get(pk=1)

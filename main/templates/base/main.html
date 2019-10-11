@@ -9,7 +9,7 @@
     {% load static %}{% load cache %}{% cache None main_head %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/main.css' %}">
-    {% endcache %}{% if user.is_anonymous %}<link rel="stylesheet" href="{% static 'main/css/index.css' %}">
+    {% endcache %}{% if user.is_anonymous and not workh %}<link rel="stylesheet" href="{% static 'main/css/index.css' %}">
     {% endif %}{% cache None main_head0 %}<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>

@@ -82,7 +82,7 @@ MIDDLEWARE_CLASSES = [
     'main.middleware.TimezoneLocaleMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'stronghold.middleware.LoginRequiredMiddleware',
+    'main.middleware.LoginRequiredMiddleware',
 ]
 
 from django.conf.global_settings import CACHES
@@ -98,11 +98,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'main.pagination.CursorPagination',
     'DEFAULT_METADATA_CLASS': 'main.metadata.Metadata',
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'main.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'main.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        'main.authentication.SessionAuthentication',
     ),
 }
 
@@ -150,6 +150,7 @@ EVENT_PAGE_SIZE = 15
 NOTIFICATION_PAGE_SIZE = 5
 COMMENT_PAGE_SIZE = 4
 SEARCH_PAGE_SIZE = 10
+DEFAULT_CURRENCY = 'RSD'
 
 GMAPS_API_KEY = "***REMOVED***"
 GMAPS_API_KEY_FRONTEND = "***REMOVED***"
@@ -158,7 +159,8 @@ GMAPS_API_KEY_FRONTEND = "***REMOVED***"
 
 SETTINGS_EXPORT = [
     'NOTIFICATION_PAGE_SIZE',
-    'GMAPS_API_KEY_FRONTEND'
+    'GMAPS_API_KEY_FRONTEND',
+    'DEFAULT_CURRENCY'
 ]
 
 SOCIALACCOUNT_PROVIDERS = {

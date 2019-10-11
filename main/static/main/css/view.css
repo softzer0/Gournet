@@ -39,7 +39,7 @@
 }
 
 .tb > tbody > tr > td.qua:first-of-type {
-	width: 71%;
+	width: 69%;
 }
 .tb > tbody > tr > td:first-of-type {
 	width: 87%;
@@ -47,7 +47,7 @@
 
 @media (max-width: 1200px) {
 	.tb > tbody > tr > td.qua:first-of-type {
-		width: 65%;
+		width: 63%;
 	}
 	.tb > tbody > tr > td:first-of-type {
 		width: 85%;
@@ -56,7 +56,7 @@
 
 @media (max-width: 750px) {
 	.tb > tbody > tr > td.qua:first-of-type {
-		width: 59%;
+		width: 57%;
 	}
 	.tb > tbody > tr > td:first-of-type {
 		width: 82%;
@@ -65,7 +65,7 @@
 
 @media (max-width: 630px) {
 	.tb > tbody > tr > td.qua:first-of-type {
-		width: 50%;
+		width: 47%;
 	}
 	.tb > tbody > tr > td:first-of-type {
 		width: 78%;
@@ -73,28 +73,19 @@
 }
 
 @media (max-width: 530px) {
-	.tb > tbody > tr > td.qua:first-of-type {
-		width: 42%;
-	}
-	.tb > tbody > tr > td:first-of-type {
+	.tb > tbody > tr > td:not(.qua):first-of-type {
 		width: 75%;
 	}
 }
 
 @media (max-width: 465px) {
-	.tb > tbody > tr > td.qua:first-of-type {
-		width: 31%;
-	}
-	.tb > tbody > tr > td:first-of-type {
+	.tb > tbody > tr > td:not(.qua):first-of-type {
 		width: 69%;
 	}
 }
 
 @media (max-width: 380px) {
-	.tb > tbody > tr > td.qua:first-of-type {
-		width: 32%;
-	}
-	.tb > tbody > tr > td:first-of-type {
+	.tb > tbody > tr > td:not(.qua):first-of-type {
 		width: 63%;
 	}
 }

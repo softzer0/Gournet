@@ -1,15 +1,20 @@
+if (OWNER_MANAGER === null) app.requires.push('LocalStorageModule');
 app
     .filter('revc', function() { return function(input) { return input.split(',')[1]+','+input.split(',')[0] } })
 
-    .factory('menuService', function ($q, APIService){
-        var itemService = APIService.init(8), menu, defer = $q.defer(); //, category
+    .factory('menuService', function ($q, $injector, APIService, USER){
+        var itemService = APIService.init(8), menu, defer = $q.defer(), props = {loaded: false}, localStorageService = (USER.anonymous || USER.ordering) && $injector.get('localStorageService'); //, category
 
         function chngmenu() { if (!menu[0].hascontent) menu[1].name = gettext("Drinks"); else menu[1].name = gettext("Other drinks") } //menu[0].name == "Other drinks" / if (menu.length)
-        function add(item) {
+        function add(item, n) {
             var c = false, f;
             for (var i = 0; i < menu.length; i++) {
                 if (c === false) for (var j = 0; j < menu[i].content.length; j++) {
                     if (menu[i].content[j].category == item.category) {
+                        if (!n && localStorageService) {
+                            item.quantity = localStorageService.get(item.id);
+                            if (item.quantity) menu[i].content[j].has_q = menu[i].content[j].has_q ? menu[i].content[j].has_q+1 : 1;
+                        }
                         menu[i].content[j].content.push(item);
                         c = true;
                         break;
@@ -85,9 +90,11 @@ app
                     function (result){
                         for (var i = 0; i < result.length; i++) add(result[i]);
                         end(result);
+                        props.loaded = true;
                     }
                 ).$promise;
             },
+            props: props,
             del: function (cat, id){
                 if (menu === undefined) return;
                 var d = 0;
@@ -126,7 +133,7 @@ app
             new: function (name, price, cat) {
                 return itemService.save({name: name, price: price, category: cat, m: '&menu=1'},
                     function (result) {
-                        add(result);
+                        add(result, true);
                         end(result);
                     }
                 ).$promise;
@@ -136,7 +143,7 @@ app
                 for (var j = 0; j < menu.length; j++) {
                     for (var k = 0; k < menu[j].content.length; k++) {
                         if (c === undefined || menu[j].content[k].category == c) for (var l = 0; l < menu[j].content[k].content.length; l++) if (menu[j].content[k].content[l][f] == v) {
-                            if (a) a(menu[j].content[k].content[l]);
+                            if (a) a(menu[j].content[k].content[l], menu[j].content[k]);
                             e = true;
                             break;
                         }

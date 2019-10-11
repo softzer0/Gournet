@@ -110,7 +110,7 @@ class BaseForm(forms.ModelForm):
 
 class BusinessForm(BaseForm):
     class Meta:
-        exclude = ('manager', 'is_published', 'tz', 'loc_projected')
+        exclude = ('manager', 'is_published', 'tz', 'table_secret', 'loc_projected')
         model = Business
         widgets = {'phone': PhoneNumberInternationalFallbackWidget, 'supported_curr': forms.SelectMultiple}
 

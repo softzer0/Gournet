@@ -59,7 +59,8 @@
                         ><span ng-if="e.curruser_status == -1"><a href="javascript:" ng-dialog-message="{{ t == 'event' ? 'Are you sure that you want to delete this event?' : t == 'item' ? 'Are you sure that you want to delete this item?' : 'Are you sure that you want to delete this review?' | translate }}" ng-dialog-click="delete($index)"><i class="fa fa-times"></i> {{ "Remove" | translate }}</a></span
                     ></span
                 ></span
-                ><span ng-if="e.friend_count !== undefined" ng-include="'/static/main/friend.html'" new-scope ng-init="o = [e, $index]"></span>
+                ><span ng-if="e.friend_count !== undefined" ng-include="'/static/main/friend.html'" new-scope ng-init="o = [e, $index]"></span
+                ><span class="pull-right order" ng-if="quantity" ng-init="get_quantity($index)">{{ "Quantity:" | translate }}<input type="number" class="form-control text-center" min="0" ng-model="quantity[$index]" ng-change="set_quantity($index)"><!--input type="submit" ng-attr-id="{{ $index }}bo" class="btn btn-primary" value="{{ 'Set' | translate }}" ng-click="set_quantity($index)"--></span>
             </div>
             <div ng-if="e.created !== undefined && e.main_comment != null"><div class="well bs-component clearfix br an cmn com" ng-include="'comment'" new-scope ng-init="m = {obj: e.main_comment}"></div></div>
             <div class="cmn" ng-if="e.is_opened === undefined && e.friend_count === undefined" ng-show="e.showcomm[1]">

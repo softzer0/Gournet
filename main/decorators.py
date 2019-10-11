@@ -4,8 +4,6 @@ from django.shortcuts import redirect
 from django.conf import settings
 
 REDIRECT_URL = settings.LOGIN_REDIRECT_URL
-
-
 def user_passes_test_cust(test_func):
     """
     Decorator for views that checks that the user passes the given test,
@@ -22,5 +20,11 @@ def user_passes_test_cust(test_func):
         return _wrapped_view
     return decorator
 
-
 login_forbidden = user_passes_test_cust(lambda u: u.is_anonymous)
+
+
+def table_session_check(post=None):
+    def decorator(view_func):
+        setattr(view_func, 'TABLE_SESSION_CHECK', post)
+        return view_func
+    return decorator

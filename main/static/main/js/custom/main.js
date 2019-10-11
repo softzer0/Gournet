@@ -1076,7 +1076,22 @@ app
         };
     })
 
-    .controller('ItemsCtrl', function($scope, USER) { $scope.user_curr = USER.currency })
+    .controller('ItemsCtrl', function($scope, $injector, USER, menuService) {
+        $scope.user_curr = USER.currency;
+
+        if (!USER.anonymous && !USER.ordering) return;
+        $scope.quantity = {};
+        var localStorageService = $injector.get('localStorageService');
+        $scope.get_quantity = function (index){ $scope.quantity[index] = localStorageService.get($scope.objs[index].id) || 0 };
+        $scope.set_quantity = function (index){
+            var increment = $scope.quantity[index] > 0 && localStorageService.keys().indexOf(''+$scope.objs[index].id) == -1;
+            if ($scope.quantity[index] > 0) localStorageService.set($scope.objs[index].id, $scope.quantity[index]); else localStorageService.remove($scope.objs[index].id);
+            if (menuService.props.loaded) menuService.find('id', $scope.objs[index].id, $scope.objs[index].category, function (i, sc) {
+                i.quantity = $scope.quantity[index];
+                if (increment) sc.has_q = sc.has_q ? sc.has_q+1 : 1; else if ($scope.quantity[index] == 0) sc.has_q--;
+            });
+        };
+    })
 
     .controller('ReviewsCtrl', function($scope, REVIEW_STATUS) { $scope.choices = REVIEW_STATUS }) //, $injector) { ... }) //change
 
@@ -1092,7 +1107,7 @@ app
         }
     }]}), $controller('ReviewsCtrl', {$scope: $scope})); /*, function (index) { if ($scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0] }*/ })
 
-    .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, $controller, usersModalService, APIService, NOTIF_PAGE_SIZE) { //, $interval
+    .controller('MainCtrl', function($rootScope, $window, $scope, $uibModal, $aside, $timeout, $controller, usersModalService, APIService, NOTIF_PAGE_SIZE, USER) { //, $interval
         angular.extend(this, $controller('BaseMainCtrl', {$scope: $scope}));
 
         $rootScope.title = $window.document.title;
@@ -1168,8 +1183,9 @@ app
 
         // Notfication system
 
-        var notifService = APIService.init(4);
+        if (USER.anonymous) return;
 
+        var notifService = APIService.init(4);
         $scope.notif_loading = false;
         var ids = '', frse, u = 0;
         ($scope.getNotifs = function (notick) {

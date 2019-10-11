@@ -32,7 +32,7 @@
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
             .constant('HAS_STARS', {{ '{' }}{% for _, v in has_stars.items %}{{ v }}: true{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %}){% comment %}{% if request.user.is_manager %}{% endcomment %}
             .constant('REVIEW_STATUS', [{name: "{% trans "(None)" %}", value: null}, {% for s in review_status %}{name: "{{ s.0 }}", value: {{ forloop.counter0 }}}{% if not forloop.last %}, {% endif %}{% endfor %}])
-            .constant('USER', {currency: '{% endcache %}{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url or fav_state == -1 %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% endif %}})</script>{% endblock %}
+            .constant('USER', {currency: '{% endcache %}{% if request.user.is_authenticated %}{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url or fav_state == -1 %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% if 'table' in request.session %}, ordering: true{% endif %}{% endif %}{% else %}{{ settings.DEFAULT_CURRENCY }}', anonymous: true{% endif %}})</script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 
@@ -54,7 +54,7 @@
     </script>
     <script type="text/ng-template" id="offcanvas">
         <div class="navmenu navmenu-default navmenu-fixed-right">
-            <a class="n" ng-click="c()" href="{% endcache %}{% if usr == request.user %}javascript:{% else %}{% url 'user_profile' request.user.username %}{% endif %}"><img class="bor imo img-rounded" src="/images/user/avatar/48/"><span class="navmenu-brand">{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}</span></a>
+            <a class="n" ng-click="c()" href="{% endcache %}{% if not request.user.is_authenticated or usr == request.user %}javascript:{% else %}{% url 'user_profile' request.user.username %}{% endif %}"><img class="bor imo img-rounded" src="/images/user/avatar/48/"><span class="navmenu-brand">{% if request.user.is_authenticated %}{{ request.user.first_name|add:' '|add:request.user.last_name|truncatechars:25 }}{% else %}{% trans "Anonymous" %}{% endif %}</span></a>
             <ul class="nav navmenu-nav">
                 {% comment %}<li><a href="{% if request.path == "/" %}{{ current }}{% else %}/{% endif %}">Home</a></li>{% endcomment %}
                 <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url or business and business.manager == request.user %}javascript:{% else %}{{ create_url }}{% endif %}">{% trans "My business" %}</a></li>

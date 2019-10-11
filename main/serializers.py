@@ -396,7 +396,7 @@ class BusinessSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Business
-        exclude = ('manager', 'currency', 'location', 'loc_projected', 'is_published', 'tz', 'created')
+        exclude = ('manager', 'currency', 'location', 'loc_projected', 'is_published', 'tz', 'table_secret', 'created')
         extra_kwargs = {'address': {'required': False}}
 
     def __init__(self, *args, **kwargs):
@@ -637,7 +637,7 @@ class ItemSerializer(BaseSerializer):
         else:
             self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault(), currency=True, location='search' in self.context or 'feed' in self.context)
         if 'menu' not in self.context and self.context['request'].method == 'GET':
-            self.fields.pop('order')
+            self.fields.pop('ordering')
         if 'menu' in self.context or 'currency' in self.context:
             self.fields.pop('curruser_status')
             self.fields.pop('likestars_count')
@@ -663,8 +663,9 @@ class ItemSerializer(BaseSerializer):
         return gen_distance(obj)
 
     def get_converted(self, obj):
-        if obj.business.currency != self.context['request'].user.currency and self.context['request'].user.currency in obj.business.supported_curr:
-            return str(curr_convert(obj.price, obj.business.currency, self.context['request'].user.currency))
+        currency = getattr(self.context['request'].user, 'currency', settings.DEFAULT_CURRENCY)
+        if obj.business.currency != currency and currency in obj.business.supported_curr:
+            return str(curr_convert(obj.price, obj.business.currency, currency))
 
 
 class CurrentUserDefault(object):
