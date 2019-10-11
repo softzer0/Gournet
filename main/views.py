@@ -92,6 +92,7 @@ def edit_view(request):
 def get_param_bool(param):
     return param and param in ('1', 'true', 'True', 'TRUE')
 
+@table_session_check()
 def i18n_view(request):
     st = None
     if request.method == 'POST':

@@ -61,29 +61,29 @@
                 {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
                 <li uib-dropdown><a href="javascript:" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>{% trans "Favourites" %} <b class="caret"></b></a>
                     <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="favourites">
-                        <li><a href="/#/filter=favourites" ng-click="c()">{% trans "News feed" %}</a></li>
+                        <li><a href="/#/filter=favourites" ng-click="c()">{% trans "News feed" %}</a></li>{% if request.user.is_authenticated %}
                         <li><a href="javascript:" ng-click="showFavouritesModal(null)">{% trans "Show list" %}</a></li>
                         {% if favs.exists %}<li class="divider"></li>
                         <li class="dropdown-header">{% trans "Recent" %}</li>
-                        {% for fav in favs %}<li><a ng-click="c()" href="{% url 'business_profile' fav.shortname as fav_url %}{% if request.path == fav_url %}javascript:{% else %}{{ fav_url }}{% endif %}">{{ fav.get_type_display|add:' "'|add:fav.name|add:'"'|truncatechars:39 }}</a></li>{% endfor %}{% endif %}
+                        {% for fav in favs %}<li><a ng-click="c()" href="{% url 'business_profile' fav.shortname as fav_url %}{% if request.path == fav_url %}javascript:{% else %}{{ fav_url }}{% endif %}">{{ fav.get_type_display|add:' "'|add:fav.name|add:'"'|truncatechars:39 }}</a></li>{% endfor %}{% endif %}{% endif %}
                     </ul>
                 </li>
                 <li uib-dropdown><a href="javascript:" id="friends" class="dropdown-toggle" uib-dropdown-toggle>{% trans "Friends" %} <b class="caret"></b></a>
                     <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="friends">
-                        <li><a href="/#/filter=friends" ng-click="c()">{% trans "News feed" %}</a></li>
+                        <li><a href="/#/filter=friends" ng-click="c()">{% trans "News feed" %}</a></li>{% if request.user.is_authenticated %}
                         <li><a href="javascript:" ng-click="showFriendsModal(null)">{% trans "Show list" %}</a></li>
                         {% if friends.exists %}<li class="divider"></li>
                         <li class="dropdown-header">{% trans "Recent" %}</li>
-                        {% for friend in friends %}<li><a ng-click="c()" href="{% url 'user_profile' friend.username as friend_url %}{% if request.path == friend_url %}javascript:{% else %}{{ friend_url }}{% endif %}">{{ friend.first_name|add:' '|add:friend.last_name|truncatechars:39 }}</a></li>{% endfor %}{% endif %}
+                        {% for friend in friends %}<li><a ng-click="c()" href="{% url 'user_profile' friend.username as friend_url %}{% if request.path == friend_url %}javascript:{% else %}{{ friend_url }}{% endif %}">{{ friend.first_name|add:' '|add:friend.last_name|truncatechars:39 }}</a></li>{% endfor %}{% endif %}{% endif %}
                     </ul>
                 </li>
                 {% comment %}<li><a href="javascript:" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
                     <ul class="dropdown-menu navmenu-nav">{% endcomment %}
-                <li><a href="javascript:" ng-click="showSettModal()">{% trans "Change password and email(s)" %}</a></li>
+                {% if request.user.is_authenticated %}<li><a href="javascript:" ng-click="showSettModal()">{% trans "Change password and email(s)" %}</a></li>{% endif %}
                 <li><a href="javascript:" ng-click="showSettModal(1)">{% trans "Internationalization" %}</a></li>
                 {% comment %}    </ul>
                 </li>{% endcomment %}
-                <li><a href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>
+                {% if request.user.is_authenticated %}<li><a href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>{% endif %}
             </ul>
         </div>
     </script>

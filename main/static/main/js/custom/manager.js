@@ -182,5 +182,5 @@ app
             $timeout(function () { sc.form_disabled = false });
         };
 
-        $scope.$parent.dragFn = function (e, i) { return s.partial_update({object_id: e.id, order: i}).$promise };
+        $scope.$parent.dragFn = function (e, i) { return s.partial_update({object_id: e.id, ordering: i}).$promise };
     });

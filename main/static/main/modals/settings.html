@@ -1,5 +1,5 @@
 <uib-tabset active="obj.active" type="pills" class="nji row">
-    <uib-tab index="0" heading="{{ 'Password and email(s)' | translate }}">
+    <uib-tab index="0" heading="{{ 'Password and email(s)' | translate }}" ng-if="!user.anonymous">
         <div ng-if="pass_err == 0 || pass_err_txt !== undefined" class="alert alert-dismissable" ng-class="pass_err == 0 ? 'alert-success' : 'alert-danger'">
             <button class="close" type="button" ng-click="dismissError()">&times;</button>
             <p class="def">{{ pass_err == 0 ? "Your password has been changed." : pass_err_txt | translate }}</p>
