@@ -1,9 +1,16 @@
 from rest_framework import permissions
-from .models import Event, Comment, Item
+from .models import Event, Comment, Item, Business
+
+def match_shortname(request, obj):
+    obj = obj.content_object.content_object.business if isinstance(obj.content_object, Comment) else None if not isinstance(obj.content_object, Business) else obj.content_object.business if hasattr(obj, 'content_object') else None if not hasattr(obj, 'business') else obj.business if not isinstance(obj, Business) else obj
+    return not obj or obj.shortname == request.session['table']['shortname']
 
 class IsAuthenticated(permissions.IsAuthenticated):
     def has_permission(self, request, view):
-        return hasattr(view, 'TABLE_SESSION_CHECK') and 'table' in request.session and (view.TABLE_SESSION_CHECK == True or request.method in permissions.SAFE_METHODS) or super().has_permission(request, view)
+        return super().has_permission(request, view) or hasattr(view, 'TABLE_SESSION_CHECK') and 'table' in request.session and (view.TABLE_SESSION_CHECK == True or request.method in permissions.SAFE_METHODS) \
+
+    def has_object_permission(self, request, view, obj):
+        return super().has_permission(request, view) or not hasattr(view, 'TABLE_SESSION_CHECK') or match_shortname(request, obj)
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -12,7 +19,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request
-        if 'table' in request.session or request.method in permissions.SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS or request.user.is_anonymous and hasattr(obj, 'business') and obj.business.shortname == request.session['table']['shortname']:
             return True
 
         # Write permissions are only allowed to the owner of the snippet

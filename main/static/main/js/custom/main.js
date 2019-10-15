@@ -172,7 +172,7 @@ app
                 '></span>' +
                 '<span class="star-rating" ng-if="!readonly">' +
                 '    <a href="javascript:" ng-repeat="a in max track by $index" ng-class="{\'last-star\': $last && (userNumber == 0 || (onClickStats !== undefined ? false : userNumber === undefined || userNumber == 0))}" ng-click="toggle($index)" ng-mouseover="hoverIn($index)" ng-mouseleave="hoverOut()"><i class="fa" ng-class="(hover > 0 && hover >= $index + 1 ? \'fa-star\' : hover == 0 ? floor(starRating) > $index + 1 || starRating == $index + 1 ? \'fa-star\' : floor(starRating) == $index + 1 && starRating % 1 >= 0.5 ? \'fa-star-half-o\' : \'fa-star-o\' : \'fa-star-o\')+(userRating >= $index + 1 ? \' text-warning\' : \'\')"></i></a' +
-                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || userNumber !== undefined && userNumber != 0)">|<a href="javascript:" ng-if="onClickStats !== undefined" ng-click="show()" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</a><span ng-if="userNumber !== undefined && userNumber != 0 && onClickStats === undefined" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</span></span>',
+                '></span><span ng-if="userNumber > 0 && (onClickStats !== undefined || userNumber !== undefined && userNumber != 0)">|<a href="javascript:" ng-if="onClickStats" ng-click="show()" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</a><span ng-if="userNumber !== undefined && userNumber != 0 && !onClickStats" class="ml3">{{ starRating | number:1 }} ({{ userNumber }})</span></span>',
             scope: {
                 starRating: '=?',
                 userNumber: '=?',
@@ -187,7 +187,7 @@ app
             link: function(scope) {
                 scope.floor = Math.floor;
                 /*if (scope.max === undefined)*/ scope.max = new Array(5); //else scope.max = new Array(attrs.max);
-                if (scope.readonly === undefined) scope.readonly = scope.userRating === undefined || scope.userRating == -1;
+                if (scope.readonly === undefined) scope.readonly = scope.userRating === undefined || scope.userRating <= -1;
                 if (scope.userRating !== undefined && scope.starRating !== undefined) scope.$watch('userRating', function (status, old_status) {
                     if (status == old_status) return;
                     if (status != 0 && old_status == 0) scope.userNumber++; else if (status == 0 && old_status != 0) scope.userNumber--;
@@ -1101,8 +1101,8 @@ app
 
     .controller('reviewsOnlyCtrl', function ($scope, $controller, reviewService) { angular.extend(this, $controller('BaseCtrl', {$scope: $scope, objService: [reviewService, function (del){
         var p = $scope.$parent.$parent.$parent.$parent.$parent;
-        if (!$scope.r && p.fav_state !== undefined && p.fav_state != -1) {
-            p.showrevf = $scope.objs.length == 0 || $scope.objs[0].curruser_status != -1;
+        if (!$scope.r && p.fav_state !== undefined && p.fav_state > -1) {
+            p.showrevf = $scope.objs.length == 0 || $scope.objs[0].curruser_status > -1;
             if (del) p.rating.user = 0;
         }
     }]}), $controller('ReviewsCtrl', {$scope: $scope})); /*, function (index) { if ($scope.objs[index].status != $scope.choices[0]) $scope.objs[index].status = $scope.choices[0] }*/ })

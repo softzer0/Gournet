@@ -46,7 +46,7 @@
 
 {% block img %}business/{{ business.pk }}{% endblock %}
 
-{% block other %}<li{% if business.manager != request.user %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" readonly="true"{% else %}><span star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}"{% endif %}{% endif %}></span></li>
+{% block other %}<li{% if fav_state <= -1 %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" readonly="true"{% else %}><span star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}"{% endif %}{% endif %}></span></li>
                         <li
                             >{% if fav_state > -1 %}<span ng-show="fav_count > 0" translate="fav_count"><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> person has favored this<br plural><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> persons have favored this</span
                             ><span ng-show="fav_count == 0"><i class="fa fa-heart"></i> {% trans "Nobody favored this" %}</span
@@ -59,7 +59,7 @@
                                     ><i class="fa fa-minus-square"></i> {% trans "It's not my favorite anymore" %}</span
                             ></a
                         >{% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>
-                        {% endcomment %}{% else %}<span>{% if fav_count > 0 %}<a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}{% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
+                        {% endcomment %}{% else %}<span>{% if fav_count > 0 %}<a href="javascript:" ng-click="show_favs_or_redirect()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}{% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
                         {% endif %}</span></li>
                         {% endif %}<li>
                             <hr style="margin: 8px 13px 13px;">{% if fav_state == -1 %}
@@ -135,8 +135,8 @@
                                             </tr>
                                         </thead>{% endcomment %}
                                         <tbody>
-                                            <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state > -1 %}clickable" ng-click="showItem(i.id){% else %}" drag-to-reorder="sc.content" drag-callback="dragFn{% endif %}">
-                                                <td{% if fav_state == -1 %} class="clickable" ng-class="{'esh': sc.form_disabled !== undefined && sc.form_disabled !== true, 'eshc': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% elif 'table' in request.session %} ng-class="{'qua': sc.has_q}"{% endif %}>
+                                            <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state != -1 %}clickable" ng-click="showItem(i.id){% else %}" drag-to-reorder="sc.content" drag-callback="dragFn{% endif %}">
+                                                <td{% load main_tags %}{% if fav_state == -1 %} class="clickable" ng-class="{'esh': sc.form_disabled !== undefined && sc.form_disabled !== true, 'eshc': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% elif 'table' in request.session and request.session|get_item:'table'|get_item:'shortname' == business.shortname %} ng-class="{'qua': sc.has_q}"{% endif %}>
                                                     {% if fav_state == -1 %}<div class="img_p">
                                                         {% endif %}<img class="bor" ng-src="/images/item/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"
                                                         ><div class="img_l" ng-show="img[i.id].file"><div class="loa loa-c"><i class="fa fa-spinner"></i></div></div
@@ -158,7 +158,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                {% else %}'{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{{ "' }" }}{{ '}' }}{% endif %}</div>{% if 'table' in request.session %}
+                                                {% else %}'{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{{ "' }" }}{{ '}' }}{% endif %}</div>{% if 'table' in request.session and request.session|get_item:'table'|get_item:'shortname' == business.shortname %}
                                                 <strong ng-if="i.quantity">{{ '{' }}{{ '{' }} i.quantity {{ '}' }}{{ '}' }}x ({{ '{' }}{{ '{' }} (i.quantity * (i.converted || i.price))|currency:'{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{{ "' }" }}{{ '}' }})</strong>
                                                 {% endif %}</div></td>
                                             </tr>
@@ -171,7 +171,7 @@
 					</uib-tab>
 
                     <uib-tab index="2" heading="{% trans "Reviews" %}">
-{% if fav_state != -1 %}						<div ng-if="showrevf" class="well bs-component clearfix wp">
+{% if fav_state > -1 %}						<div ng-if="showrevf" class="well bs-component clearfix wp">
 							<form name="forms.review" ng-submit="submitReview()" class="frm form-vertical">
                                 <uib-alert class="mpd" type="danger" close="forms.review.alert = 0" ng-if="forms.review.alert > 0">{{ '{' }}{{ '{' }} forms.review.alert != 2 ? "{% blocktrans %}Please enter a message with "+minchar+" or more characters.{% endblocktrans %}" : '' {{ '}' }}{{ '}' }} {{ '{' }}{{ '{' }} forms.review.alert != 1 ? "{% trans "Please select how many stars you give." %}" : '' {{ '}' }}{{ '}' }}</uib-alert>
                                 <div class="form-group" ng-class="{'has-error': forms.review.alert == 1 || forms.review.alert == 3}">

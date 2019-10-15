@@ -89,13 +89,13 @@
     </script>
     {% cache None like_comm request.LANGUAGE_CODE %}<script type="text/ng-template" id="likes"
         ><a href="javascript:" ng-if="o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 1}" ng-click="giveDisLike(o[1], false, o[2])"><i class="fa fa-plus-square"></i> {% verbatim %}{{ o[0].likestars_count }}{% endverbatim %}</a
-        ><span ng-if="o[0].curruser_status == -1"><i class="fa fa-plus-square"></i> {% verbatim %}{{ o[0].likestars_count }}{% endverbatim %}</span
+        ><span ng-if="o[0].curruser_status <= -1"><i class="fa fa-plus-square"></i> {% verbatim %}{{ o[0].likestars_count }}{% endverbatim %}</span
 
         ><a href="javascript:" ng-if="o[0].likestars_count != 0 || o[0].dislike_count != 0" ng-click="o[0].is_opened === undefined ? showDisLikes(o[1], o[2]) : $parent.showFavouritesModal(o[0].id)" class="badge label-primary">{% verbatim %}{{ o[0].likestars_count - (o[0].dislike_count || 0) }}{% endverbatim %}</a
         ><span ng-if="o[0].likestars_count == 0 && o[0].dislike_count == 0" class="badge">0</span
 
         ><a href="javascript:" ng-if="o[0].is_opened === undefined && o[0].curruser_status > -1" ng-class="{'text-warning': o[0].curruser_status == 2}" ng-click="giveDisLike(o[1], true, o[2])"><i class="fa fa-minus-square"></i> {% verbatim %}{{ o[0].dislike_count }}{% endverbatim %}</a
-        ><span ng-if="o[0].is_opened === undefined && o[0].curruser_status == -1"><i class="fa fa-minus-square"></i> {% verbatim %}{{ o[0].dislike_count }}{% endverbatim %}</span
+        ><span ng-if="o[0].is_opened === undefined && o[0].curruser_status <= -1"><i class="fa fa-minus-square"></i> {% verbatim %}{{ o[0].dislike_count }}{% endverbatim %}</span
     ></script>
     <script type="text/ng-template" id="comment">
         <a class="prf" ng-href="/user/{% verbatim %}{{ m.obj.person.username }}{% endverbatim %}/">

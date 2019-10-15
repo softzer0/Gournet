@@ -46,7 +46,8 @@ from django.core.urlresolvers import reverse
 from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs
 from rest_framework_simplejwt.views import TokenViewBase
 from rest_framework.parsers import FileUploadParser
-from .decorators import table_session_check
+from .decorators import table_session_check, request_passes_test
+from rest_framework.exceptions import NotAuthenticated
 
 User = get_user_model()
 
@@ -226,6 +227,7 @@ def increase_recent(request, obj):
 
 WORKH = ['{{ data.value[0]['+str(i)+'] }}' for i in range(0, 6)]
 @table_session_check()
+@request_passes_test(lambda request, *args, **kwargs: 'table' not in request.session or request.session['table']['shortname'] == kwargs['shortname'])
 def show_business(request, shortname):
     try:
         data = {'business': models.Business.objects.get_by_natural_key(shortname)}
@@ -247,7 +249,7 @@ def show_business(request, shortname):
             increase_recent(request, data['business'])
             data['fav_state'] = 1
         else:
-            data['fav_state'] = 0
+            data['fav_state'] = 0 if request.user.is_authenticated else -2
         data['minchar'] = serializers.REVIEW_MIN_CHAR
         try:
             data['rating'].append(models.Review.objects.get(object_id=data['business'].pk, person=request.user).stars)
@@ -635,6 +637,8 @@ class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.Destro
 
     def get_qs_pk(self):
         b = get_object(self.kwargs['pk'], models.Business)
+        if self.request.user.is_anonymous and self.request.session['table']['shortname'] != b.shortname:
+            raise NotAuthenticated()
         if 'business' in self.kwargs:
             self.kwargs['business'] = b
         return self.model.objects.filter(business=b)
@@ -646,9 +650,10 @@ class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.Destro
         return filter_published(self, self.main_f)
 
     def get_queryset(self):
-        if self.request.query_params.get('ids', False):
-            return self.model.objects.filter(pk__in=[n for n in self.request.query_params['ids'].split(',') if n.isdigit()])
-        if get_param_bool(self.request.query_params.get('is_person', False)):
+        if (self.request.user.is_authenticated or isinstance(self, ItemAPIView)) and self.request.query_params.get('ids', False):
+            objs = self.model.objects.filter(pk__in=[n for n in self.request.query_params['ids'].split(',') if n.isdigit()])
+            return objs.filter(business__shortname=self.request.session['table']['shortname']) if self.request.user.is_anonymous else objs
+        if self.request.user.is_authenticated and get_param_bool(self.request.query_params.get('is_person', False)):
             if self.kwargs['pk']:
                 person = get_object(self.kwargs['pk'], User)
                 #if person != self.request.user:

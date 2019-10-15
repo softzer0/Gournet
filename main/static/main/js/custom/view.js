@@ -164,7 +164,7 @@ app
                 {name: 'menu', func: function () {
                     if ($scope.menu === undefined) {
                         $scope.menu = menuService.init();
-                        itemService.menu = $scope.fav_state !== undefined || OWNER_MANAGER;
+                        itemService.menu = $scope.fav_state !== undefined || OWNER_MANAGER || OWNER_MANAGER === null;
                         //if (itemService.menu) itemService.bu = $scope.fav_state == -1;
                         if ($scope.img !== undefined) menuService.observe.then(undefined, undefined, function (result){
                             if (typeof(result) == 'number') {
@@ -232,6 +232,10 @@ app
                             services[0](function() { loading = false });
                         });
                 }
+            };
+            $scope.show_favs_or_redirect = function () {
+                if (OWNER_MANAGER === null) location.href = '/';
+                $scope.showFavouritesModal();
             };
 
             $scope.submitReview = function () {

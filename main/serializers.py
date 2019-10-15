@@ -473,7 +473,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         return opened <= now.time() < closed
 
     def get_curruser_status(self, obj):
-        return -1 if self.context['request'].user == obj.manager else 1 if obj.likes.filter(person=self.context['request'].user).exists() else 0
+        return -1 if self.context['request'].user == obj.manager else 1 if obj.likes.filter(person=self.context['request'].user).exists() else 0 if self.context['request'].user.is_authenticated else -2
 
     def get_friend(self, obj):
         return get_friends(self, obj)
@@ -483,12 +483,14 @@ class BusinessSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         qs = models.Review.objects.filter(object_id=obj.pk)
-        if self.context['request'].user != obj.manager:
+        if self.context['request'].user.is_anonymous:
+            o = -2
+        elif self.context['request'].user != obj.manager:
             o = qs.filter(person=self.context['request'].user).first()
         else:
             o = -1
         qs = qs.aggregate(Count('stars'), Avg('stars'))
-        return [qs['stars__avg'] or 0, qs['stars__count'] or 0, o.stars if o and o != -1 else o or 0]
+        return [qs['stars__avg'] or 0, qs['stars__count'] or 0, o.stars if o and o > -1 else o or 0]
 
 
 class CurrentBusinessDefault(object):
@@ -560,8 +562,11 @@ class BaseSerializer(serializers.ModelSerializer):
     def p_status(self, obj, t=False):
         if t:
             person = self.context['person']
-        elif 'request' in self.context: #and self.context['request'].user.is_authenticated
-            person = self.context['request'].user
+        elif 'request' in self.context:
+            if self.context['request'].user.is_authenticated:
+                person = self.context['request'].user
+            else:
+                return [-2] if t else -2
         else:
             return [-1] if t else -1
         return self.p_cont(obj, person, t=t)
