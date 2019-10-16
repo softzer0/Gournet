@@ -439,22 +439,22 @@ class Table(models.Model):
     def __str__(self):
         return '%s: Table #%s (@%s)' % (self.business, self.number, self.counter)
 
-class Order(models.Model):
-    person = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    session = models.CharField(max_length=32, null=True, blank=True)
-    table = models.ForeignKey(Table, on_delete=models.CASCADE)
-    ordered_items = models.ManyToManyField(Item, through='OrderedItem')
-
-    def __str__(self):
-        return 'Items [%s], table [%s]' % (self.ordereditem_set.all(), self.table)
-
 class OrderedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey('Order', on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
         return 'Item [%s] x%s' % (self.item, self.quantity)
+
+class Order(models.Model):
+    person = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    session = models.CharField(max_length=32, null=True, blank=True)
+    table = models.ForeignKey(Table, on_delete=models.CASCADE)
+    ordered_items = models.ManyToManyField(Item, through=OrderedItem)
+
+    def __str__(self):
+        return 'Items [%s], table [%s]' % (self.ordereditem_set.all(), self.table)
 
 
 class CT(models.Model):

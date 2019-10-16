@@ -493,6 +493,31 @@ class BusinessSerializer(serializers.ModelSerializer):
         return [qs['stars__avg'] or 0, qs['stars__count'] or 0, o.stars if o and o > -1 else o or 0]
 
 
+class OrderedItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.OrderedItem
+        fields = ('item', 'quantity')
+
+    def validate(self, attrs):
+        if attrs['item'].business.shortname != self.context['request'].session['table']['shortname']:
+            raise serializers.ValidationError("Item %d does not belong to the targeted business." % attrs['item'].pk)
+        return attrs
+
+class OrderSerializer(serializers.ModelSerializer):
+    ordered_items = OrderedItemSerializer(source='ordereditem_set', many=True)
+
+    class Meta:
+        model = models.Order
+        fields = ('ordered_items',)
+        extra_kwargs = {'ordered_items': {'write_only': True}}
+
+    def create(self, validated_data):
+        order = models.Order.objects.create(table=models.Table.objects.get(pk=self.context['request'].session['table']['id']), **{'person': self.context['request'].user} if self.context['request'].user.is_authenticated else {'session': self.context['request'].session.session_key})
+        for ordered_item in validated_data['ordereditem_set']:
+            order.ordereditem_set.create(**ordered_item)
+        return order
+
+
 class CurrentBusinessDefault(object):
     def set_context(self, serializer_field):
         if isinstance(serializer_field, serializers.Serializer):
@@ -662,6 +687,8 @@ class ItemSerializer(BaseSerializer):
                 self.fields['distance'] = serializers.SerializerMethodField()
             if 'edit' in self.context:
                 self.fields['name'].read_only = True
+            if 'table' in self.context['request'].session:
+                self.fields['can_order'] = serializers.SerializerMethodField()
             self.fields['category_display'] = serializers.CharField(source='get_category_display', read_only=True)
 
     def get_distance(self, obj):
@@ -671,6 +698,9 @@ class ItemSerializer(BaseSerializer):
         currency = getattr(self.context['request'].user, 'currency', settings.DEFAULT_CURRENCY)
         if obj.business.currency != currency and currency in obj.business.supported_curr:
             return str(curr_convert(obj.price, obj.business.currency, currency))
+
+    def get_can_order(self, obj):
+        return obj.business.shortname == self.context['request'].session['table']['shortname']
 
 
 class CurrentUserDefault(object):

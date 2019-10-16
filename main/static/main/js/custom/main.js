@@ -1,4 +1,4 @@
-app.requires.push('ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime', 'ct.ui.router.extras'); //, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'
+app.requires.push('ui.bootstrap', 'nya.bootstrap.select', 'ngResource', 'ngAside', 'yaru22.angular-timeago', 'ngFitText', 'ngAnimate', 'ui.router', 'ui.router.modal', 'ui.bootstrap.datetimepicker', 'datetime', 'ct.ui.router.extras', 'LocalStorageModule'); //, 'mgcrea.bootstrap.affix', 'angularCSS', 'oc.lazyLoad'
 app
     .config(function($httpProvider, $animateProvider, $stateProvider, timeAgoSettings, BASE_MODAL) {
         $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -407,6 +407,9 @@ app
                         break;
                     case 12:
                         n = 'password';
+                        break;
+                    case 13:
+                        n = 'order';
                         break;
                     default: n = 'users'
                 }
@@ -832,7 +835,11 @@ app
         return { getInstance: function (t) { return new UniObj(t) } }
     })
     .factory('eventService', function (uniService) { return uniService.getInstance('event') })
-    .factory('itemService', function (uniService) { return uniService.getInstance('item') })
+    .factory('itemService', function (uniService, USER) {
+        var instance = uniService.getInstance('item');
+        if (USER.anonymous || USER.ordering) instance.quantity = {};
+        return instance;
+    })
     .factory('reviewService', function (uniService) { return uniService.getInstance('comment') })
 
     .controller('BaseCtrl', function ($scope, $timeout, objService, usersModalService) {
@@ -1076,19 +1083,24 @@ app
         };
     })
 
-    .controller('ItemsCtrl', function($scope, $injector, USER, menuService) {
+    .controller('ItemsCtrl', function($scope, $injector, itemService, USER) {
         $scope.user_curr = USER.currency;
 
         if (!USER.anonymous && !USER.ordering) return;
-        $scope.quantity = {};
-        var localStorageService = $injector.get('localStorageService');
-        $scope.get_quantity = function (index){ $scope.quantity[index] = localStorageService.get($scope.objs[index].id) || 0 };
+        var localStorageService = $injector.get('localStorageService'), menuService = $injector.has('menuService') && $injector.get('menuService');
+        $scope.quantity = itemService.quantity;
+        $scope.get_quantity = function (index){ $scope.quantity[$scope.objs[index].id] = localStorageService.get($scope.objs[index].id) || 0 };
         $scope.set_quantity = function (index){
-            var increment = $scope.quantity[index] > 0 && localStorageService.keys().indexOf(''+$scope.objs[index].id) == -1;
-            if ($scope.quantity[index] > 0) localStorageService.set($scope.objs[index].id, $scope.quantity[index]); else localStorageService.remove($scope.objs[index].id);
-            if (menuService.props.loaded) menuService.find('id', $scope.objs[index].id, $scope.objs[index].category, function (i, sc) {
-                i.quantity = $scope.quantity[index];
-                if (increment) sc.has_q = sc.has_q ? sc.has_q+1 : 1; else if ($scope.quantity[index] == 0) sc.has_q--;
+            $scope.quantity[$scope.objs[index].id] = parseInt($scope.quantity[$scope.objs[index].id]);
+            var increment = $scope.quantity[$scope.objs[index].id] > 0 && localStorageService.keys().indexOf(''+$scope.objs[index].id) == -1;
+            if ($scope.quantity[$scope.objs[index].id] > 0) localStorageService.set($scope.objs[index].id, $scope.quantity[$scope.objs[index].id]); else localStorageService.remove($scope.objs[index].id);
+            if (menuService && menuService.props.loaded) menuService.find('id', $scope.objs[index].id, $scope.objs[index].category, function (i, sc) {
+                menuService.props.total_price += i.price * ($scope.quantity[$scope.objs[index].id] - i.quantity);
+                i.quantity = $scope.quantity[$scope.objs[index].id];
+                if (increment) {
+                    sc.has_q = sc.has_q ? sc.has_q+1 : 1;
+                    menuService.props.ordered_items.push(i);
+                } else if ($scope.quantity[$scope.objs[index].id] == 0) sc.has_q--;
             });
         };
     })

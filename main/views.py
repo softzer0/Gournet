@@ -267,6 +267,8 @@ def show_business(request, shortname):
         popl()
         data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
+    data['currency'] = request.user.currency if request.user.is_authenticated and data['business'].currency != request.user.currency and request.user.currency in data['business'].supported_curr else data['business'].currency
+    data['table'] = 'table' in request.session and request.session['table']['shortname'] == data['business'].shortname
     return render_with_recent(request, 'view.html', data)
 
 def show_profile(request, username):
@@ -619,6 +621,11 @@ class FeedAPIView(MultipleModelAPIView):
         return context
 
 
+@table_session_check(True)
+class OrderAPIView(generics.CreateAPIView):
+    serializer_class = serializers.OrderSerializer
+
+
 class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination
     def_pagination_class = pagination.CommentDefPagination
@@ -821,7 +828,7 @@ class EventAPIView(BaseAPIView):
             return get_loc(self, qs.extra(where=[serializers.gen_where('event', self.request.user.pk, 'like', 'person', 'business', ct=ContentType.objects.get(model='business').pk)]))
         return get_loc(self, qs, loc=not self.request.query_params.get('search', False)) #, store=not isinstance(self, EventAPIView)
 
-@table_session_check(True)
+@table_session_check()
 class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     serializer_class = serializers.ItemSerializer
     model = models.Item

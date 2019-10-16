@@ -50,6 +50,7 @@ urlpatterns = [
     url(r'^api/business/(?:(?P<pk>\d+)/)?$', views.BusinessAPIView.as_view()),
     url(r'^api/home/$', views.HomeAPIView.as_view()),
     url(r'^api/recent/$', views.RecentAPIView.as_view()),
+    url(r'^api/order/$', views.OrderAPIView.as_view()),
     url(r"^images/(?P<type>user|business|item)/(?:(?P<pk>[\d]+)/)?avatar/(?:(?P<size>(32|48|64))/)?$", views.ImageAPIView.as_view(), name="avatar"),
     url(r"^api/upload/(?:(?P<pk_b>([\d]+|business))/)?avatar/$", views.UploadAPIView.as_view(), name="upload"),
     url(r'^api/token/$', views.TokenObtainPairView.as_view()),

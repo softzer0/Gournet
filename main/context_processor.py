@@ -16,10 +16,13 @@ def gen_qs(request, model):
     return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)
 
 def recent(request):
-    return dict({
+    dic = {
         'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars()
-    }, **{
-        'favs': gen_qs(request, Business)[:5],
-        'friends': gen_qs(request, User)[:5]
-    } if request.user.is_authenticated else {})
+    }
+    if request.user.is_authenticated:
+        dic.update({
+            'favs': gen_qs(request, Business)[:5],
+            'friends': gen_qs(request, User)[:5]
+        })
+    return dic

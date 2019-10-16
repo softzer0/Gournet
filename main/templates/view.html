@@ -16,8 +16,7 @@
     <script src="{% static 'main/js/DragDropTouch.min.js' %}"></script>
     <script src="{% static 'main/js/custom/manager.js' %}"></script>
     <script src="{% static 'main/js/custom/map.js' %}"></script>
-    <script src="{% static 'main/js/custom/create.js' %}"></script>{% elif 'table' in request.session %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-local-storage/0.7.1/angular-local-storage.min.js"></script>{% endif %}{% endblock %}
+    <script src="{% static 'main/js/custom/create.js' %}"></script>{% endif %}{% endblock %}
 
 {% block bodyatt %}{{ block.super }} ng-init="id = {{ business.id }}"{% endblock %}
 
@@ -110,7 +109,7 @@
                                 <div class="form-group" ng-class="{'has-error': forms.item.alert !== undefined}">
                                     <input name="name" type="text" class="form-control" required maxlength="60">
                                 </div>
-                                <fieldset class="rev" ng-init="$parent.data.curr = '{{ business.currency }}'; $parent.curr = ['{{ business.currency }}', '{% endcache %}{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{% cache None item_form0 %}']">
+                                <fieldset class="rev" ng-init="$parent.data.curr = '{{ business.currency }}'; $parent.curr = ['{{ business.currency }}', '{% endcache %}{{ currency }}{% cache None item_form0 %}']">
                                     <select class="form-control" ng-model="$parent.curr[0]" ng-change="changedCurr()">{% for c in curr %}
                                         <option value="{{ c.0 }}">{{ c.1 }}</option>{% endfor %}
                                     </select>
@@ -136,7 +135,7 @@
                                         </thead>{% endcomment %}
                                         <tbody>
                                             <tr ng-repeat="i in sc.content" class="angular-animate {% if fav_state != -1 %}clickable" ng-click="showItem(i.id){% else %}" drag-to-reorder="sc.content" drag-callback="dragFn{% endif %}">
-                                                <td{% load main_tags %}{% if fav_state == -1 %} class="clickable" ng-class="{'esh': sc.form_disabled !== undefined && sc.form_disabled !== true, 'eshc': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% elif 'table' in request.session and request.session|get_item:'table'|get_item:'shortname' == business.shortname %} ng-class="{'qua': sc.has_q}"{% endif %}>
+                                                <td{% load main_tags %}{% if fav_state == -1 %} class="clickable" ng-class="{'esh': sc.form_disabled !== undefined && sc.form_disabled !== true, 'eshc': edit_i[i.id].disabled !== true}" ng-click="showItem(i.id)"{% elif table %} ng-class="{'qua': sc.has_q}"{% endif %}>
                                                     {% if fav_state == -1 %}<div class="img_p">
                                                         {% endif %}<img class="bor" ng-src="/images/item/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"
                                                         ><div class="img_l" ng-show="img[i.id].file"><div class="loa loa-c"><i class="fa fa-spinner"></i></div></div
@@ -158,14 +157,15 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                {% else %}'{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{{ "' }" }}{{ '}' }}{% endif %}</div>{% if 'table' in request.session and request.session|get_item:'table'|get_item:'shortname' == business.shortname %}
-                                                <strong ng-if="i.quantity">{{ '{' }}{{ '{' }} i.quantity {{ '}' }}{{ '}' }}x ({{ '{' }}{{ '{' }} (i.quantity * (i.converted || i.price))|currency:'{% if business.currency != request.user.currency and request.user.currency in business.supported_curr %}{{ request.user.currency }}{% else %}{{ business.currency }}{% endif %}{{ "' }" }}{{ '}' }})</strong>
+                                                {% else %}'{{ currency }}{{ "' }" }}{{ '}' }}{% endif %}</div>{% if table %}
+                                                <strong ng-if="i.quantity">{{ '{' }}{{ '{' }} i.quantity {{ '}' }}{{ '}' }}x ({{ '{' }}{{ '{' }} (i.quantity * (i.converted || i.price))|currency:'{{ currency }}{{ "' }" }}{{ '}' }})</strong>
                                                 {% endif %}</div></td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
+                            </div>{% if table %}
+                            <div class="pull-right" ng-if="menu_props.total_price > 0"><div class="ib mr12"><strong>{% trans "Total:" %}</strong> {{ '{' }}{{ '{' }} menu_props.total_price|currency:'{{ currency }}{{ "' }" }}{{ '}' }}</div><input type="submit" class="btn btn-primary" value="{% trans "Confirm order" %}" ng-dialog-message="{% trans "Are you sure that you want to place an order? This action cannot be undone." %}" ng-dialog-click="submitOrder()" ng-disabled="o_disabled"></div>{% endif %}
                             <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && (!objloaded[1] || refreshing)"><i class="fa fa-spinner fa-2x"></i></div>
                         </div>
 					</uib-tab>

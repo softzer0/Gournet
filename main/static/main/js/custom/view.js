@@ -1,9 +1,8 @@
-if (OWNER_MANAGER === null) app.requires.push('LocalStorageModule');
 app
     .filter('revc', function() { return function(input) { return input.split(',')[1]+','+input.split(',')[0] } })
 
     .factory('menuService', function ($q, $injector, APIService, USER){
-        var itemService = APIService.init(8), menu, defer = $q.defer(), props = {loaded: false}, localStorageService = (USER.anonymous || USER.ordering) && $injector.get('localStorageService'); //, category
+        var itemService = APIService.init(8), menu, defer = $q.defer(), props = {loaded: false, total_price: 0, ordered_items: []}, localStorageService = (USER.anonymous || USER.ordering) && $injector.get('localStorageService'); //, category
 
         function chngmenu() { if (!menu[0].hascontent) menu[1].name = gettext("Drinks"); else menu[1].name = gettext("Other drinks") } //menu[0].name == "Other drinks" / if (menu.length)
         function add(item, n) {
@@ -13,7 +12,11 @@ app
                     if (menu[i].content[j].category == item.category) {
                         if (!n && localStorageService) {
                             item.quantity = localStorageService.get(item.id);
-                            if (item.quantity) menu[i].content[j].has_q = menu[i].content[j].has_q ? menu[i].content[j].has_q+1 : 1;
+                            if (item.quantity) {
+                                props.total_price += item.price * item.quantity;
+                                menu[i].content[j].has_q = menu[i].content[j].has_q ? menu[i].content[j].has_q + 1 : 1;
+                                props.ordered_items.push(item);
+                            }
                         }
                         menu[i].content[j].content.push(item);
                         c = true;
@@ -152,11 +155,20 @@ app
                     if (e) break;
                 }
                 return e;
+            },
+            order: function () {
+                var items = [], keys = localStorageService.keys();
+                for (var k in keys) { items.push({'item': parseInt(keys[k]), 'quantity': localStorageService.get(keys[k])}) }
+                return APIService.init(13).save({'ordered_items': items}, function (){
+                    while (props.ordered_items.length > 0) { props.ordered_items.pop().quantity = 0 }
+                    props.total_price = 0;
+                    localStorageService.clearAll();
+                }).$promise;
             }
         }
     })
 
-    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $injector, $state, $timeout, APIService, menuService, itemService) {
+    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $injector, $state, $timeout, USER, APIService, menuService, itemService, dialogService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope,
@@ -164,6 +176,7 @@ app
                 {name: 'menu', func: function () {
                     if ($scope.menu === undefined) {
                         $scope.menu = menuService.init();
+                        $scope.menu_props = menuService.props;
                         itemService.menu = $scope.fav_state !== undefined || OWNER_MANAGER || OWNER_MANAGER === null;
                         //if (itemService.menu) itemService.bu = $scope.fav_state == -1;
                         if ($scope.img !== undefined) menuService.observe.then(undefined, undefined, function (result){
@@ -174,6 +187,18 @@ app
                             } else if (result.constructor == Array) for (var i = 0; i < result.length; i++) $scope.setW(result[i].id); else $scope.setW(result.id);
                         });
                         menuService.load($scope.id).then(function () { $scope.objloaded[1] = true });
+
+                        if (!USER.anonymous && !USER.ordering) return;
+                        $scope.submitOrder = function () {
+                            $scope.o_disabled = true;
+                            menuService.order().then(function (){
+                                delete $scope.o_disabled;
+                                dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
+                            }, function (){
+                                delete $scope.o_disabled;
+                                dialogService.show(gettext("There was some error while placing your order. Please try again."), false);
+                            });
+                        };
                     }
                 }},
                 {name: 'reviews', func: function(){ $scope.objloaded[2] = true }}]}));

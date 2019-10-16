@@ -63,7 +63,7 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                         if i < 101:
                             table.counter += i
                             table.save()
-                            request.session['table'] = {'pk': table.pk, 'shortname': business.shortname}
+                            request.session['table'] = {'id': table.pk, 'shortname': business.shortname}
                             return None
             else:
                 return None
