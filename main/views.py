@@ -622,8 +622,22 @@ class FeedAPIView(MultipleModelAPIView):
 
 
 @table_session_check(True)
-class OrderAPIView(generics.CreateAPIView):
+class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
     serializer_class = serializers.OrderSerializer
+
+    def get_object(self):
+        return get_object(self.kwargs['pk'], models.Order) if self.kwargs['pk'] else models.Order.none()
+
+    def get_queryset(self):
+        if self.request.method not in ('GET', 'POST') or self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False)):
+            return models.Order.objects.filter(table__waiter=self.request.user).reverse() if self.request.user.is_authenticated else models.Order.objects.none()
+        return models.Order.objects.filter(**serializers.get_person_or_session(self.request))
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False)):
+            context['waiter'] = None
+        return context
 
 
 class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.DestroyAPIView):

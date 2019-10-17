@@ -165,7 +165,7 @@
                                     </table>
                                 </div>
                             </div>{% if table %}
-                            <div class="pull-right" ng-if="menu_props.total_price > 0"><div class="ib mr12"><strong>{% trans "Total:" %}</strong> {{ '{' }}{{ '{' }} menu_props.total_price|currency:'{{ currency }}{{ "' }" }}{{ '}' }}</div><input type="submit" class="btn btn-primary" value="{% trans "Confirm order" %}" ng-dialog-message="{% trans "Are you sure that you want to place an order? This action cannot be undone." %}" ng-dialog-click="submitOrder()" ng-disabled="o_disabled"></div>{% endif %}
+                            <div class="pull-right" ng-if="menu_props.total_price > 0"><div class="ib mr12"><strong>{% trans "Total:" %}</strong> {{ '{' }}{{ '{' }} menu_props.total_price|currency:'{{ currency }}{{ "' }" }}{{ '}' }}</div><input type="submit" class="btn btn-primary" value="{% trans "Confirm order" %}" ng-dialog-message="{% trans "Are you sure that you want to place an order? This action cannot be undone." %}" ng-dialog-click="submitOrder()" ng-disabled="o_disabled"><input type="submit" class="btn btn-default ml5" value="{% trans "Reset" %}" ng-click="resetOrder()"></div>{% endif %}
                             <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && (!objloaded[1] || refreshing)"><i class="fa fa-spinner fa-2x"></i></div>
                         </div>
 					</uib-tab>

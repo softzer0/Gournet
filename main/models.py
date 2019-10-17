@@ -452,6 +452,11 @@ class Order(models.Model):
     session = models.CharField(max_length=32, null=True, blank=True)
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     ordered_items = models.ManyToManyField(Item, through=OrderedItem)
+    created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
+    finished = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['finished', '-created']
 
     def __str__(self):
         return 'Items [%s], table [%s]' % (self.ordereditem_set.all(), self.table)

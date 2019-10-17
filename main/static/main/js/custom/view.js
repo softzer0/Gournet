@@ -159,11 +159,12 @@ app
             order: function () {
                 var items = [], keys = localStorageService.keys();
                 for (var k in keys) { items.push({'item': parseInt(keys[k]), 'quantity': localStorageService.get(keys[k])}) }
-                return APIService.init(13).save({'ordered_items': items}, function (){
-                    while (props.ordered_items.length > 0) { props.ordered_items.pop().quantity = 0 }
-                    props.total_price = 0;
-                    localStorageService.clearAll();
-                }).$promise;
+                return APIService.init(13).save({'ordered_items': items}, this.reset_order).$promise;
+            },
+            reset_order: function(){
+                while (props.ordered_items.length > 0) { props.ordered_items.pop().quantity = 0 }
+                props.total_price = 0;
+                localStorageService.clearAll();
             }
         }
     })
@@ -199,6 +200,7 @@ app
                                 dialogService.show(gettext("There was some error while placing your order. Please try again."), false);
                             });
                         };
+                        $scope.resetOrder = menuService.reset_order;
                     }
                 }},
                 {name: 'reviews', func: function(){ $scope.objloaded[2] = true }}]}));

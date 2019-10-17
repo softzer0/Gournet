@@ -493,31 +493,6 @@ class BusinessSerializer(serializers.ModelSerializer):
         return [qs['stars__avg'] or 0, qs['stars__count'] or 0, o.stars if o and o > -1 else o or 0]
 
 
-class OrderedItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.OrderedItem
-        fields = ('item', 'quantity')
-
-    def validate(self, attrs):
-        if attrs['item'].business.shortname != self.context['request'].session['table']['shortname']:
-            raise serializers.ValidationError("Item %d does not belong to the targeted business." % attrs['item'].pk)
-        return attrs
-
-class OrderSerializer(serializers.ModelSerializer):
-    ordered_items = OrderedItemSerializer(source='ordereditem_set', many=True)
-
-    class Meta:
-        model = models.Order
-        fields = ('ordered_items',)
-        extra_kwargs = {'ordered_items': {'write_only': True}}
-
-    def create(self, validated_data):
-        order = models.Order.objects.create(table=models.Table.objects.get(pk=self.context['request'].session['table']['id']), **{'person': self.context['request'].user} if self.context['request'].user.is_authenticated else {'session': self.context['request'].session.session_key})
-        for ordered_item in validated_data['ordereditem_set']:
-            order.ordereditem_set.create(**ordered_item)
-        return order
-
-
 class CurrentBusinessDefault(object):
     def set_context(self, serializer_field):
         if isinstance(serializer_field, serializers.Serializer):
@@ -666,7 +641,7 @@ class ItemSerializer(BaseSerializer):
             self.fields['business'] = serializers.HiddenField(default=CurrentBusinessDefault())
         else:
             self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault(), currency=True, location='search' in self.context or 'feed' in self.context)
-        if 'menu' not in self.context and self.context['request'].method == 'GET':
+        if 'ordered' in self.context or 'menu' not in self.context and self.context['request'].method == 'GET':
             self.fields.pop('ordering')
         if 'menu' in self.context or 'currency' in self.context:
             self.fields.pop('curruser_status')
@@ -687,7 +662,7 @@ class ItemSerializer(BaseSerializer):
                 self.fields['distance'] = serializers.SerializerMethodField()
             if 'edit' in self.context:
                 self.fields['name'].read_only = True
-            if 'table' in self.context['request'].session:
+            if 'ordered' not in self.context and 'table' in self.context['request'].session:
                 self.fields['can_order'] = serializers.SerializerMethodField()
             self.fields['category_display'] = serializers.CharField(source='get_category_display', read_only=True)
 
@@ -701,6 +676,64 @@ class ItemSerializer(BaseSerializer):
 
     def get_can_order(self, obj):
         return obj.business.shortname == self.context['request'].session['table']['shortname']
+
+
+class OrderedItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.OrderedItem
+        fields = ('item', 'quantity')
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        self.context.update({'menu': None, 'ordered': None})
+        self.fields['item'] = ItemSerializer(context=self.context)
+
+    def validate(self, attrs):
+        if attrs['item'].business.shortname != self.context['request'].session['table']['shortname']:
+            raise serializers.ValidationError("Item %d does not belong to the targeted business." % attrs['item'].pk)
+        return attrs
+
+class TableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Table
+        fields = ('business', 'number')
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        self.fields['business'] = BusinessSerializer(currency=True)
+
+def get_person_or_session(request):
+    return {'person': request.user} if request.user.is_authenticated else {'session': request.session.session_key}
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Order
+        fields = '__all__'
+        extra_kwargs = {'created': {'read_only': True}, 'session': {'read_only': True}, 'person': {'read_only': True}, 'table': {'read_only': True}}
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if self.context['request'].method in ('GET', 'POST') or 'waiter' in self.context:
+            self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, allow_empty=False, context=self.context)
+            if 'waiter' not in self.context:
+                self.fields['finished'].read_only = True
+                self.fields.pop('person')
+                self.fields.pop('session')
+                self.fields.pop('table')
+            else:
+                self.fields['ordered_items'].read_only = True
+                self.fields['table'] = TableSerializer(read_only=True)
+        else:
+            self.fields.pop('ordered_items')
+
+    def create(self, validated_data):
+        order = models.Order.objects.create(table=models.Table.objects.get(pk=self.context['request'].session['table']['id']), **get_person_or_session(self.context['request']))
+        for ordered_item in validated_data['ordereditem_set']:
+            order.ordereditem_set.create(**ordered_item)
+        return order
 
 
 class CurrentUserDefault(object):

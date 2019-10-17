@@ -142,9 +142,9 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
     margin-bottom: 7px !important;
 }
 
-/*.ml5 {
+.ml5 {
     margin-left: 5px;
-}*/
+}
 
 .pb7 {
     padding-bottom: 7px;
