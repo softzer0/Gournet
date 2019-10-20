@@ -48,6 +48,7 @@ from rest_framework_simplejwt.views import TokenViewBase
 from rest_framework.parsers import FileUploadParser
 from .decorators import table_session_check, request_passes_test
 from rest_framework.exceptions import NotAuthenticated
+from django.utils.translation import override as lang_override
 
 User = get_user_model()
 
@@ -267,7 +268,7 @@ def show_business(request, shortname):
         popl()
         data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
-    data['currency'] = request.user.currency if request.user.is_authenticated and data['business'].currency != request.user.currency and request.user.currency in data['business'].supported_curr else data['business'].currency
+    data['currency'] = request.CURRENCY if data['business'].currency != request.CURRENCY and request.CURRENCY in data['business'].supported_curr else data['business'].currency
     data['table'] = 'table' in request.session and request.session['table']['shortname'] == data['business'].shortname
     return render_with_recent(request, 'view.html', data)
 
@@ -364,7 +365,7 @@ class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
 
     def get_queryset(self):
         qs = not isinstance(self, BusinessAPIView)
-        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False) #.order_by(Case(When(Q(currency=self.request.user.currency) | Q(supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
+        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False) #.order_by(Case(When(Q(currency=self.request.CURRENCY) | Q(supported_curr__contains=self.request.CURRENCY), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
         return qs.only('id', 'shortname', 'name') if get_param_bool(self.request.query_params.get('quick', False)) else qs.defer('manager', 'phone', 'address', 'is_published')
 
     def filter_queryset(self, queryset):
@@ -436,6 +437,10 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+def filter_notifs(obj, f):
+    return obj.request.user.notification_set.filter(**f) if obj.request.user.is_authenticated else models.Notification.objects.filter(session=obj.request.session.session_key, **f)
+
+@table_session_check(True)
 class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, generics.DestroyAPIView
     serializer_class = serializers.NotificationSerializer
     pagination_class = pagination.NotificationPagination
@@ -446,7 +451,11 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
         return None
 
     def create_notif(self, txt, pks, created):
-        self.request.user.notification_set.add(models.Notification(text=txt[0], link='#/show='+','.join(str(v) for v in pks)+'&type='+txt[1], created=created), bulk=False)
+        data = {'text': txt[0], 'link': '#/show='+','.join(str(v) for v in pks)+'&type='+txt[1], 'created': created}
+        if self.request.user.is_authenticated:
+            self.request.user.notification_set.add(models.Notification(**data), bulk=False)
+        else:
+            models.Notification.objects.create(session=self.request.session.session_key, **data)
 
     def add_notif(self, curr, created):
         txt = {}
@@ -472,39 +481,42 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
 
     def get_queryset(self):
         if self.request.query_params.get('page', False):
-            return self.request.user.notification_set.filter(unread=False)
-        notifies = models.EventNotification.objects.filter(to_person=self.request.user)
-        if notifies.count() > 0:
-            rems = notifies.filter(from_person=None, when__lte=timezone.now())
-            if rems.count() > 0:
-                curr = []
-                for i in range(rems.count()):
-                    if rems[i].object_id not in curr:
-                        curr.append(rems[i].object_id)
-                self.create_notif([ungettext("You have %d reminder.", "You have %d reminders.", len(curr)) % len(curr), 'event'], curr, rems.last().when)
-                rems._raw_delete(rems.db)
-            notifies = notifies.exclude(from_person=None)
-            if notifies.count() > 0:
-                curr = {'pks': [], 'persons': [notifies.first().from_person], 'typ': notifies.first().comment_type, 'ct': notifies.first().content_type}
-                for notif in notifies:
-                    if curr['typ'] != notif.comment_type or curr['ct'] != notif.content_type:
-                        self.add_notif(curr, notif.when)
-                        curr['pks'][:] = [notif.object_id]
-                        curr['persons'][:] = [notif.from_person]
-                        curr['typ'] = notif.comment_type
-                        curr['ct'] = notif.content_type
-                    if notif.object_id not in curr['pks']:
-                        curr['pks'].append(notif.object_id)
-                    if notif.from_person != curr['persons'][-1]:
-                        curr['persons'].append(notif.from_person)
-                # noinspection PyUnboundLocalVariable
-                self.add_notif(curr, notif.when)
-                notifies._raw_delete(notifies.db)
+            return filter_notifs(self, {'unread': False})
 
+        if self.request.user.is_authenticated:
+            notifies = models.EventNotification.objects.filter(to_person=self.request.user)
+            if notifies.count() > 0:
+                rems = notifies.filter(from_person=None, when__lte=timezone.now())
+                if rems.count() > 0:
+                    curr = []
+                    for i in range(rems.count()):
+                        if rems[i].object_id not in curr:
+                            curr.append(rems[i].object_id)
+                    self.create_notif([ungettext("You have %d reminder.", "You have %d reminders.", len(curr)) % len(curr), 'event'], curr, rems.last().when)
+                    rems._raw_delete(rems.db)
+                notifies = notifies.exclude(from_person=None)
+                if notifies.count() > 0:
+                    curr = {'pks': [], 'persons': [notifies.first().from_person], 'typ': notifies.first().comment_type, 'ct': notifies.first().content_type}
+                    for notif in notifies:
+                        if curr['typ'] != notif.comment_type or curr['ct'] != notif.content_type:
+                            self.add_notif(curr, notif.when)
+                            curr['pks'][:] = [notif.object_id]
+                            curr['persons'][:] = [notif.from_person]
+                            curr['typ'] = notif.comment_type
+                            curr['ct'] = notif.content_type
+                        if notif.object_id not in curr['pks']:
+                            curr['pks'].append(notif.object_id)
+                        if notif.from_person != curr['persons'][-1]:
+                            curr['persons'].append(notif.from_person)
+                    # noinspection PyUnboundLocalVariable
+                    self.add_notif(curr, notif.when)
+                    notifies._raw_delete(notifies.db)
+
+        f = {'unread': True}
         last = self.request.query_params.get('last', False)
         if last and last.isdigit():
-            return self.request.user.notification_set.filter(pk__gt=last, unread=True)
-        return self.request.user.notification_set.filter(unread=True)
+            f['pk__gt'] = last
+        return filter_notifs(self, f)
 
 
 class BaseNotifAPIView(APIView):
@@ -518,9 +530,10 @@ class BaseNotifAPIView(APIView):
             st, text = self.cont(objpks, **kwargs)
         return Response(gen_resp(text), status=st)
 
+@table_session_check()
 class SetNotifsReadAPIView(BaseNotifAPIView):
     def t(self):
-        return models.Notification.objects.filter(pk__in=[n for n in self.request.query_params['ids'].split(',') if n.isdigit()])
+        return filter_notifs(self, {'pk__in': [n for n in self.request.query_params['ids'].split(',') if n.isdigit()]})
 
     def cont(self, objpks, **kwargs):
         for notif in objpks:
@@ -625,19 +638,35 @@ class FeedAPIView(MultipleModelAPIView):
 class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
     serializer_class = serializers.OrderSerializer
 
+    def list(self, request, *args, **kwargs):
+        if self.kwargs['pk']:
+            return self.retrieve(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
+
     def get_object(self):
-        return get_object(self.kwargs['pk'], models.Order) if self.kwargs['pk'] else models.Order.none()
+        obj = get_object(self.kwargs['pk'], models.Order)
+        self.kwargs['waiter'] = obj.table.waiter == self.request.user
+        if not self.kwargs['waiter'] and ((obj.person != self.request.user) if self.request.user.is_authenticated else (obj.session != self.request.session.session_key)):
+            raise NotFound("Order not found.")
+        return obj
 
     def get_queryset(self):
-        if self.request.method not in ('GET', 'POST') or self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False)):
+        self.kwargs['waiter'] = self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False))
+        if self.kwargs['waiter'] or self.request.method not in ('GET', 'POST'):
             return models.Order.objects.filter(table__waiter=self.request.user).reverse() if self.request.user.is_authenticated else models.Order.objects.none()
         return models.Order.objects.filter(**serializers.get_person_or_session(self.request))
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False)):
+        if self.kwargs.get('waiter'):
             context['waiter'] = None
         return context
+
+    def perform_create(self, serializer):
+        order = serializer.save()
+        models.Notification.objects.create(text=_("You have placed an order at <strong>%s \"%s\"</strong>." % (order.table.business.get_type_display(), order.table.business.name)), link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
+        with lang_override(order.table.waiter.language):
+            models.Notification.objects.create(user=order.table.waiter, text='<strong>'+(order.person.first_name+' '+order.person.last_name if order.person else _("Anonymous"))+'</strong> '+_("has placed an order on table <strong>%d</strong>.") % order.table.number, link='#/show='+str(order.pk)+'&type=order')
 
 
 class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.DestroyAPIView):
@@ -656,10 +685,14 @@ class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.Destro
         qs = filter_published(self, self.main_f).filter(Q(**{self.filter: person}) | Q(likes__person=person))
         return qs.annotate(sort=Max(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)))) if self.order_by else qs
 
-    def get_qs_pk(self):
+    def get_business(self):
         b = get_object(self.kwargs['pk'], models.Business)
         if self.request.user.is_anonymous and self.request.session['table']['shortname'] != b.shortname:
             raise NotAuthenticated()
+        return b
+
+    def get_qs_pk(self):
+        b = self.get_business()
         if 'business' in self.kwargs:
             self.kwargs['business'] = b
         return self.model.objects.filter(business=b)
@@ -685,7 +718,7 @@ class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.Destro
         elif self.request.method == 'GET' and self.kwargs['pk']:
             qs = self.order_qs(self.get_qs_pk())
             #self.kwargs['person_business'] = True
-        elif self.request.method == 'GET':
+        elif self.request.user.is_authenticated and self.request.method == 'GET':
             qs = self.getnopk()
         elif self.kwargs['pk']:
             qs = self.model.objects.filter(pk=self.kwargs['pk'])
@@ -743,12 +776,13 @@ def get_type(obj):
         obj.kwargs['ct'] = pkn
     return obj.kwargs['ct']
 
-def get_qs(obj_v, model):
+def get_qs(obj_v, model, obj=None):
     """
     @type obj_v: django.views.generic.base.View
     """
     ct = get_type(obj_v)
-    obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else models.Event)
+    if not obj:
+        obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else models.Event)
     return model.objects.filter(content_type=ct or ContentType.objects.get(model='event'), object_id=obj.pk)
 
 def set_t(obj_v, context):
@@ -779,7 +813,7 @@ class CommentAPIView(BaseAPIView):
         return super().get_person_qs(person).annotate(is_liked=Case(When(likes__person=person, then=1), default=0, output_field=IntegerField()))
 
     def get_qs_pk(self):
-        return get_qs(self, models.Comment)
+        return get_qs(self, models.Comment, self.get_business())
 
     def order_qs(self, qs):
         if not self.request.query_params.get('ids', False):
@@ -853,7 +887,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         qs = super().getnopk()
         if self.request.query_params.get('search', False):
             self.kwargs['search'] = None
-            return get_loc(self, qs, deford=False) #.order_by(Case(When(Q(business__currency=self.request.user.currency) | Q(business__supported_curr__contains=self.request.user.currency), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
+            return get_loc(self, qs, deford=False) #.order_by(Case(When(Q(business__currency=self.request.CURRENCY) | Q(business__supported_curr__contains=self.request.CURRENCY), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
         return qs.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):

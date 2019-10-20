@@ -1,0 +1,15 @@
+<div ng-controller="OrderCtrl" ng-cloak>
+    <table ng-if="order" class="table table-hover tb">
+        <tbody>
+            <tr ng-repeat="i in $parent.order.ordered_items">
+                <td class="qua">
+                    <img class="bor" ng-src="/images/item/{{ i.item.id }}/avatar/32/"
+                    ><div>{{ i.item.name }}</div>
+                </td>
+                <td><div><div class="pull-right">{{ i.item.converted || i.item.price|currency:curr }}</div>
+                <strong ng-if="i.quantity">{{ i.quantity }}x ({{ i.quantity * (i.item.converted || i.item.price)|currency:curr }})</strong></div></td>
+            </tr>
+        </tbody>
+    </table>
+<div class="nev" ng-if="!order && !loading && (modal_loaded === undefined || close !== undefined)"><span ng-hide="checkAnim()">{{ "No results." | translate }}</span></div>
+</div>

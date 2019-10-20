@@ -19,7 +19,7 @@ from django.contrib.gis.db.models import PointField, GeoManager
 from multiselectfield import MultiSelectField
 from timezone_field import TimeZoneField
 from timezonefinder import TimezoneFinder
-from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, activate as lang_activate
+from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, override as lang_override
 from django.utils.functional import lazy
 from os.path import join
 from shutil import rmtree
@@ -188,7 +188,8 @@ def user_avatar_delete(instance, **kwargs):
 
 
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    session = models.CharField(max_length=32, null=True, blank=True)
     text = models.TextField()
     link = models.CharField(max_length=150)
     unread = models.BooleanField(default=True)
@@ -218,17 +219,17 @@ def relationship_save_notification(instance, **kwargs):
         return
     #instance.full_clean()
     text = '<strong>'+instance.from_person.first_name+' '+instance.from_person.last_name+'</strong>'
-    lang_activate(instance.to_person.language)
-    try:
-        rel = Relationship.objects.get(from_person=instance.to_person, to_person=instance.from_person)
-    except:
-        text = ugettext("%s wants to be your friend.") % text
-    else:
-        instance.symmetric = True
-        text = ugettext("%s has accepted friend request.") % text
-        if rel.notification.unread:
-            rel.notification.unread = False
-            rel.notification.save()
+    with lang_override(instance.to_person.language):
+        try:
+            rel = Relationship.objects.get(from_person=instance.to_person, to_person=instance.from_person)
+        except:
+            text = ugettext("%s wants to be your friend.") % text
+        else:
+            instance.symmetric = True
+            text = ugettext("%s has accepted friend request.") % text
+            if rel.notification.unread:
+                rel.notification.unread = False
+                rel.notification.save()
     instance.notification = instance.to_person.notification_set.create(text=text, link=reverse('user_profile', kwargs={'username': instance.from_person.username}))
 
 @receiver(post_delete, sender=Relationship)
@@ -416,7 +417,7 @@ def item_cascade_and_avatar_delete(instance, **kwargs):
 @receiver(pre_save, sender=Item)
 def item_set_order(instance, **kwargs):
     if instance.ordering is None:
-        instance.ordering = instance.business.item_set.filter(category=instance.category).count() - 1
+        instance.ordering = instance.business.item_set.filter(category=instance.category).count()
 
 @receiver(post_save, sender=Item)
 def item_reorder_notify_published(instance, created, **kwargs):

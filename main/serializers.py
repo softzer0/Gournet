@@ -670,9 +670,8 @@ class ItemSerializer(BaseSerializer):
         return gen_distance(obj)
 
     def get_converted(self, obj):
-        currency = getattr(self.context['request'].user, 'currency', settings.DEFAULT_CURRENCY)
-        if obj.business.currency != currency and currency in obj.business.supported_curr:
-            return str(curr_convert(obj.price, obj.business.currency, currency))
+        if obj.business.currency != self.context['request'].CURRENCY and self.context['request'].CURRENCY in obj.business.supported_curr:
+            return str(curr_convert(obj.price, obj.business.currency, self.context['request'].CURRENCY))
 
     def get_can_order(self, obj):
         return obj.business.shortname == self.context['request'].session['table']['shortname']
@@ -686,8 +685,9 @@ class OrderedItemSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        self.context.update({'menu': None, 'ordered': None})
-        self.fields['item'] = ItemSerializer(context=self.context)
+        if self.context['request'].method != 'POST':
+            self.context.update({'menu': None, 'ordered': None})
+            self.fields['item'] = ItemSerializer(context=self.context)
 
     def validate(self, attrs):
         if attrs['item'].business.shortname != self.context['request'].session['table']['shortname']:
@@ -695,19 +695,18 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         return attrs
 
 class TableSerializer(serializers.ModelSerializer):
+    business = BusinessSerializer(currency=True)
+
     class Meta:
         model = models.Table
         fields = ('business', 'number')
 
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('fields', None)
-        super().__init__(*args, **kwargs)
-        self.fields['business'] = BusinessSerializer(currency=True)
-
-def get_person_or_session(request):
-    return {'person': request.user} if request.user.is_authenticated else {'session': request.session.session_key}
+def get_person_or_session(request, user=False):
+    return {'person' if not user else 'user': request.user} if request.user.is_authenticated else {'session': request.session.session_key}
 
 class OrderSerializer(serializers.ModelSerializer):
+    table = TableSerializer(read_only=True)
+
     class Meta:
         model = models.Order
         fields = '__all__'
@@ -722,12 +721,15 @@ class OrderSerializer(serializers.ModelSerializer):
                 self.fields['finished'].read_only = True
                 self.fields.pop('person')
                 self.fields.pop('session')
-                self.fields.pop('table')
             else:
                 self.fields['ordered_items'].read_only = True
-                self.fields['table'] = TableSerializer(read_only=True)
         else:
             self.fields.pop('ordered_items')
+
+    def validate(self, attrs):
+        if 'table' not in self.context['request'].session:
+            raise serializers.ValidationError("There is no table session.")
+        return attrs
 
     def create(self, validated_data):
         order = models.Order.objects.create(table=models.Table.objects.get(pk=self.context['request'].session['table']['id']), **get_person_or_session(self.context['request']))

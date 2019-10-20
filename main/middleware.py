@@ -52,11 +52,10 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
     def process_view(self, request, view_func, view_args, view_kwargs):
         if hasattr(view_func, 'TABLE_SESSION_CHECK') and ('shortname' in view_kwargs and request.GET.get('t', '').isnumeric() and request.GET.get('p', '').isnumeric() or 'table' in request.session):
             if 'table' not in request.session:
-                business = Business.objects.filter_by_natural_key(view_kwargs['shortname'])
-                if business.exists():
-                    table = Table.objects.filter(business=business, number=request.GET['t'])
-                    if table.exists():
-                        table = table[0]
+                business = Business.objects.filter_by_natural_key(view_kwargs['shortname']).first()
+                if business:
+                    table = Table.objects.filter(business=business, number=request.GET['t']).first()
+                    if table:
                         hotp, i = HOTP(table.business.table_secret), 1
                         while i < 101 and request.GET['p'] != hotp.at(table.counter+i):
                             i += 1

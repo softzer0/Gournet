@@ -10,27 +10,32 @@ app
         var name = (window.location.pathname != '/' ? 'main.' : '') + 'showObjs';
         if (window.location.pathname != '/') $stateProvider.state('main', {url: '/'}); else if (window.location.hash == '' || window.location.hash == '#') window.location.hash = '#/';
         $stateProvider.state(name, {
-            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:business|event|item|review)}{showcomments:(?:&showcomments)?}', //important
+            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:business|event|item|review|order)}{showcomments:(?:&showcomments)?}', //important
             params: {ts: null},
             modal: true,
             templateUrl: BASE_MODAL,
             size: 'lg',
             controller: function ($scope, $uibModalInstance, $stateParams, $timeout, $injector) {
                 $scope.loading = true;
-                $scope.t = $stateParams.type;
-                var objService = $injector.get($scope.t+'Service');
-                switch ($scope.t) {
-                    case 'event':
-                        $scope.title = gettext("Event(s)");
-                        break;
-                    case 'item':
-                        $scope.title = gettext("Item(s)");
-                        if ($stateParams.ts !== null) $scope.ts = $stateParams.ts;
-                        break;
-                    case 'review':
-                        $scope.title = gettext("Review(s)");
+                var objService = $injector.get($stateParams.type + 'Service');
+                if ($stateParams.type != 'order') {
+                    $scope.t = $stateParams.type;
+                    switch ($scope.t) {
+                        case 'event':
+                            $scope.title = gettext("Event(s)");
+                            break;
+                        case 'item':
+                            $scope.title = gettext("Item(s)");
+                            if ($stateParams.ts !== null) $scope.ts = $stateParams.ts;
+                            break;
+                        case 'review':
+                            $scope.title = gettext("Review(s)");
+                    }
+                    $scope.file = '../events';
+                } else {
+                    objService = $injector.get('orderService');
+                    $scope.file = 'order';
                 }
-                $scope.file = '../events';
 
                 $scope.close = function() {
                     w();
@@ -39,18 +44,25 @@ app
                 };
                 $scope.$on('$stateChangeStart', function(evt, toState) {
                     if ($scope.close !== undefined && toState.name != name) $scope.close();
-                    objService.getobjs(true, null);
+                    if ($scope.t) objService.getobjs(true, null);
                 });
 
-                $scope.objs = objService.getobjs(true, false);
-                objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.ts !== undefined).then(function () { //, $scope.nobusiness
+                function loaded() { //, $scope.nobusiness
                     $timeout(function () {
                         $scope.loading = false;
                         $scope.modal_loaded = true;
                     });
-                }); //$scope.enableAnimation(); }
-
-                var w = $scope.$watch('objs.length', function (val, oldval){ if (oldval == 1 && val == 0) $scope.close() });
+                } //$scope.enableAnimation(); }
+                if ($scope.t) {
+                    $scope.objs = objService.getobjs(true, false);
+                    objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.ts !== undefined).then(loaded)
+                    var w = $scope.$watch('objs.length', function (val, oldval){ if (oldval == 1 && val == 0) $scope.close() });
+                } else {
+                    objService.get($stateParams.ids).then(function (order){
+                        $scope.order = order;
+                        loaded();
+                    }, loaded);
+                }
             }
         });
     })
@@ -370,6 +382,10 @@ app
         })();
     })
 
+    .controller('OrderCtrl', function ($scope, $controller) {
+
+    })
+
     .factory('APIService', function($resource) {
         return {
             init: function (t){
@@ -409,7 +425,7 @@ app
                         n = 'password';
                         break;
                     case 13:
-                        n = 'order';
+                        n = 'orders';
                         break;
                     default: n = 'users'
                 }
@@ -480,6 +496,16 @@ app
                                 l();
                             });
                 }
+            }
+        }
+    })
+
+    .factory('orderService', function (APIService){
+        var service = APIService.init(13);
+
+        return {
+            get: function (id) {
+                return service.get({id: id}).$promise;
             }
         }
     })
@@ -1194,8 +1220,6 @@ app
         };
 
         // Notfication system
-
-        if (USER.anonymous) return;
 
         var notifService = APIService.init(4);
         $scope.notif_loading = false;

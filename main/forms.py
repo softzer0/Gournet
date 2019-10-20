@@ -80,6 +80,10 @@ class BaseForm(forms.ModelForm):
         if not_b:
             self.fields['phone'].widget.attrs['ng-model'] = 'data.form[1]'
             self.fields['supported_curr'].widget.attrs['ng-model'] = 'data.form[2]'
+            for c in self.fields['supported_curr'].choices:
+                if c[0] == self.instance.currency:
+                    self.fields['supported_curr'].widget.choices.remove(c)
+                    break
             self.fields['address'].widget.attrs['ng-model'] = 'ngModel'
             for f in ('phone', 'supported_curr', 'address'):
                 self.fields[f].widget.attrs['ng-disabled'] = 'data.disabled'
