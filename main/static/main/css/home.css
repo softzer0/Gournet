@@ -38,7 +38,7 @@ legend {
     max-width: 128px;
     min-height: 80px;
 }
-.mb, .tab-content .nev {
+.mt10, .tab-content .nev {
     margin-top: 10px;
 }
 .im {
@@ -97,6 +97,47 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
     word-wrap: break-word;
 }
 
+.tb > tbody > tr > td:first-of-type div {
+	display: inline-block;
+}
+
+.tb > tbody > tr > td:first-of-type div:not(.img_p), .tb > tbody > tr > td:not(.eshc) + td:not(:first-of-type) > div {
+	margin-top: 6px;
+}
+
+.tb .img_p, .tb td img {
+	margin-top: -2px;
+	margin-right: 7px;
+}
+
+.ord > tbody > tr > td:first-of-type {
+	width: 69%;
+}
+
+@media (max-width: 1000px) {
+	.ord > tbody > tr > td:first-of-type {
+		width: 63%;
+	}
+}
+
+@media (max-width: 991px) {
+	.ord > tbody > tr > td:first-of-type {
+		width: 53%;
+	}
+}
+
+@media (max-width: 750px) {
+	.ord > tbody > tr > td:first-of-type {
+		width: 55%;
+	}
+}
+
+@media (max-width: 630px) {
+	.ord > tbody > tr > td:first-of-type {
+		width: 47%;
+	}
+}
+
 .order > input {
     height: 18px;
     line-height: 0;
@@ -108,6 +149,15 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
     padding-right: 0;
     margin-left: 7px;
     display: inline-block;
+}
+
+.ord ~ .btn {
+    line-height: 0;
+    height: 20px;
+}
+
+.confirm {
+	margin-left: 12px;
 }
 
 .cmn {
@@ -303,7 +353,7 @@ body, .mb3 p, .cmn p { /* , .nmb */
     width: 128px;
 }*/
 
-img.prof, .prof > img, .nw hr {
+img.prof, .prof > img, .nw hr, .ord {
     margin-bottom: 12px !important;
 }
 

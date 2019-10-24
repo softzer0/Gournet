@@ -1,8 +1,8 @@
 app
     .filter('revc', function() { return function(input) { return input.split(',')[1]+','+input.split(',')[0] } })
 
-    .factory('menuService', function ($q, $injector, APIService, USER){
-        var itemService = APIService.init(8), menu, defer = $q.defer(), props = {loaded: false, total_price: 0, ordered_items: []}, localStorageService = (USER.anonymous || USER.ordering) && $injector.get('localStorageService'); //, category
+    .factory('menuService', function ($q, $injector, APIService){
+        var itemService = APIService.init(8), menu, defer = $q.defer(), props = {loaded: false, total_price: 0, ordered_items: []}, localStorageService = OWNER_MANAGER === null && $injector.get('localStorageService'); //, category
 
         function chngmenu() { if (!menu[0].hascontent) menu[1].name = gettext("Drinks"); else menu[1].name = gettext("Other drinks") } //menu[0].name == "Other drinks" / if (menu.length)
         function add(item, n) {
@@ -189,16 +189,18 @@ app
                         });
                         menuService.load($scope.id).then(function () { $scope.objloaded[1] = true });
 
-                        if (!USER.anonymous && !USER.ordering) return;
+                        if (OWNER_MANAGER !== null) return;
                         $scope.submitOrder = function () {
-                            $scope.o_disabled = true;
-                            menuService.order().then(function (){
-                                delete $scope.o_disabled;
-                                dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
-                            }, function (){
-                                delete $scope.o_disabled;
-                                dialogService.show(gettext("There was some error while placing your order. Please try again."), false);
-                            });
+                            $scope.o_disabled = null;
+                            dialogService.show(gettext("Are you sure that you want to place an order? This action cannot be undone.")).then(function () {
+                                $scope.o_disabled = true;
+                                menuService.order().then(function () {
+                                    dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
+                                }, function () {
+                                    delete $scope.o_disabled;
+                                    dialogService.show(gettext("There was some error while placing your order."), false);
+                                });
+                            }, function (){ if (!$scope.o_disabled) delete $scope.o_disabled });
                         };
                         $scope.resetOrder = menuService.reset_order;
                     }
@@ -236,8 +238,8 @@ app
 
         var services;
         // Not manager
-        if (!OWNER_MANAGER) {
-            $scope.data = {value: [], tz: undefined};
+        if (!OWNER_MANAGER) $scope.data = {value: [], tz: undefined};
+        if (!OWNER_MANAGER && !USER.anonymous) {
             //$scope.name = angular.element('.lead.text-center.br2').text();
             var likeService = APIService.init(3), loading;
             services = [$injector.get('$timeout'), $injector.get('reviewService')];
@@ -261,7 +263,7 @@ app
                 }
             };
             $scope.show_favs_or_redirect = function () {
-                if (OWNER_MANAGER === null) location.href = '/';
+                if (USER.anonymous) location.href = '/';
                 $scope.showFavouritesModal();
             };
 
@@ -282,9 +284,31 @@ app
                     l();
                 }, l);
             };
-            return;
         }
 
+        if (OWNER_MANAGER === null) {
+            $scope.startTime = function (time) {
+                var i;
+                (function f(){
+                    var curr = new Date().getTime();
+                    if (time > curr) {
+                        var rem = new Date(time - curr), mins = '' + rem.getMinutes(), secs = '' + rem.getSeconds();
+                        $scope.remaining = '00'.substring(0, 2 - mins.length) + mins + ':' + '00'.substring(0, 2 - secs.length) + secs;
+                    }
+                    if (time <= curr || mins == 0 && secs == 0) {
+                        if (secs != 0) $scope.remaining = '00:00';
+                        if ($scope.o_disabled === null) {
+                            dialogService.close();
+                        }
+                        if (time > 0) dialogService.show(gettext("Order time has expired. You must issue a new link."), false);
+                        $scope.o_disabled = true;
+                        if (i) $injector.get('$interval').cancel(i);
+                    } else if (!i) i = $injector.get('$interval')(f, 1000);
+                })();
+            };
+        }
+
+        if (!OWNER_MANAGER) return;
         // Manager
         $scope.edit = [];
         $scope.data = $injector.get('EDIT_DATA');

@@ -33,7 +33,7 @@
             .constant('NOTIF_PAGE_SIZE', {{ settings.NOTIFICATION_PAGE_SIZE }})
             .constant('HAS_STARS', {{ '{' }}{% for _, v in has_stars.items %}{{ v }}: true{% if forloop.last %}{{ '}' }}{% else %}, {% endif %}{% endfor %}){% comment %}{% if request.user.is_manager %}{% endcomment %}
             .constant('REVIEW_STATUS', [{name: "{% trans "(None)" %}", value: null}, {% for s in review_status %}{name: "{{ s.0 }}", value: {{ forloop.counter0 }}}{% if not forloop.last %}, {% endif %}{% endfor %}])
-            .constant('USER', {currency: '{% endcache %}{% if request.user.is_authenticated %}{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url or fav_state == -1 %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% if 'table' in request.session %}, ordering: true{% endif %}{% endif %}{% else %}{{ request.CURRENCY }}', anonymous: true{% endif %}})</script>{% endblock %}
+            .constant('USER', {currency: '{% endcache %}{% if request.user.is_authenticated %}{{ request.user.currency }}'{% url 'account_login' as home_url %}{% if request.path == create_url or request.path == home_url or fav_state == -1 %}, home: {latitude: {{ request.user.location.coords.1 }}, longitude: {{ request.user.location.coords.0 }}}{% if 'table' in request.session %}, ordering: true{% endif %}{% endif %}{% else %}{% load main_tags %}{{ request.session|get_item:'currency' }}', anonymous: true{% endif %}})</script>{% endblock %}
 
 {% block bodyatt %} ng-controller="MainCtrl"{% endblock %}
 

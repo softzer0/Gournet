@@ -35,7 +35,7 @@ from django.contrib.gis.measure import D
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import fromstr
 from django.utils.formats import time_format
-from pytz import common_timezones
+from pytz import common_timezones, all_timezones
 from json import dumps
 from PIL import Image
 from .thumbs import saveimgwiththumbs
@@ -49,6 +49,9 @@ from rest_framework.parsers import FileUploadParser
 from .decorators import table_session_check, request_passes_test
 from rest_framework.exceptions import NotAuthenticated
 from django.utils.translation import override as lang_override
+from django.utils.timezone import get_current_timezone
+from datetime import datetime
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -58,7 +61,7 @@ class TokenObtainPairView(TokenViewBase):
 class TokenRefreshView(TokenViewBase):
     serializer_class = serializers.TokenRefreshSerializer
 
-def render_with_recent(request, template, context={}):
+def render_with_recent(request, template, context):
     context.update(gen_recent_context(request))
     return render(request, template, context)
 
@@ -101,12 +104,15 @@ def i18n_view(request):
         c = []
         for f in ('tz', 'language', 'currency'):
             if request.user.is_authenticated:
-                if f in request.POST and f == 'tz' and request.user.tz.zone != request.POST[f] or f != 'tz' and getattr(request.user, f) != request.POST[f]:
+                if f in request.POST and (f == 'tz' and request.user.tz.zone != request.POST[f] or f != 'tz' and getattr(request.user, f) != request.POST[f]):
                     setattr(request.user, f, request.POST[f])
                     c.append(f)
-            elif f in request.POST and f == 'tz' and request.session.get('tz') != request.POST[f] or f != 'tz' and request.session.get(f) != request.POST[f]:
-                request.session[f] = request.POST[f]
-                c.append(f)
+            elif f in request.POST and request.session.get(f) != request.POST[f]:
+                if f != 'tz' or request.POST[f] in all_timezones:
+                    request.session[f] = request.POST[f]
+                    c.append(f)
+                else:
+                    st = status.HTTP_400_BAD_REQUEST
         if request.user.is_authenticated and c:
             try:
                 request.user.save()
@@ -236,6 +242,8 @@ def show_business(request, shortname):
         return redirect('/')
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
+    if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and datetime.fromtimestamp(request.session['table']['time'], get_current_timezone()) < timezone.localtime(timezone.now()):
+        del request.session['table']
     data['fav_count'] = data['business'].likes.count()
     data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
     data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
@@ -268,7 +276,7 @@ def show_business(request, shortname):
         popl()
         data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
-    data['currency'] = request.CURRENCY if data['business'].currency != request.CURRENCY and request.CURRENCY in data['business'].supported_curr else data['business'].currency
+    data['currency'] = request.session['currency'] if data['business'].currency != request.session['currency'] and request.session['currency'] in data['business'].supported_curr else data['business'].currency
     data['table'] = 'table' in request.session and request.session['table']['shortname'] == data['business'].shortname
     return render_with_recent(request, 'view.html', data)
 
@@ -365,7 +373,7 @@ class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
 
     def get_queryset(self):
         qs = not isinstance(self, BusinessAPIView)
-        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False) #.order_by(Case(When(Q(currency=self.request.CURRENCY) | Q(supported_curr__contains=self.request.CURRENCY), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
+        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False) #.order_by(Case(When(Q(currency=self.request.session['currency']) | Q(supported_curr__contains=self.request.session['currency']), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
         return qs.only('id', 'shortname', 'name') if get_param_bool(self.request.query_params.get('quick', False)) else qs.defer('manager', 'phone', 'address', 'is_published')
 
     def filter_queryset(self, queryset):
@@ -662,12 +670,31 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             context['waiter'] = None
         return context
 
+    def gen_notif(self, order, text):
+        models.Notification.objects.create(user=order.table.waiter, text='<strong>'+(order.person.first_name+' '+order.person.last_name if order.person else _("Anonymous"))+'</strong> '+text, link='#/show='+str(order.pk)+'&type=order')
+
     def perform_create(self, serializer):
         order = serializer.save()
+        if self.request.user.is_anonymous:
+            self.request.session['table']['time'] = None
+            self.request.session.modified = True
+        else:
+            del self.request.session['table']
         models.Notification.objects.create(text=_("You have placed an order at <strong>%s \"%s\"</strong>." % (order.table.business.get_type_display(), order.table.business.name)), link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
         with lang_override(order.table.waiter.language):
-            models.Notification.objects.create(user=order.table.waiter, text='<strong>'+(order.person.first_name+' '+order.person.last_name if order.person else _("Anonymous"))+'</strong> '+_("has placed an order on table <strong>%d</strong>.") % order.table.number, link='#/show='+str(order.pk)+'&type=order')
+            self.gen_notif(order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
 
+    def perform_update(self, serializer):
+        order = serializer.save()
+        if order.request is None or order.paid:
+            return
+        with lang_override(order.table.waiter.language):
+            self.gen_notif(order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>." if order.request == 0 else "has requested payment by <strong>credit card</strong> on table <strong>%d</strong>.") % order.table.number)
+
+
+def check_if_anonymous_allowed(self, obj):
+    if self.request.user.is_anonymous and not permissions.match_shortname(self.request, obj):
+        raise NotAuthenticated()
 
 class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = pagination.EventPagination
@@ -685,14 +712,9 @@ class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.Destro
         qs = filter_published(self, self.main_f).filter(Q(**{self.filter: person}) | Q(likes__person=person))
         return qs.annotate(sort=Max(Case(When(likes__person=person, then=F('likes__date')), default=F(self.order_by)))) if self.order_by else qs
 
-    def get_business(self):
-        b = get_object(self.kwargs['pk'], models.Business)
-        if self.request.user.is_anonymous and self.request.session['table']['shortname'] != b.shortname:
-            raise NotAuthenticated()
-        return b
-
     def get_qs_pk(self):
-        b = self.get_business()
+        b = get_object(self.kwargs['pk'], models.Business)
+        check_if_anonymous_allowed(self, b)
         if 'business' in self.kwargs:
             self.kwargs['business'] = b
         return self.model.objects.filter(business=b)
@@ -776,13 +798,13 @@ def get_type(obj):
         obj.kwargs['ct'] = pkn
     return obj.kwargs['ct']
 
-def get_qs(obj_v, model, obj=None):
+def get_qs(obj_v, model):
     """
     @type obj_v: django.views.generic.base.View
     """
     ct = get_type(obj_v)
-    if not obj:
-        obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else models.Event)
+    obj = get_object(obj_v.kwargs['pk'], ct.model_class() if ct else models.Event)
+    check_if_anonymous_allowed(obj_v, obj)
     return model.objects.filter(content_type=ct or ContentType.objects.get(model='event'), object_id=obj.pk)
 
 def set_t(obj_v, context):
@@ -813,7 +835,7 @@ class CommentAPIView(BaseAPIView):
         return super().get_person_qs(person).annotate(is_liked=Case(When(likes__person=person, then=1), default=0, output_field=IntegerField()))
 
     def get_qs_pk(self):
-        return get_qs(self, models.Comment, self.get_business())
+        return get_qs(self, models.Comment)
 
     def order_qs(self, qs):
         if not self.request.query_params.get('ids', False):
@@ -887,7 +909,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         qs = super().getnopk()
         if self.request.query_params.get('search', False):
             self.kwargs['search'] = None
-            return get_loc(self, qs, deford=False) #.order_by(Case(When(Q(business__currency=self.request.CURRENCY) | Q(business__supported_curr__contains=self.request.CURRENCY), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
+            return get_loc(self, qs, deford=False) #.order_by(Case(When(Q(business__currency=self.request.session['currency']) | Q(business__supported_curr__contains=self.request.session['currency']), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
         return qs.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):
@@ -930,7 +952,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
         if obj.business.item_set.count() == 1:
-            raise serializers.gen_err("The last remaining item can't be deleted.")
+            serializers.gen_err("The last remaining item can't be deleted.")
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -2,7 +2,7 @@
 #from rest_framework.fields import Field
 from django.utils import timezone
 from django.core.validators import MinLengthValidator
-from datetime import timedelta
+from datetime import datetime, timedelta
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -24,6 +24,7 @@ from pytz import timezone as get_timezone, common_timezones
 from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenRefreshSerializer as DefTokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
+from django.utils.timezone import get_current_timezone
 
 User = get_user_model()
 
@@ -94,7 +95,7 @@ class TokenRefreshSerializer(DefTokenRefreshSerializer):
 
 
 def gen_err(msg):
-    return serializers.ValidationError({'non_field_errors': [msg]})
+    raise serializers.ValidationError({'non_field_errors': [msg]})
 
 class EmailSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -132,7 +133,7 @@ class EmailSerializer(serializers.ModelSerializer):
             o.set_as_primary()
             self.send_signal_email_changed(obj, o)
         else:
-            raise gen_err(msg)
+            gen_err(msg)
 
     def update(self, instance, validated_data):
         if 'primary' not in validated_data and 'verified' not in validated_data:
@@ -149,7 +150,7 @@ class EmailSerializer(serializers.ModelSerializer):
                 if not validated_data['primary']:
                     self.primary_first_email(instance, "Can't change primary status of the only verified email address.")
                 elif not instance.verified:
-                    raise gen_err("Can't set unverified email address as primary.")
+                    gen_err("Can't set unverified email address as primary.")
                 instance.set_as_primary()
                 self.send_signal_email_changed(None, instance)
             if 'verified' in validated_data and not instance.verified:
@@ -670,8 +671,8 @@ class ItemSerializer(BaseSerializer):
         return gen_distance(obj)
 
     def get_converted(self, obj):
-        if obj.business.currency != self.context['request'].CURRENCY and self.context['request'].CURRENCY in obj.business.supported_curr:
-            return str(curr_convert(obj.price, obj.business.currency, self.context['request'].CURRENCY))
+        if obj.business.currency != self.context['request'].session['currency'] and self.context['request'].session['currency'] in obj.business.supported_curr:
+            return str(curr_convert(obj.price, obj.business.currency, self.context['request'].session['currency']))
 
     def get_can_order(self, obj):
         return obj.business.shortname == self.context['request'].session['table']['shortname']
@@ -704,31 +705,45 @@ class TableSerializer(serializers.ModelSerializer):
 def get_person_or_session(request, user=False):
     return {'person' if not user else 'user': request.user} if request.user.is_authenticated else {'session': request.session.session_key}
 
+class BooleanDateTimeField(serializers.BooleanField):
+    def to_representation(self, value):
+        return serializers.DateTimeField.to_representation(self, value)
+
 class OrderSerializer(serializers.ModelSerializer):
     table = TableSerializer(read_only=True)
 
     class Meta:
         model = models.Order
-        fields = '__all__'
+        exclude = ('ordered_items',)
         extra_kwargs = {'created': {'read_only': True}, 'session': {'read_only': True}, 'person': {'read_only': True}, 'table': {'read_only': True}}
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if self.context['request'].method in ('GET', 'POST') or 'waiter' in self.context:
+        if self.context['request'].method in ('GET', 'POST'):
             self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, allow_empty=False, context=self.context)
-            if 'waiter' not in self.context:
-                self.fields['finished'].read_only = True
-                self.fields.pop('person')
-                self.fields.pop('session')
-            else:
-                self.fields['ordered_items'].read_only = True
+        if 'waiter' not in self.context:
+            if self.context['request'].method in ('PUT', 'PATCH'):
+                self.fields['request'].required = True
+            self.fields['finished'].read_only = True
+            self.fields['paid'].read_only = True
+            self.fields.pop('person')
+            self.fields.pop('session')
         else:
-            self.fields.pop('ordered_items')
+            if self.context['request'].method in ('PUT', 'PATCH'):
+                self.fields['finished'] = BooleanDateTimeField(required=False)
+                self.fields['paid'] = BooleanDateTimeField(required=False)
+            self.fields['request'].read_only = True
 
     def validate(self, attrs):
-        if 'table' not in self.context['request'].session:
-            raise serializers.ValidationError("There is no table session.")
+        if self.context['request'].method == 'POST':
+            if 'table' not in self.context['request'].session:
+                raise serializers.ValidationError("There is no table session.")
+            if self.context['request'].session['table']['time'] is None:
+                raise serializers.ValidationError("You have already placed an order with this session.")
+            time = datetime.fromtimestamp(self.context['request'].session['table']['time'], get_current_timezone())
+            if time < timezone.localtime(timezone.now()):
+                raise serializers.ValidationError("Maximum time for ordering is exceeded: %s" % time)
         return attrs
 
     def create(self, validated_data):
@@ -736,6 +751,23 @@ class OrderSerializer(serializers.ModelSerializer):
         for ordered_item in validated_data['ordereditem_set']:
             order.ordereditem_set.create(**ordered_item)
         return order
+
+    def update(self, instance, validated_data):
+        for f in ('finished', 'paid'):
+            if validated_data.get(f):
+                if getattr(instance, f):
+                    gen_err("You have already marked this order as paid." if f == 'paid' else "You have already marked this order as finished.")
+                setattr(instance, f, timezone.now())
+                instance.save()
+                return instance
+        if validated_data.get('request', None) is not None:
+            if instance.paid:
+                gen_err("This order is already marked as paid.")
+            if instance.request:
+                gen_err("You have already marked this order for paying.")
+            instance.request = validated_data['request']
+            instance.save()
+        return instance
 
 
 class CurrentUserDefault(object):

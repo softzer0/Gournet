@@ -454,10 +454,12 @@ class Order(models.Model):
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     ordered_items = models.ManyToManyField(Item, through=OrderedItem)
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
-    finished = models.BooleanField(default=False)
+    finished = models.DateTimeField(pgettext_lazy("order", "finished on"), null=True, blank=True)
+    request = models.IntegerField(_("request for payment"), choices=((0, _("Cash")), (1, _("Credit card"))), null=True, blank=True)
+    paid = models.DateTimeField(pgettext_lazy("order", "paid on"), null=True, blank=True)
 
     class Meta:
-        ordering = ['finished', '-created']
+        ordering = ['-finished', '-created']
 
     def __str__(self):
         return 'Items [%s], table [%s]' % (self.ordereditem_set.all(), self.table)

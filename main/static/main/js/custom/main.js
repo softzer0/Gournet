@@ -17,9 +17,9 @@ app
             size: 'lg',
             controller: function ($scope, $uibModalInstance, $stateParams, $timeout, $injector) {
                 $scope.loading = true;
-                var objService = $injector.get($stateParams.type + 'Service');
                 if ($stateParams.type != 'order') {
                     $scope.t = $stateParams.type;
+                    var objService = $injector.get($scope.t+'Service');
                     switch ($scope.t) {
                         case 'event':
                             $scope.title = gettext("Event(s)");
@@ -33,12 +33,13 @@ app
                     }
                     $scope.file = '../events';
                 } else {
-                    objService = $injector.get('orderService');
+                    $scope.order_id = $stateParams.ids;
+                    $scope.title = gettext("Order");
                     $scope.file = 'order';
                 }
 
                 $scope.close = function() {
-                    w();
+                    if ($scope.t) w();
                     delete $scope.close;
                     $uibModalInstance.dismiss('cancel');
                 };
@@ -47,21 +48,14 @@ app
                     if ($scope.t) objService.getobjs(true, null);
                 });
 
-                function loaded() { //, $scope.nobusiness
-                    $timeout(function () {
-                        $scope.loading = false;
-                        $scope.modal_loaded = true;
-                    });
-                } //$scope.enableAnimation(); }
+                $scope.loaded = function (){ $timeout(function () { //, $scope.nobusiness
+                    $scope.loading = false;
+                    $scope.modal_loaded = true;
+                })}; //$scope.enableAnimation(); }
                 if ($scope.t) {
                     $scope.objs = objService.getobjs(true, false);
-                    objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.ts !== undefined).then(loaded)
+                    objService.load($stateParams.ids.split(','), $stateParams.showcomments == '&showcomments', $scope.ts !== undefined).then($scope.loaded);
                     var w = $scope.$watch('objs.length', function (val, oldval){ if (oldval == 1 && val == 0) $scope.close() });
-                } else {
-                    objService.get($stateParams.ids).then(function (order){
-                        $scope.order = order;
-                        loaded();
-                    }, loaded);
                 }
             }
         });
@@ -121,17 +115,21 @@ app
     })
 
     .factory('dialogService', function($uibModal) {
+        var modalInstance;
+
         return {
             show: function (message, OkCancel) {
                 return $uibModal.open({
                     windowClass: 'modal-confirm',
                     template: '<div class="modal-body"><span class="ww">' + message + '</span></div><div class="modal-footer"><button class="btn btn-primary" ng-click="ok()">'+(OkCancel === undefined ? gettext("Yes") : gettext("OK"))+'</button>'+((OkCancel || OkCancel === undefined) ? '<button class="btn btn-warning" ng-click="cancel()">'+(OkCancel === undefined ? gettext("No") : gettext("Cancel"))+'</button></div>':''),
                     controller: function($scope, $uibModalInstance) {
+                        modalInstance = $uibModalInstance;
                         $scope.ok = function() { $uibModalInstance.close() };
                         $scope.cancel = function() { $uibModalInstance.dismiss('cancel') };
                     }
                 }).result;
-            }
+            },
+            close: function (){ modalInstance.dismiss('cancel') }
         }
     })
 
@@ -382,8 +380,32 @@ app
         })();
     })
 
-    .controller('OrderCtrl', function ($scope, $controller) {
+    .controller('OrderCtrl', function ($scope, dialogService, orderService, USER) {
+        var o = $scope.$parent.order_id;
+        delete $scope.$parent.order_id;
+        $scope.total = 0;
+        $scope.opened = false;
+        orderService.get(o).then(function (order){
+            $scope.curr = order.ordered_items[0].item.converted === null ? order.table.business.currency : USER.currency;
+            $scope.order = order;
+            for (var i = 0; i < order.ordered_items.length; i++) {
+                o = order.ordered_items[i];
+                $scope.total += o.quantity * (o.item.converted || o.item.price);
+            }
+            $scope.$parent.loaded();
+        }, $scope.$parent.loaded);
 
+        $scope.doAction = function (r){
+            if ($scope.working) return;
+            function cont(){
+                $scope.working = true;
+                orderService.send($scope.order.id, r).then(function (result){
+                    if ($scope.order.person === undefined) $scope.order.request = result.request; else if (result.paid != null) $scope.order.paid = result.paid; else $scope.order.finished = result.finished;
+                    delete $scope.working;
+                }, function (){ delete $scope.working });
+            }
+            if ($scope.order.person !== undefined && $scope.order.request == null && r === null) dialogService.show(gettext("Mark this order as paid even though the orderer didn't request the payment?")).then(cont); else cont();
+        };
     })
 
     .factory('APIService', function($resource) {
@@ -504,8 +526,13 @@ app
         var service = APIService.init(13);
 
         return {
-            get: function (id) {
+            get: function (id){
                 return service.get({id: id}).$promise;
+            },
+            send: function (id, r){
+                var o = {object_id: id};
+                if (typeof r === 'number') o.request = r; else if (r === null) o.paid = true; else o.finished = true;
+                return service.update(o).$promise;
             }
         }
     })

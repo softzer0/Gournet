@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from stronghold.middleware import LoginRequiredMiddleware as StrongholdLoginRequiredMiddleware
 from main.models import Business, Table
 from pyotp import HOTP
+from django.utils.timezone import now as timezone_now
+from datetime import timedelta
 
 class Resp(Exception):
     pass
@@ -33,10 +35,10 @@ class TimezoneLocaleMiddleware:
                 tzname = request.session.get('tz')
                 if tzname:
                     tz_activate(pytz_timezone(tzname))
-                request.TIME_ZONE = tzname or settings.TIME_ZONE
             lang_activate(lang)
             request.LANGUAGE_CODE = lang
-            request.CURRENCY = request.session.get('currency', settings.DEFAULT_CURRENCY)
+            if 'currency' not in request.session:
+                request.session['currency'] = settings.DEFAULT_CURRENCY
 
     def process_response(self, request, response):
         if 'Content-Language' not in response:
@@ -51,7 +53,7 @@ class TimezoneLocaleMiddleware:
 class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
     def process_view(self, request, view_func, view_args, view_kwargs):
         if hasattr(view_func, 'TABLE_SESSION_CHECK') and ('shortname' in view_kwargs and request.GET.get('t', '').isnumeric() and request.GET.get('p', '').isnumeric() or 'table' in request.session):
-            if 'table' not in request.session:
+            if 'table' not in request.session or request.GET.get('t', '').isnumeric() and request.GET.get('p', '').isnumeric():
                 business = Business.objects.filter_by_natural_key(view_kwargs['shortname']).first()
                 if business:
                     table = Table.objects.filter(business=business, number=request.GET['t']).first()
@@ -62,7 +64,7 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                         if i < 101:
                             table.counter += i
                             table.save()
-                            request.session['table'] = {'id': table.pk, 'shortname': business.shortname}
+                            request.session['table'] = {'id': table.pk, 'shortname': business.shortname, 'time': (timezone_now()+timedelta(minutes=5)).timestamp()}
                             return None
             else:
                 return None

@@ -14,7 +14,7 @@
     </div>
     <div class="form-group">
         <label class="control-label" for="tz">{% trans "Preferred time zone:" %}</label>
-        <select class="form-control" ng-disabled="obj.saving" name="tz" ng-model="user.tz" ng-init="setD('tz', '{% endcache %}{% if request.user.is_authenticated %}{{ request.user.tz.zone }}{% else %}{{ request.TIME_ZONE }}{% endif %}')">{% cache None i18n0 request.LANGUAGE_CODE %}{% for tz in timezones %}
+        <select class="form-control" ng-disabled="obj.saving" name="tz" ng-model="user.tz" ng-init="setD('tz', '{% endcache %}{% if request.user.is_authenticated %}{{ request.user.tz.zone }}{% else %}{% load main_tags %}{% if 'tz' in request.session %}{{ request.session|get_item:'tz' }}{% else %}{{ TIME_ZONE }}{% endif %}{% endif %}')">{% cache None i18n0 request.LANGUAGE_CODE %}{% for tz in timezones %}
             <option value="{{ tz }}">{{ tz }}</option>{% endfor %}
         </select>
     </div>
