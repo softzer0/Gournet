@@ -274,7 +274,7 @@ class Business(Loc):
     currency = models.CharField(_("default currency"), choices=CURRENCY, default=settings.DEFAULT_CURRENCY, validators=[MinLengthValidator(3)], max_length=3)
     supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True)
     is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
-    table_secret = models.CharField(max_length=16, default=random_base32)
+    table_secret = models.CharField(max_length=32, default=lazy(lambda l: random_base32(length=l))(32))
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')

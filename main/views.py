@@ -234,7 +234,7 @@ def increase_recent(request, obj):
 
 WORKH = ['{{ data.value[0]['+str(i)+'] }}' for i in range(0, 6)]
 @table_session_check()
-@request_passes_test(lambda request, *args, **kwargs: 'table' not in request.session or request.session['table']['shortname'] == kwargs['shortname'])
+@request_passes_test(lambda request, *args, **kwargs: request.user.is_authenticated or 'table' not in request.session or request.session['table']['shortname'] == kwargs['shortname'])
 def show_business(request, shortname):
     try:
         data = {'business': models.Business.objects.get_by_natural_key(shortname)}

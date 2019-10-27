@@ -290,7 +290,8 @@ app
             $scope.startTime = function (time) {
                 var i;
                 (function f(){
-                    var curr = new Date().getTime();
+                    var curr = new Date();
+                    curr = Date.UTC(curr.getUTCFullYear(),curr.getUTCMonth(), curr.getUTCDate(), curr.getUTCHours(), curr.getUTCMinutes(), curr.getUTCSeconds(), curr.getUTCMilliseconds());
                     if (time > curr) {
                         var rem = new Date(time - curr), mins = '' + rem.getMinutes(), secs = '' + rem.getSeconds();
                         $scope.remaining = '00'.substring(0, 2 - mins.length) + mins + ':' + '00'.substring(0, 2 - secs.length) + secs;
