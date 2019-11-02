@@ -61,7 +61,9 @@ class TokenObtainPairView(TokenViewBase):
 class TokenRefreshView(TokenViewBase):
     serializer_class = serializers.TokenRefreshSerializer
 
-def render_with_recent(request, template, context):
+def render_with_recent(request, template, context=None):
+    if context is None:
+        context = {}
     context.update(gen_recent_context(request))
     return render(request, template, context)
 
@@ -203,6 +205,12 @@ class ContactView(StrongholdPublicMixin, FormView, TemplateView):
         context = super().get_context_data(**kwargs)
         context.update({'file': 'home' if self.request.user.is_authenticated else 'main'})
         return context
+
+
+@table_session_check()
+def list_orders(request):
+    return render_with_recent(request, 'orders.html')
+
 
 def create_business(request):
     try:
@@ -644,7 +652,12 @@ class FeedAPIView(MultipleModelAPIView):
 
 @table_session_check(True)
 class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
-    serializer_class = serializers.OrderSerializer
+    pagination_class = None
+
+    def get_serializer_class(self):
+        if self.kwargs['waiter'] and self.request.method == 'GET':
+            return serializers.TableSerializer
+        return serializers.OrderSerializer
 
     def list(self, request, *args, **kwargs):
         if self.kwargs['pk']:
@@ -661,8 +674,9 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
     def get_queryset(self):
         self.kwargs['waiter'] = self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False))
         if self.kwargs['waiter'] or self.request.method not in ('GET', 'POST'):
-            return models.Order.objects.filter(table__waiter=self.request.user).reverse() if self.request.user.is_authenticated else models.Order.objects.none()
-        return models.Order.objects.filter(**serializers.get_person_or_session(self.request))
+            return models.Table.objects.filter(waiter=self.request.user, order__paid=None).reverse() if self.request.user.is_authenticated else models.Order.objects.none()
+        qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
+        return qs.filter(paid=None) if self.request.method == 'GET' else qs
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

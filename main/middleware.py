@@ -66,6 +66,8 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                             table.save()
                             request.session['table'] = {'id': table.pk, 'shortname': business.shortname, 'time': (timezone_now()+timedelta(minutes=5)).timestamp()}
                             return None
+                        elif 'table' in request.session:
+                            return None
             else:
                 return None
         return super().process_view(request, view_func, view_args, view_kwargs)

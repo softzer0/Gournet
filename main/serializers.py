@@ -696,11 +696,17 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         return attrs
 
 class TableSerializer(serializers.ModelSerializer):
-    business = BusinessSerializer(currency=True)
-
     class Meta:
         model = models.Table
-        fields = ('business', 'number')
+        fields = ('number',)
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if 'waiter' in self.context and 'request' in self.context and self.context['request'].method == 'GET':
+            self.fields['orders'] = OrderSerializer(many=True, context=self.context)
+        else:
+            self.fields['business'] = BusinessSerializer(currency=True)
 
 def get_person_or_session(request, user=False):
     return {'person' if not user else 'user': request.user} if request.user.is_authenticated else {'session': request.session.session_key}
@@ -748,8 +754,15 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         order = models.Order.objects.create(table=models.Table.objects.get(pk=self.context['request'].session['table']['id']), **get_person_or_session(self.context['request']))
+        ordered_items = []
         for ordered_item in validated_data['ordereditem_set']:
-            order.ordereditem_set.create(**ordered_item)
+            ordered_item = models.OrderedItem(order=order, **ordered_item)
+            if ordered_item.item.business.shortname == self.context['request'].session['table']['shortname']:
+                ordered_items.append(ordered_item)
+        if not len(ordered_items):
+            order.delete()
+            gen_err("List of items for ordering is empty for the targeted business.")
+        order.ordereditem_set.bulk_create(ordered_items)
         return order
 
     def update(self, instance, validated_data):

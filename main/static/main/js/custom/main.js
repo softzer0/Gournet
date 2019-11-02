@@ -1143,8 +1143,8 @@ app
         var localStorageService = $injector.get('localStorageService'), menuService = $injector.has('menuService') && $injector.get('menuService');
         $scope.quantity = itemService.quantity;
         $scope.get_quantity = function (index){ $scope.quantity[$scope.objs[index].id] = localStorageService.get($scope.objs[index].id) || 0 };
-        $scope.set_quantity = function (index){
-            $scope.quantity[$scope.objs[index].id] = parseInt($scope.quantity[$scope.objs[index].id]);
+        $scope.set_quantity = function (index, num){
+            $scope.quantity[$scope.objs[index].id] = !num && !$scope.quantity[$scope.objs[index].id] || num && (($scope.quantity[$scope.objs[index].id] + num) < 0) ? 0 : !num ? parseInt($scope.quantity[$scope.objs[index].id]) : ($scope.quantity[$scope.objs[index].id] + num);
             var increment = $scope.quantity[$scope.objs[index].id] > 0 && localStorageService.keys().indexOf(''+$scope.objs[index].id) == -1;
             if ($scope.quantity[$scope.objs[index].id] > 0) localStorageService.set($scope.objs[index].id, $scope.quantity[$scope.objs[index].id]); else localStorageService.remove($scope.objs[index].id);
             if (menuService && menuService.props.loaded) menuService.find('id', $scope.objs[index].id, $scope.objs[index].category, function (i, sc) {

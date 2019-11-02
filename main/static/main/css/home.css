@@ -138,17 +138,8 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
 	}
 }
 
-.order > input {
-    height: 18px;
-    line-height: 0;
-}
-
-.order > .form-control {
-    width: 3em;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 7px;
-    display: inline-block;
+.order > .input-group {
+    width: 9.5em;
 }
 
 .ord ~ .btn {
