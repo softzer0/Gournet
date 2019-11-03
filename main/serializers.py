@@ -695,19 +695,6 @@ class OrderedItemSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Item %d does not belong to the targeted business." % attrs['item'].pk)
         return attrs
 
-class TableSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Table
-        fields = ('number',)
-
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('fields', None)
-        super().__init__(*args, **kwargs)
-        if 'waiter' in self.context and 'request' in self.context and self.context['request'].method == 'GET':
-            self.fields['orders'] = OrderSerializer(many=True, context=self.context)
-        else:
-            self.fields['business'] = BusinessSerializer(currency=True)
-
 def get_person_or_session(request, user=False):
     return {'person' if not user else 'user': request.user} if request.user.is_authenticated else {'session': request.session.session_key}
 
@@ -716,29 +703,31 @@ class BooleanDateTimeField(serializers.BooleanField):
         return serializers.DateTimeField.to_representation(self, value)
 
 class OrderSerializer(serializers.ModelSerializer):
-    table = TableSerializer(read_only=True)
-
     class Meta:
         model = models.Order
-        exclude = ('ordered_items',)
-        extra_kwargs = {'created': {'read_only': True}, 'session': {'read_only': True}, 'person': {'read_only': True}, 'table': {'read_only': True}}
+        exclude = ('ordered_items', 'table')
+        extra_kwargs = {'created': {'read_only': True}, 'session': {'read_only': True}, 'person': {'read_only': True}}
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
+        if self.context['request'].method == 'GET':
+            self.fields.pop('paid')
         if self.context['request'].method in ('GET', 'POST'):
             self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, allow_empty=False, context=self.context)
         if 'waiter' not in self.context:
             if self.context['request'].method in ('PUT', 'PATCH'):
                 self.fields['request'].required = True
-            self.fields['finished'].read_only = True
-            self.fields['paid'].read_only = True
+            self.fields['delivered'].read_only = True
+            # self.fields['paid'].read_only = True
             self.fields.pop('person')
             self.fields.pop('session')
         else:
             if self.context['request'].method in ('PUT', 'PATCH'):
-                self.fields['finished'] = BooleanDateTimeField(required=False)
+                self.fields['delivered'] = BooleanDateTimeField(required=False)
                 self.fields['paid'] = BooleanDateTimeField(required=False)
+            elif self.context['request'].method == 'GET':
+                self.fields['table_number'] = serializers.IntegerField(read_only=True)
             self.fields['request'].read_only = True
 
     def validate(self, attrs):
@@ -766,10 +755,10 @@ class OrderSerializer(serializers.ModelSerializer):
         return order
 
     def update(self, instance, validated_data):
-        for f in ('finished', 'paid'):
+        for f in ('delivered', 'paid'):
             if validated_data.get(f):
                 if getattr(instance, f):
-                    gen_err("You have already marked this order as paid." if f == 'paid' else "You have already marked this order as finished.")
+                    gen_err("You have already marked this order as paid." if f == 'paid' else "You have already marked this order as delivered.")
                 setattr(instance, f, timezone.now())
                 instance.save()
                 return instance

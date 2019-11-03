@@ -400,7 +400,7 @@ app
             function cont(){
                 $scope.working = true;
                 orderService.send($scope.order.id, r).then(function (result){
-                    if ($scope.order.person === undefined) $scope.order.request = result.request; else if (result.paid != null) $scope.order.paid = result.paid; else $scope.order.finished = result.finished;
+                    if ($scope.order.person === undefined) $scope.order.request = result.request; else if (result.paid != null) $scope.order.paid = result.paid; else $scope.order.delivered = result.delivered;
                     delete $scope.working;
                 }, function (){ delete $scope.working });
             }
@@ -531,7 +531,7 @@ app
             },
             send: function (id, r){
                 var o = {object_id: id};
-                if (typeof r === 'number') o.request = r; else if (r === null) o.paid = true; else o.finished = true;
+                if (typeof r === 'number') o.request = r; else if (r === null) o.paid = true; else o.delivered = true;
                 return service.update(o).$promise;
             }
         }

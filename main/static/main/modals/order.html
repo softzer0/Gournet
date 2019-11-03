@@ -18,9 +18,9 @@
         </table>
         <div class="ib mr12"><strong>{{ "Ordered at:" | translate }}</strong> {{ order.created|date:'dd.MM.yyyy HH:mm' }}</div>
         <div class="pull-right confirm"><strong>{{ "Total:" | translate }}</strong> {{ total|currency:curr }}</div>
-        <div ng-if="order.finished" class="ib"><strong>{{ "Delivered at:" | translate }}</strong> {{ order.finished|date:'dd.MM.yyyy HH:mm' }}</div>
+        <div ng-if="order.delivered" class="ib"><strong>{{ "Delivered at:" | translate }}</strong> {{ order.delivered|date:'dd.MM.yyyy HH:mm' }}</div>
         <button type="button" class="btn btn-primary pull-right confirm" ng-if="!order.paid && order.request == null && order.person === undefined" ng-disabled="working" uib-popover-template="'paymentPopover'" popover-title="{{ 'Select type of payment' | translate }}" popover-trigger="outsideClick" popover-is-open="opened" ng-click="opened = !opened" popover-placement="left">{{ "Request payment" | translate }}</button>
-        <button type="button" class="btn btn-primary pull-right confirm" ng-if="!order.paid && order.request == null && order.person !== undefined && !order.finished" ng-disabled="working" ng-click="doAction()">{{ "Mark as delivered" | translate }}</button>
+        <button type="button" class="btn btn-primary pull-right confirm" ng-if="!order.paid && order.request == null && order.person !== undefined && !order.delivered" ng-disabled="working" ng-click="doAction()">{{ "Mark as delivered" | translate }}</button>
         <div class="ib pull-right confirm" ng-if="!order.paid && order.person === undefined && order.request != null"><strong>{{ "To be paid with:" | translate }}</strong> {{ order.request === 0 ? "Cash" : "Credit card" | translate }}</div>
         <a class="ib pull-right confirm" href="javascript:" ng-if="!order.paid && order.person !== undefined" ng-click="doAction(null)" ng-bind-html="order.request === 0 ? 'This is already paid with <strong>cash</strong>?' : order.request === 1 ? 'This is already paid by <strong>credit card</strong>?' : 'This is already paid?' | unsafe | translate"></a>
         <div ng-if="order.paid" class="ib pull-right confirm"><strong>{{ order.request === 0 ? "Paid with cash at:" : order.request === 1 ? "Paid by credit card at:" : "Paid at:" | translate }}</strong> {{ order.paid|date:'dd.MM.yyyy HH:mm' }}</div>

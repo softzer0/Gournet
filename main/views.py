@@ -652,12 +652,8 @@ class FeedAPIView(MultipleModelAPIView):
 
 @table_session_check(True)
 class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
+    serializer_class = serializers.OrderSerializer
     pagination_class = None
-
-    def get_serializer_class(self):
-        if self.kwargs['waiter'] and self.request.method == 'GET':
-            return serializers.TableSerializer
-        return serializers.OrderSerializer
 
     def list(self, request, *args, **kwargs):
         if self.kwargs['pk']:
@@ -674,8 +670,13 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
     def get_queryset(self):
         self.kwargs['waiter'] = self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False))
         if self.kwargs['waiter'] or self.request.method not in ('GET', 'POST'):
-            return models.Table.objects.filter(waiter=self.request.user, order__paid=None).reverse() if self.request.user.is_authenticated else models.Order.objects.none()
-        qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
+            if not self.request.user.is_authenticated:
+                return models.Order.objects.none()
+            qs = models.Order.objects.filter(table__waiter=self.request.user).annotate(table_number=F('table__number')).order_by('table__number', 'created')
+        else:
+            qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
+        if 'after' in self.request.query_params and self.request.query_params['after'].isdigit():
+            qs = qs.filter(created__gt=datetime.fromtimestamp(int(self.request.query_params['after']), get_current_timezone()))
         return qs.filter(paid=None) if self.request.method == 'GET' else qs
 
     def get_serializer_context(self):
