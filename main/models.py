@@ -455,7 +455,8 @@ class Order(models.Model):
     ordered_items = models.ManyToManyField(Item, through=OrderedItem)
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
     delivered = models.DateTimeField(pgettext_lazy("order", "delivered on"), null=True, blank=True)
-    request = models.IntegerField(_("request for payment"), choices=((0, _("Cash")), (1, _("Credit card"))), null=True, blank=True)
+    request_type = models.IntegerField(_("request for payment"), choices=((0, _("Cash")), (1, _("Credit card"))), null=True, blank=True)
+    requested = models.DateTimeField(pgettext_lazy("order", "requested on"), null=True, blank=True)
     paid = models.DateTimeField(pgettext_lazy("order", "paid on"), null=True, blank=True)
 
     class Meta:

@@ -400,11 +400,14 @@ app
             function cont(){
                 $scope.working = true;
                 orderService.send($scope.order.id, r).then(function (result){
-                    if ($scope.order.person === undefined) $scope.order.request = result.request; else if (result.paid != null) $scope.order.paid = result.paid; else $scope.order.delivered = result.delivered;
+                    if ($scope.order.person === undefined) {
+                        $scope.order.request_type = result.request_type;
+                        $scope.order.requested = result.requested;
+                    } else if (result.paid != null) $scope.order.paid = result.paid; else $scope.order.delivered = result.delivered;
                     delete $scope.working;
                 }, function (){ delete $scope.working });
             }
-            if ($scope.order.person !== undefined && $scope.order.request == null && r === null) dialogService.show(gettext("Mark this order as paid even though the orderer didn't request the payment?")).then(cont); else cont();
+            if ($scope.order.person !== undefined && $scope.order.requested == null && r === null) dialogService.show(gettext("Mark this order as paid even though the orderer didn't request the payment?")).then(cont); else cont();
         };
     })
 
@@ -451,7 +454,7 @@ app
                         break;
                     default: n = 'users'
                 }
-                return $resource('/api/'+n+'/:id/?format=json:m', {id: '@object_id'},
+                return $resource('/api/'+n+'/:id/?format=json:m:ids', {id: '@object_id'},
                 {
                     'get': {method: 'GET'},
                     'query': {method: 'GET', isArray: true},
@@ -463,7 +466,14 @@ app
                         },
                         params: {m: '@m'}
                     },
-                    'update': {method: 'PUT'},
+                    'update': {
+                        method: 'PUT',
+                        transformRequest: function (data) {
+                            delete data.ids;
+                            return JSON.stringify(data);
+                        },
+                        params: {ids: '@ids'}
+                    },
                     'partial_update': {method: 'PATCH'},
                     'partial_update_a': {method: 'PATCH', isArray: true},
                     'delete': {method: 'DELETE'}
@@ -531,7 +541,7 @@ app
             },
             send: function (id, r){
                 var o = {object_id: id};
-                if (typeof r === 'number') o.request = r; else if (r === null) o.paid = true; else o.delivered = true;
+                if (typeof r === 'number') o.request_type = r; else if (r === null) o.paid = true; else o.delivered = true;
                 return service.update(o).$promise;
             }
         }
@@ -1259,6 +1269,7 @@ app
             if (page_num === undefined) {
                 var d = {};
                 if ($scope.unread) d.last = $scope.notifs[0].id;
+                if (location.pathname == '/my-orders/') d.skip_orders = true; //important
                 ret = notifService.query(d);
             } else ret = notifService.get({page: page_num});
             ret.$promise.then(function (result) {

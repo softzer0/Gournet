@@ -1,8 +1,32 @@
 {% extends 'base/home.html' %}
+{% load staticfiles %}
 {% load i18n %}
 
-{% block container %}
-        <div class="row">
+{% block head %}{{ block.super }}
+    <link rel="stylesheet" href="{% static 'main/css/orders.css' %}">
+    <script src="{% static 'main/js/custom/orders.js' %}"></script>{% endblock %}
 
+{% block container %}
+        <script type="text/ng-template" id="actionPopover">
+            <center>
+                <span ng-show="popover.type[0].list.length > 0"><input type="submit" class="btn btn-primary" ng-attr-value="{% verbatim %}{{ popover.type[0].count > 1 ? 'All is delivered' : 'It\'s delivered' | translate }}{% endverbatim %}" ng-click="doAction(0)"></span>
+                <input ng-show="popover.type[1].list.length > 0" type="submit" class="btn btn-success" ng-attr-value="{% verbatim %}{{ popover.type[1].count > 1 ? 'All is paid' : 'It\'s paid' | translate }}{% endverbatim %}" ng-click="doAction(1)">
+            </center>
+        </script>
+        <div class="row" ng-controller="OrdersCtrl" ng-init="loadOrders({{ is_waiter }}, '{{ curr }}')">
+            <div ng-repeat="table in tables.list">
+                <h4 class="clickable" animate-on-change="table.total" uib-popover-template="'actionPopover'" popover-title="{% verbatim %}{{ popover.title }}{% endverbatim %}" popover-trigger="outsideClick" popover-is-open="table.opened" ng-click="openPopover(table)" popover-placement="bottom-left">Table {% verbatim %}{{ table.num }} - {{ table.total | currency:tables.curr }}{% endverbatim %}</h4>
+                <table class="table table-hover table-condensed angular-animate animate" ng-repeat="obj in table.persons | orderBy:sortPerson:true">
+                    <tr>
+                        <th class="clickable" animate-on-change="obj.total" uib-popover-template="'actionPopover'" popover-title="{% verbatim %}{{ popover.title }}{% endverbatim %}" popover-trigger="outsideClick" popover-is-open="obj.opened" ng-click="openPopover(obj)" popover-placement="bottom-left">{% verbatim %}{{ persons[obj.id] !== undefined ? persons[obj.id].first_name+' '+persons[obj.id].last_name : ("Anonymous" | translate) }} - {{ obj.total | currency:tables.curr }}{% endverbatim %}</th>
+                    </tr>
+                    <tr ng-repeat-start="order in obj.orders | orderBy:sortItem:true" class="angular-animate">
+                        <td class="clickable" animate-on-change="order.ids" uib-popover-template="'actionPopover'" popover-title="{% verbatim %}{{ popover.title }}{% endverbatim %}" popover-trigger="outsideClick" popover-is-open="order.opened" ng-click="openPopover(order)" popover-placement="bottom-left"><u>{% verbatim %}{{ order.request_type != null ? order.request_type === 0 ? 'For payment with cash' : 'For payment by credit card' : order.delivered == null ? 'For delivery' : 'Delivered' | translate }}{% endverbatim %}</u> <span class="text-muted small">- {% verbatim %}{{ order.requested || order.delivered || order.created | timeAgo }}{% endverbatim %}</span></td>
+                    </tr>
+                    <tr ng-repeat-end ng-repeat="item in order.ordered_items">
+                        <td class="item">{% verbatim %}{{ item.item.name }} x {{ item.quantity }}{% endverbatim %}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
 {% endblock %}

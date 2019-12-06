@@ -1,0 +1,31 @@
+.popover {
+    z-index: 1039;
+}
+
+.ng-enter {
+    animation: enter 2.5s linear;
+}
+
+@keyframes enter {
+    100% {background-color: #dff0d8; opacity: 1;}
+}
+
+.ng-leave {
+    animation: leave 2.5s linear;
+}
+
+@keyframes leave {
+    100% {background-color: #e4b9b9; opacity: 0;}
+}
+
+.change-add {
+    animation: move 2.5s linear;
+}
+
+@keyframes move {
+    50% {background-color: #afd9ee;}
+}
+
+.item {
+    padding-left: 30px !important;
+}

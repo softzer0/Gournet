@@ -51,7 +51,7 @@ from rest_framework.exceptions import NotAuthenticated
 from django.utils.translation import override as lang_override
 from django.utils.timezone import get_current_timezone
 from datetime import datetime
-from django.utils import timezone
+from rest_framework.serializers import ValidationError
 
 User = get_user_model()
 
@@ -209,7 +209,18 @@ class ContactView(StrongholdPublicMixin, FormView, TemplateView):
 
 @table_session_check()
 def list_orders(request):
-    return render_with_recent(request, 'orders.html')
+    business = None
+    if request.user.is_authenticated:
+        is_waiter = False
+        for business in models.Business.objects.filter(table__waiter=request.user).annotate(Count('pk')):
+            if serializers.BusinessSerializer.get_is_opened(None, business):
+                is_waiter = 'true'
+                break
+        if not is_waiter:
+            is_waiter = 'true' #repl with false
+    else:
+        is_waiter = 'false'
+    return render_with_recent(request, 'orders.html', {'is_waiter': is_waiter, 'curr': (business if business else models.Business.objects.get_by_natural_key(request.session['table']['shortname'])).currency})
 
 
 def create_business(request):
@@ -532,6 +543,10 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
         last = self.request.query_params.get('last', False)
         if last and last.isdigit():
             f['pk__gt'] = last
+        if get_param_bool(self.request.query_params.get('skip_orders', False)):
+            f1 = f.copy()
+            f1['link__icontains'] = 'type=order'
+            filter_notifs(self, f1).update(unread=False)
         return filter_notifs(self, f)
 
 
@@ -552,11 +567,13 @@ class SetNotifsReadAPIView(BaseNotifAPIView):
         return filter_notifs(self, {'pk__in': [n for n in self.request.query_params['ids'].split(',') if n.isdigit()]})
 
     def cont(self, objpks, **kwargs):
+        cnt = 0
         for notif in objpks:
             if notif.unread:
                 notif.unread = False
                 notif.save()
-        return status.HTTP_200_OK, str(objpks.count())+" notifications have been marked as read."
+                cnt += 1
+        return status.HTTP_200_OK, str(cnt)+" notifications have been marked as read."
 
 class SendNotifsAPIView(BaseNotifAPIView):
     def t(self):
@@ -569,7 +586,7 @@ class SendNotifsAPIView(BaseNotifAPIView):
             st = status.HTTP_404_NOT_FOUND
             text = "Event not found."
         else:
-            persons = User.objects.filter(pk__in=objpks)
+            persons = serializers.friends_from(self.request.user, True).filter(pk__in=objpks)
             cnt = 0
             for person in persons:
                 if self.request.user != person and not models.EventNotification.objects.filter(from_person=self.request.user, to_person=person, content_type=ContentType.objects.get(model='event'), object_id=event.pk).exists():
@@ -676,11 +693,14 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         else:
             qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
         if 'after' in self.request.query_params and self.request.query_params['after'].isdigit():
-            qs = qs.filter(created__gt=datetime.fromtimestamp(int(self.request.query_params['after']), get_current_timezone()))
-        return qs.filter(paid=None) if self.request.method == 'GET' else qs
+            t = datetime.fromtimestamp(int(self.request.query_params['after']) / 1000, get_current_timezone())
+            qs = qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(paid__gt=t))
+        return qs.filter(paid=None) if self.request.method == 'GET' and 'after' not in self.request.query_params else qs
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
+        if self.kwargs['pk']:
+            context['single'] = None
         if self.kwargs.get('waiter'):
             context['waiter'] = None
         return context
@@ -699,12 +719,36 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         with lang_override(order.table.waiter.language):
             self.gen_notif(order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
 
+    def update(self, request, *args, **kwargs):
+        if 'ids' in self.request.query_params:
+            errors = []
+            data = []
+            context = self.get_serializer_context()
+            for instance in self.get_queryset().filter(pk__in=[id for id in self.request.query_params['ids'].split(',') if id.isdigit()]):
+                if instance.table.waiter == self.request.user:
+                    context['waiter'] = None
+                elif 'waiter' in context:
+                    del context['waiter']
+                serializer = self.get_serializer_class()(instance, data=request.data, context=context, partial=True)
+                serializer.is_valid()
+                if serializer.errors:
+                    errors.append({instance.id: serializer.errors})
+                    break
+                try:
+                    serializer.save()
+                except ValidationError as error:
+                    errors.append({instance.id: error.detail})
+                else:
+                    data.append(serializer.data)
+            return Response({'data': data, 'errors': errors}, status.HTTP_200_OK if not len(errors) else status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)
+
     def perform_update(self, serializer):
         order = serializer.save()
-        if order.request is None or order.paid:
+        if order.requested is None or order.paid:
             return
         with lang_override(order.table.waiter.language):
-            self.gen_notif(order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>." if order.request == 0 else "has requested payment by <strong>credit card</strong> on table <strong>%d</strong>.") % order.table.number)
+            self.gen_notif(order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>." if order.request_type == 0 else "has requested payment by <strong>credit card</strong> on table <strong>%d</strong>.") % order.table.number)
 
 
 def check_if_anonymous_allowed(self, obj):

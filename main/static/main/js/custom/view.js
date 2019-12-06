@@ -196,6 +196,7 @@ app
                                 $scope.o_disabled = true;
                                 menuService.order().then(function () {
                                     dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
+                                    $scope.resetTime();
                                 }, function () {
                                     delete $scope.o_disabled;
                                     dialogService.show(gettext("There was some error while placing your order."), false);
@@ -287,11 +288,13 @@ app
         }
 
         if (OWNER_MANAGER === null) {
-            $scope.startTime = function (time) {
+            var time;
+            $scope.resetTime = function (){ time = (new Date()).getTime() };
+            $scope.startTime = function (t){
+                time = t;
                 var i;
                 (function f(){
-                    var curr = new Date();
-                    curr = Date.UTC(curr.getUTCFullYear(),curr.getUTCMonth(), curr.getUTCDate(), curr.getUTCHours(), curr.getUTCMinutes(), curr.getUTCSeconds(), curr.getUTCMilliseconds());
+                    var curr = (new Date()).getTime();
                     if (time > curr) {
                         var rem = new Date(time - curr), mins = '' + rem.getMinutes(), secs = '' + rem.getSeconds();
                         $scope.remaining = '00'.substring(0, 2 - mins.length) + mins + ':' + '00'.substring(0, 2 - secs.length) + secs;
