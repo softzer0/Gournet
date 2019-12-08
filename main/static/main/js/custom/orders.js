@@ -4,7 +4,7 @@ app
             scope.$watch(attr.animateOnChange, function(nv, ov) {
                 if (nv == ov) return;
                 var c = 'change';
-                $animate.addClass(elem, c).then(function() { $timeout(function() { $animate.removeClass(elem, c) }) });
+                $animate.addClass(elem, c).then(function() { $timeout(function() { $animate.removeClass(elem, c) }, 2500) });
             });
        }
     })
@@ -39,10 +39,11 @@ app
                                     if (obj[0] != null && obj[1] != null) break;
                                 }
                             }
+                            var id = result[i].id;
                             if (result[i].paid == null) {
                                 if (obj[0] != null) {
-                                    if (obj[0].ids.indexOf(result[i].id) === -1) {
-                                        obj[0].ids.push(result[i].id);
+                                    if (obj[0].ids.indexOf(id) === -1) {
+                                        obj[0].ids.push(id);
                                         for (j = 0; j < obj[0].ordered_items.length; j++) obj[0].ordered_items[j].quantity += ind[obj[0].ordered_items[j].item.id];
                                     }
                                     obj[0].created = result[i].created;
@@ -54,7 +55,7 @@ app
                                     for (j = 0; j < result[i].ordered_items.length; j++) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
                                     person.orders.push(result[i]);
                                     obj[0] = person.orders[person.orders.length-1];
-                                    obj[0].ids = [result[i].id];
+                                    obj[0].ids = [id];
                                     delete obj[0].id;
                                     delete obj[0].table_number;
                                 }
@@ -62,19 +63,19 @@ app
                                     if (!persons.hasOwnProperty(obj[0].person.id)) persons[obj[0].person.id] = obj[0].person;
                                     delete obj[0].person;
                                 }
-                                if (obj[0].ids.indexOf(result[i].id) === -1) for (j = 0; j < obj[0].ordered_items.length; j++) {
+                                for (j = 0; j < obj[0].ordered_items.length; j++) {
                                     person.total += ind[obj[0].ordered_items[j].item.id] * (obj[0].ordered_items[j].item.converted || obj[0].ordered_items[j].item.price);
                                     tables.list[a].total += ind[obj[0].ordered_items[j].item.id] * (obj[0].ordered_items[j].item.converted || obj[0].ordered_items[j].item.price);
                                 }
                                 var date = obj[0].requested || obj[0].created;
                                 if (person.date == null || date != null && new Date(person.date) < new Date(date)) person.date = date;
                             }
-                            if (result[i].paid != null || obj[0] != null && obj[1] != null) {
+                            if (obj[1] != null) {
                                 for (j = 0; j < obj[1].ordered_items.length; j++) {
                                     person.total -= ind[obj[1].ordered_items[j].item.id] * (obj[1].ordered_items[j].item.converted || obj[1].ordered_items[j].item.price);
                                     tables.list[a].total -= ind[obj[1].ordered_items[j].item.id] * (obj[1].ordered_items[j].item.converted || obj[1].ordered_items[j].item.price);
                                 }
-                                obj[1].ids.splice(obj[1].ids.indexOf(result[i].id), 1);
+                                obj[1].ids.splice(obj[1].ids.indexOf(id), 1);
                                 if (obj[1].ids.length == 0) {
                                     person.orders.splice(o, 1);
                                     if (person.orders.length == 0) tables.list[a].persons.splice(b, 1);

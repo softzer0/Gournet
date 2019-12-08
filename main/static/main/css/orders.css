@@ -18,7 +18,12 @@
     100% {background-color: #e4b9b9; opacity: 0;}
 }
 
-.change-add {
+.row > div {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.change {
     animation: move 2.5s linear;
 }
 

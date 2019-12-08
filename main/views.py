@@ -692,6 +692,9 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             qs = models.Order.objects.filter(table__waiter=self.request.user).annotate(table_number=F('table__number')).order_by('table__number', 'created')
         else:
             qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
+        if qs.exists():
+            now, opened, _ = serializers.get_now_opened_closed(qs[0].table.business)
+            qs = qs.filter(created__gt=now.replace(hour=opened.hour, minute=opened.minute, second=0, microsecond=0))
         if 'after' in self.request.query_params and self.request.query_params['after'].isdigit():
             t = datetime.fromtimestamp(int(self.request.query_params['after']) / 1000, get_current_timezone())
             qs = qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(paid__gt=t))

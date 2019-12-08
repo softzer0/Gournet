@@ -391,6 +391,13 @@ class CoordinatesField(serializers.CharField):
     def to_representation(self, obj):
         return gen_coords(obj)
 
+def get_now_opened_closed(obj):
+    if isinstance(obj.tz, str):
+        obj.tz = get_timezone(obj.tz)
+    now = obj.tz.normalize(timezone.now())
+    day = now.weekday()
+    return now, obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened, obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed
+
 CURRENCY_ARR = tuple(i[0] for i in models.CURRENCY)
 class BusinessSerializer(serializers.ModelSerializer):
     supported_curr = serializers.MultipleChoiceField(choices=models.CURRENCY)
@@ -461,12 +468,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         return gen_distance(obj)
 
     def get_is_opened(self, obj):
-        if isinstance(obj.tz, str):
-            obj.tz = get_timezone(obj.tz)
-        now = obj.tz.normalize(timezone.now())
-        day = now.weekday()
-        opened = obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened
-        closed = obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed
+        now, opened, closed = get_now_opened_closed(obj)
         if opened >= closed:
             if opened > now.time():
                 return now.time() < closed
@@ -721,7 +723,7 @@ class OrderSerializer(serializers.ModelSerializer):
         if self.context['request'].method == 'GET':
             if 'single' in self.context:
                 self.fields['table'] = TableSerializer()
-            if 'after' not in self.context['request'].query_params:
+            if 'after' not in self.context['request'].query_params and 'single' not in self.context:
                 self.fields.pop('paid')
         if self.context['request'].method in ('GET', 'POST'):
             self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, allow_empty=False, context=self.context)

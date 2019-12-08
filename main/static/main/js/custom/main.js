@@ -719,7 +719,7 @@ app
                     }).$promise;
             } else {
                 cn = cn ? this.menu || null : null;
-                return this.s.query({ids: ids, no_business: cn, has_img_ind: cn}, function (result) {
+                return this.s.query({ids: '&ids='+ids, no_business: cn, has_img_ind: cn}, function (result) {
                     if (self.unloaded[1]) return;
                     self.objs[1].push.apply(self.objs[1], result);
                     if (rel_state) for (i = 0; i < self.objs[1].length; i++) showc(i);
