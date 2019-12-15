@@ -27,6 +27,10 @@
     animation: move 2.5s linear;
 }
 
+.fa-reorder {
+    font-size: 12em;
+}
+
 @keyframes move {
     50% {background-color: #afd9ee;}
 }

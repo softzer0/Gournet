@@ -720,13 +720,15 @@ class OrderSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if self.context['request'].method == 'GET':
-            if 'single' in self.context:
-                self.fields['table'] = TableSerializer()
-            if 'after' not in self.context['request'].query_params and 'single' not in self.context:
-                self.fields.pop('paid')
         if self.context['request'].method in ('GET', 'POST'):
             self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, allow_empty=False, context=self.context)
+            if self.context['request'].method == 'GET':
+                if 'single' in self.context:
+                    self.fields['table'] = TableSerializer()
+                else:
+                    self.fields['table_number'] = serializers.IntegerField(read_only=True)
+                if 'after' not in self.context['request'].query_params and 'single' not in self.context:
+                    self.fields.pop('paid')
         if 'waiter' not in self.context:
             if self.context['request'].method in ('PUT', 'PATCH'):
                 self.fields['request_type'].required = True
@@ -737,7 +739,6 @@ class OrderSerializer(serializers.ModelSerializer):
                 self.fields['delivered'] = BooleanDateTimeField(required=False)
                 self.fields['paid'] = BooleanDateTimeField(required=False)
             elif self.context['request'].method == 'GET':
-                self.fields['table_number'] = serializers.IntegerField(read_only=True)
                 self.fields['person'] = UserSerializer()
             self.fields['request_type'].read_only = True
 

@@ -193,8 +193,8 @@ app
                         $scope.submitOrder = function () {
                             $scope.o_disabled = null;
                             dialogService.show(gettext("Are you sure that you want to place an order? This action cannot be undone.")).then(function () {
-                                $scope.o_disabled = true;
                                 menuService.order().then(function () {
+                                    $scope.o_disabled = true;
                                     dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
                                     $scope.resetTime();
                                 }, function () {
@@ -304,7 +304,7 @@ app
                         if ($scope.o_disabled === null) {
                             dialogService.close();
                         }
-                        if (time > 0) dialogService.show(gettext("Order time has expired. You must issue a new link."), false);
+                        if (!$scope.o_disabled && time > 0) dialogService.show(gettext("Order time has expired. You must issue a new link."), false);
                         $scope.o_disabled = true;
                         if (i) $injector.get('$interval').cancel(i);
                     } else if (!i) i = $injector.get('$interval')(f, 1000);

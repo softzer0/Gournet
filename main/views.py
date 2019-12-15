@@ -43,7 +43,7 @@ from django.utils.translation import ungettext, ugettext as _, pgettext, npgette
 from django.core.cache.utils import make_template_fragment_key
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs
+from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs, ret_business_if_waiter_and_opened
 from rest_framework_simplejwt.views import TokenViewBase
 from rest_framework.parsers import FileUploadParser
 from .decorators import table_session_check, request_passes_test
@@ -209,18 +209,16 @@ class ContactView(StrongholdPublicMixin, FormView, TemplateView):
 
 @table_session_check()
 def list_orders(request):
-    business = None
-    if request.user.is_authenticated:
-        is_waiter = False
-        for business in models.Business.objects.filter(table__waiter=request.user).annotate(Count('pk')):
-            if serializers.BusinessSerializer.get_is_opened(None, business):
-                is_waiter = 'true'
-                break
-        if not is_waiter:
-            is_waiter = 'true' #repl with false
+    business = ret_business_if_waiter_and_opened(request)
+    if not business:
+        if 'table' in request.session:
+            business = models.Business.objects.get_by_natural_key(request.session['table']['shortname'])
+            is_waiter = False
+        else:
+            return redirect('/')
     else:
-        is_waiter = 'false'
-    return render_with_recent(request, 'orders.html', {'is_waiter': is_waiter, 'curr': (business if business else models.Business.objects.get_by_natural_key(request.session['table']['shortname'])).currency})
+        is_waiter = True
+    return render_with_recent(request, 'orders.html', {'is_waiter': is_waiter, 'curr': business.currency})
 
 
 def create_business(request):
@@ -261,7 +259,7 @@ def show_business(request, shortname):
         return redirect('/')
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
-    if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and datetime.fromtimestamp(request.session['table']['time'], get_current_timezone()) < timezone.localtime(timezone.now()):
+    if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and not serializers.BusinessSerializer.get_is_opened(None, data['business']):
         del request.session['table']
     data['fav_count'] = data['business'].likes.count()
     data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
@@ -689,12 +687,13 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         if self.kwargs['waiter'] or self.request.method not in ('GET', 'POST'):
             if not self.request.user.is_authenticated:
                 return models.Order.objects.none()
-            qs = models.Order.objects.filter(table__waiter=self.request.user).annotate(table_number=F('table__number')).order_by('table__number', 'created')
+            qs = models.Order.objects.filter(table__waiter=self.request.user)
         else:
             qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
-        if qs.exists():
-            now, opened, _ = serializers.get_now_opened_closed(qs[0].table.business)
-            qs = qs.filter(created__gt=now.replace(hour=opened.hour, minute=opened.minute, second=0, microsecond=0))
+        qs = qs.annotate(table_number=F('table__number')).order_by('table__number', 'created')
+        # if qs.exists():
+        #     now, opened, _ = serializers.get_now_opened_closed(qs[0].table.business)
+        #     qs = qs.filter(created__gt=now.replace(hour=opened.hour, minute=opened.minute, second=0, microsecond=0))
         if 'after' in self.request.query_params and self.request.query_params['after'].isdigit():
             t = datetime.fromtimestamp(int(self.request.query_params['after']) / 1000, get_current_timezone())
             qs = qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(paid__gt=t))
@@ -716,8 +715,8 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         if self.request.user.is_anonymous:
             self.request.session['table']['time'] = None
             self.request.session.modified = True
-        else:
-            del self.request.session['table']
+        # else:
+        #     del self.request.session['table']
         models.Notification.objects.create(text=_("You have placed an order at <strong>%s \"%s\"</strong>." % (order.table.business.get_type_display(), order.table.business.name)), link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
         with lang_override(order.table.waiter.language):
             self.gen_notif(order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
@@ -727,7 +726,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             errors = []
             data = []
             context = self.get_serializer_context()
-            for instance in self.get_queryset().filter(pk__in=[id for id in self.request.query_params['ids'].split(',') if id.isdigit()]):
+            for instance in models.Order.objects.filter(Q(table__waiter=self.request.user)|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[id for id in self.request.query_params['ids'].split(',') if id.isdigit()]):
                 if instance.table.waiter == self.request.user:
                     context['waiter'] = None
                 elif 'waiter' in context:

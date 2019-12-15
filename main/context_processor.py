@@ -1,4 +1,6 @@
+from django.db.models import Count
 from .models import User, Business, Recent, get_has_stars, REVIEW_STATUS
+from .serializers import BusinessSerializer
 
 REVIEW_STATUS_E = ( #important
     (REVIEW_STATUS[0][1], 'label-primary'), #Started
@@ -15,10 +17,17 @@ recent_ord = ['-recent__' + _[1:] for _ in Recent._meta.ordering]
 def gen_qs(request, model):
     return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)
 
+def ret_business_if_waiter_and_opened(request):
+    if request.user.is_authenticated:
+        for business in Business.objects.filter(table__waiter=request.user).annotate(Count('pk')):
+            if BusinessSerializer.get_is_opened(None, business):
+                return business
+
 def recent(request):
     dic = {
         'review_status': REVIEW_STATUS_E,
-        'has_stars': get_has_stars()
+        'has_stars': get_has_stars(),
+        'show_orders': bool('table' in request.session or ret_business_if_waiter_and_opened(request))
     }
     if request.user.is_authenticated:
         dic.update({
