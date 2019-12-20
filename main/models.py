@@ -238,7 +238,7 @@ def relationship_delete_notification_recent(instance, **kwargs):
         instance.notification.delete()
     Recent.objects.filter(user=instance.from_person, content_type=ContentType.objects.get(model='user'), object_id=instance.to_person.pk).delete()
 
-FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images', 'my-business', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
+FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images', 'my-business', 'my-orders', 'manage-waiters', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
 def not_forbidden(value):
     if value in FORBIDDEN:
         raise ValidationError(ugettext("\"%s\" is not permitted as a shortname.") % value)
@@ -252,7 +252,21 @@ class BusinessManager(GeoManager):
 
 BUSINESS_TYPE = ((0, _("Restaurant")), (1, _("Tavern")), (2, _("Bistro")), (3, _("Cafe")), (4, _("Pub")), (5, _("Bar")), (6, _("Nightclub")), (7, pgettext_lazy('type of business', "Fast food")))
 
-class Business(Loc):
+class WorkTime(models.Model):
+    opened = models.TimeField(_("opening time"), default=datetime.time(8, 0))
+    opened_sat = models.TimeField(_("opening time on Saturday"), null=True, blank=True)
+    opened_sun = models.TimeField(_("opening time on Sunday"), null=True, blank=True)
+    closed = models.TimeField(_("closing time"), default=datetime.time(0, 0))
+    closed_sat = models.TimeField(_("closing time on Saturday"), null=True, blank=True)
+    closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+def gen_random_secret():
+    return random_base32(32)
+
+class Business(Loc, WorkTime):
     shortname = models.CharField(
         _("shortname"),
         max_length=30,
@@ -265,16 +279,10 @@ class Business(Loc):
     type = models.SmallIntegerField(_("type"), choices=BUSINESS_TYPE, default=0)
     name = models.CharField(_("first name"), max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', _("Enter a valid business name."))])
     phone = PhoneNumberField(_("phone number")) #, help_text=_("In national format, e.g: 017448739.")
-    opened = models.TimeField(_("opening time"), default=datetime.time(8, 0))
-    opened_sat = models.TimeField(_("opening time on Saturday"), null=True, blank=True)
-    opened_sun = models.TimeField(_("opening time on Sunday"), null=True, blank=True)
-    closed = models.TimeField(_("closing time"), default=datetime.time(0, 0))
-    closed_sat = models.TimeField(_("closing time on Saturday"), null=True, blank=True)
-    closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
     currency = models.CharField(_("default currency"), choices=CURRENCY, default=settings.DEFAULT_CURRENCY, validators=[MinLengthValidator(3)], max_length=3)
     supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True)
     is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
-    table_secret = models.CharField(max_length=32, default=lazy(lambda l: random_base32(length=l))(32))
+    table_secret = models.CharField(max_length=32, default=gen_random_secret)
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
@@ -288,8 +296,7 @@ class Business(Loc):
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
-@receiver(pre_save, sender=Business)
-def business_check_time(instance, **kwargs):
+def check_time(instance):
     t = datetime.time(0, 0)
     for f in ('', '_sat', '_sun'):
         if f != '':
@@ -300,6 +307,10 @@ def business_check_time(instance, **kwargs):
         if (f == '' or getattr(instance, 'opened'+f)) and getattr(instance, 'opened'+f) == getattr(instance, 'closed'+f) and getattr(instance, 'opened'+f) != t:
             setattr(instance, 'opened'+f, t)
             setattr(instance, 'closed'+f, t)
+
+@receiver(pre_save, sender=Business)
+def business_check_time(instance, **kwargs):
+    check_time(instance)
 
 @receiver(post_delete, sender=Business)
 def business_review_avatar_delete(instance, **kwargs):
@@ -431,10 +442,21 @@ def item_reorder_notify_published(instance, created, **kwargs):
         Item.objects.filter(business=instance.business, category=instance.category, **{'ordering__' + ('gte' if instance.ordering < instance._ordering else 'lte'): instance.ordering, 'ordering__' + ('lt' if instance.ordering < instance._ordering else 'gt'): instance._ordering}).exclude(pk=instance.pk).update(ordering=models.F('ordering') + (1 if instance.ordering < instance._ordering else -1))
 
 
+class Waiter(WorkTime):
+    person = models.ForeignKey(User, on_delete=models.CASCADE)
+    table = models.ForeignKey('Table', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s @ %s' % (self.person, self.table)
+
+@receiver(pre_save, sender=Waiter)
+def waiter_check_time(instance, **kwargs):
+    check_time(instance)
+
 class Table(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     number = models.PositiveSmallIntegerField()
-    waiter = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    waiters = models.ManyToManyField(User, through=Waiter)
     counter = models.PositiveIntegerField(default=0)
 
     def __str__(self):

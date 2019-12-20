@@ -396,7 +396,7 @@ def get_now_opened_closed(obj):
         obj.tz = get_timezone(obj.tz)
     now = obj.tz.normalize(timezone.now())
     day = now.weekday()
-    return now, obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened, obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed
+    return now, obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened if day < 5 else None, obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed if day < 5 else None
 
 CURRENCY_ARR = tuple(i[0] for i in models.CURRENCY)
 class BusinessSerializer(serializers.ModelSerializer):
@@ -469,6 +469,8 @@ class BusinessSerializer(serializers.ModelSerializer):
 
     def get_is_opened(self, obj):
         now, opened, closed = get_now_opened_closed(obj)
+        if opened is None:
+            return False
         if opened >= closed:
             if opened > now.time():
                 return now.time() < closed

@@ -225,7 +225,13 @@ app
         };
         $scope.ref_is_opened = function (){
             if (workh[0] != workh[1] || workh.length == 2 || workh[2] != workh[3] || workh.length == 4 || workh[4] != workh[5]) {
-                var now = moment().tz($scope.data.tz), day = now.weekday(), d = [moment.tz(day == 6 && workh.length >= 4 ? workh[2] : day == 7 && workh.length == 6 ? workh[4] : workh[0], 'HH:mm', $scope.data.tz), moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz)];
+                var now = moment().tz($scope.data.tz), day = now.isoWeekday(), d;
+                if (day == 6 && workh.length >= 4) d = workh[2]; else if (day == 7 && workh.length == 6) d = workh[4]; else if (day < 6) d = workh[0];
+                if (d === undefined) {
+                    $scope.is_opened = false;
+                    return;
+                }
+                d = [moment.tz(d, 'HH:mm', $scope.data.tz), moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz)];
                 day = now.date();
                 for (var i = 0; i < 2; i++) if (day > d[i].date()) d[i].add(day - d[i].date(), 'days'); else if (d[i].date() > day) d[i].subtract(d[i].date() - day, 'days');
                 if (d[1].isBefore(d[0]) || d[1].isSame(d[0])) if (now.isBefore(d[0])) $scope.is_opened = now.isBefore(d[1]); else $scope.is_opened = true; else $scope.is_opened = now.isBefore(d[1]) && (d[0].isBefore(now) || d[0].isSame(now));

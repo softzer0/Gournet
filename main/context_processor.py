@@ -17,9 +17,9 @@ recent_ord = ['-recent__' + _[1:] for _ in Recent._meta.ordering]
 def gen_qs(request, model):
     return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)
 
-def ret_business_if_waiter_and_opened(request):
+def get_business_if_waiter(request):
     if request.user.is_authenticated:
-        for business in Business.objects.filter(table__waiter=request.user).annotate(Count('pk')):
+        for business in Business.objects.filter(table__waiter__person=request.user).annotate(Count('pk')):
             if BusinessSerializer.get_is_opened(None, business):
                 return business
 
@@ -27,7 +27,8 @@ def recent(request):
     dic = {
         'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars(),
-        'show_orders': bool('table' in request.session or ret_business_if_waiter_and_opened(request))
+        'show_orders': bool('table' in request.session or get_business_if_waiter(request)),
+        'is_manager': Business.objects.filter(manager=request.user).exists()
     }
     if request.user.is_authenticated:
         dic.update({

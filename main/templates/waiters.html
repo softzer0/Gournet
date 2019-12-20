@@ -1,0 +1,11 @@
+{% extends 'base/home.html' %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block head %}{{ block.super }}
+    <link rel="stylesheet" href="{% static 'main/css/waiters.css' %}">
+    <script src="{% static 'main/js/custom/waiters.js' %}"></script>{% endblock %}
+
+{% block container %}
+    
+{% endblock %}

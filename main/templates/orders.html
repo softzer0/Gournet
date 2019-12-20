@@ -9,7 +9,7 @@
 {% block container %}
         <script type="text/ng-template" id="actionPopover">
             <center>
-                <span ng-show="popover.title === undefined">Nothing to do.</span>
+                <span ng-show="popover.title === undefined">{% verbatim %}{{ 'Nothing to do.' | translate }}{% endverbatim %}</span>
                 <span ng-show="popover.title !== undefined">
                     <input{% if is_waiter %} ng-show="popover.type[0].list.length > 0"{% endif %} type="submit" class="btn btn-primary" ng-attr-value="{{ '{' }}{{ '{' }} popover.type[0].count > 1 ? {% if is_waiter %}'All is delivered' : 'It\'s delivered'{% else %}'All with cash' : 'With cash'{% endif %} | translate {{ '}' }}{{ '}' }}" ng-click="doAction(0)">
                     <input{% if is_waiter %} ng-show="popover.type[1].list.length > 0"{% endif %} type="submit" class="btn btn-success" ng-attr-value="{{ '{' }}{{ '{' }} popover.type[1].count > 1 ? {% if is_waiter %}'All is paid' : 'It\'s paid'{% else %}'All by credit card' : 'By credit card'{% endif %} | translate {{ '}' }}{{ '}' }}" ng-click="doAction(1)">

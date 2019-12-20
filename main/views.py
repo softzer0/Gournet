@@ -43,7 +43,7 @@ from django.utils.translation import ungettext, ugettext as _, pgettext, npgette
 from django.core.cache.utils import make_template_fragment_key
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
-from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs, ret_business_if_waiter_and_opened
+from .context_processor import recent as gen_recent_context, gen_qs as gen_recent_qs, get_business_if_waiter
 from rest_framework_simplejwt.views import TokenViewBase
 from rest_framework.parsers import FileUploadParser
 from .decorators import table_session_check, request_passes_test
@@ -209,7 +209,7 @@ class ContactView(StrongholdPublicMixin, FormView, TemplateView):
 
 @table_session_check()
 def list_orders(request):
-    business = ret_business_if_waiter_and_opened(request)
+    business = get_business_if_waiter(request)
     if not business:
         if 'table' in request.session:
             business = models.Business.objects.get_by_natural_key(request.session['table']['shortname'])
@@ -219,6 +219,12 @@ def list_orders(request):
     else:
         is_waiter = True
     return render_with_recent(request, 'orders.html', {'is_waiter': is_waiter, 'curr': business.currency})
+
+
+def manage_waiters(request):
+    if not models.Business.objects.filter(manager=request.user).exists():
+        return redirect('/')
+    return render_with_recent(request, 'waiters.html')
 
 
 def create_business(request):
@@ -677,7 +683,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         obj = get_object(self.kwargs['pk'], models.Order)
-        self.kwargs['waiter'] = obj.table.waiter == self.request.user
+        self.kwargs['waiter'] = obj.table.waiters.filter(pk=self.request.user.pk).exists()
         if not self.kwargs['waiter'] and ((obj.person != self.request.user) if self.request.user.is_authenticated else (obj.session != self.request.session.session_key)):
             raise NotFound("Order not found.")
         return obj
@@ -687,7 +693,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         if self.kwargs['waiter'] or self.request.method not in ('GET', 'POST'):
             if not self.request.user.is_authenticated:
                 return models.Order.objects.none()
-            qs = models.Order.objects.filter(table__waiter=self.request.user)
+            qs = models.Order.objects.filter(table__waiter__person=self.request.user)
         else:
             qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
         qs = qs.annotate(table_number=F('table__number')).order_by('table__number', 'created')
@@ -726,8 +732,8 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             errors = []
             data = []
             context = self.get_serializer_context()
-            for instance in models.Order.objects.filter(Q(table__waiter=self.request.user)|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[id for id in self.request.query_params['ids'].split(',') if id.isdigit()]):
-                if instance.table.waiter == self.request.user:
+            for instance in models.Order.objects.filter(Q(table__waiter__person=self.request.user)|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[id for id in self.request.query_params['ids'].split(',') if id.isdigit()]):
+                if instance.table.waiters.filter(pk=self.request.user.pk).exists():
                     context['waiter'] = None
                 elif 'waiter' in context:
                     del context['waiter']

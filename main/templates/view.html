@@ -58,7 +58,7 @@
                                     ><i class="fa fa-minus-square"></i> {% trans "It's not my favorite anymore" %}</span
                             ></a
                         >{% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>
-                        {% endcomment %}{% else %}<span>{% if fav_count > 0 %}<a href="javascript:" ng-click="show_favs_or_redirect()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}{% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
+                        {% endcomment %}{% else %}<span>{% if fav_count > 0 %}<a href="javascript:" ng-click="{% if 'table' in request.session %}show_favs_or_redirect{% else %}showFavouritesModal{% endif %}()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}{% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
                         {% endif %}</span></li>
                         {% endif %}<li>
                             <hr style="margin: 8px 13px 13px;">{% if fav_state == -1 %}
