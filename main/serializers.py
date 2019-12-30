@@ -682,6 +682,11 @@ class ItemSerializer(BaseSerializer):
         return obj.business.shortname == self.context['request'].session['table']['shortname']
 
 
+class WaiterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Waiter
+
+
 class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.OrderedItem

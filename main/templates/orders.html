@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{% static 'main/css/orders.css' %}">
     <script src="{% static 'main/js/custom/orders.js' %}"></script>{% endblock %}
 
-{% block container %}{% cache None i18n is_waiter %}
+{% block container %}{% cache None orders request.LANGUAGE_CODE is_waiter %}
         <script type="text/ng-template" id="actionPopover">
             <center>
                 <span ng-show="popover.title === undefined">{% trans "Nothing to do." %}</span>

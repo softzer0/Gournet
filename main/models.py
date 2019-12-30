@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.db.models.signals import post_delete, pre_save, post_save
+from django.db.models import Q
 from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
@@ -263,6 +264,18 @@ class WorkTime(models.Model):
     class Meta:
         abstract = True
 
+def check_time(instance, **kwargs):
+    t = datetime.time(0, 0)
+    for f in ('', '_sat', '_sun'):
+        if f != '':
+            if getattr(instance, 'opened'+f) and not getattr(instance, 'closed'+f):
+                setattr(instance, 'opened'+f, None)
+            elif getattr(instance, 'closed'+f) and not getattr(instance, 'opened'+f):
+                setattr(instance, 'closed'+f, None)
+        if (f == '' or getattr(instance, 'opened'+f)) and getattr(instance, 'opened'+f) == getattr(instance, 'closed'+f) and getattr(instance, 'opened'+f) != t:
+            setattr(instance, 'opened'+f, t)
+            setattr(instance, 'closed'+f, t)
+
 def gen_random_secret():
     return random_base32(32)
 
@@ -295,22 +308,6 @@ class Business(Loc, WorkTime):
 
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
-
-def check_time(instance):
-    t = datetime.time(0, 0)
-    for f in ('', '_sat', '_sun'):
-        if f != '':
-            if getattr(instance, 'opened'+f) and not getattr(instance, 'closed'+f):
-                setattr(instance, 'opened'+f, None)
-            elif getattr(instance, 'closed'+f) and not getattr(instance, 'opened'+f):
-                setattr(instance, 'closed'+f, None)
-        if (f == '' or getattr(instance, 'opened'+f)) and getattr(instance, 'opened'+f) == getattr(instance, 'closed'+f) and getattr(instance, 'opened'+f) != t:
-            setattr(instance, 'opened'+f, t)
-            setattr(instance, 'closed'+f, t)
-
-@receiver(pre_save, sender=Business)
-def business_check_time(instance, **kwargs):
-    check_time(instance)
 
 @receiver(post_delete, sender=Business)
 def business_review_avatar_delete(instance, **kwargs):
@@ -446,18 +443,47 @@ class Waiter(WorkTime):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
     table = models.ForeignKey('Table', on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (('person', 'table'),)
+
     def __str__(self):
         return '%s @ %s' % (self.person, self.table)
 
+    def clean(self):
+        waiters = None
+        fi = None
+        for f in ('', '_sat', '_sun'):
+            opened, closed = getattr(self, 'opened'+f), getattr(self, 'closed'+f)
+            if opened and opened < getattr(self.table.business, 'opened'+f) or closed and closed > getattr(self.table.business, 'closed'):
+                raise ValidationError(_("One of the fields for working time exceeds the one for the business."))
+            if waiters is None:
+                waiters = Waiter.objects.filter(table__pk=self.table.pk)
+            for waiter in waiters:
+                if opened and getattr(waiter, 'closed'+f) > opened > getattr(waiter, 'opened'+f) or closed and getattr(waiter, 'opened') > closed < getattr(waiter, 'closed'):
+                    raise ValidationError(_("There's a conflict in working times with another waiter on the targered table."))
+            if opened and closed:
+                q = Q(opened__lt=opened) & Q(closed__gt=opened) | Q(opened__gt=closed) & Q(closed__gt=closed)
+                fi = (fi | q) if fi else q
+        if fi is not None and Waiter.objects.filter(~Q(table__business__pk=self.table.business.pk), person=self.person, *fi).exists():
+            raise ValidationError(_("Targeted person is already waiter at a different business in the specified time span."))
+
 @receiver(pre_save, sender=Waiter)
-def waiter_check_time(instance, **kwargs):
-    check_time(instance)
+def remove_work_times(instance, **kwargs):
+    for f in ('_sat', '_sun'):
+        if getattr(instance, 'opened'+f) and not getattr(instance.table.business, 'opened'+f):
+            setattr(instance, 'opened'+f, None)
+
+for subclass in WorkTime.__subclasses__():
+    pre_save.connect(check_time, subclass)
 
 class Table(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     number = models.PositiveSmallIntegerField()
     waiters = models.ManyToManyField(User, through=Waiter)
     counter = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = (('business', 'number'),)
 
     def __str__(self):
         return '%s: Table #%s (@%s)' % (self.business, self.number, self.counter)

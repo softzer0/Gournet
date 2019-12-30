@@ -671,6 +671,10 @@ class FeedAPIView(MultipleModelAPIView):
         return context
 
 
+class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIView):
+    serializer_class = serializers.WaiterSerializer
+
+
 @table_session_check(True)
 class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
     serializer_class = serializers.OrderSerializer
