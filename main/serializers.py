@@ -13,14 +13,14 @@ from django.contrib.auth import get_user_model
 from rest_framework.compat import unicode_to_repr
 from django.contrib.contenttypes.models import ContentType
 from os import path
-from django.db.models import Count, Avg, Case, When, Value, IntegerField
+from django.db.models import Count, Avg, Case, When, Value, IntegerField, Q, F
 from django.core.cache import caches
 from requests import get as req_get
 from json import loads
 from decimal import Decimal, ROUND_HALF_UP
 from .forms import clean_loc, business_clean_data
 from django.core.exceptions import ObjectDoesNotExist
-from pytz import timezone as get_timezone, common_timezones
+from pytz import common_timezones
 from rest_framework_simplejwt.serializers import TokenObtainSerializer, TokenRefreshSerializer as DefTokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
@@ -391,13 +391,6 @@ class CoordinatesField(serializers.CharField):
     def to_representation(self, obj):
         return gen_coords(obj)
 
-def get_now_opened_closed(obj):
-    if isinstance(obj.tz, str):
-        obj.tz = get_timezone(obj.tz)
-    now = obj.tz.normalize(timezone.now())
-    day = now.weekday()
-    return now, obj.opened_sat if day == 5 and obj.opened_sat else obj.opened_sun if day == 6 and obj.opened_sun else obj.opened if day < 5 else None, obj.closed_sat if day == 5 and obj.closed_sat else obj.closed_sun if day == 6 and obj.closed_sun else obj.closed if day < 5 else None
-
 CURRENCY_ARR = tuple(i[0] for i in models.CURRENCY)
 class BusinessSerializer(serializers.ModelSerializer):
     supported_curr = serializers.MultipleChoiceField(choices=models.CURRENCY)
@@ -468,7 +461,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         return gen_distance(obj)
 
     def get_is_opened(self, obj):
-        now, opened, closed = get_now_opened_closed(obj)
+        now, opened, closed = obj.get_now_opened_closed()
         if opened is None:
             return False
         if opened >= closed:
@@ -682,10 +675,64 @@ class ItemSerializer(BaseSerializer):
         return obj.business.shortname == self.context['request'].session['table']['shortname']
 
 
+class UserFriendsField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        qs = User.objects.all()
+        if 'request' in self.context: #and self.context['request'].user.is_authenticated:
+            qs = friends_from(self.context['request'].user)
+        return qs
+
+class UniqueTogetherValidatorWithoutRequired(UniqueTogetherValidator):
+    def enforce_required_fields(self, attrs):
+        return
+
 class WaiterSerializer(serializers.ModelSerializer):
+    business = serializers.HiddenField(default=CurrentBusinessDefault())
+
     class Meta:
         model = models.Waiter
+        fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        self.fields['person'] = UserSerializer() if self.context['request'].method == 'GET' else UserFriendsField()
+        self.fields['table'] = serializers.IntegerField(source='table.number', **{'write_only': True} if 'table' in self.context else {})
+
+    def validate(self, attrs):
+        chkbusiness(attrs['business'])
+        fi = None
+        for f in ('', '_sat', '_sun'):
+            opened, closed = attrs.get('opened'+f), attrs.get('closed'+f)
+            business_opened = getattr(self.table.business, 'opened'+f)
+            if not opened or not closed or not business_opened:
+                attrs.pop('opened'+f)
+                attrs.pop('closed'+f)
+                continue
+            business_closed = getattr(self.table.business, 'closed'+f)
+            if opened < business_opened or business_opened < business_closed and closed > business_closed or business_opened > business_closed and closed < business_opened:
+                raise serializers.ValidationError(("Sunday" if f == '_sun' else "Saturday" if f == '_sat' else "Regular")+" working time exceeds the one for the business.")
+            q = Q(**{'opened'+f+'__lt': opened}) & Q(Q(**{'closed'+f+'__lt': F('opened'+f)}) | Q(**{'closed'+f+'__gt': opened})) | Q(**{'opened'+f+'__lt': closed}) & Q(Q(**{'closed'+f+'__lt': F('opened'+f)}) | Q(**{'closed'+f+'__gt': closed}))
+            fi = (fi | q) if fi else q
+        if fi is not None:
+            if models.Waiter.objects.filter(Q(table=self.table) & fi).exists():
+                raise serializers.ValidationError("There's a conflict in working times with another waiter on the targered table.")
+            if models.Waiter.objects.filter(~Q(table__business=self.table.business) & Q(person=self.person) & fi).exists():
+                raise serializers.ValidationError("Targeted person is already waiter at a different business during the specified time span.")
+        return attrs
+
+    def create_and_validate_table(self, validated_data):
+        validated_data['table'] = models.Table.objects.get_or_create(business=validated_data.pop('business'), number=validated_data['table']['number'])
+        if models.Waiter.objects.filter(person__pk=validated_data['person'].pk, table__pk=validated_data['table'].pk).exists():
+            raise serializers.ValidationError(UniqueTogetherValidator.message.format(field_names='person, table'), code='unique')
+
+    def create(self, validated_data):
+        self.create_and_validate_table(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        self.create_and_validate_table(validated_data)
+        return super().update(instance, validated_data)
 
 class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -709,7 +756,13 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Table
-        fields = ('business', 'number')
+        fields = ('number') #, 'id'
+
+    # def __init__(self, *args, **kwargs):
+    #     waiter = extarg(kwargs, 'waiter')
+    #     kwargs.pop('fields', None)
+    #     super().__init__(*args, **kwargs)
+    #     self.fields['business'] = BusinessSerializer(currency=True) if 'table' not in self.context else serializers.HiddenField(default=CurrentBusinessDefault())
 
 def get_person_or_session(request, user=False):
     return {'person' if not user else 'user': request.user} if request.user.is_authenticated else {'session': request.session.session_key}

@@ -87,42 +87,42 @@ td > .inline > div > div > div > a {
 	font-size: 1.5em;
 }
 
-.tb > tbody > tr > td.esh {
-	width: 79%;
+.tb > tbody > tr > td:first-of-type {
+	width: 79% !important;
 }
 
 @media (max-width: 1200px) {
-	.tb > tbody > tr > td.esh {
-		width: 75%;
+	.tb > tbody > tr > td:first-of-type {
+		width: 75% !important;
 	}
 }
 
 @media (max-width: 750px) {
-	.tb > tbody > tr > td.esh {
-		width: 70%;
+	.tb > tbody > tr > td:first-of-type {
+		width: 70% !important;
 	}
 }
 
 @media (max-width: 630px) {
-    .tb > tbody > tr > td.esh {
-        width: 64%;
+    .tb > tbody > tr > td:first-of-type {
+        width: 64% !important;
     }
 }
 
 @media (max-width: 530px) {
-	.tb > tbody > tr > td.esh {
-		width: 58%;
+	.tb > tbody > tr > td:first-of-type {
+		width: 58% !important;
 	}
 }
 
 @media (max-width: 465px) {
-	.tb > tbody > tr > td.esh {
-		width: 48%;
+	.tb > tbody > tr > td:first-of-type {
+		width: 48% !important;
 	}
 }
 
 @media (max-width: 380px) {
-	.tb > tbody > tr > td.esh {
-		width: 39%;
+	.tb > tbody > tr > td:first-of-type {
+		width: 39% !important;
 	}
 }

@@ -64,8 +64,9 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                         if i < 101:
                             table.counter += i
                             table.save()
-                            request.session['table'] = {'id': table.pk, 'shortname': business.shortname, 'time': (timezone_now()+timedelta(minutes=5)).timestamp()}
-                            return None
+                            if table.get_current_waiter():
+                                request.session['table'] = {'id': table.pk, 'shortname': business.shortname, 'time': (timezone_now()+timedelta(minutes=5)).timestamp()}
+                                return None
                         elif 'table' in request.session:
                             return None
             else:

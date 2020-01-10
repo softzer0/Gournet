@@ -28,7 +28,7 @@ def recent(request):
         'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars(),
         'show_orders': bool('table' in request.session or get_business_if_waiter(request)),
-        'is_manager': Business.objects.filter(manager=request.user).exists()
+        'is_manager': Business.objects.filter(manager=request.user).exists() if request.user.is_authenticated else False
     }
     if request.user.is_authenticated:
         dic.update({

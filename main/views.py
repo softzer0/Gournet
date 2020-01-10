@@ -673,6 +673,30 @@ class FeedAPIView(MultipleModelAPIView):
 
 class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIView):
     serializer_class = serializers.WaiterSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = models.Waiter.objects.filter(table__business__manager__pk=self.request.user.pk)
+        table = self.request.query_params.get('table', False)
+        if table and table.isdigit():
+            self.kwargs['table'] = None
+            qs = qs.filter(table__number=table)
+        else:
+            qs = qs.order_by('table__number')
+        return qs
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if 'table' in self.kwargs:
+            context['table'] = None
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        res = super().delete(request, *args, **kwargs)
+        if not obj.table.waiter_set.exists():
+            obj.table.delete()
+        return res
 
 
 @table_session_check(True)
@@ -694,13 +718,22 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
 
     def get_queryset(self):
         self.kwargs['waiter'] = self.request.method == 'GET' and get_param_bool(self.request.query_params.get('is_waiter', False))
+        table = False
         if self.kwargs['waiter'] or self.request.method not in ('GET', 'POST'):
             if not self.request.user.is_authenticated:
                 return models.Order.objects.none()
-            qs = models.Order.objects.filter(table__waiter__person=self.request.user)
+            qs = models.Order.objects.filter(table__waiter__person__pk=self.request.user.pk)
+            table = self.request.query_params.get('table', False)
+            if table and table.isdigit():
+                qs = qs.filter(table__number=table)
+            else:
+                table = False
         else:
             qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
-        qs = qs.annotate(table_number=F('table__number')).order_by('table__number', 'created')
+        if not table:
+            qs = qs.annotate(table_number=F('table__number')).order_by('table__number', 'created')
+        else:
+            qs = qs.order_by('created')
         # if qs.exists():
         #     now, opened, _ = serializers.get_now_opened_closed(qs[0].table.business)
         #     qs = qs.filter(created__gt=now.replace(hour=opened.hour, minute=opened.minute, second=0, microsecond=0))
@@ -717,8 +750,8 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             context['waiter'] = None
         return context
 
-    def gen_notif(self, order, text):
-        models.Notification.objects.create(user=order.table.waiter, text='<strong>'+(order.person.first_name+' '+order.person.last_name if order.person else _("Anonymous"))+'</strong> '+text, link='#/show='+str(order.pk)+'&type=order')
+    def gen_notif(self, waiter, order, text):
+        models.Notification.objects.create(user=waiter, text='<strong>'+(order.person.first_name+' '+order.person.last_name if order.person else _("Anonymous"))+'</strong> '+text, link='#/show='+str(order.pk)+'&type=order')
 
     def perform_create(self, serializer):
         order = serializer.save()
@@ -728,8 +761,9 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         # else:
         #     del self.request.session['table']
         models.Notification.objects.create(text=_("You have placed an order at <strong>%s \"%s\"</strong>." % (order.table.business.get_type_display(), order.table.business.name)), link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
-        with lang_override(order.table.waiter.language):
-            self.gen_notif(order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
+        waiter = order.table.get_current_waiter()
+        with lang_override(waiter.language):
+            self.gen_notif(waiter, order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
 
     def update(self, request, *args, **kwargs):
         if 'ids' in self.request.query_params:
@@ -759,8 +793,9 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         order = serializer.save()
         if order.requested is None or order.paid:
             return
-        with lang_override(order.table.waiter.language):
-            self.gen_notif(order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>." if order.request_type == 0 else "has requested payment by <strong>credit card</strong> on table <strong>%d</strong>.") % order.table.number)
+        waiter = order.table.get_current_waiter()
+        with lang_override(waiter.language):
+            self.gen_notif(waiter, order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>." if order.request_type == 0 else "has requested payment by <strong>credit card</strong> on table <strong>%d</strong>.") % order.table.number)
 
 
 def check_if_anonymous_allowed(self, obj):

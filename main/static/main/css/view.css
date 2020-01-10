@@ -34,7 +34,7 @@
 .tb > tbody > tr > td.qua:first-of-type {
 	width: 69% !important;
 }
-.tb:not(.ord) > tbody > tr > td:first-of-type {
+.tb:not(.ord) > tbody > tr > td:not(.eshc):first-of-type {
 	width: 87%;
 }
 
@@ -42,7 +42,7 @@
 	.tb > tbody > tr > td.qua:first-of-type {
 		width: 63% !important;
 	}
-	.tb:not(.ord) > tbody > tr > td:first-of-type {
+	.tb:not(.ord) > tbody > tr > td:not(.eshc):first-of-type {
 		width: 85%;
 	}
 }
@@ -51,7 +51,7 @@
 	.tb > tbody > tr > td.qua:first-of-type {
 		width: 57% !important;
 	}
-	.tb:not(.ord) > tbody > tr > td:first-of-type {
+	.tb:not(.ord) > tbody > tr > td:not(.eshc):first-of-type {
 		width: 82%;
 	}
 }
@@ -60,7 +60,7 @@
 	.tb > tbody > tr > td.qua:first-of-type {
 		width: 47% !important;
 	}
-	.tb:not(.ord) > tbody > tr > td:first-of-type {
+	.tb:not(.ord) > tbody > tr > td:not(.eshc):first-of-type {
 		width: 78%;
 	}
 }
@@ -243,15 +243,27 @@
 	display: table-row;
 }
 
+.inline > div:not(.mpd):not(.form-group) > div:not(.pri) > div > * {
+	border: 0 solid transparent;
+}
+
+.pri {
+	margin-top: -2px;
+	margin-bottom: -1px;
+}
+
+.pri input {
+	height: 32px;
+}
+
 .inline > div:not(.mpd):not(.form-group) > div > div > * {
 	display: table-cell;
-	border: 0 solid transparent;
 	background-clip: padding-box;
 	vertical-align: middle;
 }
 
 .inline > div:not(.mpd):not(.form-group) > div > div > * + * {
-	border-left-width: 5px;
+	border-left-width: 5px !important;
 }
 
 .inline > div:not(.mpd):not(.form-group) > div > div > a, .inline > div:not(.mpd):not(.form-group) > div > div > label, .inline > div:not(.mpd):not(.form-group) > div > div > .onep {

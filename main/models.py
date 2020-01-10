@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinLengthValidator, MaxLengthValidator, MaxValueValidator
+from django.core.validators import RegexValidator, MinLengthValidator, MaxLengthValidator, MaxValueValidator, MinValueValidator
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
@@ -20,6 +20,7 @@ from django.contrib.gis.db.models import PointField, GeoManager
 from multiselectfield import MultiSelectField
 from timezone_field import TimeZoneField
 from timezonefinder import TimezoneFinder
+from pytz import timezone as get_timezone
 from django.utils.translation import ugettext_lazy as _, ugettext, pgettext_lazy, string_concat, override as lang_override
 from django.utils.functional import lazy
 from os.path import join
@@ -309,6 +310,13 @@ class Business(Loc, WorkTime):
     def __str__(self):
         return '%s "%s"' % (self.get_type_display(), self.name)
 
+    def get_now_opened_closed(self):
+        if isinstance(self.tz, str):
+            self.tz = get_timezone(self.tz)
+        now = self.tz.normalize(timezone.now())
+        day = now.weekday()
+        return now, self.opened_sat if day == 5 and self.opened_sat else self.opened_sun if day == 6 and self.opened_sun else self.opened if day < 5 else None, self.closed_sat if day == 5 and self.closed_sat else self.closed_sun if day == 6 and self.closed_sun else self.closed if day < 5 else None
+
 @receiver(post_delete, sender=Business)
 def business_review_avatar_delete(instance, **kwargs):
     Comment.objects.filter(content_type=ContentType.objects.get(model='business'), object_id=instance.pk).delete()
@@ -449,26 +457,8 @@ class Waiter(WorkTime):
     def __str__(self):
         return '%s @ %s' % (self.person, self.table)
 
-    def clean(self):
-        waiters = None
-        fi = None
-        for f in ('', '_sat', '_sun'):
-            opened, closed = getattr(self, 'opened'+f), getattr(self, 'closed'+f)
-            if opened and opened < getattr(self.table.business, 'opened'+f) or closed and closed > getattr(self.table.business, 'closed'):
-                raise ValidationError(_("One of the fields for working time exceeds the one for the business."))
-            if waiters is None:
-                waiters = Waiter.objects.filter(table__pk=self.table.pk)
-            for waiter in waiters:
-                if opened and getattr(waiter, 'closed'+f) > opened > getattr(waiter, 'opened'+f) or closed and getattr(waiter, 'opened') > closed < getattr(waiter, 'closed'):
-                    raise ValidationError(_("There's a conflict in working times with another waiter on the targered table."))
-            if opened and closed:
-                q = Q(opened__lt=opened) & Q(closed__gt=opened) | Q(opened__gt=closed) & Q(closed__gt=closed)
-                fi = (fi | q) if fi else q
-        if fi is not None and Waiter.objects.filter(~Q(table__business__pk=self.table.business.pk), person=self.person, *fi).exists():
-            raise ValidationError(_("Targeted person is already waiter at a different business in the specified time span."))
-
 @receiver(pre_save, sender=Waiter)
-def remove_work_times(instance, **kwargs):
+def remove_sufficient_work_times(instance, **kwargs):
     for f in ('_sat', '_sun'):
         if getattr(instance, 'opened'+f) and not getattr(instance.table.business, 'opened'+f):
             setattr(instance, 'opened'+f, None)
@@ -478,7 +468,7 @@ for subclass in WorkTime.__subclasses__():
 
 class Table(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
-    number = models.PositiveSmallIntegerField()
+    number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     waiters = models.ManyToManyField(User, through=Waiter)
     counter = models.PositiveIntegerField(default=0)
 
@@ -487,6 +477,15 @@ class Table(models.Model):
 
     def __str__(self):
         return '%s: Table #%s (@%s)' % (self.business, self.number, self.counter)
+
+    def get_current_waiter(self):
+        now, opened, closed = self.business.get_now_opened_closed()
+        s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
+        now = now.time()
+        try:
+            return self.waiter_set.get(**{'opened'+s+'__lt': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.get(Q(**{'opened'+s+'__lt': now}) | Q(**{'closed'+s+'__gt': now}))
+        except:
+            pass
 
 class OrderedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
