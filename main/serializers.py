@@ -94,8 +94,8 @@ class TokenRefreshSerializer(DefTokenRefreshSerializer):
         return gen_token(RefreshToken(attrs['refresh']).access_token)
 
 
-def gen_err(msg):
-    raise serializers.ValidationError({'non_field_errors': [msg]})
+def gen_err(msg, code=None):
+    raise serializers.ValidationError({'non_field_errors': [msg]}, code=code)
 
 class EmailSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -439,8 +439,6 @@ class BusinessSerializer(serializers.ModelSerializer):
             self.fields['manager'] = serializers.HiddenField(default=serializers.CurrentUserDefault())
             self.fields['location'] = CoordinatesField(required=False)
             self.fields['tz'] = serializers.CharField(read_only=True)
-            for f in ('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'):
-                self.fields[f].format = '%H:%M'
             self.fields['rating'] = serializers.SerializerMethodField()
 
     def validate(self, attrs):
@@ -687,8 +685,6 @@ class UniqueTogetherValidatorWithoutRequired(UniqueTogetherValidator):
         return
 
 class WaiterSerializer(serializers.ModelSerializer):
-    business = serializers.HiddenField(default=CurrentBusinessDefault())
-
     class Meta:
         model = models.Waiter
         fields = '__all__'
@@ -696,42 +692,46 @@ class WaiterSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        self.fields['person'] = UserSerializer() if self.context['request'].method == 'GET' else UserFriendsField()
-        self.fields['table'] = serializers.IntegerField(source='table.number', **{'write_only': True} if 'table' in self.context else {})
+        self.fields['person'] = UserSerializer() if self.context['request'].method == 'GET' else UserFriendsField(required=True)
+        self.fields['table'] = serializers.IntegerField(source='table.number', required=True, **{'write_only': True} if 'table' in self.context else {})
 
-    def validate(self, attrs):
-        chkbusiness(attrs['business'])
+    def create_and_validate_table(self, validated_data, instance=None):
+        try:
+            business = models.Business.objects.get(manager=self.context['request'].user)
+        except:
+            raise gen_err(NOT_MANAGER_MSG)
+        validated_data['table'] = models.Table.objects.get_or_create(business=business, number=validated_data['table']['number'] if 'table' in validated_data else instance.table.number)[0]
+        if 'person' in validated_data and models.Waiter.objects.filter(person=validated_data['person'], table__pk=validated_data['table'].pk).exists():
+            raise gen_err(UniqueTogetherValidator.message.format(field_names='person, table'), code='unique')
         fi = None
         for f in ('', '_sat', '_sun'):
-            opened, closed = attrs.get('opened'+f), attrs.get('closed'+f)
-            business_opened = getattr(self.table.business, 'opened'+f)
-            if not opened or not closed or not business_opened:
-                attrs.pop('opened'+f)
-                attrs.pop('closed'+f)
+            opened, closed = validated_data.get('opened'+f), validated_data.get('closed'+f)
+            business_opened = getattr(validated_data['table'].business, 'opened'+f)
+            if not business_opened:
+                validated_data.pop('opened'+f, False)
+                validated_data.pop('closed'+f, False)
                 continue
-            business_closed = getattr(self.table.business, 'closed'+f)
-            if opened < business_opened or business_opened < business_closed and closed > business_closed or business_opened > business_closed and closed < business_opened:
-                raise serializers.ValidationError(("Sunday" if f == '_sun' else "Saturday" if f == '_sat' else "Regular")+" working time exceeds the one for the business.")
-            q = Q(**{'opened'+f+'__lt': opened}) & Q(Q(**{'closed'+f+'__lt': F('opened'+f)}) | Q(**{'closed'+f+'__gt': opened})) | Q(**{'opened'+f+'__lt': closed}) & Q(Q(**{'closed'+f+'__lt': F('opened'+f)}) | Q(**{'closed'+f+'__gt': closed}))
+            if not opened or not closed:
+                validated_data['opened'+f] = None
+                validated_data['closed'+f] = None
+                continue
+            business_closed = getattr(validated_data['table'].business, 'closed'+f)
+            if opened < business_opened or business_opened < business_closed and closed > business_closed or business_opened > business_closed and business_closed < closed < business_opened:
+                raise gen_err(("Sunday" if f == '_sun' else "Saturday" if f == '_sat' else "Regular")+" working time exceeds the one for the business.")
+            q = Q(**{'opened'+f+'__isnull': False}) & (Q(**{'closed'+f: F('opened'+f)}) | Q(**{'closed'+f+'__lt': F('opened'+f)}) & (Q(**{'opened'+f+'__lt': opened}) | Q(**{'opened'+f+'__lt': closed}) | Q(**{'closed'+f+'__gt': opened}) | Q(**{'closed'+f+'__gt': closed})) | Q(**{'closed'+f+'__gt': F('opened'+f)}) & (Q(**{'opened'+f+'__lt': opened}) & Q(**{'closed'+f+'__gt': opened}) | Q(**{'opened'+f+'__lt': closed}) & Q(**{'closed'+f+'__gt': closed})))
             fi = (fi | q) if fi else q
         if fi is not None:
-            if models.Waiter.objects.filter(Q(table=self.table) & fi).exists():
-                raise serializers.ValidationError("There's a conflict in working times with another waiter on the targered table.")
-            if models.Waiter.objects.filter(~Q(table__business=self.table.business) & Q(person=self.person) & fi).exists():
-                raise serializers.ValidationError("Targeted person is already waiter at a different business during the specified time span.")
-        return attrs
-
-    def create_and_validate_table(self, validated_data):
-        validated_data['table'] = models.Table.objects.get_or_create(business=validated_data.pop('business'), number=validated_data['table']['number'])
-        if models.Waiter.objects.filter(person__pk=validated_data['person'].pk, table__pk=validated_data['table'].pk).exists():
-            raise serializers.ValidationError(UniqueTogetherValidator.message.format(field_names='person, table'), code='unique')
+            if models.Waiter.objects.filter(Q(table=validated_data['table']) & ~Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
+                raise gen_err("There's a conflict in working times with another waiter on the targeted table.")
+            if models.Waiter.objects.filter(~Q(table__business=validated_data['table'].business) & Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
+                raise gen_err("Targeted person is already waiter at a different business during the specified time span.")
 
     def create(self, validated_data):
         self.create_and_validate_table(validated_data)
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        self.create_and_validate_table(validated_data)
+        self.create_and_validate_table(validated_data, instance)
         return super().update(instance, validated_data)
 
 class OrderedItemSerializer(serializers.ModelSerializer):

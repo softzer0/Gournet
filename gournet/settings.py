@@ -104,6 +104,7 @@ REST_FRAMEWORK = {
         'main.authentication.JWTAuthentication',
         'main.authentication.SessionAuthentication',
     ),
+    'TIME_FORMAT': "%H:%M"
 }
 
 from dateutil.relativedelta import relativedelta

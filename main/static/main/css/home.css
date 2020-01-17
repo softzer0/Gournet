@@ -234,7 +234,7 @@ html, body {
   height: 100%;
 }
 
-body, .mb3 p, .cmn p { /* , .nmb */
+body, .mb3 p, .cmn p, .nmb {
   margin-bottom: 0;
 }
 

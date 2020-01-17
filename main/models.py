@@ -460,8 +460,9 @@ class Waiter(WorkTime):
 @receiver(pre_save, sender=Waiter)
 def remove_sufficient_work_times(instance, **kwargs):
     for f in ('_sat', '_sun'):
-        if getattr(instance, 'opened'+f) and not getattr(instance.table.business, 'opened'+f):
+        if not getattr(instance.table.business, 'opened'+f):
             setattr(instance, 'opened'+f, None)
+            setattr(instance, 'closed'+f, None)
 
 for subclass in WorkTime.__subclasses__():
     pre_save.connect(check_time, subclass)

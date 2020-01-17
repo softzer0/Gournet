@@ -222,9 +222,21 @@ def list_orders(request):
 
 
 def manage_waiters(request):
-    if not models.Business.objects.filter(manager=request.user).exists():
+    try:
+        b = models.Business.objects.get(manager=request.user)
+    except:
         return redirect('/')
-    return render_with_recent(request, 'waiters.html')
+    wt = []
+    for s in ('', '_sat', '_sun'):
+        if getattr(b, 'opened'+s):
+            wt.append([s])
+            r = ''
+            for f in ('opened', 'closed'):
+                r += (', ' if r else '[') + '[%d, %d]' % (int(getattr(b, f+s).strftime("%H")), int(getattr(b, f+s).strftime("%M")))
+            wt[-1].append(r+']')
+        else:
+            wt.append(False)
+    return render_with_recent(request, 'waiters.html', {'wt': wt})
 
 
 def create_business(request):
@@ -444,7 +456,11 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
         """qs = serializers.friends_from(person, True)
         if person != self.request.user:
             return serializers.sort_related(qs, self.request.user)"""
-        return serializers.friends_from(person, True) #serializers.sort_related(qs, where=serializers.gen_where('user', self.request.user.pk, 'recent', 'user', ct=ContentType.objects.get(model='user').pk))"""
+        qs = serializers.friends_from(person, True) #serializers.sort_related(qs, where=serializers.gen_where('user', self.request.user.pk, 'recent', 'user', ct=ContentType.objects.get(model='user').pk))"""
+        exc = self.request.query_params.get('exclude', False)
+        if exc:
+            qs = qs.exclude(pk__in=[pk for pk in exc.split(',') if pk.isdigit()])
+        return qs
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -671,7 +687,7 @@ class FeedAPIView(MultipleModelAPIView):
         return context
 
 
-class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveDestroyAPIView):
+class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.WaiterSerializer
     pagination_class = None
 
@@ -711,7 +727,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         obj = get_object(self.kwargs['pk'], models.Order)
-        self.kwargs['waiter'] = obj.table.waiters.filter(pk=self.request.user.pk).exists()
+        self.kwargs['waiter'] = obj.table.waiters.filter(person=self.request.user).exists()
         if not self.kwargs['waiter'] and ((obj.person != self.request.user) if self.request.user.is_authenticated else (obj.session != self.request.session.session_key)):
             raise NotFound("Order not found.")
         return obj
@@ -770,7 +786,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             errors = []
             data = []
             context = self.get_serializer_context()
-            for instance in models.Order.objects.filter(Q(table__waiter__person=self.request.user)|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[id for id in self.request.query_params['ids'].split(',') if id.isdigit()]):
+            for instance in models.Order.objects.filter(Q(table__waiter__person=self.request.user)|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[pk for pk in self.request.query_params['ids'].split(',') if pk.isdigit()]):
                 if instance.table.waiters.filter(pk=self.request.user.pk).exists():
                     context['waiter'] = None
                 elif 'waiter' in context:

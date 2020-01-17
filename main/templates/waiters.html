@@ -7,15 +7,57 @@
     <script src="{% static 'main/js/custom/waiters.js' %}"></script>{% endblock %}
 
 {% block container %}
-        <div class="row" ng-controller="WaitersCtrl" ng-init="loadWaiters({{ has_sat }}, {{ has_sun }})">
-            <div class="col-sm-12">
-                <div ng-if="tables.list.length" ng-repeat="table in tables.list" ng-cloak>
-                    <h4>Table {% verbatim %}{{ table.num }}{% endverbatim %}</h4>
-                    <table class="table table-hover table-condensed angular-animate animate">
-
-                    </table>
-                </div>
-                <button class="btn btn-primary btn-block">{% trans "Add a table" %}</button>
+        <div class="row" ng-controller="WaitersCtrl" ng-init="loadWaiters({{ wt.0.1 }}, {% if wt.1.0 %}{{ wt.1.1 }}{% else %}false{% endif %}, {% if wt.2.0 %}{{ wt.2.1 }}{% else %}false{% endif %})">
+            <div class="col-sm-12" ng-if="!loading">
+                <uib-accordion close-others="false">
+                    <div uib-accordion-group heading="{% trans "Table" context "number" %} {% verbatim %}{{ $index + 1 }}{% endverbatim %}" ng-repeat="waiters in tables.list">
+                        <table class="table table-hover table-condensed nmb">
+                            <tr>
+                                <th class="w1"><a href="javascript:" ng-click="addUsers($index)"><i class="fa fa-user-plus"></i></a></th>
+                                <th>{{ '{' }}{ waiters && waiters.length ? '{% trans "Waiter" %}' : '{% trans "No waiters yet" %}' {{ '}' }}}</th>
+                                <th ng-if="waiters && waiters.length">{% trans "Monday-Friday" context "title" %}</th>{% if wt.1 %}
+                                <th ng-if="waiters && waiters.length">{% trans "Saturday" context "title" %}</th>{% endif %}{% if wt.2 %}
+                                <th ng-if="waiters && waiters.length">{% trans "Sunday" context "title" %}</th>{% endif %}
+                                <th class="w1"></th>
+                            </tr>
+                            <tr class="wt" ng-if="waiters && waiters.length" ng-repeat="waiter in waiters">
+                                <td>
+                                    <a href="javascript:" ng-show="waiter.edit.state === false" ng-dialog-message="{% trans "Are you sure that you want to proceed?" %} {{ '{' }}{ waiters.length > 1 ? '{% trans "All data related to the waiter would be lost." %}' : '{% trans "All data related to the whole table would be lost." %}' {{ '}' }}}" ng-dialog-click="deleteWaiter($parent.$parent.$index, $index)"><i class="fa fa-user-times"></i></a>
+                                    <a href="javascript:" ng-show="waiter.edit.state" ng-click="cancelEdit($parent.$parent.$index, $index)"><i class="fa fa-times"></i></a>
+                                </td>
+                                <td>{% verbatim %}{{ waiter.obj.person.first_name }} {{ waiter.obj.person.last_name }}{% endverbatim %}</td>
+                                {% for f in wt %}{% if f.0 == '' or f.0 %}<td>
+                                    <span ng-show="waiter.edit.state === false">{{ '{' }}{ waiter.obj.opened{{ f.0 }} }{{ '}' }}</span>
+                                    <span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="edit_objs[waiter.id].opened{{ f.0 }}" enable-date="false" is-open="edit_objs[waiter.id].dt[{{ forloop.counter0 }}][0]"></span>
+                                    {% if f.0 != '' %}<div ng-show="waiter.edit.state" class="ib checkbox"><input type="checkbox" ng-model="waiter.edit.{{ f.0 }}" ng-disabled="waiter.edit.state === null"></div>
+                                    {% endif %}<fieldset ng-disabled="{% if f.0 != '' %}!waiter.edit.{{ f.0 }} || {% endif %}waiter.edit.state === null">
+                                        <span ng-show="waiter.edit.state !== false" class="input-group input-group-sm">
+                                            <input class="form-control" datetime="HH:mm" ng-model="edit_objs[waiter.id].opened{{ f.0 }}">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-default" type="button" ng-click="edit_objs[waiter.id].dt[{{ forloop.counter0 }}][0] = true"><i class="fa fa-clock-o"></i></button>
+                                            </span>
+                                        </span>
+                                        <div class="ib" ng-class="{'hdt': waiter.edit.state !== false}">-</div>
+                                        <span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="edit_objs[waiter.id].closed{{ f.0 }}" enable-date="false" is-open="edit_objs[waiter.id].dt[{{ forloop.counter0 }}][1]"></span>
+                                        <span ng-show="waiter.edit.state !== false" class="input-group input-group-sm">
+                                            <input class="form-control" datetime="HH:mm" ng-model="edit_objs[waiter.id].closed{{ f.0 }}">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-default" type="button" ng-click="edit_objs[waiter.id].dt[{{ forloop.counter0 }}][1] = true"><i class="fa fa-clock-o"></i></button>
+                                            </span>
+                                        </span>
+                                    </fieldset>
+                                    <span ng-show="waiter.edit.state === false">{{ '{' }}{ waiter.obj.closed{{ f.0 }} }{{ '}' }}</span>
+                                </td>
+                                {% endif %}{% endfor %}<td>
+                                    <a href="javascript:" ng-show="waiter.edit.state === false" ng-click="showEdit(waiter)"><i class="fa fa-edit"></i></a>
+                                    <a href="javascript:" ng-show="waiter.edit.state" ng-click="saveWaiter(waiter)"><i class="fa fa-check"></i></a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </uib-accordion>
+                <button class="btn btn-primary btn-block" ng-click="addTable()">{% trans "One more table" %}</button>
             </div>
+            <div class="loaded loa loa-c" ng-if="loading"><i class="fa fa-spinner fa-2x"></i></div>
         </div>
 {% endblock %}

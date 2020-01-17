@@ -1,0 +1,26 @@
+.wt .input-group {
+    display: inline-table;
+    width: 86px;
+}
+
+.wt .hdt {
+    margin: -20px 3px 0;
+}
+
+.wt .checkbox {
+    position: absolute;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.wt fieldset {
+    display: inline;
+}
+
+.wt > td, .ib {
+    vertical-align: middle !important;
+}
+
+.w1 {
+    width: 1%;
+}

@@ -264,7 +264,7 @@ app
                 params.type = type;
                 var n;
                 if (typeof(type) == 'string') n = 'likes'; else n = 'friends';
-                $uibModal.open({
+                return $uibModal.open({
                     size: 'lg',
                     templateUrl: BASE_MODAL,
                     controller: 'UsersModalCtrl',
@@ -298,7 +298,7 @@ app
             $scope.event = event;
             $scope.sel_cnt = 0;
             $scope.check_disabled = function () { return $scope.sel_cnt == 0 };
-            $scope.button_text = "Notify (%s)"; // interpolate(gettext("Notify (%s)"), [$scope.sel_cnt])
+            $scope.button_text = typeof event == 'string' ? "Add (%s)" : "Notify (%s)"; // interpolate(gettext("Notify (%s)"), [$scope.sel_cnt])
 
             $scope.makeSel = function (i) {
                 //if ($scope.event !== undefined) {
@@ -309,10 +309,17 @@ app
             };
 
             $scope.doAction = function (){
-                $scope.working = true;
-                var to = '';
-                for (i = 0; i < $scope.tabs[0].elems.length; i++) if ($scope.tabs[0].elems[i].selected) to += ',' + $scope.tabs[0].elems[i].id;
-                $rootScope.sendreq('api/events/'+$scope.event+'/notify/?format=json&to='+to.slice(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
+                var to;
+                if (typeof event == 'number') {
+                    $scope.working = true;
+                    to = '';
+                    for (i = 0; i < $scope.tabs[0].elems.length; i++) if ($scope.tabs[0].elems[i].selected) to += ',' + $scope.tabs[0].elems[i].id;
+                    $rootScope.sendreq('api/events/'+$scope.event+'/notify/?format=json&to='+to.slice(1)).then(function (){ $scope.close() }, function () { $scope.working = false });
+                } else {
+                    to = [];
+                    for (i = 0; i < $scope.tabs[0].elems.length; i++) if ($scope.tabs[0].elems[i].selected) to.push($scope.tabs[0].elems[i]);
+                    $uibModalInstance.close(to);
+                }
             }
         }
 
@@ -321,8 +328,8 @@ app
         if (t == 0) o = APIService.init(); else o = APIService.init(3);
         switch (t){
             case 0:
-                $scope.title = d.id == null ? ($scope.event !== undefined ? gettext("Select friend(s)") : gettext("Your friends")) : gettext("Friends");
-                o = APIService.init();
+                $scope.title = d.id == null ? (event !== undefined ? gettext("Select friend(s)") : gettext("Your friends")) : gettext("Friends");
+                if (typeof event == 'string') d.exclude = event;
                 break;
             case 1:
             case 2:
@@ -451,6 +458,9 @@ app
                         break;
                     case 13:
                         n = 'orders';
+                        break;
+                    case 14:
+                        n = 'waiters';
                         break;
                     default: n = 'users'
                 }

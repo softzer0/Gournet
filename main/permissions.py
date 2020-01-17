@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from .models import Event, Comment, Item, Business
+from .models import Event, Comment, Item, Business, Waiter
 
 def match_shortname(request, obj):
     obj = obj if isinstance(obj, Business) else obj.business if hasattr(obj, 'business') else None if not hasattr(obj, 'content_object') else obj.content_object.business if isinstance(obj.content_object, Business) else obj.content_object.content_object.business if isinstance(obj.content_object, Comment) else None
@@ -26,6 +26,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         if isinstance(obj, Event) or isinstance(obj, Item):
             user = obj.business.manager
+        elif isinstance(obj, Waiter):
+            user = obj.table.business.manager
         else:
             user = getattr(obj, 'person', getattr(obj, 'user', getattr(obj, 'manager', obj)))
 
