@@ -641,6 +641,10 @@ msgstr "Učitaj još"
 msgid "You don't have any notifications yet."
 msgstr "Još uvek nemate obaveštenja."
 
+#: .\main\templates\orders.html:6
+msgid "Orders"
+msgstr "Porudžbine"
+
 #: .\main\templates\base\home.html:60 .\main\templates\orders.html:26 .\main\views.py:770
 msgid "Anonymous"
 msgstr "Anoniman"
@@ -933,6 +937,10 @@ msgstr "Plaćeno karticom"
 #: .\main\templates\orders.html:21
 msgid "There are currently no orders."
 msgstr "Trenutno nema porudžbina."
+
+#: .\main\templates\waiters.html:5
+msgid "Waiters"
+msgstr "Konobari"
 
 #: .\main\templates\orders.html:23 .\main\templates\waiters.html:13
 msgctxt "number"

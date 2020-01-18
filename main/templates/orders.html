@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load cache %}
 
+{% block title %}{% trans "Orders" %} - Gournet{% endblock %}
 {% block head %}{{ block.super }}
     <link rel="stylesheet" href="{% static 'main/css/orders.css' %}">
     <script src="{% static 'main/js/custom/orders.js' %}"></script>{% endblock %}

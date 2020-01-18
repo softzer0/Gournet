@@ -484,7 +484,7 @@ class Table(models.Model):
         s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
         now = now.time()
         try:
-            return self.waiter_set.get(**{'opened'+s+'__lt': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.get(Q(**{'opened'+s+'__lt': now}) | Q(**{'closed'+s+'__gt': now}))
+            return self.waiter_set.get(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.get(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
         except:
             pass
 

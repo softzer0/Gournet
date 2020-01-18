@@ -718,7 +718,7 @@ class WaiterSerializer(serializers.ModelSerializer):
             business_closed = getattr(validated_data['table'].business, 'closed'+f)
             if opened < business_opened or business_opened < business_closed and closed > business_closed or business_opened > business_closed and business_closed < closed < business_opened:
                 raise gen_err(("Sunday" if f == '_sun' else "Saturday" if f == '_sat' else "Regular")+" working time exceeds the one for the business.")
-            q = Q(**{'opened'+f+'__isnull': False}) & (Q(**{'closed'+f: F('opened'+f)}) | Q(**{'closed'+f+'__lt': F('opened'+f)}) & (Q(**{'opened'+f+'__lt': opened}) | Q(**{'opened'+f+'__lt': closed}) | Q(**{'closed'+f+'__gt': opened}) | Q(**{'closed'+f+'__gt': closed})) | Q(**{'closed'+f+'__gt': F('opened'+f)}) & (Q(**{'opened'+f+'__lt': opened}) & Q(**{'closed'+f+'__gt': opened}) | Q(**{'opened'+f+'__lt': closed}) & Q(**{'closed'+f+'__gt': closed})))
+            q = Q(**{'opened'+f+'__isnull': False}) & (Q(**{'closed'+f: F('opened'+f)}) | Q(**{'closed'+f+'__lt': F('opened'+f)}) & (Q(**{'opened'+f+'__lte': opened}) | Q(**{'opened'+f+'__lt': closed}) | Q(**{'closed'+f+'__gt': opened}) | Q(**{'closed'+f+'__gt': closed})) | Q(**{'closed'+f+'__gt': F('opened'+f)}) & (Q(**{'opened'+f+'__lt': opened}) & Q(**{'closed'+f+'__gt': opened}) | Q(**{'opened'+f+'__lt': closed}) & Q(**{'closed'+f+'__gt': closed})))
             fi = (fi | q) if fi else q
         if fi is not None:
             if models.Waiter.objects.filter(Q(table=validated_data['table']) & ~Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
