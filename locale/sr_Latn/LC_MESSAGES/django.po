@@ -1480,7 +1480,7 @@ msgstr "Konobar"
 
 #: .\main\templates\waiters.html:17
 msgid "No waiters yet"
-msgstr "Trenutno nema konobara"
+msgstr "Još nema konobara"
 
 #: .\main\templates\waiters.html:18
 msgctxt "title"
