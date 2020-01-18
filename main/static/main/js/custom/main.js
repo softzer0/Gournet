@@ -412,7 +412,10 @@ app
                         $scope.order.requested = result.requested;
                     } else if (result.paid != null) $scope.order.paid = result.paid; else $scope.order.delivered = result.delivered;
                     delete $scope.working;
-                }, function (){ delete $scope.working });
+                }, function (res){
+                    delete $scope.working;
+                    dialogService.show(res.data && res.data.detail ? gettext("Either the business has been closed in the meantime, or there is currently no waiter for the table.") : gettext("There was some error while doing this action."), false);
+                });
             }
             if ($scope.order.person !== undefined && $scope.order.requested == null && r === null) dialogService.show(gettext("Mark this order as paid even though the orderer didn't request the payment?")).then(cont); else cont();
         };

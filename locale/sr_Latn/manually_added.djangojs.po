@@ -56,3 +56,9 @@ msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."
 
 msgid "Targeted person is already waiter at a different business during the specified time span."
 msgstr "Ciljana osoba je već konobar u drugom ugostiteljskom objektu tokom definisanog perioda."
+
+msgid "The business has been closed in the meantime."
+msgstr "Ugostiteljski objekat se u međuvremenu zatvorio."
+
+msgid "There are currently no waiters for the table."
+msgstr "Trenutno nema konobara za stolom."

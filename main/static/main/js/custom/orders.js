@@ -142,7 +142,9 @@ app
                 dialogService.show(gettext("Are you sure?")).then(function (){
                     var data = {ids: '&ids='+$scope.popover.type[$scope.popover.type.length === 2 ? t : 0].list.join(',')};
                     if ($scope.popover.type.length === 1) data.request_type = t; else if (t == 0) data.delivered = true; else data.paid = true;
-                    service.update(data, function (){ orderListService.load() });
+                    service.update(data, function (){ orderListService.load() }, function (res) {
+                        dialogService.show(res.data && res.data.detail ? gettext("Either the business has been closed in the meantime, or there is currently no waiter for the table.") : gettext("There was some error while doing this action."), false);
+                    });
                 });
             };
         };

@@ -479,14 +479,14 @@ class Table(models.Model):
     def __str__(self):
         return '%s: Table #%s (@%s)' % (self.business, self.number, self.counter)
 
-    def get_current_waiter(self):
+    def get_current_waiter(self, check_exist=False):
         now, opened, closed = self.business.get_now_opened_closed()
         s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
         now = now.time()
-        try:
-            return self.waiter_set.get(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.get(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
-        except:
-            pass
+        if opened < closed and (now < opened or now > closed) or opened > closed and closed < now < opened:
+            return False
+        waiter = self.waiter_set.filter(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.get(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
+        return waiter.first() if not check_exist else True if waiter.exists() else None
 
 class OrderedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)

@@ -699,10 +699,10 @@ class WaiterSerializer(serializers.ModelSerializer):
         try:
             business = models.Business.objects.get(manager=self.context['request'].user)
         except:
-            raise gen_err(NOT_MANAGER_MSG)
+            gen_err(NOT_MANAGER_MSG)
         validated_data['table'] = models.Table.objects.get_or_create(business=business, number=validated_data['table']['number'] if 'table' in validated_data else instance.table.number)[0]
         if 'person' in validated_data and models.Waiter.objects.filter(person=validated_data['person'], table__pk=validated_data['table'].pk).exists():
-            raise gen_err(UniqueTogetherValidator.message.format(field_names='person, table'), code='unique')
+            gen_err(UniqueTogetherValidator.message.format(field_names='person, table'), code='unique')
         fi = None
         for f in ('', '_sat', '_sun'):
             opened, closed = validated_data.get('opened'+f), validated_data.get('closed'+f)
@@ -716,15 +716,15 @@ class WaiterSerializer(serializers.ModelSerializer):
                 validated_data['closed'+f] = None
                 continue
             business_closed = getattr(validated_data['table'].business, 'closed'+f)
-            if opened < business_opened or business_opened < business_closed and closed > business_closed or business_opened > business_closed and business_closed < closed < business_opened:
-                raise gen_err(("Sunday" if f == '_sun' else "Saturday" if f == '_sat' else "Regular")+" working time exceeds the one for the business.")
+            if business_opened != business_closed and opened == closed or business_opened < business_closed and (opened > closed or opened < business_opened or closed > business_closed) or business_opened > business_closed and (business_closed < opened < business_opened or business_closed < closed < business_opened):
+                gen_err(("Sunday" if f == '_sun' else "Saturday" if f == '_sat' else "Regular")+" working time exceeds the one for the business.")
             q = Q(**{'opened'+f+'__isnull': False}) & (Q(**{'closed'+f: F('opened'+f)}) | Q(**{'closed'+f+'__lt': F('opened'+f)}) & (Q(**{'opened'+f+'__lte': opened}) | Q(**{'opened'+f+'__lt': closed}) | Q(**{'closed'+f+'__gt': opened}) | Q(**{'closed'+f+'__gt': closed})) | Q(**{'closed'+f+'__gt': F('opened'+f)}) & (Q(**{'opened'+f+'__lt': opened}) & Q(**{'closed'+f+'__gt': opened}) | Q(**{'opened'+f+'__lt': closed}) & Q(**{'closed'+f+'__gt': closed})))
             fi = (fi | q) if fi else q
         if fi is not None:
             if models.Waiter.objects.filter(Q(table=validated_data['table']) & ~Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
-                raise gen_err("There's a conflict in working times with another waiter on the targeted table.")
+                gen_err("There's a conflict in working times with another waiter on the targeted table.")
             if models.Waiter.objects.filter(~Q(table__business=validated_data['table'].business) & Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
-                raise gen_err("Targeted person is already waiter at a different business during the specified time span.")
+                gen_err("Targeted person is already waiter at a different business during the specified time span.")
 
     def create(self, validated_data):
         self.create_and_validate_table(validated_data)
@@ -814,7 +814,11 @@ class OrderSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        order = models.Order.objects.create(table=models.Table.objects.get(pk=self.context['request'].session['table']['id']), **get_person_or_session(self.context['request']))
+        table = models.Table.objects.get(pk=self.context['request'].session['table']['id'])
+        has_waiter = table.get_current_waiter(True)
+        if not has_waiter:
+            gen_err("The business has been closed in the meantime." if has_waiter is False else "There are currently no waiters for the table.")
+        order = models.Order.objects.create(table=table, **get_person_or_session(self.context['request']))
         ordered_items = []
         for ordered_item in validated_data['ordereditem_set']:
             ordered_item = models.OrderedItem(order=order, **ordered_item)

@@ -89,6 +89,14 @@ msgstr "Odustani"
 msgid "Are you sure?"
 msgstr "Da li ste sigurni?"
 
+#: .\main\static\main\js\custom\main.js:202 .\main\static\main\js\custom\orders.js:146
+msgid "Either the business has been closed in the meantime, or there is currently no waiter for the table."
+msgstr "Ugostiteljski objekat je u međuvremenu zatvoren, ili trenutno nema konobara za stolom."
+
+#: .\main\static\main\js\custom\main.js:202 .\main\static\main\js\custom\orders.js:146
+msgid "There was some error while doing this action."
+msgstr "Desila se neka greška."
+
 #: .\main\static\main\js\custom\main.js:331
 msgid "Select friend(s)"
 msgstr "Odaberi prijatelja/e"
@@ -428,6 +436,10 @@ msgstr "Da li ste sigurni da želite da poručite? Ova akcija je nepovratna."
 #: .\main\static\main\js\custom\view.js:198
 msgid "Your order has been placed. Enjoy!"
 msgstr "Vaša porudžbina je poslata. Uživajte!"
+
+#: .\main\static\main\js\custom\view.js:202
+msgid "Can't place an order due to the following:"
+msgstr "Nije moguće poručiti zbog sledećeg:"
 
 #: .\main\static\main\js\custom\view.js:202
 msgid "There was some error while placing your order."
@@ -847,3 +859,9 @@ msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."
 
 msgid "Targeted person is already waiter at a different business during the specified time span."
 msgstr "Ciljana osoba je već konobar u drugom ugostiteljskom objektu tokom definisanog perioda."
+
+msgid "The business has been closed in the meantime."
+msgstr "Ugostiteljski objekat se u međuvremenu zatvorio."
+
+msgid "There are currently no waiters for the table."
+msgstr "Trenutno nema konobara za stolom."

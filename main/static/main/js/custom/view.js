@@ -197,9 +197,9 @@ app
                                     $scope.o_disabled = true;
                                     dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
                                     $scope.resetTime();
-                                }, function () {
+                                }, function (res) {
                                     delete $scope.o_disabled;
-                                    dialogService.show(gettext("There was some error while placing your order."), false);
+                                    dialogService.show(res.data && res.data.non_field_errors ? gettext("Can't place an order due to the following:") + ' ' + gettext(res.data.non_field_errors[0]) : gettext("There was some error while placing your order."), false);
                                 });
                             }, function (){ if (!$scope.o_disabled) delete $scope.o_disabled });
                         };
