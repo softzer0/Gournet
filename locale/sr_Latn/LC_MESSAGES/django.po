@@ -8,1389 +8,1312 @@ msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-03-12 17:49+0100\n"
-"PO-Revision-Date: 2017-02-25 19:46+0100\n"
+"PO-Revision-Date: 2020-01-18 15:05+0100\n"
 "Last-Translator: Mihailo Popović <mihailosoft@gmail.com>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: Serbian\n"
+"Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Poedit 1.5.4\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Poedit 2.2.4\n"
+"Language-Team: \n"
 
-#: gournet/settings.py:245
+#: .\gournet\settings.py:261
 msgid "English"
 msgstr "Engleski"
 
-#: gournet/settings.py:246
+#: .\gournet\settings.py:262
 msgid "Serbian"
 msgstr "Srpski"
 
-#: main/allauth_forms.py:35
+#: .\main\admin.py:23
+msgid "has any item?"
+msgstr "ima barem jednog proizvoda?"
+
+#: .\main\admin.py:39
+msgid "name/text"
+msgstr "ime/tekst"
+
+#: .\main\admin.py:57 .\main\admin.py:69
+msgid "like(s)"
+msgstr "sviđanja"
+
+#: .\main\admin.py:57
+msgid "item(s)"
+msgstr "proizvodi"
+
+#: .\main\admin.py:57
+msgid "event(s)"
+msgstr "događaji"
+
+#: .\main\admin.py:61
+msgid "review(s)"
+msgstr "recenzije"
+
+#: .\main\admin.py:73
+msgid "dislike(s)"
+msgstr "nesviđanja"
+
+#: .\main\admin.py:78
+msgid "comment(s)"
+msgstr "komentari"
+
+#: .\main\admin.py:94
+msgid "star count"
+msgstr "broj zvezdica"
+
+#: .\main\admin.py:94
+msgid "rating"
+msgstr "ocena"
+
+#: .\main\admin.py:99
+msgid "comment"
+msgstr "komentar"
+
+#: .\main\admin.py:100
+msgid "comments"
+msgstr "komentari"
+
+#: .\main\allauth_forms.py:35
 msgid "Enter the same password as before, for verification."
 msgstr "Unesite istu lozinku kao i prethodnu, za verifikaciju."
 
-#: main/allauth_forms.py:41
+#: .\main\allauth_forms.py:41
 msgid "City"
 msgstr "Grad"
 
-#: main/allauth_forms.py:42
+#: .\main\allauth_forms.py:42
 msgid "Enter city from where are you from, e.g: Vranje, Serbia."
 msgstr "Unesite svoje prebivalište, npr: Vranje, Srbija."
 
-#: main/allauth_forms.py:47
+#: .\main\allauth_forms.py:47
 msgid "Invalid birthdate."
 msgstr "Uneti datum nije validan."
 
-#: main/allauth_forms.py:73
+#: .\main\allauth_forms.py:73
 msgid "Remember Me"
 msgstr "Zapamti me"
 
-#: main/forms.py:11
-msgid "A business with that shortname already exists."
-msgstr "Ugostiteljski objekat sa tom skraćenicom već postoji."
+#: .\main\apps.py:23
+msgid "review"
+msgstr "recenzija"
 
-#: main/forms.py:12
-msgid ""
-"Either coordinates for specified address are not found, or there's some "
-"internal error."
-msgstr ""
-"Koordiate za zadatu adresu nisu pronađene, ili je u pitanju neka interna "
-"greška."
+#: .\main\apps.py:24
+msgid "reviews"
+msgstr "recenzije"
 
-#: main/forms.py:90
-msgid ""
-"You have to adjust the exact location using the map with a marker below."
+#: .\main\apps.py:43 .\main\models.py:531
+msgid "stars"
+msgstr "zvezdice"
+
+#: .\main\forms.py:11
+msgid "Either coordinates for specified address are not found, or there's some internal error."
+msgstr "Koordiate za zadatu adresu nisu pronađene, ili je u pitanju neka interna greška."
+
+#: .\main\forms.py:99
+msgid "You have to adjust the exact location using the map with a marker below."
 msgstr "Morate podesiti tačnu lokaciju koristeći mapu sa markerom ispod."
 
-#: main/forms.py:114
+#: .\main\forms.py:123
 msgid "Type of your business"
 msgstr "Tip vašeg ugostiteljskog objekta"
 
-#: main/forms.py:115
+#: .\main\forms.py:124
 msgctxt "name of business"
 msgid "Its name"
 msgstr "Njegovo ime"
 
-#: main/forms.py:121
+#: .\main\forms.py:130
 msgid "Shortname (a part of the URL)"
 msgstr "Skraćenica (deo URL adrese)"
 
-#: main/forms.py:135
+#: .\main\forms.py:144
 msgid "Send replies to"
 msgstr "Šalji odgovore na"
 
-#: main/forms.py:135
+#: .\main\forms.py:144
 msgid "E-mail Address"
 msgstr "E-mail adresa"
 
-#: main/forms.py:136
+#: .\main\forms.py:145
 msgid "Message"
 msgstr "Poruka"
 
-#: main/forms.py:136
+#: .\main\forms.py:145
 msgid "Enter message here..."
 msgstr "Unesite poruku ovde..."
 
-#: main/models.py:53
+#: .\main\models.py:50
 msgid "Serbian dinar (RSD)"
 msgstr "Srpski dinar (RSD)"
 
-#: main/models.py:53
+#: .\main\models.py:50
 msgid "Euro (EUR)"
 msgstr "Evro (EUR)"
 
-#: main/models.py:54
+#: .\main\models.py:51
 msgid "Male"
 msgstr "Muški"
 
-#: main/models.py:54
+#: .\main\models.py:51
 msgid "Female"
 msgstr "Ženski"
 
-#: main/models.py:62
+#: .\main\models.py:59
 msgid "longitude/latitude"
 msgstr "longituda/latituda"
 
-#: main/models.py:62
+#: .\main\models.py:59
 msgid "Enter valid coordinates."
 msgstr "Unesite validne koordinate."
 
-#: main/models.py:64
+#: .\main\models.py:61
 msgid "address"
 msgstr "adresa"
 
-#: main/models.py:65
+#: .\main\models.py:62
 msgid "time zone"
 msgstr "vremenska zona"
 
-#: main/models.py:101 main/models.py:245
+#: .\main\models.py:103 .\main\models.py:289
 #, python-format
 msgid "Maximum %d characters."
 msgstr "Maksimalno %d karaktera."
 
-#: main/models.py:101 main/models.py:245
+#: .\main\models.py:103 .\main\models.py:289
 msgid "English alphabet (case-insensitive), digits and ./-/_ only."
-msgstr ""
-"Engleska abeceda (nije osetljivo na veličinu), brojevi i ./-/_ karakteri su "
-"samo dozvoljeni."
+msgstr "Engleska abeceda (nije osetljivo na veličinu), brojevi i ./-/_ karakteri su samo dozvoljeni."
 
-#: main/models.py:103
+#: .\main\models.py:105
 msgid "A user with that username already exists."
 msgstr "Korisnik sa tim korisničkim imenom već postoji."
 
-#: main/models.py:105 main/models.py:250
+#: .\main\models.py:107 .\main\models.py:294
 msgid "first name"
 msgstr "ime"
 
-#: main/models.py:105
+#: .\main\models.py:107
 msgid "Invalid first name."
 msgstr "Netačno ime."
 
-#: main/models.py:106
+#: .\main\models.py:108
 msgid "last name"
 msgstr "prezime"
 
-#: main/models.py:106
+#: .\main\models.py:108
 msgid "Invalid last name."
 msgstr "Netačno prezime."
 
-#: main/models.py:107
+#: .\main\models.py:109
 msgid "email address"
 msgstr "email adresa"
 
-#: main/models.py:116
+#: .\main\models.py:118
 msgid "gender"
 msgstr "pol"
 
-#: main/models.py:117
+#: .\main\models.py:119
 msgid "birthdate"
 msgstr "datum rođenja"
 
-#: main/models.py:119
+#: .\main\models.py:121
 msgid "name already changed?"
 msgstr "ime već promenjeno?"
 
-#: main/models.py:120
+#: .\main\models.py:122
 msgid "gender already changed?"
 msgstr "pol već promenjen?"
 
-#: main/models.py:121
+#: .\main\models.py:123
 msgid "birthdate already changed?"
 msgstr "datum rođenja već promenjen?"
 
-#: main/models.py:123
+#: .\main\models.py:126
 msgid "currency"
 msgstr "valuta"
 
-#: main/models.py:124
+#: .\main\models.py:127
 msgid "language"
 msgstr "jezik"
 
-#: main/models.py:140
+#: .\main\models.py:143
 msgid "is manager?"
 msgstr "da li je menadžer?"
 
-#: main/models.py:212
+#: .\main\models.py:228
 #, python-format
 msgid "%s wants to be your friend."
 msgstr "%s želi biti Vaš prijatelj."
 
-#: main/models.py:215
+#: .\main\models.py:231
 #, python-format
 msgid "%s has accepted friend request."
 msgstr "%s je prihvatio/la zahtev za prijateljstvo."
 
-#: main/models.py:229
+#: .\main\models.py:246
 #, python-format
 msgid "\"%s\" is not permitted as a shortname."
 msgstr "\"%s\" nije dozvoljeno kao skraćenica."
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgid "Restaurant"
 msgstr "Restoran"
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgid "Tavern"
 msgstr "Kafana"
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgid "Bistro"
 msgstr "Bistro"
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgid "Cafe"
 msgstr "Cafe"
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgid "Pub"
 msgstr "Pab"
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgid "Bar"
 msgstr "Bar"
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgid "Nightclub"
 msgstr "Noćni klub"
 
-#: main/models.py:238
+#: .\main\models.py:255
 msgctxt "type of business"
 msgid "Fast food"
 msgstr "Usluga brze hrane"
 
-#: main/models.py:242
-msgid "shortname"
-msgstr "skraćenica"
-
-#: main/models.py:245
-msgid ""
-"The people could access your business by putting its shortname after the "
-"site address, e.g: <u>www.gournet.co/shortname</u>."
-msgstr ""
-"Ljudi mogu pristupiti Vašem ugostiteljskom objektu stavljanjem njegove "
-"skraćenice nakon adrese ovog sajta: <u>www.gournet.co/skracenica</u>."
-
-#: main/models.py:249 main/admin.py:29
-msgid "type"
-msgstr "tip"
-
-#: main/models.py:250
-msgid "Enter a valid business name."
-msgstr "Unesite validno ime ugostiteljskog objekta."
-
-#: main/models.py:251
-msgid "phone number"
-msgstr "broj telefona"
-
-#: main/models.py:252
+#: .\main\models.py:258
 msgid "opening time"
 msgstr "vreme otvaranja"
 
-#: main/models.py:253
+#: .\main\models.py:259
 msgid "opening time on Saturday"
 msgstr "vreme otvaranja u subotu"
 
-#: main/models.py:254
+#: .\main\models.py:260
 msgid "opening time on Sunday"
 msgstr "vreme otvaranja u nedelju"
 
-#: main/models.py:255
+#: .\main\models.py:261
 msgid "closing time"
 msgstr "vreme zatvaranja"
 
-#: main/models.py:256
+#: .\main\models.py:262
 msgid "closing time on Saturday"
 msgstr "vreme zatvaranja u subotu"
 
-#: main/models.py:257
+#: .\main\models.py:263
 msgid "closing time on Sunday"
 msgstr "vreme zatvaranja u nedelju"
 
-#: main/models.py:258
+#: .\main\models.py:285
+msgid "shortname"
+msgstr "skraćenica"
+
+#: .\main\models.py:288
+msgid "A business with that shortname already exists."
+msgstr "Ugostiteljski objekat sa tom skraćenicom već postoji."
+
+#: .\main\models.py:289
+msgid "The people could access your business by putting its shortname after the site address, e.g: <u>www.gournet.co/shortname</u>."
+msgstr "Ljudi mogu pristupiti Vašem ugostiteljskom objektu stavljanjem njegove skraćenice nakon adrese ovog sajta: <u>www.gournet.co/skracenica</u>."
+
+#: .\main\models.py:293
+msgid "type"
+msgstr "tip"
+
+#: .\main\models.py:294
+msgid "Enter a valid business name."
+msgstr "Unesite validno ime ugostiteljskog objekta."
+
+#: .\main\models.py:295
+msgid "phone number"
+msgstr "broj telefona"
+
+#: .\main\models.py:296
 msgid "default currency"
 msgstr "korišćena valuta:"
 
-#: main/models.py:259
+#: .\main\models.py:297
 msgid "other supported currencies (if any)"
 msgstr "ostale podržane valute (ako ih ima):"
 
-#: main/models.py:260
+#: .\main\models.py:298
 msgctxt "business"
 msgid "is published?"
 msgstr "objavljen je?"
 
-#: main/models.py:267 main/models.py:350 main/models.py:281
+#: .\main\models.py:307 .\main\models.py:331 .\main\models.py:405
 msgid "business"
 msgstr "ugostiteljski objekat"
 
-#: main/models.py:268
+#: .\main\models.py:308
 msgid "businesses"
 msgstr "ugostiteljski objekti"
 
-#: main/models.py:283
+#: .\main\models.py:332 .\main\models.py:529
+msgid "text"
+msgstr "tekst"
+
+#: .\main\models.py:333
 msgid "when"
 msgstr "kada"
 
-#: main/models.py:291
+#: .\main\models.py:334
+msgid "created"
+msgstr "napravljeno"
+
+#: .\main\models.py:341
 msgid "event"
 msgstr "događaj"
 
-#: main/models.py:292
+#: .\main\models.py:342
 msgid "events"
 msgstr "događaji"
 
-#: main/models.py:308
+#: .\main\models.py:358
 msgid "Alcoholic beverages"
 msgstr "Alkoholna pića"
 
-#: main/models.py:310
+#: .\main\models.py:359
+msgid "Cider"
+msgstr "Cider"
+
+#: .\main\models.py:360
 msgid "Whiskey"
 msgstr "Viski"
 
-#: main/models.py:311
+#: .\main\models.py:361
 msgid "Wine"
 msgstr "Vino"
 
-#: main/models.py:312
+#: .\main\models.py:362
 msgid "Beer"
 msgstr "Pivo"
 
-#: main/models.py:313
+#: .\main\models.py:363
 msgid "Vodka"
 msgstr "Votka"
 
-#: main/models.py:314
+#: .\main\models.py:364
 msgctxt "singular"
 msgid "Brandy"
 msgstr "Rakija, vinjak, konjak i sl."
 
-#: main/models.py:315
+#: .\main\models.py:365
 msgid "Liqueur"
 msgstr "Liker"
 
-#: main/models.py:316
+#: .\main\models.py:366
 msgid "Cocktail"
 msgstr "Koktel"
 
-#: main/models.py:317
+#: .\main\models.py:367
 msgid "Tequila"
 msgstr "Tekila"
 
-#: main/models.py:318
+#: .\main\models.py:368
 msgid "Gin"
 msgstr "Džin"
 
-#: main/models.py:319
+#: .\main\models.py:369
 msgid "Rum"
 msgstr "Rum"
 
-#: main/models.py:322
+#: .\main\models.py:372
 msgid "Other drinks"
 msgstr "Ostala pića"
 
-#: main/models.py:323
+#: .\main\models.py:373
 msgid "Coffee"
 msgstr "Kafa"
 
-#: main/models.py:324
+#: .\main\models.py:374
 msgid "Soft drink"
 msgstr "Bezalkoholno piće"
 
-#: main/models.py:325
+#: .\main\models.py:375
 msgid "Juice"
 msgstr "Sok"
 
-#: main/models.py:326
+#: .\main\models.py:376
 msgid "Tea"
 msgstr "Čaj"
 
-#: main/models.py:327
+#: .\main\models.py:377
 msgid "Hot chocolate"
 msgstr "Topla čokolada"
 
-#: main/models.py:328
+#: .\main\models.py:378
 msgctxt "singular"
 msgid "Water"
 msgstr "Voda"
 
-#: main/models.py:329 main/models.py:343
+#: .\main\models.py:379 .\main\models.py:397
 msgid "Other"
 msgstr "Ostalo"
 
-#: main/models.py:332
+#: .\main\models.py:382
 msgid "Food"
 msgstr "Hrana"
 
-#: main/models.py:333
+#: .\main\models.py:383
 msgctxt "singular"
 msgid "Fast food"
 msgstr "Brza hrana"
 
-#: main/models.py:333
+#: .\main\models.py:384
 msgid "Sandwich"
 msgstr "Sendvič"
 
-#: main/models.py:334
+#: .\main\models.py:385
 msgid "Pizza"
 msgstr "Pica"
 
-#: main/models.py:335
+#: .\main\models.py:386
 msgid "Pasta"
 msgstr "Testenina"
 
-#: main/models.py:336
+#: .\main\models.py:387
 msgid "Pastry"
 msgstr "Testo"
 
-#: main/models.py:336
+#: .\main\models.py:388
 msgid "Breakfast"
 msgstr "Doručak"
 
-#: main/models.py:336
+#: .\main\models.py:389
 msgid "Appetizer"
 msgstr "Predjelo"
 
-#: main/models.py:337
+#: .\main\models.py:390
 msgid "Soup, stew"
 msgstr "Supa, čorba i sl."
 
-#: main/models.py:338
+#: .\main\models.py:391
 msgid "Meal"
 msgstr "Obrok/jelo"
 
-#: main/models.py:339
+#: .\main\models.py:392
 msgctxt "singular"
 msgid "Barbecue"
 msgstr "Roštilj"
 
-#: main/models.py:340
+#: .\main\models.py:393
 msgid "Seafood, fish dish"
 msgstr "Morska hrana, riblje jelo"
 
-#: main/models.py:340
+#: .\main\models.py:394
 msgid "Food additive"
 msgstr "Prilog"
 
-#: main/models.py:341
+#: .\main\models.py:395
 msgid "Salad"
 msgstr "Salata"
 
-#: main/models.py:342
+#: .\main\models.py:396
 msgid "Dessert"
 msgstr "Dezert"
 
-#: main/models.py:351
+#: .\main\models.py:406
 msgid "category"
 msgstr "kategorija"
 
-#: main/models.py:352
+#: .\main\models.py:407
 msgid "name"
 msgstr "ime"
 
-#: main/models.py:353
+#: .\main\models.py:408
 msgid "price"
 msgstr "cena"
 
-#: main/models.py:354 main/models.py:393
+#: .\main\models.py:409 .\main\models.py:504 .\main\models.py:530
 msgctxt "item/comment/review"
 msgid "created on"
 msgstr "napravljen"
 
-#: main/models.py:355
+#: .\main\models.py:410
 msgid "has image?"
 msgstr "ima sliku?"
 
-#: main/models.py:362
+#: .\main\models.py:417
 msgid "item"
 msgstr "proizvod"
 
-#: main/models.py:363
+#: .\main\models.py:418
 msgid "items"
 msgstr "proizvodi"
 
-#: main/models.py:388
-msgid "Started"
-msgstr "Započeto"
+#: .\main\models.py:505
+msgctxt "order"
+msgid "delivered on"
+msgstr "dostavljena"
 
-#: main/models.py:388
-msgid "Closed"
-msgstr "Zatvoreno"
+#: .\main\models.py:506
+msgid "payment type"
+msgstr "način plaćanja"
 
-#: main/models.py:388
-msgid "Completed"
-msgstr "Završeno"
+#: .\main\models.py:506
+msgid "Cash"
+msgstr "Gotovina"
 
-#: main/models.py:388
-msgid "Declined"
-msgstr "Odbijeno"
+#: .\main\models.py:506
+msgid "Debit card"
+msgstr "Platna kartica"
 
-#: main/models.py:388
-msgid "Under review"
-msgstr "U razmatranju"
+#: .\main\models.py:507
+msgctxt "order"
+msgid "requested payment on"
+msgstr "zatraženo plaćanje"
 
-#: main/models.py:388
-msgid "Planned"
-msgstr "Planirano"
+#: .\main\models.py:508
+msgctxt "order"
+msgid "paid on"
+msgstr "plaćeno"
 
-#: main/models.py:388
-msgid "Archived"
-msgstr "Arhivirano"
-
-#: main/models.py:388
-msgid "Need feedback"
-msgstr "Potrebna povratna informacija"
-
-#: main/models.py:380
+#: .\main\models.py:518
 msgid "object type"
 msgstr "tip objekta"
 
-#: main/models.py:381
+#: .\main\models.py:519
 msgid "object ID"
 msgstr "ID objekta"
 
-#: main/models.py:391
+#: .\main\models.py:525
+msgid "Started"
+msgstr "Započeto"
+
+#: .\main\models.py:525
+msgid "Closed"
+msgstr "Zatvoreno"
+
+#: .\main\models.py:525
+msgid "Completed"
+msgstr "Završeno"
+
+#: .\main\models.py:525
+msgid "Declined"
+msgstr "Odbijeno"
+
+#: .\main\models.py:525
+msgid "Under review"
+msgstr "U razmatranju"
+
+#: .\main\models.py:525
+msgid "Planned"
+msgstr "Planirano"
+
+#: .\main\models.py:525
+msgid "Archived"
+msgstr "Arhivirano"
+
+#: .\main\models.py:525
+msgid "Need feedback"
+msgstr "Potrebna povratna informacija"
+
+#: .\main\models.py:528
 msgid "person"
 msgstr "osoba"
 
-#: main/models.py:392 main/models.py:282
-msgid "text"
-msgstr "tekst"
-
-#: main/models.py:394
-msgid "stars"
-msgstr "zvezdice"
-
-#: main/models.py:395
+#: .\main\models.py:532
 msgid "main comment"
 msgstr "glavni komentar"
 
-#: main/models.py:396
+#: .\main\models.py:533
 msgid "status"
 msgstr "status"
 
-#: main/templates/base/home.html:37
+#: .\main\templates\base\home.html:37
 msgid "(None)"
 msgstr "(Ništa)"
 
-#: main/templates/base/home.html:49
+#: .\main\templates\base\home.html:52
 msgid "Load more"
 msgstr "Učitaj još"
 
-#: main/templates/base/home.html:53
+#: .\main\templates\base\home.html:56
 msgid "You don't have any notifications yet."
 msgstr "Još uvek nemate obaveštenja."
 
-#: main/templates/base/home.html:48
+#: .\main\templates\base\home.html:60 .\main\templates\orders.html:26 .\main\views.py:770
+msgid "Anonymous"
+msgstr "Anoniman"
+
+#: .\main\templates\base\home.html:64
+msgid "My orders"
+msgstr "Moje porudžbine"
+
+#: .\main\templates\base\home.html:65
+msgid "Manage waiters"
+msgstr "Uredi konobare"
+
+#: .\main\templates\base\home.html:66
 msgid "My business"
 msgstr "Moj ugostiteljski objekat"
 
-#: main/templates/base/home.html:51
+#: .\main\templates\base\home.html:69
 msgid "Favourites"
 msgstr "Omiljeni"
 
-#: main/templates/base/home.html:53 main/templates/base/home.html:62
+#: .\main\templates\base\home.html:71 .\main\templates\base\home.html:80
 msgid "News feed"
 msgstr "Novosti"
 
-#: main/templates/base/home.html:54 main/templates/base/home.html:63
+#: .\main\templates\base\home.html:72 .\main\templates\base\home.html:81
 msgid "Show list"
 msgstr "Prikaži listu"
 
-#: main/templates/base/home.html:56 main/templates/base/home.html:65
+#: .\main\templates\base\home.html:74 .\main\templates\base\home.html:83
 msgid "Recent"
 msgstr "Nedavno"
 
-#: main/templates/base/home.html:60
+#: .\main\templates\base\home.html:78
 msgid "Friends"
 msgstr "Prijatelji"
 
-#: main/templates/base/home.html:72
+#: .\main\templates\base\home.html:90
 msgid "Change password and email(s)"
 msgstr "Promena lozinke i emaila"
 
-#: main/templates/base/home.html:73
+#: .\main\templates\base\home.html:91
 msgid "Internationalization"
 msgstr "Internacionalizacija"
 
-#: main/templates/base/home.html:77
+#: .\main\templates\base\home.html:95
 msgid "Logout"
 msgstr "Odjavi me"
 
-#: main/templates/base/home.html:96
+#: .\main\templates\base\home.html:114
 msgid "Manager"
 msgstr "Menadžer"
 
-#: main/templates/base/home.html:96
+#: .\main\templates\base\home.html:114
 msgctxt "manager"
 msgid "M"
 msgstr "M"
 
-#: main/templates/base/home.html:96
+#: .\main\templates\base\home.html:114
 msgid "Stars"
 msgstr "Zvezdice"
 
-#: main/templates/base/home.html:98
+#: .\main\templates\base\home.html:116
 msgid "Status"
 msgstr "Status"
 
-#: main/templates/base/home.html:103
+#: .\main\templates\base\home.html:121
 msgid "Are you sure that you want to delete this comment?"
 msgstr "Da li ste sigurni da želite obrisati ovaj komentar?"
 
-#: main/templates/base/home.html:103
+#: .\main\templates\base\home.html:121
 msgid "Delete"
 msgstr "Obriši"
 
-#: main/templates/base/home.html:110 main/templates/home.html:16
+#: .\main\templates\base\home.html:128 .\main\templates\home.html:15
 msgid "Search"
 msgstr "Traži"
 
-#: main/templates/base/home.html:117
+#: .\main\templates\base\home.html:135
 msgid "Find other businesses..."
 msgstr "Pretraži ostale ugostiteljske objekte..."
 
-#: main/templates/base/home.html:117
+#: .\main\templates\base\home.html:135
 msgid "Find businesses..."
 msgstr "Pretraži ugostiteljske objekte..."
 
-#: main/templates/base/home.html:118
+#: .\main\templates\base\home.html:136
 msgid "Find events..."
 msgstr "Pretraži događaje..."
 
-#: main/templates/base/home.html:119
+#: .\main\templates\base\home.html:137
 msgid "Find items..."
 msgstr "Pretraži proizvode..."
 
-#: main/templates/base/home.html:120
+#: .\main\templates\base\home.html:138
 msgid "Find users..."
 msgstr "Pretraži korisnike..."
 
-#: main/templates/base/main.html:37
+#: .\main\templates\base\main.html:40
 msgid "For news about the platform"
 msgstr "Za sve novosti u vezi platforme"
 
-#: main/templates/base/main.html:38 main/templates/contact.html:9
+#: .\main\templates\base\main.html:44 .\main\templates\contact.html:4 .\main\templates\contact.html:11
 msgid "Contact"
 msgstr "Kontakt"
 
-#: main/templates/base/main.html:39 main/templates/tos.html:6
+#: .\main\templates\base\main.html:45 .\main\templates\tos.html:6
 msgid "Terms of Service"
 msgstr "Uslovi korišćenja"
 
-#: main/templates/base/main.html:40 main/templates/pp.html:6
+#: .\main\templates\base\main.html:46 .\main\templates\pp.html:6
 msgid "Privacy Policy"
 msgstr "Politika privatnosti"
 
-#: main/templates/base/signup.html:3
+#: .\main\templates\base\signup.html:3
 msgid "Signup on Gournet"
 msgstr "Registruj se na Gournet-u"
 
-#: main/templates/base/view.html:16
+#: .\main\templates\base\view.html:17 .\main\templates\base\view.html:18
 msgid "You can also drag an new image here"
 msgstr "Ovde takođe možete i prevući novu sliku"
 
-#: main/templates/contact.html:12
+#: .\main\templates\contact.html:14
 msgid "Send"
 msgstr "Pošalji"
 
-#: main/templates/contact_sent.html:8
+#: .\main\templates\contact_sent.html:8
 msgid "Message Sent"
 msgstr "Poruka poslata"
 
-#: main/templates/contact_sent.html:9
-msgid ""
-"Your message has been sent to the support. You will be contacted as soon as "
-"possible. Please mind to check your Spam folder too, or contact us again if "
-"you do not receive the answer within reasonable time."
-msgstr ""
-"Vaša poruka je poslata našoj podršci. Bićete kontaktirani što je skorije "
-"moguće. Molimo da proverite i vaš Spam folder takođe, ili da nas "
-"kontaktirate opet ako ne dobijete odgovor u razumnom roku."
+#: .\main\templates\contact_sent.html:9
+msgid "Your message has been sent to the support. You will be contacted as soon as possible. Please contact us again if you do not receive the answer within reasonable time."
+msgstr "Vaša poruka je poslata podršci. Bićete kontaktirani uskoro. Molimo da nas kontaktirate ukoliko ne dobijete odgovor u razumnom roku."
 
-#: main/templates/create.html:15
+#: .\main\templates\create.html:15
 msgid "Create Your Business"
 msgstr "Zavedi svoj ugostiteljski objekat"
 
-#: main/templates/create_extra.html:13
+#: .\main\templates\create_extra.html:14
 msgid "My business also works on <strong>Saturday</strong>"
 msgstr "Moj ugostiteljski objekat radi i <strong>subotom</strong>"
 
-#: main/templates/create_extra.html:18
+#: .\main\templates\create_extra.html:19
 msgid "And on <strong>Sunday</strong>, too"
 msgstr "I <strong>nedeljom</strong>, takođe"
 
-#: main/templates/create_extra.html:23 main/templates/i18n.html:23
+#: .\main\templates\create_extra.html:24 .\main\templates\i18n.html:23
 msgid "Save"
 msgstr "Sačuvaj"
 
-#: main/templates/create_extra.html:23
+#: .\main\templates\create_extra.html:24
 msgid "Create"
 msgstr "Napravi"
 
-#: main/templates/home.html:14
+#: .\main\templates\home.html:13
 msgid "Location information is too inaccurate."
 msgstr "Informacije za lokaciju su previše neprecizne."
 
-#: main/templates/home.html:14
-msgid ""
-"You have denied the permission to use the location service. Please enable it "
-"or clear the setting, and refresh this page."
-msgstr ""
-"Vi ste odbili zahtev da se koristi servis za lokaciju. Molimo uključite ga "
-"ili obrišite to podešavanje, i osvežite ovu stranicu."
+#: .\main\templates\home.html:13
+msgid "You have denied the permission to use the location service. Please enable it or clear the setting, and refresh this page."
+msgstr "Vi ste odbili zahtev da se koristi servis za lokaciju. Molimo uključite ga ili obrišite to podešavanje, i osvežite ovu stranicu."
 
-#: main/templates/home.html:14
+#: .\main\templates\home.html:13
 msgid "Location service is disabled."
 msgstr "Servis za lokaciju je isključen."
 
-#: main/templates/home.html:14
+#: .\main\templates\home.html:13
 msgid "Location information is currently unavailable."
 msgstr "Informacije za lokaciju su trenutno nedostupne."
 
-#: main/templates/home.html:14
+#: .\main\templates\home.html:13
 msgid "Using your home location."
 msgstr "Koristi se Vaše prebivalište kao lokacija."
 
-#: main/templates/home.html:14
+#: .\main\templates\home.html:13
 msgid "Using your last position."
 msgstr "Koristi se Vaša poslednja pozicija."
 
-#: main/templates/home.html:14
+#: .\main\templates\home.html:13
 msgid "Use the detected location, regardlessly."
 msgstr "Bez obzira, koristi detektovanu lokaciju."
 
-#: main/templates/home.html:14
+#: .\main\templates\home.html:13
 msgid "Enable."
 msgstr "Uključi."
 
-#: main/templates/home.html:22
+#: .\main\templates\home.html:21
 msgid "Move marker to the center"
 msgstr "Pomeri marker na centar"
 
-#: main/templates/home.html:23
+#: .\main\templates\home.html:22
 msgid "Set marker to the home location"
 msgstr "Postavi marker na lokaciju prebivališta"
 
-#: main/templates/home.html:29
+#: .\main\templates\home.html:28
 #, python-format
 msgid ""
-"Searching <strong>%(o)s t == 'user' ? \"users\" : t == 'business' ? "
-"\"businesses\" : t == 'item' ? \"items\" : \"events\" %(c)s</strong>, with "
-"keyword(s): <strong>%(o)s keywords %(c)s</strong>."
+"Searching <strong>%(o)s t == 'user' ? \"users\" : t == 'business' ? \"businesses\" : t == 'item' ? \"items\" : \"events\" %(c)s</strong>, with keyword(s): <strong>%(o)s keywords %(c)s</strong>."
 msgstr ""
-"Pretražuju se <strong>%(o)s t == 'user' ? \"korisnici\" : t == 'business' ? "
-"\"ugostiteljski objekti\" : t == 'item' ? \"proizvodi\" : \"događaji\" "
-"%(c)s</strong>, sa ključnim rečima: <strong>%(o)s keywords %(c)s</strong>."
+"Pretražuju se <strong>%(o)s t == 'user' ? \"korisnici\" : t == 'business' ? \"ugostiteljski objekti\" : t == 'item' ? \"proizvodi\" : \"događaji\" %(c)s</strong>, sa ključnim rečima: <strong>"
+"%(o)s keywords %(c)s</strong>."
 
-#: main/templates/home.html:29
+#: .\main\templates\home.html:28
 msgid "Go to main page."
 msgstr "Vrati se na početnu stranicu."
 
-#: main/templates/i18n.html:2
+#: .\main\templates\i18n.html:2
 msgid "You must refresh the page for changes to take effect."
 msgstr "Morate osvežiti ovu stranicu da bi se videle promene."
 
-#: main/templates/i18n.html:4
+#: .\main\templates\i18n.html:4
 msgid "Language:"
 msgstr "Jezik:"
 
-#: main/templates/i18n.html:10
+#: .\main\templates\i18n.html:10
 msgid "Preferred currency:"
 msgstr "Preferirana valuta:"
 
-#: main/templates/i18n.html:17
+#: .\main\templates\i18n.html:17
 msgid "Preferred time zone:"
 msgstr "Preferirana vremenska zona:"
 
-#: main/templates/i18n.html:22
+#: .\main\templates\i18n.html:22
 msgid "Current time zone:"
 msgstr "Trenutna vremenska zona:"
 
-#: main/templates/i18n.html:22
+#: .\main\templates\i18n.html:22
 msgid "Use"
 msgstr "Koristi"
 
-#: main/templates/index.html:5
+#: .\main\templates\index.html:5
 msgid "Welcome to Gournet"
 msgstr "Dobro došli na Gournet"
 
-#: main/templates/index.html:28
+#: .\main\templates\index.html:27
 msgid "New here? Click to sign up!"
 msgstr "Novi? Kliknite ovde za registraciju!"
 
-#: main/templates/index.html:35
+#: .\main\templates\index.html:34
 msgid "Welcome to Gournet!"
 msgstr "Dobro došli na Gournet!"
 
-#: main/templates/index.html:36
-msgid ""
-"Gournet is a place where you can find your favourite restaurants, cafes, "
-"pubs, and much more! Join our community to explore all the features this "
-"platform offers!"
-msgstr ""
-"Gournet je mesto gde ćete naći Vaše omiljene restorane, kafiće, klubove i "
-"mnogo toga drugog! Pridružite se našoj zajednici da istražite sve mogućnosti "
-"koje ova platforma nudi!"
+#: .\main\templates\index.html:35
+msgid "Gournet is a place where you can find your favourite restaurants, cafes, pubs, and much more! Join our community to explore all the features this platform offers!"
+msgstr "Gournet je mesto gde ćete naći Vaše omiljene restorane, kafiće, klubove i mnogo toga drugog! Pridružite se našoj zajednici da istražite sve mogućnosti koje ova platforma nudi!"
 
-#: main/templates/index.html:46 main/templates/index.html:48
+#: .\main\templates\index.html:45 .\main\templates\index.html:47
 msgid "Login"
 msgstr "Prijavite se"
 
-#: main/templates/index.html:49
+#: .\main\templates\index.html:48
 msgid "Forgot your password?"
 msgstr "Zaboravili ste lozinku?"
 
-#: main/templates/pp.html:9
+#: .\main\templates\orders.html:13
+msgid "Nothing to do."
+msgstr "Nema akcija."
+
+#: .\main\templates\orders.html:15
+msgid "All is delivered"
+msgstr "Sve je dostavljeno"
+
+#: .\main\templates\orders.html:15
+msgid "It's delivered"
+msgstr "Dostavljeno"
+
+#: .\main\templates\orders.html:15
+msgid "All with cash"
+msgstr "Sve je plaćeno gotovinom"
+
+#: .\main\templates\orders.html:15
+msgid "With cash"
+msgstr "Plaćeno gotovinom"
+
+#: .\main\templates\orders.html:16
+msgid "All is paid"
+msgstr "Sve je plaćeno"
+
+#: .\main\templates\orders.html:16
+msgid "It's paid"
+msgstr "Plaćeno je"
+
+#: .\main\templates\orders.html:16
+msgid "All by debit card"
+msgstr "Sve je plaćeno karticom"
+
+#: .\main\templates\orders.html:16
+msgid "By debit card"
+msgstr "Plaćeno karticom"
+
+#: .\main\templates\orders.html:21
+msgid "There are currently no orders."
+msgstr "Trenutno nema porudžbina."
+
+#: .\main\templates\orders.html:23 .\main\templates\waiters.html:13
+msgctxt "number"
+msgid "Table"
+msgstr "Tabela"
+
+#: .\main\templates\orders.html:29
+msgid "For payment with cash"
+msgstr "Za plaćanje gotovinom"
+
+#: .\main\templates\orders.html:29
+msgid "For payment by debit card"
+msgstr "Za plaćanje karticom"
+
+#: .\main\templates\orders.html:29
+msgid "For delivery"
+msgstr "Za dostavljanje"
+
+#: .\main\templates\orders.html:29
+msgid "Delivered"
+msgstr "Dostavljeno"
+
+#: .\main\templates\pp.html:9
 msgid ""
 "### Privacy Policy\n"
 "\n"
 "###### *Last change on 08.03.2017.*\n"
 "\n"
-"Gournet team takes very cautiously privacy of your data. Our Privacy Policy "
-"is thought out to keep you informed about our practices regarding the "
-"collection, usage and disclosure of information that you provide when "
-"accessing the website **www.gournet.co**. Please read it carefully and "
-"introduce yourself with the rules, because any usage of this website means "
-"your agreement on the terms mentioned in this document. Accesing this "
-"website you confirm that you comply with this Privacy Policy, and you "
-"consent that data about you could be stored, used and disclosed according to "
-"this Privacy Policy.\n"
+"Gournet team takes very cautiously privacy of your data. Our Privacy Policy is thought out to keep you informed about our practices regarding the collection, usage and disclosure of information "
+"that you provide when accessing the website **www.gournet.co**. Please read it carefully and introduce yourself with the rules, because any usage of this website means your agreement on the "
+"terms mentioned in this document. Accesing this website you confirm that you comply with this Privacy Policy, and you consent that data about you could be stored, used and disclosed according "
+"to this Privacy Policy.\n"
 "\n"
 "#### The information we may gather and process\n"
 "\n"
 "The information that we may gather and process is the following:\n"
 "\n"
-"* the information with which you could be identified, such as first and last "
-"name, gender, date of birth, location, your profile picture and e-mail "
-"address (hereafter: personal data);\n"
-"* the information related to you but which doesn't identify you as "
-"individual (e.g. IP address);\n"
-"* the information about your connection, equipment you use to access our "
-"website and details about usage.\n"
+"* the information with which you could be identified, such as first and last name, gender, date of birth, location, your profile picture and e-mail address (hereafter: personal data);\n"
+"* the information related to you but which doesn't identify you as individual (e.g. IP address);\n"
+"* the information about your connection, equipment you use to access our website and details about usage.\n"
 "\n"
 "#### The method of gathering information\n"
 "\n"
-"We collect data about you in two ways: directly, when you provide them, or "
-"automatically, while you use the website. We only collect personal data "
-"which is needed to provide or improve our services.\n"
+"We collect data about you in two ways: directly, when you provide them, or automatically, while you use the website. We only collect personal data which is needed to provide or improve our "
+"services.\n"
 "\n"
 "##### ***Personal data***\n"
 "\n"
-"Personal data we collect on our website or via the website can include "
-"information you provide by using our contact form on the website, or by "
-"registering on the website, or any information you provide us in any other "
-"way. Personal data we collect on our website or via the website may also "
-"include evidence and copies of our conversations (which also includes e-mail "
-"addresses) in the case you contact us.\n"
+"Personal data we collect on our website or via the website can include information you provide by using our contact form on the website, or by registering on the website, or any information you "
+"provide us in any other way. Personal data we collect on our website or via the website may also include evidence and copies of our conversations (which also includes e-mail addresses) in the "
+"case you contact us.\n"
 "\n"
 "##### ***Automatic data collecting***\n"
 "\n"
-"Automatically, while you use the website, we may collect data which includes "
-"details about usage, IP address and information collected via cookies, web "
-"beacon or other technologies for monitoring. By accessing our website you "
-"agree that we could automatically gather and process mentioned data.\n"
+"Automatically, while you use the website, we may collect data which includes details about usage, IP address and information collected via cookies, web beacon or other technologies for "
+"monitoring. By accessing our website you agree that we could automatically gather and process mentioned data.\n"
 "\n"
-"The information we gather automatically while you're using the website, "
-"while you browse the website and while you're being active on it, is certain "
-"information about your equiptment, activity and browsing patterns, also "
-"including:\n"
+"The information we gather automatically while you're using the website, while you browse the website and while you're being active on it, is certain information about your equiptment, activity "
+"and browsing patterns, also including:\n"
 "\n"
-"* details of your visits on our website, also including the data about "
-"traffic, location, and other evidence about communication and sources you "
-"access and use on the website;\n"
-"* the information about device and connection, also including your IP "
-"address, the OS and the browser.\n"
+"* details of your visits on our website, also including the data about traffic, location, and other evidence about communication and sources you access and use on the website;\n"
+"* the information about device and connection, also including your IP address, the OS and the browser.\n"
 "\n"
-"The information that we automatically gather represent the statistical data. "
-"It helps us to improve the website and give better and personalized service, "
-"because it allows us to estimate the number of our visitors and their "
-"website usage patterns, to save the information about your preferences, "
-"which allows us to adapt the website according to your needs, to speed up "
-"your queries, to recognize you after you visit the website again, and to "
-"analyze how users interact with the website, all for internal needs under "
-"marketing and research domain.\n"
+"The information that we automatically gather represent the statistical data. It helps us to improve the website and give better and personalized service, because it allows us to estimate the "
+"number of our visitors and their website usage patterns, to save the information about your preferences, which allows us to adapt the website according to your needs, to speed up your queries, "
+"to recognize you after you visit the website again, and to analyze how users interact with the website, all for internal needs under marketing and research domain.\n"
 "\n"
 "##### ***Cookies and other technology***\n"
 "\n"
 "Technologies we use for automatic data collecting may cover:\n"
 "\n"
-"* Cookies (for the browser). Cookie is a small file which is located in the "
-"memory of your device. You can forbid cookies in your browser with its "
-"particular setting. However, if you enable that setting, you won't be able "
-"to access the important parts of our website. Our system will create cookies "
-"while you're visiting our website via the browser, as long as you don't "
-"disable cookie storage feature in the browser.\n"
-"* Web beacons. Pages of our website and our e-mails may have embedded small "
-"files known as web beacons (labeled as clear GIFs, pixel markers and GIFs "
-"with one pixel) which enable us to count how many users have visited "
-"particular pages or opened particular e-mails, as well as gathering other "
-"statistical data for the website (e.g. tracking the popularity of particular "
-"parts of the website and system/server integrity check).\n"
+"* Cookies (for the browser). Cookie is a small file which is located in the memory of your device. You can forbid cookies in your browser with its particular setting. However, if you enable "
+"that setting, you won't be able to access the important parts of our website. Our system will create cookies while you're visiting our website via the browser, as long as you don't disable "
+"cookie storage feature in the browser.\n"
+"* Web beacons. Pages of our website and our e-mails may have embedded small files known as web beacons (labeled as clear GIFs, pixel markers and GIFs with one pixel) which enable us to count "
+"how many users have visited particular pages or opened particular e-mails, as well as gathering other statistical data for the website (e.g. tracking the popularity of particular parts of the "
+"website and system/server integrity check).\n"
 "\n"
 "#### How we use your data\n"
 "\n"
-"We use the information that we collect about you or when you provide them to "
-"us, including all personal data, in order to:\n"
+"We use the information that we collect about you or when you provide them to us, including all personal data, in order to:\n"
 "\n"
 "* present you our website and its content;\n"
 "* provide you information or services you request from us;\n"
 "* fulfill other purposes for which the information is provided;\n"
 "* deliver you notifications;\n"
-"* carry out our commitments and apply the rights stemming from any contract "
-"you made with us;\n"
-"* inform you about changes on our website, or any other project and services "
-"we offer, or provide;\n"
+"* carry out our commitments and apply the rights stemming from any contract you made with us;\n"
+"* inform you about changes on our website, or any other project and services we offer, or provide;\n"
 "* enable you to use interactive features of our website;\n"
-"* inform you about projects and services that we or third party offer, and "
-"which may be in your interest;\n"
+"* inform you about projects and services that we or third party offer, and which may be in your interest;\n"
 "* fulfill any other purpose, with your consent.\n"
 "\n"
 "#### Security and safety of your personal data and other information\n"
 "\n"
-"Gournet team takes all necessary measures to make your personal information "
-"safe. For this purpose, only authorized people in Gournet team, companies "
-"that are service providers and business partners, which are obliged to save "
-"sensitive information, have access to your personal data.\n"
+"Gournet team takes all necessary measures to make your personal information safe. For this purpose, only authorized people in Gournet team, companies that are service providers and business "
+"partners, which are obliged to save sensitive information, have access to your personal data.\n"
 "\n"
-"If you disable or disallow cookies, bear in mind that the most important "
-"part of this website will be inaccesible. Besides that, we take measures "
-"which have to secure your personal data from accidental losses or "
-"unauthorized access, usage, altering and exposing. All information you "
-"provide us is stored on our secured servers with firewall, and all passwords "
-"are encrypted with strong algorythm.\n"
-"Security and safety of your data depends on you, too. You should keep your "
-"password secret, after choosing it for access to our website. Please, do not "
-"tell your password to anyone.\n"
+"If you disable or disallow cookies, bear in mind that the most important part of this website will be inaccesible. Besides that, we take measures which have to secure your personal data from "
+"accidental losses or unauthorized access, usage, altering and exposing. All information you provide us is stored on our secured servers with firewall, and all passwords are encrypted with "
+"strong algorythm.\n"
+"Security and safety of your data depends on you, too. You should keep your password secret, after choosing it for access to our website. Please, do not tell your password to anyone.\n"
 "\n"
-"Data transfer over the Internet is not completely safe. Although we'll do "
-"our best to secure your personal data, we can't guarantee the safety of your "
-"personal data which is delivered to our website. Every transfer of your "
-"personal data is at your own risk. We are not responsible if you don't "
-"adjust your privacy settings or if you don't take into account safety "
-"measures which are listed here.\n"
+"Data transfer over the Internet is not completely safe. Although we'll do our best to secure your personal data, we can't guarantee the safety of your personal data which is delivered to our "
+"website. Every transfer of your personal data is at your own risk. We are not responsible if you don't adjust your privacy settings or if you don't take into account safety measures which are "
+"listed here.\n"
 "\n"
 "#### Disclosing your information\n"
 "\n"
-"Gournet team will never share your personal data with third parties who "
-"intend to use them in marketing purposes, unless you give us permission to "
-"do so.\n"
-"We may disclose collected information of our users, as well as the "
-"information that doesn't indentify the invididual, without limitations. We "
-"may disclose personal data collected by us, or provided by you like it is "
-"stated in this Privacy Policy:\n"
+"Gournet team will never share your personal data with third parties who intend to use them in marketing purposes, unless you give us permission to do so.\n"
+"We may disclose collected information of our users, as well as the information that doesn't indentify the invididual, without limitations. We may disclose personal data collected by us, or "
+"provided by you like it is stated in this Privacy Policy:\n"
 "\n"
 "* to our related parties;\n"
-"* as a part of the sale of a part or the whole Gournet team or assets to any "
-"third party, or as a part of the restructuring or reorganization;\n"
-"* to contractors, service providers and third parties that we engage to "
-"support our business;\n"
+"* as a part of the sale of a part or the whole Gournet team or assets to any third party, or as a part of the restructuring or reorganization;\n"
+"* to contractors, service providers and third parties that we engage to support our business;\n"
 "* to fulfill the purpose for which you delivered the information;\n"
 "* for other purposes, with your consent.\n"
 "\n"
 "In addition, we may disclose your personal information:\n"
 "\n"
-"* if it is required from us to disclose or share your personal data in order "
-"to meet our legal duty (for instance, if we get court warrant for that);\n"
-"* to fullfill any of the conditions of use applicable to any other website, "
-"or to fulfill any other condition or agreement which applies to our "
-"services;\n"
-"* if we believe that disclosure is necessary or appropriate to protect our "
-"rights, property, security, our clients or others. This includes information "
-"trade with other companies and organizations for the purpose of protection "
-"from fraud and credit risk reduction.\n"
+"* if it is required from us to disclose or share your personal data in order to meet our legal duty (for instance, if we get court warrant for that);\n"
+"* to fullfill any of the conditions of use applicable to any other website, or to fulfill any other condition or agreement which applies to our services;\n"
+"* if we believe that disclosure is necessary or appropriate to protect our rights, property, security, our clients or others. This includes information trade with other companies and "
+"organizations for the purpose of protection from fraud and credit risk reduction.\n"
 "\n"
 "#### Accessing and altering your data\n"
 "\n"
-"From the moment of registration on this website, you get an option for "
-"further altering your personal data. Because particular sensitive data "
-"(first and last name, gender and date of birth) can be changed through this "
-"website only once, you have the right to request updating of your personal "
-"data which we hold, by contacting us via specific form on this website, "
-"where later it will be requested from you to send us a copy of your ID card "
-"as a proof.\n"
-"If you don't want for us to store your personal data anymore, you can sign "
-"out by filing a request in the contact form on this website.\n"
+"From the moment of registration on this website, you get an option for further altering your personal data. Because particular sensitive data (first and last name, gender and date of birth) can "
+"be changed through this website only once, you have the right to request updating of your personal data which we hold, by contacting us via specific form on this website, where later it will be "
+"requested from you to send us a copy of your ID card as a proof.\n"
+"If you don't want for us to store your personal data anymore, you can sign out by filing a request in the contact form on this website.\n"
 "\n"
 "#### Minors\n"
 "\n"
-"If you are a minor, it is neccessary to get a permission from your parents "
-"before you provide us with the information about yourself. It's forbidden "
-"for minors who don't have said approval to give us personal data.\n"
+"If you are a minor, it is neccessary to get a permission from your parents before you provide us with the information about yourself. It's forbidden for minors who don't have said approval to "
+"give us personal data.\n"
 "\n"
 "#### Amendments to our Privacy Policy\n"
 "\n"
-"Gournet tim holds the right to make changes to this Privacy Policy, without "
-"previous notice. Therefore, next time when you visit this website, please "
-"look again at these conditions, to ensure you are aware of any changes that "
-"have occurred. All the information about further changes of our Privacy "
-"Policy will be published on this page. Date of the last revision of our "
-"Privacy Policy is located at the top of this page.\n"
+"Gournet tim holds the right to make changes to this Privacy Policy, without previous notice. Therefore, next time when you visit this website, please look again at these conditions, to ensure "
+"you are aware of any changes that have occurred. All the information about further changes of our Privacy Policy will be published on this page. Date of the last revision of our Privacy Policy "
+"is located at the top of this page.\n"
 "\n"
 "#### Contact info\n"
 "\n"
-"If you have any questions, comments or concerns with this Privacy Policy, or "
-"if you want to ask about your personal data, you can do that by using the "
-"contact form on this webiste."
+"If you have any questions, comments or concerns with this Privacy Policy, or if you want to ask about your personal data, you can do that by using the contact form on this webiste."
 msgstr ""
 "### Politika privatnosti\n"
 "###### *Poslednja izmena 08.03.2017.*\n"
 "\n"
-"Gournet tim veoma ozbiljno shvata privatnost Vaših podataka. Naša politika "
-"zaštite privatnosti je osmišljena kako biste bili obavešteni o našoj praksi "
-"u vezi sa prikupljanjem, korišćenjem i otkrivanjem podataka koje dostavite "
-"prilikom pristupanja sajtu **www.gournet.co**. Molimo Vas da je pažljivo "
-"pročitate i upoznate se pravilima iste, jer bilo kakvo korišćenje ovog sajta "
-"podrazumeva Vaše prihvatanje uslova navedenih u ovom dokumentu. Pristupanjem "
-"ovom sajtu, Vi potvrđujete da ste saglasni sa obavezujućim karakterom ove "
-"Politike zaštite privatnosti, i dajete pristanak da se podaci o Vama "
-"prikupljaju, koriste i otkrivaju u skladu sa ovom Politikom zaštite "
-"privatnosti.\n"
+"Gournet tim veoma ozbiljno shvata privatnost Vaših podataka. Naša politika zaštite privatnosti je osmišljena kako biste bili obavešteni o našoj praksi u vezi sa prikupljanjem, korišćenjem i "
+"otkrivanjem podataka koje dostavite prilikom pristupanja sajtu **www.gournet.co**. Molimo Vas da je pažljivo pročitate i upoznate se pravilima iste, jer bilo kakvo korišćenje ovog sajta "
+"podrazumeva Vaše prihvatanje uslova navedenih u ovom dokumentu. Pristupanjem ovom sajtu, Vi potvrđujete da ste saglasni sa obavezujućim karakterom ove Politike zaštite privatnosti, i dajete "
+"pristanak da se podaci o Vama prikupljaju, koriste i otkrivaju u skladu sa ovom Politikom zaštite privatnosti.\n"
 "\n"
 "#### Informacije koje možemo da prikupljamo i obrađujemo\n"
 "\n"
 "Informacije koje možemo da prikupljamo i obrađujemo su sledeće:\n"
 "\n"
-"* informacije na osnovu kojih možete biti lično identifikovani kao što su "
-"ime, prezime, pol, datum rođenja, lokacija, Vaša profilna slika i e-mail "
-"adresa (u daljem tekstu: lični podaci);\n"
-"* informacije koje se odnose na Vas ali Vas ne identifikuju kao pojedinca "
-"(npr. IP adresa);\n"
-"* informacije o Vašoj konekciji, opremi koju koristite da pristupite našem "
-"sajtu i detaljima o upotrebi.\n"
+"* informacije na osnovu kojih možete biti lično identifikovani kao što su ime, prezime, pol, datum rođenja, lokacija, Vaša profilna slika i e-mail adresa (u daljem tekstu: lični podaci);\n"
+"* informacije koje se odnose na Vas ali Vas ne identifikuju kao pojedinca (npr. IP adresa);\n"
+"* informacije o Vašoj konekciji, opremi koju koristite da pristupite našem sajtu i detaljima o upotrebi.\n"
 "\n"
 "#### Način prikupljanja informacija\n"
 "\n"
-"Mi prikupljamo podatke o Vama na dva načina: direktno kada nam iste Vi "
-"dostavite, ili automatski dok koristite sajt. Prikupljamo samo one lične "
-"podatke koji su nam neophodni kako bismo Vam pružili ili unapredili usluge.\n"
+"Mi prikupljamo podatke o Vama na dva načina: direktno kada nam iste Vi dostavite, ili automatski dok koristite sajt. Prikupljamo samo one lične podatke koji su nam neophodni kako bismo Vam "
+"pružili ili unapredili usluge.\n"
 "\n"
 "##### ***Lični podaci***\n"
 "\n"
-"Lični podaci koje prikupljamo na našem sajtu ili putem sajta mogu da "
-"obuhvate informacije koje navedete korišćenjem forme za kontakt na našem "
-"sajtu, prilikom registracije na našem sajtu, ili druge informacije koje nam "
-"dostavite na bilo koji način. Lični podaci koje prikupljamo na našem sajtu "
-"ili putem sajta mogu da obuhvate i evidenciju i kopije naše međusobne "
-"prepiske (uključujući e-mail adrese) ukoliko nas kontaktirate.\n"
+"Lični podaci koje prikupljamo na našem sajtu ili putem sajta mogu da obuhvate informacije koje navedete korišćenjem forme za kontakt na našem sajtu, prilikom registracije na našem sajtu, ili "
+"druge informacije koje nam dostavite na bilo koji način. Lični podaci koje prikupljamo na našem sajtu ili putem sajta mogu da obuhvate i evidenciju i kopije naše međusobne prepiske (uključujući "
+"e-mail adrese) ukoliko nas kontaktirate.\n"
 "\n"
 "##### ***Automatsko prikupljanje podataka***\n"
 "\n"
-"Automatski, dok koristite sajt, možemo da prikupljamo podatke koji uključuju "
-"detalje o korišćenju, IP adrese i informacije prikupljene putem kolačića, "
-"web svetionika i druge tehnologije za praćenje. Pristupanjem našem sajtu Vi "
-"se saglašavate da možemo da automatski prikupljamo i obrađujemo navedene "
-"podatke.\n"
+"Automatski, dok koristite sajt, možemo da prikupljamo podatke koji uključuju detalje o korišćenju, IP adrese i informacije prikupljene putem kolačića, web svetionika i druge tehnologije za "
+"praćenje. Pristupanjem našem sajtu Vi se saglašavate da možemo da automatski prikupljamo i obrađujemo navedene podatke.\n"
 "\n"
-"Informacije koje možemo prikupljati automatski prilikom Vašem pristupanja "
-"sajtu, dok pretražujete sajt i aktivni ste na njemu, su određene informacije "
-"o Vašoj opremi, aktivnostima i obrascima pretraživanja, uključujući i:\n"
+"Informacije koje možemo prikupljati automatski prilikom Vašem pristupanja sajtu, dok pretražujete sajt i aktivni ste na njemu, su određene informacije o Vašoj opremi, aktivnostima i obrascima "
+"pretraživanja, uključujući i:\n"
 "\n"
-"* detalje o Vašim posetama našem sajtu, uključujući i podatke o saobraćaju, "
-"podatke o lokaciji, evidencije i druge podatke o komunikaciji i izvorima "
-"kojima pristupate i koristite na sajtu;\n"
-"* informacije o uređaju i konekciji, uključujući i Vašu IP adresu, "
-"operativni sistem i tip pretraživača.\n"
+"* detalje o Vašim posetama našem sajtu, uključujući i podatke o saobraćaju, podatke o lokaciji, evidencije i druge podatke o komunikaciji i izvorima kojima pristupate i koristite na sajtu;\n"
+"* informacije o uređaju i konekciji, uključujući i Vašu IP adresu, operativni sistem i tip pretraživača.\n"
 "\n"
-"Informacije koje automatski prikupljamo predstavljaju statističke podatke. "
-"Oni nam pomažu da poboljšamo sajt i pružimo bolju i personalizovanu uslugu "
-"jer nam omogućavaju da procenimo broj naših posetilaca i njihove obrasce "
-"korišćenja sajta, da sačuvamo informacije o Vašim preferencijama, što nam "
-"omogućava da sajt prilagodimo Vašem interesovanju, da ubrzamo Vašu pretragu, "
-"da Vas prepoznamo kada ponovo posetite sajt, kao i da analiziramo kako "
-"korisnici koriste sajt za interne potrebe u oblasti marketinga i "
-"istraživanja.\n"
+"Informacije koje automatski prikupljamo predstavljaju statističke podatke. Oni nam pomažu da poboljšamo sajt i pružimo bolju i personalizovanu uslugu jer nam omogućavaju da procenimo broj naših "
+"posetilaca i njihove obrasce korišćenja sajta, da sačuvamo informacije o Vašim preferencijama, što nam omogućava da sajt prilagodimo Vašem interesovanju, da ubrzamo Vašu pretragu, da Vas "
+"prepoznamo kada ponovo posetite sajt, kao i da analiziramo kako korisnici koriste sajt za interne potrebe u oblasti marketinga i istraživanja.\n"
 "\n"
 "##### ***Kolačići i druge tehnologije***\n"
 "\n"
-"Tehnologije koje koristimo za automatsko prikupljanje podataka mogu "
-"obuhvatiti:\n"
+"Tehnologije koje koristimo za automatsko prikupljanje podataka mogu obuhvatiti:\n"
 "\n"
-"* Kolačiće (pretraživača). Kolačić je mala datoteka koja se nalazi u "
-"memoriji Vašeg uređaja. Vi možete da odbijete kolačiće pretraživača "
-"odgovarajućim podešavanjem na Vašem pretraživaču. Međutim, ako izaberete ovu "
-"opciju, nećete moći da pristupite važnim delovima našeg sajta. Ukoliko ne "
-"podesite podešavanja pretraživača tako da ne prihvatate kolačiće, naš sistem "
-"će postavljati kolačiće kada posetite naš sajt pomoću pretraživača.\n"
-"* Web svetionike. Stranice našeg sajta i naši e-mailovi mogu da sadrže male "
-"elektronske datoteke poznate kao web svetionici (nazivaju se i čisti GIF-"
-"ovi, oznake piksela i GIF-ovi sa jednim pikselom) koji omogućavaju da "
-"prebrojimo korisnike koji su posetili te stranice ili otvorili e-mailove, "
-"kao i prikupljanje drugih statističkih podataka u vezi sa sajtom (na primer, "
-"beleženje popularnosti određenog sadržaja sajta i provera integriteta "
-"sistema i servera).\n"
+"* Kolačiće (pretraživača). Kolačić je mala datoteka koja se nalazi u memoriji Vašeg uređaja. Vi možete da odbijete kolačiće pretraživača odgovarajućim podešavanjem na Vašem pretraživaču. "
+"Međutim, ako izaberete ovu opciju, nećete moći da pristupite važnim delovima našeg sajta. Ukoliko ne podesite podešavanja pretraživača tako da ne prihvatate kolačiće, naš sistem će postavljati "
+"kolačiće kada posetite naš sajt pomoću pretraživača.\n"
+"* Web svetionike. Stranice našeg sajta i naši e-mailovi mogu da sadrže male elektronske datoteke poznate kao web svetionici (nazivaju se i čisti GIF-ovi, oznake piksela i GIF-ovi sa jednim "
+"pikselom) koji omogućavaju da prebrojimo korisnike koji su posetili te stranice ili otvorili e-mailove, kao i prikupljanje drugih statističkih podataka u vezi sa sajtom (na primer, beleženje "
+"popularnosti određenog sadržaja sajta i provera integriteta sistema i servera).\n"
 "\n"
 "#### Kako koristimo Vaše informacije\n"
 "\n"
-"Mi koristimo informacije koje prikupimo o Vama ili koje nam Vi dostavite, "
-"uključujući i sve lične podatke:\n"
+"Mi koristimo informacije koje prikupimo o Vama ili koje nam Vi dostavite, uključujući i sve lične podatke:\n"
 "\n"
 "* da bismo Vam predstavili naš sajt i njegov sadržaj;\n"
 "* da bismo Vam obezbedili informacije ili usluge koje tražite od nas;\n"
 "* da bismo ispunili druge svrhe zbog kojih su informacije obezbeđene;\n"
 "* da bismo Vam dostavljali obaveštenja;\n"
-"* da bismo izvršili svoje obaveze i primenili prava koja proističu iz bilo "
-"kog ugovora koji ste sklopili sa nama;\n"
-"* da Vas obavestimo o promenama na našem sajtu, ili bilo kakvom projektu ili "
-"uslugama koje nudimo, ili pružamo;\n"
+"* da bismo izvršili svoje obaveze i primenili prava koja proističu iz bilo kog ugovora koji ste sklopili sa nama;\n"
+"* da Vas obavestimo o promenama na našem sajtu, ili bilo kakvom projektu ili uslugama koje nudimo, ili pružamo;\n"
 "* da Vam omogućimo da koristite interaktivne funkcije na našem sajtu;\n"
-"* da Vas kontaktiramo u vezi sa projektima i uslugama koji nudimo mi ili "
-"treća lica, a koji Vas mogu interesovati;\n"
+"* da Vas kontaktiramo u vezi sa projektima i uslugama koji nudimo mi ili treća lica, a koji Vas mogu interesovati;\n"
 "* u bilo koju drugu svrhu, uz Vašu saglasnost.\n"
 "\n"
 "#### Obezbeđenje sigurnosti Vaših ličnih informacija i drugih podataka\n"
 "\n"
-"Gournet tim preduzima sve potrebne mere kako bi Vaše lične informacije bile "
-"sigurne. U tom cilju, samo ovlašćeni ljudi u Gournet timu, kompanija koje su "
-"pružaoci usluga i poslovnih partnera, koji su svi obavezni da čuvaju "
-"poverljive informacije, imaju pristup Vašim ličnim podacima.\n"
+"Gournet tim preduzima sve potrebne mere kako bi Vaše lične informacije bile sigurne. U tom cilju, samo ovlašćeni ljudi u Gournet timu, kompanija koje su pružaoci usluga i poslovnih partnera, "
+"koji su svi obavezni da čuvaju poverljive informacije, imaju pristup Vašim ličnim podacima.\n"
 "\n"
-"Ako onemogućite ili odbijete kolačiće, imajte na umu da najvažniji deo ovog "
-"sajta će biti nedostupan. Pored toga, primenjujemo mere koje treba da "
-"zaštite Vaše lične podatke od slučajnog gubitka i neovlašćenog pristupa, "
-"korišćenja, promene i otkrivanja. Sve informacije koje nam dostavite se "
-"čuvaju na našim bezbednim serverima sa zaštitnim zidovima (eng. firewall), a "
-"sve lozinke se ne čuvaju u formi običnog teksta već su osigurane jakim "
-"algoritmom (eng. encrypted).\n"
-"Sigurnost i bezbednost Vaših podataka takođe zavisi od Vas. Nakon što ste "
-"izabrali lozinku za pristup našem sajtu, Vi treba da je čuvate u tajnosti. "
-"Molimo Vas da nikom ne otkrivate svoju lozinku.\n"
+"Ako onemogućite ili odbijete kolačiće, imajte na umu da najvažniji deo ovog sajta će biti nedostupan. Pored toga, primenjujemo mere koje treba da zaštite Vaše lične podatke od slučajnog gubitka "
+"i neovlašćenog pristupa, korišćenja, promene i otkrivanja. Sve informacije koje nam dostavite se čuvaju na našim bezbednim serverima sa zaštitnim zidovima (eng. firewall), a sve lozinke se ne "
+"čuvaju u formi običnog teksta već su osigurane jakim algoritmom (eng. encrypted).\n"
+"Sigurnost i bezbednost Vaših podataka takođe zavisi od Vas. Nakon što ste izabrali lozinku za pristup našem sajtu, Vi treba da je čuvate u tajnosti. Molimo Vas da nikom ne otkrivate svoju "
+"lozinku.\n"
 "\n"
-"Prenos informacija putem Interneta nije potpuno siguran. Iako ćemo se mi "
-"potruditi da zaštitimo Vaše lične podatke, ne možemo da garantujemo "
-"bezbednost Vaših ličnih podataka koji su dostavljeni na naš sajt. Svaki "
-"prenos ličnih podataka je na sopstveni rizik. Mi nismo odgovorni ukoliko ne "
-"podesite privatnost ili ne uzmete u obzir mere bezbednosti koje su date na "
-"sajtu.\n"
+"Prenos informacija putem Interneta nije potpuno siguran. Iako ćemo se mi potruditi da zaštitimo Vaše lične podatke, ne možemo da garantujemo bezbednost Vaših ličnih podataka koji su dostavljeni "
+"na naš sajt. Svaki prenos ličnih podataka je na sopstveni rizik. Mi nismo odgovorni ukoliko ne podesite privatnost ili ne uzmete u obzir mere bezbednosti koje su date na sajtu.\n"
 "\n"
 "#### Otkrivanje Vaših informacija\n"
 "\n"
-"Gournet tim nikada neće deliti Vaše lične podatke sa trećim licima koja "
-"nameravaju da ih iskoriste u direktne marketnške svrhe, osim ukloliko nam "
-"niste dali dopuštenje za to.\n"
-"Mi možemo otkrivati prikupljene informacije o našim korisnicima, kao i "
-"informacije koje ne identifikuju pojedinca, bez ograničenja. Možemo otkriti "
-"lične podatke koje prikupljamo mi, ili ih Vi dostavljate kao što je navedeno "
-"u ovoj Politici o privatnosti:\n"
+"Gournet tim nikada neće deliti Vaše lične podatke sa trećim licima koja nameravaju da ih iskoriste u direktne marketnške svrhe, osim ukloliko nam niste dali dopuštenje za to.\n"
+"Mi možemo otkrivati prikupljene informacije o našim korisnicima, kao i informacije koje ne identifikuju pojedinca, bez ograničenja. Možemo otkriti lične podatke koje prikupljamo mi, ili ih Vi "
+"dostavljate kao što je navedeno u ovoj Politici o privatnosti:\n"
 "\n"
 "* našim povezanim licima;\n"
-"* u sklopu prodaje dela ili čitavog Gournet tima ili imovine bilo kojem "
-"trećem licu ili u sklopu restruktuiranja ili reorganizacije;\n"
-"* podugovaračima, pružaocima usluga i trećim licima koje angažujemo da "
-"podrže naše poslovanje;\n"
+"* u sklopu prodaje dela ili čitavog Gournet tima ili imovine bilo kojem trećem licu ili u sklopu restruktuiranja ili reorganizacije;\n"
+"* podugovaračima, pružaocima usluga i trećim licima koje angažujemo da podrže naše poslovanje;\n"
 "* da bi se ispunila svrha zbog koje ste dostavili informacije;\n"
 "* u druge svrhe uz Vašu saglasnost.\n"
 "\n"
 "Pored toga, možemo otkriti Vaše lične informacije:\n"
 "\n"
-"* ako smo dužni da otkrijemo ili podelimo Vaše lične podatke da bismo "
-"ispunili svoju zakonsku obavezu (na primer ako za to dobijemo sudski "
-"nalog);\n"
-"* da bismo ispunili bilo koji uslov korišćenja koji važi za bilo koji od "
-"sajtova, ili da bismo ispunili bilo koji uslov ili sporazum koji važi za "
-"naše usluge;\n"
-"* ako verujemo da je otkrivanje informacija neophodno ili primereno za "
-"zaštitu naših prava, imovine, bezbednosti, naših klijenata ili drugih lica. "
-"Ovo uključuje razmenu informacija sa drugim kompanijama i organizacijama za "
-"potrebe zaštite od prevara i smanjenja kreditnog rizika.\n"
+"* ako smo dužni da otkrijemo ili podelimo Vaše lične podatke da bismo ispunili svoju zakonsku obavezu (na primer ako za to dobijemo sudski nalog);\n"
+"* da bismo ispunili bilo koji uslov korišćenja koji važi za bilo koji od sajtova, ili da bismo ispunili bilo koji uslov ili sporazum koji važi za naše usluge;\n"
+"* ako verujemo da je otkrivanje informacija neophodno ili primereno za zaštitu naših prava, imovine, bezbednosti, naših klijenata ili drugih lica. Ovo uključuje razmenu informacija sa drugim "
+"kompanijama i organizacijama za potrebe zaštite od prevara i smanjenja kreditnog rizika.\n"
 "\n"
 "#### Pristup i ispravljanje Vaših informacija\n"
 "\n"
-"Od samog trenutka registracije na ovom sajtu dobijate mogućnost za naknadnu "
-"izmenu svojih ličnih podataka. Pošto pojedine lične podatke (ime i prezime, "
-"pol i datum rođenja) možete putem sajta izmeniti samo jednom, Vi imate prava "
-"da zatražite ažuriranje Vaših ličnih podataka koje mi posedujemo tako što "
-"ćete nas kontaktirati putem određene forme na ovom sajtu za to, gde će od "
-"Vas biti kasnije zahtevana slika lične karte kao dokaz.\n"
-"Ako ne želite da više posedujemo Vaše lične podatke, možete da se odjavite "
-"tako što ćete navesti svoj zahtev u formi za kontakt na ovom sajtu.\n"
+"Od samog trenutka registracije na ovom sajtu dobijate mogućnost za naknadnu izmenu svojih ličnih podataka. Pošto pojedine lične podatke (ime i prezime, pol i datum rođenja) možete putem sajta "
+"izmeniti samo jednom, Vi imate prava da zatražite ažuriranje Vaših ličnih podataka koje mi posedujemo tako što ćete nas kontaktirati putem određene forme na ovom sajtu za to, gde će od Vas biti "
+"kasnije zahtevana slika lične karte kao dokaz.\n"
+"Ako ne želite da više posedujemo Vaše lične podatke, možete da se odjavite tako što ćete navesti svoj zahtev u formi za kontakt na ovom sajtu.\n"
 "\n"
 "#### Maloletni korisnici\n"
 "\n"
-"Ukoliko ste maloletni, neophodno je da dobijete dozvolu svojih roditelja ili "
-"staratelja pre nego što nam date informacije o sebi. Maloletnim korisnicima "
-"koji nemaju ovakvo odobrenje nije dozvoljeno da nam daju lične informacije.\n"
+"Ukoliko ste maloletni, neophodno je da dobijete dozvolu svojih roditelja ili staratelja pre nego što nam date informacije o sebi. Maloletnim korisnicima koji nemaju ovakvo odobrenje nije "
+"dozvoljeno da nam daju lične informacije.\n"
 "\n"
 "#### Izmene naše Politike zaštite privatnosti\n"
 "\n"
-"Gournet tim zadržava pravo da vrši izmene ove Politike zaštite informacija, "
-"bez prethodne najave. Stoga, molimo Vas da sledeći put kada posetite naš "
-"sajt, ponovo proverite uslove kako biste bili upoznati sa eventualnim "
-"promenama do kojih je došlo. Sve informacije o izmenama u našoj Politici "
-"zaštite privatnosti ćemo objaviti na ovoj stranici. Datum kada je Politika "
-"privatnosti poslednji put revidirana nalazi se na vrhu stranice.\n"
+"Gournet tim zadržava pravo da vrši izmene ove Politike zaštite informacija, bez prethodne najave. Stoga, molimo Vas da sledeći put kada posetite naš sajt, ponovo proverite uslove kako biste "
+"bili upoznati sa eventualnim promenama do kojih je došlo. Sve informacije o izmenama u našoj Politici zaštite privatnosti ćemo objaviti na ovoj stranici. Datum kada je Politika privatnosti "
+"poslednji put revidirana nalazi se na vrhu stranice.\n"
 "\n"
 "#### Kontakt informacije\n"
 "\n"
-"Ukoliko imate bilo kakvih pitanja ili komentar u vezi sa ovom Politikom "
-"zaštite privatnosti ili da postavite pitanje u vezi svojih ličnih podataka, "
-"to možete učiniti putem forme za kontakt na ovom sajtu."
+"Ukoliko imate bilo kakvih pitanja ili komentar u vezi sa ovom Politikom zaštite privatnosti ili da postavite pitanje u vezi svojih ličnih podataka, to možete učiniti putem forme za kontakt na "
+"ovom sajtu."
 
-#: main/templates/tos.html:9
+#: .\main\templates\tos.html:9
 msgid ""
 "### Terms of Service\n"
 "###### *Last change on 08.03.2017.*\n"
 "\n"
-"By visiting the website **www.gournet.co** you comply with the Terms of "
-"Service listed in the further text. Please read it carefuly and introduce "
-"yourself with the rules, because any use of this website implies your "
-"acceptance of the Terms and rules stated in this document. Gournet team "
-"holds the right to make partial or complete changes of this website or the "
-"general Terms of Service, without previous notice. Therefore, next time when "
-"you visit this website, please look again at these conditions, to ensure you "
-"are aware of any changes that have occurred.\n"
+"By visiting the website **www.gournet.co** you comply with the Terms of Service listed in the further text. Please read it carefuly and introduce yourself with the rules, because any use of "
+"this website implies your acceptance of the Terms and rules stated in this document. Gournet team holds the right to make partial or complete changes of this website or the general Terms of "
+"Service, without previous notice. Therefore, next time when you visit this website, please look again at these conditions, to ensure you are aware of any changes that have occurred.\n"
 "\n"
 "#### Intellectual property rights and use of the website\n"
 "\n"
-"All the material, which falls under the information in the form of text and "
-"pictures, which is published on this website is the property of Gournet "
-"team. Anything contained on this website can't be treated as a permission to "
-"use any of the brands shown on it.\n"
-"Using the website means browsing it, printing content of its pages or saving "
-"it in electronic form, and accessing and using the website content, under "
-"the condition that all copyrigts and Gournet team trademark is included. "
-"Using any part of this website in commercial purposes or its integration "
-"into any other publication or a page is strongly forbidden.\n"
+"All the material, which falls under the information in the form of text and pictures, which is published on this website is the property of Gournet team. Anything contained on this website "
+"can't be treated as a permission to use any of the brands shown on it.\n"
+"Using the website means browsing it, printing content of its pages or saving it in electronic form, and accessing and using the website content, under the condition that all copyrigts and "
+"Gournet team trademark is included. Using any part of this website in commercial purposes or its integration into any other publication or a page is strongly forbidden.\n"
 "\n"
 "#### Warranty\n"
 "\n"
-"Gournet team provides the information contained on this website using "
-"original sources, in as much detail as possible, and actively seeks to "
-"broaden and update it. The information on this website is intended "
-"exclusively for presentation of businesses and their services. Gournet team "
-"doesn't give warranty of completeness, reliability, promptness or accuracy "
-"of the information on this website, either explicitly nor not. Gournet team "
-"doesn't have a resposibility of keeping the material and services available "
-"on this website, nor doing related corrections or additions. Therefore, we "
-"recommend you to check every information you get via this website, before "
-"you use it in any sense. If you need any advice or instructions related to "
-"our services, please contact us directly.\n"
+"Gournet team provides the information contained on this website using original sources, in as much detail as possible, and actively seeks to broaden and update it. The information on this "
+"website is intended exclusively for presentation of businesses and their services. Gournet team doesn't give warranty of completeness, reliability, promptness or accuracy of the information on "
+"this website, either explicitly nor not. Gournet team doesn't have a resposibility of keeping the material and services available on this website, nor doing related corrections or additions. "
+"Therefore, we recommend you to check every information you get via this website, before you use it in any sense. If you need any advice or instructions related to our services, please contact "
+"us directly.\n"
 "\n"
 "#### Limited Liability\n"
 "\n"
-"By accessing this website, users declare that they agree upon the fact that "
-"they use this website and its content at their own risk. Either Gournet "
-"team, or third party who collaborate in writing, production and transfering "
-"this website can't be responsible for direct, accidental, consequential, "
-"indirect or any other kind of damage, costs, losses or violations which "
-"occur as a result of access or inability to access this website, and the use "
-"or inability to use this website, or as a result of the fact that you relied "
-"on the information provided by this website.\n"
-"Also, Gournet team doesn't accept the responsibility of any losses caused by "
-"viruses which can infect your device or any other assets by using this "
-"website. If you decide to use this website, you do so at your own risk.\n"
-"You can't base your business relationship with Gournet team only by "
-"transmitting or receiving the information from this website, and none of the "
-"users of this website should act or refrain from acting, by basing on any "
-"information on this website. Sending messages via contact form does not "
-"oblige Gournet team to base business relationship in any sense with any of "
-"the users of this website.\n"
+"By accessing this website, users declare that they agree upon the fact that they use this website and its content at their own risk. Either Gournet team, or third party who collaborate in "
+"writing, production and transfering this website can't be responsible for direct, accidental, consequential, indirect or any other kind of damage, costs, losses or violations which occur as a "
+"result of access or inability to access this website, and the use or inability to use this website, or as a result of the fact that you relied on the information provided by this website.\n"
+"Also, Gournet team doesn't accept the responsibility of any losses caused by viruses which can infect your device or any other assets by using this website. If you decide to use this website, "
+"you do so at your own risk.\n"
+"You can't base your business relationship with Gournet team only by transmitting or receiving the information from this website, and none of the users of this website should act or refrain from "
+"acting, by basing on any information on this website. Sending messages via contact form does not oblige Gournet team to base business relationship in any sense with any of the users of this "
+"website.\n"
 "\n"
 "#### User responsibility\n"
 "\n"
-"User of this website is fully responsible for content and accuracy of the "
-"information he publishes on this website, as well as non-infringement of any "
-"third party to whom that information may refer. The user, by sending "
-"information to the website gives its consent to Gournet team to publish it "
-"and to use it for business purposes, including but not limiting to "
-"reproduction, development, advertising, sales and marketing, without any "
-"restrictions and without any charge to the user, with a note that the "
-"position on the fees may change in the future.\n"
+"User of this website is fully responsible for content and accuracy of the information he publishes on this website, as well as non-infringement of any third party to whom that information may "
+"refer. The user, by sending information to the website gives its consent to Gournet team to publish it and to use it for business purposes, including but not limiting to reproduction, "
+"development, advertising, sales and marketing, without any restrictions and without any charge to the user, with a note that the position on the fees may change in the future.\n"
 "\n"
-"By providing the information, user guarantees ownership of it, apropo "
-"material, and that he has the right, or consent for publishing information, "
-"apropo material, so using them by Gournet team won't infringe copyrights of "
-"the third party. Gournet team in any case has no obligation to post or use "
-"transmitted information or material. While using the website and any of the "
-"information or material which it contains, user has a responsibility to act "
-"in accordance with all applicable regulations.\n"
+"By providing the information, user guarantees ownership of it, apropo material, and that he has the right, or consent for publishing information, apropo material, so using them by Gournet team "
+"won't infringe copyrights of the third party. Gournet team in any case has no obligation to post or use transmitted information or material. While using the website and any of the information "
+"or material which it contains, user has a responsibility to act in accordance with all applicable regulations.\n"
 "\n"
 "#### Governing Law and Jurisdiction\n"
 "\n"
-"By using this website, you comply with any legal claims or litigations which "
-"are in connection with this website or its use, governed by the legislation "
-"of the Republic of Serbia, with the competent court in Belgrade."
+"By using this website, you comply with any legal claims or litigations which are in connection with this website or its use, governed by the legislation of the Republic of Serbia, with the "
+"competent court in Belgrade."
 msgstr ""
 "### Uslovi korišćenja\n"
 "###### *Poslednja izmena 08.03.2017.*\n"
 "\n"
-"Posetom sajta **www.gournet.co** prihvatate uslove korišćenja navedene u "
-"daljem tekstu. Molimo Vas da ih pažljivo pročitate i upoznate se pravilima "
-"istih, jer bilo kakvo korišćenje ovog Internet sajta podrazumeva Vaše "
-"prihvatanje uslova i pravila korišćenja navedenih u ovom dokumentu. Gournet "
-"tim zadržava pravo da izvrši delimične ili potpune promene sajta ili opštih "
-"uslova upotrebe, bez prethodne najave. Stoga, molimo Vas da sledeći put kada "
-"posetite naš sajt, ponovo proverite uslove kako biste bili upoznati sa "
-"eventualnim promenama do kojih je došlo.\n"
+"Posetom sajta **www.gournet.co** prihvatate uslove korišćenja navedene u daljem tekstu. Molimo Vas da ih pažljivo pročitate i upoznate se pravilima istih, jer bilo kakvo korišćenje ovog "
+"Internet sajta podrazumeva Vaše prihvatanje uslova i pravila korišćenja navedenih u ovom dokumentu. Gournet tim zadržava pravo da izvrši delimične ili potpune promene sajta ili opštih uslova "
+"upotrebe, bez prethodne najave. Stoga, molimo Vas da sledeći put kada posetite naš sajt, ponovo proverite uslove kako biste bili upoznati sa eventualnim promenama do kojih je došlo.\n"
 "\n"
 "#### Prava intelektualne svojine i korišćenje sajta\n"
 "\n"
-"Sav materijal, pod koji spadaju informacije u vidu teksta i slike, i koji je "
-"objavljen na ovom sajtu je u vlasništvu Gournet tima. Ništa sadržano na ovoj "
-"stranici se ne može tumačiti kao dozvola za korišćenje bilo kog žiga koji je "
-"prikazan na ovom sajtu.\n"
-"Korišćenje sajta podrazumeva pretraživanje sajta, štampanje sadržaja njegove "
-"stranice ili čuvanje u elektronskom obliku i pristup i korišćenje sadržaja "
-"koji se nalaze na sajtu, pod uslovom da sva autorska prava i zaštitni žig "
-"Gournet tima budu sačuvani. Korišćenje bilo kojeg dela ovog sajta u "
-"komercijalne svrhe ili njegovo uklapanje u bilo koju drugu publikaciju ili "
-"stranicu je strogo zabranjeno.\n"
+"Sav materijal, pod koji spadaju informacije u vidu teksta i slike, i koji je objavljen na ovom sajtu je u vlasništvu Gournet tima. Ništa sadržano na ovoj stranici se ne može tumačiti kao "
+"dozvola za korišćenje bilo kog žiga koji je prikazan na ovom sajtu.\n"
+"Korišćenje sajta podrazumeva pretraživanje sajta, štampanje sadržaja njegove stranice ili čuvanje u elektronskom obliku i pristup i korišćenje sadržaja koji se nalaze na sajtu, pod uslovom da "
+"sva autorska prava i zaštitni žig Gournet tima budu sačuvani. Korišćenje bilo kojeg dela ovog sajta u komercijalne svrhe ili njegovo uklapanje u bilo koju drugu publikaciju ili stranicu je "
+"strogo zabranjeno.\n"
 "\n"
 "#### Garancije\n"
 "\n"
-"Gournet tim je prikazao detaljne informacije koje se nalaze na ovom sajtu "
-"koristeći originalne izvore, i neprestalno nastoji da proširi i ažurira te "
-"informacije. Informacije na ovom sajtu namenjene su isključivo "
-"predstavljanju ugostiteljskih objekata i njihovih usluga. Gournet tim ne "
-"daje garanciju kompletnosti, pouzdanosti, blagovremenosti ili tačnosti "
-"informacija na ovom sajtu, bilo izričito ili prećutno. Gournet tim nema "
-"obavezu održavanja materijala i usluga dostupnih na ovom sajtu, niti "
-"dostavljanja povezanih ispravki ili dopuna. Stoga Vam preporučujemo da "
-"proverite svaku informaciju koju dobijete putem ovog sajta pre nego što je "
-"upotrebite u bilo kom obliku. Ukoliko su Vam potrebni bilo kakvi saveti ili "
-"instrukcije u vezi sa našim uslugama, molimo Vas da nam se direktno "
-"obratite.\n"
+"Gournet tim je prikazao detaljne informacije koje se nalaze na ovom sajtu koristeći originalne izvore, i neprestalno nastoji da proširi i ažurira te informacije. Informacije na ovom sajtu "
+"namenjene su isključivo predstavljanju ugostiteljskih objekata i njihovih usluga. Gournet tim ne daje garanciju kompletnosti, pouzdanosti, blagovremenosti ili tačnosti informacija na ovom "
+"sajtu, bilo izričito ili prećutno. Gournet tim nema obavezu održavanja materijala i usluga dostupnih na ovom sajtu, niti dostavljanja povezanih ispravki ili dopuna. Stoga Vam preporučujemo da "
+"proverite svaku informaciju koju dobijete putem ovog sajta pre nego što je upotrebite u bilo kom obliku. Ukoliko su Vam potrebni bilo kakvi saveti ili instrukcije u vezi sa našim uslugama, "
+"molimo Vas da nam se direktno obratite.\n"
 "\n"
 "#### Ograničena odgovornost\n"
 "\n"
-"Pristupanjem ovom sajtu, korisnici ovog sajta izjavljuju da su saglasni s "
-"činjenicom da koriste pristup ovom sajtu i njegovom sadržaju na sopstveni "
-"rizik. Ni Gournet tim, niti treće strane koje učestvuju u pisanju, "
-"produkciji ili prenošenju ovog sajta ne mogu biti odgovorni za bilo kakvu "
-"direktnu, slučajnu, posledičnu, indirektnu ili bilo kakvu drugu štetu, "
-"troškove, gubitke ili povrede koje nastanu kao rezultat pristupa ili "
-"nemogućnosti pristupa ovom sajtu, te korišćenja ili nemogućnosti korišćenja "
-"ovog sajta, ili kao rezultat činjenice da ste se oslonili na informacije "
-"date na ovom sajtu.\n"
-"Takođe, Gournet tim ne prihvata odgovornost za bilo koji gubitak "
-"prouzrokovan virusima koji mogu zaraziti Vaš uređaj ili bilo koju drugu "
-"imovinu kroz upotrebu ovog sajta. Ukoliko odlučite da koristite ovaj sajt, "
-"činite to na sopstvenu odgovornost.\n"
-"Prenošenjem ili prijemom informacija sa ovog sajta ne zasniva se poslovni "
-"odnos između Vas i Gournet tima, te niko od korisnika ovog sajta ne treba da "
-"postupa, niti da se uzdrži od postupanja, na osnovu bilo koje informacije na "
-"ovom sajtu. Slanje poruka putem forme za kontaktiranje ni u kom smislu ne "
-"obavezuje Gournet tim na zasnivanje poslovnog odnosa sa bilo kojim "
-"korisnikom ovog sajta.\n"
+"Pristupanjem ovom sajtu, korisnici ovog sajta izjavljuju da su saglasni s činjenicom da koriste pristup ovom sajtu i njegovom sadržaju na sopstveni rizik. Ni Gournet tim, niti treće strane koje "
+"učestvuju u pisanju, produkciji ili prenošenju ovog sajta ne mogu biti odgovorni za bilo kakvu direktnu, slučajnu, posledičnu, indirektnu ili bilo kakvu drugu štetu, troškove, gubitke ili "
+"povrede koje nastanu kao rezultat pristupa ili nemogućnosti pristupa ovom sajtu, te korišćenja ili nemogućnosti korišćenja ovog sajta, ili kao rezultat činjenice da ste se oslonili na "
+"informacije date na ovom sajtu.\n"
+"Takođe, Gournet tim ne prihvata odgovornost za bilo koji gubitak prouzrokovan virusima koji mogu zaraziti Vaš uređaj ili bilo koju drugu imovinu kroz upotrebu ovog sajta. Ukoliko odlučite da "
+"koristite ovaj sajt, činite to na sopstvenu odgovornost.\n"
+"Prenošenjem ili prijemom informacija sa ovog sajta ne zasniva se poslovni odnos između Vas i Gournet tima, te niko od korisnika ovog sajta ne treba da postupa, niti da se uzdrži od postupanja, "
+"na osnovu bilo koje informacije na ovom sajtu. Slanje poruka putem forme za kontaktiranje ni u kom smislu ne obavezuje Gournet tim na zasnivanje poslovnog odnosa sa bilo kojim korisnikom ovog "
+"sajta.\n"
 "\n"
 "#### Odgovornost korisnika\n"
 "\n"
-"Korisnik ovog sajta je u potpunosti odgovoran za sadržaj i tačnost "
-"informacija koje objavljuje na ovom sajtu kao i za nekršenje prava bilo koje "
-"treće strane na koju se eventualno odnose te informacije. Korisnik samim "
-"slanjem informacija na sajt daje svoj pristanak Gournet timu da iste objavi, "
-"kao i da iste koristi u poslovne svrhe, uključujući ali ne ograničavajući se "
-"na reprodukciju, razvoj, reklamiranje, prodaju i marketing, bez ikakvog "
-"ograničenja i bez ikakve naknade korisniku, sa napomenom da se stav oko "
-"naknade može promeniti u budućnosti.\n"
+"Korisnik ovog sajta je u potpunosti odgovoran za sadržaj i tačnost informacija koje objavljuje na ovom sajtu kao i za nekršenje prava bilo koje treće strane na koju se eventualno odnose te "
+"informacije. Korisnik samim slanjem informacija na sajt daje svoj pristanak Gournet timu da iste objavi, kao i da iste koristi u poslovne svrhe, uključujući ali ne ograničavajući se na "
+"reprodukciju, razvoj, reklamiranje, prodaju i marketing, bez ikakvog ograničenja i bez ikakve naknade korisniku, sa napomenom da se stav oko naknade može promeniti u budućnosti.\n"
 "\n"
-"Dostavljanjem informacija korisnik daje garanciju da poseduje vlasnička "
-"prava nad poslatim informacijama i materijalom, i da ima pravo, odnosno "
-"pristanak za postavljanje informacija, odnosno materijala, te da korišćenje "
-"istih od strane Gournet tima neće povrediti prava treće strane. Gournet tim "
-"ni u kom slučaju nije u obavezi da objavi ili koristi dostavljene "
-"informacije ili materijal. Prilikom korišćenja sajta i bilo kojih "
-"informacija ili materijala koji se nalaze na istom, korisnik je u obavezi da "
-"postupa u skladu sa svim primenjivim propisima.\n"
+"Dostavljanjem informacija korisnik daje garanciju da poseduje vlasnička prava nad poslatim informacijama i materijalom, i da ima pravo, odnosno pristanak za postavljanje informacija, odnosno "
+"materijala, te da korišćenje istih od strane Gournet tima neće povrediti prava treće strane. Gournet tim ni u kom slučaju nije u obavezi da objavi ili koristi dostavljene informacije ili "
+"materijal. Prilikom korišćenja sajta i bilo kojih informacija ili materijala koji se nalaze na istom, korisnik je u obavezi da postupa u skladu sa svim primenjivim propisima.\n"
 "\n"
 "#### Merodavno pravo i nadležnost\n"
 "\n"
-"Korišćenjem ovog sajta, saglasni ste da je za bilo kakvo pravno potraživanje "
-"ili utuženja vezano za ovaj sajt ili njegovu upotrebu merodavno pravo "
-"Republike Srbije, a nadležan stvarno nadležni sud u Beogradu."
+"Korišćenjem ovog sajta, saglasni ste da je za bilo kakvo pravno potraživanje ili utuženja vezano za ovaj sajt ili njegovu upotrebu merodavno pravo Republike Srbije, a nadležan stvarno nadležni "
+"sud u Beogradu."
 
-#: main/templates/user.html:29
+#: .\main\templates\user.html:28
 msgctxt "display"
 msgid "Male"
 msgstr "Muško"
 
-#: main/templates/user.html:29
+#: .\main\templates\user.html:28
 msgctxt "display"
 msgid "Female"
 msgstr "Žensko"
 
-#: main/templates/user.html:63
+#: .\main\templates\user.html:62
 #, python-format
 msgid "Born %(y)s years ago"
 msgid_plural "Born %(y)s years ago"
@@ -1398,11 +1321,11 @@ msgstr[0] "Rođen/a pre %(y)s godinu"
 msgstr[1] "Rođen/a pre %(y)s godine"
 msgstr[2] "Rođen/a pre %(y)s godina"
 
-#: main/templates/user.html:77
+#: .\main\templates\user.html:76
 msgid "Has no friends"
 msgstr "Nema prijatelja"
 
-#: main/templates/user.html:79
+#: .\main\templates\user.html:78
 #, python-format
 msgid "<strong>%(counter)s</strong></a> person is your friend"
 msgid_plural "<strong>%(counter)s</strong></a> persons are your friends"
@@ -1410,31 +1333,31 @@ msgstr[0] "<strong>%(counter)s</strong></a> osoba je Vaš prijatelj"
 msgstr[1] "<strong>%(counter)s</strong></a> osobe su Vaši prijatelji"
 msgstr[2] "<strong>%(counter)s</strong></a> osoba su Vaši prijatelji"
 
-#: main/templates/user.html:79
+#: .\main\templates\user.html:78
 msgid "You have no friends"
 msgstr "Nemate prijatelja"
 
-#: main/templates/view.html:33
+#: .\main\templates\view.html:39
 msgid "Shortname:"
 msgstr "Skraćenica:"
 
-#: main/templates/view.html:50 main/templates/view.html:60
+#: .\main\templates\view.html:52 .\main\templates\view.html:65
 msgid "Nobody favored this"
 msgstr "Niko nije favorizovao ovo"
 
-#: main/templates/view.html:55
+#: .\main\templates\view.html:59
 msgid "It's my favorite, too"
 msgstr "Takođe je i meni omiljeno"
 
-#: main/templates/view.html:55
+#: .\main\templates\view.html:59
 msgid "It's my favorite"
 msgstr "Meni je omiljeno"
 
-#: main/templates/view.html:60
+#: .\main\templates\view.html:61
 msgid "It's not my favorite anymore"
 msgstr "Više mi nije omiljeno"
 
-#: main/templates/view.html:64
+#: .\main\templates\view.html:65
 #, python-format
 msgid "<strong>%(counter)s</strong></a> person has favored this"
 msgid_plural "<strong>%(counter)s</strong></a> persons have favored this"
@@ -1442,105 +1365,160 @@ msgstr[0] "<strong>%(counter)s</strong></a> osoba je favorizovala ovo"
 msgstr[1] "<strong>%(counter)s</strong></a> osobe su favorizovale ovo"
 msgstr[2] "<strong>%(counter)s</strong></a> osoba je favorizovalo ovo"
 
-#: main/templates/view.html:69
+#: .\main\templates\view.html:69
 msgid "Edit"
 msgstr "Izmeni"
 
-#: main/templates/view.html:73
+#: .\main\templates\view.html:72
 msgid "Always opened"
 msgstr "Uvek otvoreno"
 
-#: main/templates/view.html:73
+#: .\main\templates\view.html:72
 msgid "Currently opened"
 msgstr "Trenutno otvoreno"
 
-#: main/templates/view.html:73
+#: .\main\templates\view.html:72
 msgid "Currently closed"
 msgstr "Trenutno zatvoreno"
 
-#: main/templates/view.html:69
+#: .\main\templates\view.html:73
 #, python-format
 msgid "Monday-Friday, from %(wf)s to %(wt)s"
 msgstr "Radnim danima od %(wf)s do %(wt)s"
 
-#: main/templates/view.html:70
+#: .\main\templates\view.html:74
 #, python-format
 msgid "Saturday, from %(wf)s to %(wt)s"
 msgstr "Subotom od %(wf)s do %(wt)s"
 
-#: main/templates/view.html:71
+#: .\main\templates\view.html:75
 #, python-format
 msgid "Sunday, from %(wf)s to %(wt)s"
 msgstr "Nedeljom od %(wf)s do %(wt)s"
 
-#: main/templates/view.html:79
+#: .\main\templates\view.html:84
+#, python-format
 msgid "<a href=\"/admin/main/business/%(pk)s/change/\" target=\"_blank\">Edit this business for publishing</a> or <a href=\"/admin/main/business/%(pk)s/delete/\">reject it</a>."
 msgstr "<a href=\"/admin/main/business/%(pk)s/change/\" target=\"_blank\">Izmeni ovaj ugostiteljski objekat pre objavljivanja</a> ili ga <a href=\"/admin/main/business/%(pk)s/delete/\">odbij</a>."
 
-#: main/templates/view.html:79
+#: .\main\templates\view.html:84
 msgid "Your business won't be a candidate for verfication until you add some items to it."
 msgstr "Vaš ugostiteljski objekat neće biti kandidat za verifikaciju sve dok mu ne dodate neke proizvode."
 
-#: main/templates/view.html:79
+#: .\main\templates\view.html:84
 msgid "This message will disappear once your business is approved. When published, it will become visible/accessible to others."
 msgstr "Ova poruka će nestati jednom kada Vaš ugostiteljski objekat bude verifikovan. Kada bude objavljen, tada će biti vidljiv/dostupan ostalima."
 
-#: main/templates/view.html:81
+#: .\main\templates\view.html:86
 msgid "Edit this business in admin panel."
 msgstr "Izmeni ovaj ugostiteljski objekat u administratorskom panelu."
 
-#: main/templates/view.html:87
+#: .\main\templates\view.html:88
 msgid "Events"
 msgstr "Događaji"
 
-#: main/templates/view.html:90
+#: .\main\templates\view.html:91
 #, python-format
 msgid "Please enter text with %(m)s or more characters."
 msgstr "Molimo unesite tekst sa %(m)s ili više karaktera."
 
-#: main/templates/view.html:101 main/templates/view.html:122
-#: main/templates/view.html:182
+#: .\main\templates\view.html:102 .\main\templates\view.html:123 .\main\templates\view.html:189
 msgid "Submit"
 msgstr "Pošalji"
 
-#: main/templates/view.html:108
+#: .\main\templates\view.html:109
 msgid "Menu"
 msgstr "Meni"
 
-#: main/templates/view.html:111
+#: .\main\templates\view.html:112
 msgid "Name must must have minimum 2 characters."
 msgstr "Ime mora imati najmanje 2 karaktera."
 
-#: main/templates/view.html:111
+#: .\main\templates\view.html:112
 msgid "Name conflicts with the existing item."
 msgstr "Ime je u konfliktu sa već postojećim proizvodom."
 
-#: main/templates/view.html:174
+#: .\main\templates\view.html:174
+msgid "Total:"
+msgstr "Ukupno:"
+
+#: .\main\templates\view.html:174
+msgid "Confirm order"
+msgstr "Potvrdi porudžbinu"
+
+#: .\main\templates\view.html:174
+msgid "Reset"
+msgstr "Resetuj"
+
+#: .\main\templates\view.html:175
+msgid "Remaining time:"
+msgstr "Preostalo vreme:"
+
+#: .\main\templates\view.html:181
 msgid "Reviews"
 msgstr "Recenzije"
 
-#: main/templates/view.html:177
+#: .\main\templates\view.html:184
 msgid "Please enter a message with \"+minchar+\" or more characters."
 msgstr "Molimo unesite poruku sa \"+minchar+\" ili više karaktera."
 
-#: main/templates/view.html:177
+#: .\main\templates\view.html:184
 msgid "Please select how many stars you give."
 msgstr "Molimo odaberite koliko zvezdica dajete."
 
-#: main/views.py:110
+#: .\main\templates\waiters.html:17
+msgid "Waiter"
+msgstr "Konobar"
+
+#: .\main\templates\waiters.html:17
+msgid "No waiters yet"
+msgstr "Trenutno nema konobara"
+
+#: .\main\templates\waiters.html:18
+msgctxt "title"
+msgid "Monday-Friday"
+msgstr "Ponedeljak-petak"
+
+#: .\main\templates\waiters.html:19
+msgctxt "title"
+msgid "Saturday"
+msgstr "Subota"
+
+#: .\main\templates\waiters.html:20
+msgctxt "title"
+msgid "Sunday"
+msgstr "Nedelja"
+
+#: .\main\templates\waiters.html:25
+msgid "Are you sure that you want to proceed?"
+msgstr "Da li ste sigurni da želite da nastavite?"
+
+#: .\main\templates\waiters.html:25
+msgid "All data related to the waiter would be lost."
+msgstr "Svi podaci vezani za ciljanog konobara biće obrisani."
+
+#: .\main\templates\waiters.html:25
+msgid "All data related to the whole table would be lost."
+msgstr "Svi podaci vezani za ovaj sto biće obrisani."
+
+#: .\main\templates\waiters.html:59
+msgid "One more table"
+msgstr "Još jedan sto"
+
+#: .\main\views.py:184
 msgid "Image format not supproted."
 msgstr "Format slike nije podržan."
 
-#: main/views.py:113
+#: .\main\views.py:187
 msgid "Invalid image."
 msgstr "Slika nije validna."
 
-#: main/views.py:410
+#: .\main\views.py:515
 #, python-format
 msgid "%s has commented on"
 msgstr "%s je komentarisao"
 
-#: main/views.py:410
+#: .\main\views.py:515
 #, python-format
 msgid "%d have commented on"
 msgid_plural "%d have commented on"
@@ -1548,13 +1526,13 @@ msgstr[0] "%d osoba je komentarisala"
 msgstr[1] "%d osobe su komentarisale"
 msgstr[2] "%d osoba je komentarisalo"
 
-#: main/views.py:413
+#: .\main\views.py:518
 #, python-format
 msgctxt "person has commented on"
 msgid "%s a review on your business."
 msgstr "%s recenziju na Vašem ugostiteljskom objektu."
 
-#: main/views.py:415
+#: .\main\views.py:520
 #, python-format
 msgid "%(person_action)s %(count)d review on your business."
 msgid_plural "%(person_action)s %(count)d reviews on your business."
@@ -1589,12 +1567,12 @@ msgstr[0] "Vašu %d recenziju"
 msgstr[1] "Vaše %d recenzije"
 msgstr[2] "Vaših %d recenzija"
 
-#: main/views.py:419
+#: .\main\views.py:524
 #, python-format
 msgid "%s has reviewed your business."
 msgstr "%s je ostavio recenziju na Vašem ugostiteljskom objektu."
 
-#: main/views.py:419
+#: .\main\views.py:524
 #, python-format
 msgid "%d have reviewed your business."
 msgid_plural "%d have reviewed your business."
@@ -1602,7 +1580,7 @@ msgstr[0] "%d osoba je ostavila recenziju na Vašem ugostiteljskom objektu."
 msgstr[1] "%d osobe su ostavile recenziju na Vašem ugostiteljskom objektu."
 msgstr[2] "%d osoba je ostavilo recenziju na Vašem ugostiteljskom objektu."
 
-#: main/views.py:421
+#: .\main\views.py:526
 #, python-format
 msgid "%(name)s notifies you about %(count)d event."
 msgid_plural "%(name)s notifies you about %(count)d events."
@@ -1610,7 +1588,7 @@ msgstr[0] "%(name)s Vas obaveštava o %(count)d događaju."
 msgstr[1] "%(name)s Vas obaveštava o %(count)d događaja."
 msgstr[2] "%(name)s Vas obaveštava o %(count)d događaja."
 
-#: main/views.py:435
+#: .\main\views.py:542
 #, python-format
 msgid "You have %d reminder."
 msgid_plural "You have %d reminders."
@@ -1618,156 +1596,256 @@ msgstr[0] "Imate %d podsetnik."
 msgstr[1] "Imate %d podsetnika."
 msgstr[2] "Imate %d podsetnika."
 
-#: templates/account/account_inactive.html:5
-#: templates/account/account_inactive.html:8
+#: .\main\views.py:779
+#, python-format
+msgid "You have placed an order at <strong>%(type)s \"%(name)s\"</strong>."
+msgstr "Upravo ste poručili u <strong>%(type)s \"%(name)s\"</strong>."
+
+#: .\main\views.py:782
+#, python-format
+msgid "has placed an order on table <strong>%d</strong>."
+msgstr "je poručio/la na stolu <strong>%d</strong>."
+
+#: .\main\views.py:814
+#, python-format
+msgid "has requested payment with <strong>cash</strong> on table <strong>%d</strong>."
+msgstr "je zatražio/la plaćanje <strong>gotovinom</strong> na stolu <strong>%d</strong>."
+
+#: .\main\views.py:814
+#, python-format
+msgid "has requested payment by <strong>debit card</strong> on table <strong>%d</strong>."
+msgstr "je zatražio/la plaćanje <strong>platnom karticom</strong> na stolu <strong>%d</strong>."
+
+#: .\templates\account\account_inactive.html:8
 msgid "Account Inactive"
 msgstr "Nalog neaktivan"
 
-#: templates/account/account_inactive.html:10
+#: .\templates\account\account_inactive.html:9
 msgid "This account is inactive."
 msgstr "Ovaj nalog je neaktivan."
 
-#: templates/account/email/email_confirmation_message.txt:1
+#: .\templates\account\email\email_confirmation_message.html:1
+#, python-format
+msgid ""
+"<p>Hello from <strong>%(site_name)s</strong>!</p>\n"
+"<p>You're receiving this e-mail because user <strong>%(user_display)s</strong> at <a href=\"%(site_domain)s\">%(site_name)s</a> has given yours as an e-mail address to connect their account.</"
+"p>\n"
+"<p>To confirm this is correct, go to:</p>"
+msgstr ""
+"<p>Pozdrav sa <strong>%(site_name)s</strong>!-a!</p>\n"
+"<p>Primili ste ovaj e-mail zbog toga što korisnik <strong>%(user_display)s</strong> na <a href=\"%(site_domain)s\">%(site_name)s-u</a> je dao Vašu e-mail adresu za povezivanje njegovog naloga.</"
+"p>\n"
+"<p>Za potvrđivanje tačnosti ovoga, idite na:</p>"
+
+#: .\templates\account\email\email_confirmation_message.html:7
+#, python-format
+msgid "<p>Thank you from <strong>%(site_name)s</strong>!</p>"
+msgstr "<p>Vaš <strong>%(site_name)s</strong></p>"
+
+#: .\templates\account\email\email_confirmation_message.txt:1
 #, python-format
 msgid ""
 "Hello from %(site_name)s!\n"
 "\n"
-"You're receiving this e-mail because user %(user_display)s at "
-"%(site_domain)s has given yours as an e-mail address to connect their "
-"account.\n"
+"You're receiving this e-mail because user %(user_display)s at %(site_domain)s has given yours as an e-mail address to connect their account.\n"
 "\n"
 "To confirm this is correct, go to:"
 msgstr ""
 "Pozdrav sa %(site_name)s-a!\n"
 "\n"
-"Primili ste ovaj e-mail zbog toga što korisnik %(user_display)s na "
-"%(site_domain)s je dao Vašu e-mail adresu za povezivanje njegovog naloga.\n"
+"Primili ste ovaj e-mail zbog toga što korisnik %(user_display)s na %(site_domain)s je dao Vašu e-mail adresu za povezivanje njegovog naloga.\n"
 "\n"
 "Za potvrđivanje tačnosti ovoga, idite na:"
 
-#: templates/account/email/email_confirmation_message.html:1
+#: .\templates\account\email\email_confirmation_message.txt:9
+#, python-format
+msgid "Thank you from %(site_name)s!"
+msgstr "Vaš %(site_name)s"
+
+#: .\templates\account\email\password_reset_key_message.html:1
 #, python-format
 msgid ""
 "<p>Hello from <strong>%(site_name)s</strong>!</p>\n"
-"<p>You're receiving this e-mail because user <strong>%(user_display)s</strong>"
-" at <a href=\"%(site_domain)s\">%(site_name)s</a> has given yours as an e-mail "
-"address to connect their account.</p>\n"
-"<p>To confirm this is correct, go to:</p>"
+"<p>You're receiving this e-mail because you or someone else has requested a password for your user account at <a href=\"%(site_domain)s\">%(site_name)s</a>.</p>\n"
+"<p>It can be safely ignored if you did not request a password reset. Click the link below to reset your password.</p>"
 msgstr ""
-"<p>Pozdrav sa <strong>%(site_name)s</strong>!-a!</p>\n"
-"<p>Primili ste ovaj e-mail zbog toga što korisnik "
-"<strong>%(user_display)s</strong> na "
-"<a href=\"%(site_domain)s\">%(site_name)s-u</a> je dao Vašu e-mail adresu za "
-"povezivanje njegovog naloga.</p>\n"
-"<p>Za potvrđivanje tačnosti ovoga, idite na:</p>"
+"<p>Pozdrav sa <strong>%(site_name)s-a</strong>!</p>\n"
+"<p>Vi ste primili ovaj e-mail pošto ste Vi zatražili lozinku Vašeg naloga na <a href=\"%(site_domain)s\">%(site_name)s-u</a>, ili je to bio neko drugi.</p>\n"
+"<p>Možete ovo slobodno ignorisati ako niste Vi zatražili resetovanje lozinke. Kliknite na link ispod da bi resetovali Vašu lozinku.</p>"
 
-#: templates/account/email/email_confirmation_message.txt:7
+#: .\templates\account\email\password_reset_key_message.html:7
 #, python-format
-msgid ""
-"Thank you from %(site_name)s!"
-msgstr ""
-"Vaš %(site_name)s"
+msgid "<p>In case you forgot, your username is <strong>%(username)s</strong>.</p>"
+msgstr "<p>U slučaju da ste zaboravili, Vaše korisničko ime je <strong>%(username)s</strong>.</p>"
 
-#: templates/account/email/email_confirmation_message.html:7
+#: .\templates\account\email\password_reset_key_message.html:9
 #, python-format
-msgid ""
-"<p>Thank you from <strong>%(site_name)s</strong>!</p>"
-msgstr ""
-"<p>Vaš <strong>%(site_name)s</strong></p>"
+msgid "<p>Thank you for using <strong>%(site_name)s</strong>!</p>"
+msgstr "<p>Hvala Vam što koristite <strong>%(site_name)s</strong>!</p>"
 
-#: templates/account/email/email_confirmation_subject.txt:3
-msgid "Please Confirm Your E-mail Address"
-msgstr "Molimo potvrdite Vašu e-mail adresu"
-
-#: templates/account/email/password_reset_key_message.txt:1
+#: .\templates\account\email\password_reset_key_message.txt:1
 #, python-format
 msgid ""
 "Hello from %(site_name)s!\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(site_domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(site_domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password."
 msgstr ""
 "Pozdrav sa %(site_name)s-a!\n"
 "\n"
-"Vi ste primili ovaj e-mail pošto ste Vi zatražili lozinku Vašeg naloga na "
-"%(site_domain)s, ili je to bio neko drugi.\n"
-"Možete ovo slobodno ignorisati ako niste Vi zatražili resetovanje lozinke. "
-"Kliknite na link ispod da bi resetovali Vašu lozinku."
+"Vi ste primili ovaj e-mail pošto ste Vi zatražili lozinku Vašeg naloga na %(site_domain)s, ili je to bio neko drugi.\n"
+"Možete ovo slobodno ignorisati ako niste Vi zatražili resetovanje lozinke. Kliknite na link ispod da bi resetovali Vašu lozinku."
 
-#: templates/account/email/password_reset_key_message.txt:8
+#: .\templates\account\email\password_reset_key_message.txt:10
 #, python-format
-msgid "In case you forgot, your username is %(username)s."
-msgstr "U slučaju da ste zaboravili, Vaše korisničko ime je %(username)s."
+msgid "Thank you for using %(site_name)s!"
+msgstr "Hvala Vam što koristite %(site_name)s!"
 
-#: templates/account/email/password_reset_key_message.txt:10
-#, python-format
-msgid ""
-"Thank you for using %(site_name)s!"
-msgstr ""
-"Hvala Vam što koristite %(site_name)s!"
-
-#: templates/account/email/password_reset_key_message.html:1
-#, python-format
-msgid ""
-"<p>Hello from <strong>%(site_name)s</strong>!</p>\n"
-"<p>You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at "
-"<a href=\"%(site_domain)s\">%(site_name)s</a>.</p>\n"
-"<p>It can be safely ignored if you did not request a password reset. Click "
-"the link below to reset your password.</p>"
-msgstr ""
-"<p>Pozdrav sa <strong>%(site_name)s-a</strong>!</p>\n"
-"<p>Vi ste primili ovaj e-mail pošto ste Vi zatražili lozinku Vašeg naloga na "
-"<a href=\"%(site_domain)s\">%(site_name)s-u</a>, ili je to bio neko "
-"drugi.</p>\n"
-"<p>Možete ovo slobodno ignorisati ako niste Vi zatražili resetovanje lozinke. "
-"Kliknite na link ispod da bi resetovali Vašu lozinku.</p>"
-
-#: templates/account/email/password_reset_key_message.html:8
-#, python-format
-msgid "<p>In case you forgot, your username is "
-"<strong>%(username)s</strong>.</p>"
-msgstr "<p>U slučaju da ste zaboravili, Vaše korisničko ime je "
-"<strong>%(username)s</strong>.</p>"
-
-#: templates/account/email/password_reset_key_message.html:10
-#, python-format
-msgid ""
-"<p>Thank you for using <strong>%(site_name)s</strong>!</p>"
-msgstr ""
-"<p>Hvala Vam što koristite <strong>%(site_name)s</strong>!</p>"
-
-#: templates/account/email/password_reset_key_subject.txt:3
-msgid "Password Reset E-mail"
-msgstr "Resetovanje lozinke preko e-maila"
-
-#: templates/account/email_confirm.html:9
+#: .\templates\account\email_confirm.html:9
 msgid "Confirm E-mail Address"
 msgstr "Potvrdite e-mail adresu"
 
-#: templates/account/email_confirm.html:12
+#: .\templates\account\email_confirm.html:12
 #, python-format
-msgid ""
-"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
-"address for user %(user_display)s."
-msgstr ""
-"Molimo potvrdite da je <a href=\"mailto:%(email)s\">%(email)s</a> e-mail "
-"adresa korisnika %(user_display)s."
+msgid "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail address for user %(user_display)s."
+msgstr "Molimo potvrdite da je <a href=\"mailto:%(email)s\">%(email)s</a> e-mail adresa korisnika %(user_display)s."
 
-#: templates/account/email_confirm.html:15
+#: .\templates\account\email_confirm.html:15
 msgid "Confirm"
 msgstr "Potvrdi"
 
-#: templates/account/email_confirm.html:19
+#: .\templates\account\email_confirm.html:19
+#, python-format
+msgid "This e-mail confirmation link expired or is invalid. Please <a href=\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+msgstr "Ovaj e-mail konfirmacioni link je istekao ili nije validan. Molimo <a href=\"%(email_url)s\">zatražite novi zahtev za potvrdu e-maila</a>."
+
+#: .\templates\account\password_reset.html:4 .\templates\account\password_reset.html:10 .\templates\account\password_reset_done.html:9
+msgid "Password Reset"
+msgstr "Resetuj lozinku"
+
+#: .\templates\account\password_reset.html:14
+msgid "Forgotten your password? Enter your e-mail address below, and we'll send you an e-mail allowing you to reset it."
+msgstr "Zaboravili ste lozinku? Unesite Vašu e-mail adresu ispod, i mi ćemo Vam poslati e-mail omogućavajući Vam da je resetujete."
+
+#: .\templates\account\password_reset.html:18
+msgid "Reset My Password"
+msgstr "Resetuj moju lozinku"
+
+#: .\templates\account\password_reset.html:20
+msgid "Please contact us if you have any trouble resetting your password."
+msgstr "Molimo kontaktirajte nas ako imate bilo kakvih problema sa resetovanjem Vaše lozinke."
+
+#: .\templates\account\password_reset_done.html:13
+msgid "We have sent you an e-mail. Please mind to check your Spam folder too, or contact us if you do not receive it within a few minutes."
+msgstr "Poslali smo vam e-mail. Molimo proverite i vaš Spam folder takođe, ili nas kontaktirajte ako ga ne primite u roku od par minuta."
+
+#: .\templates\account\password_reset_from_key.html:10
+msgid "Bad Token"
+msgstr "Loš token"
+
+#: .\templates\account\password_reset_from_key.html:10 .\templates\account\password_reset_from_key_done.html:9
+msgid "Change Password"
+msgstr "Promeni lozinku"
+
+#: .\templates\account\password_reset_from_key.html:13
+#, python-format
+msgid "The password reset link was invalid, possibly because it has already been used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</a>."
+msgstr "Link za resetovanje lozinke je bio nevalidan, moguće zbog toga što je već iskorišćen.  Molimo zatražite <a href=\"%(passwd_reset_url)s\">ponovno resetovanje lozinke</a>."
+
+#: .\templates\account\password_reset_from_key.html:19
+msgid "Change My Password"
+msgstr "Promeni moju lozinku"
+
+#: .\templates\account\password_reset_from_key.html:22 .\templates\account\password_reset_from_key_done.html:10
+msgid "Your password is now changed."
+msgstr "Vaša lozinka je sada promenjena."
+
+#: .\templates\account\signup.html:13 .\templates\socialaccount\signup.html:13
+msgid "Fill the data"
+msgstr "Popunite podatke"
+
+#: .\templates\account\signup.html:15 .\templates\socialaccount\signup.html:16
+msgid "Sign me up!"
+msgstr "Registruj me!"
+
+#: .\templates\account\signup.html:21
+msgid "Or connect via"
+msgstr "Ili se povežite preko"
+
+#: .\templates\account\signup_closed.html:8
+msgid "Sign Up Closed"
+msgstr "Registracije zatvorene"
+
+#: .\templates\account\signup_closed.html:9
+msgid "We are sorry, but the sign up is currently closed."
+msgstr "Žao nam je, ali registracije su trenutno zatvorene."
+
+#: .\templates\account\verification_sent.html:8
+msgid "Verify Your E-mail Address"
+msgstr "Verifikujte Vašu e-mail adresu"
+
+#: .\templates\account\verification_sent.html:9
+msgid ""
+"We have sent an e-mail to you for verification. Follow the link provided to finalize the signup process. Please mind to check your Spam folder too, or contact us if you do not receive it within "
+"a few minutes."
+msgstr ""
+"Mi smo Vam poslali e-mail za verifikaciju. Pratite link koji ćete dobiti da bi završili proces registracije. Molimo da proverite i vaš Spam folder takođe, ili da nas kontaktirate opet ako ne "
+"dobijete odgovor u razumnom roku."
+
+#: .\templates\socialaccount\authentication_error.html:8
+msgid "Social Network Login Failure"
+msgstr "Prijava preko socijalne mreže neuspela"
+
+#: .\templates\socialaccount\authentication_error.html:9
+msgid "An error occurred while attempting to login via your social network account."
+msgstr "Desila se greška prilikom pokušaja da Vas prijavimo preko Vašeg naloga na socijalnoj mreži."
+
+#: .\templates\socialaccount\login_cancelled.html:8
+msgid "Login Cancelled"
+msgstr "Prijavljivanje otkazano"
+
+#: .\templates\socialaccount\login_cancelled.html:9
+msgid "You decided to cancel logging in to our site using one of your existing accounts."
+msgstr "Odlučili ste da otkažete prijavljivanje na naš sajt koristeći jedan od Vaših postojećih naloga."
+
+#: .\templates\socialaccount\signup.html:14
+#, python-format
+msgid "You are about to use your %(provider_name)s account data to signup to %(site_name)s. As a final step, please complete the following form:"
+msgstr "Vi ćete upravo iskoristiti podatke sa Vašeg %(provider_name)s naloga da se registrujete na %(site_name)s. Kao poslednji korak, molimo dovršite sledeću formu:"
+
+
+msgid "Enter a valid email address."
+msgstr "Unesite validnu e-mail adresu."
+
+msgid "A user is already registered with this e-mail address."
+msgstr "Korisnik sa ovom e-mail adresom već postoji."
+
+msgid "The username and/or password you specified are not correct."
+msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."
+
+#, python-format
+msgid "The password is too similar to the %(verbose_name)s."
+msgstr "Lozinka je previše slična sa podatkom unetim u polje: %(verbose_name)s."
+
+msgid "Enter a valid phone number."
+msgstr "Unesi validan broj telefona."
+
 #, python-format
 msgid ""
-"This e-mail confirmation link expired or is invalid. Please <a href="
-"\"%(email_url)s\">issue a new e-mail confirmation request</a>."
-msgstr ""
-"Ovaj e-mail konfirmacioni link je istekao ili nije validan. Molimo <a href="
-"\"%(email_url)s\">zatražite novi zahtev za potvrdu e-maila</a>."
+"This password is too short. It must contain at least %(min_length)d "
+"character."
+msgid_plural ""
+"This password is too short. It must contain at least %(min_length)d "
+"characters."
+msgstr[0] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karakter."
+msgstr[1] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+msgstr[2] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
+
+msgid "This password is too common."
+msgstr "Ova lozinka je previše učestala."
+
+msgid "This password is entirely numeric."
+msgstr "Ova lozinka je skroz brojčana."
 
 #: templates/account/messages/email_confirmation_sent.txt:2
 #, python-format
@@ -1787,230 +1865,55 @@ msgstr "Lozinka je uspešno promenjena."
 msgid "Your primary e-mail address must be verified."
 msgstr "Vaša primarna e-mail adresa mora biti verifikovana."
 
-#: templates/account/password_reset_from_key.html:10
-#: templates/account/password_reset_from_key_done.html:9
-msgid "Change Password"
-msgstr "Promeni lozinku"
-
-#: templates/account/password_reset.html:4
-#: templates/account/password_reset.html:10
-#: templates/account/password_reset_done.html:9
-msgid "Password Reset"
-msgstr "Resetuj lozinku"
-
-#: templates/account/password_reset.html:14
-msgid ""
-"Forgotten your password? Enter your e-mail address below, and we'll send you "
-"an e-mail allowing you to reset it."
-msgstr ""
-"Zaboravili ste lozinku? Unesite Vašu e-mail adresu ispod, i mi ćemo Vam "
-"poslati e-mail omogućavajući Vam da je resetujete."
-
-#: templates/account/password_reset.html:18
-msgid "Reset My Password"
-msgstr "Resetuj moju lozinku"
-
-#: templates/account/password_reset.html:20
-msgid "Please contact us if you have any trouble resetting your password."
-msgstr ""
-"Molimo kontaktirajte nas ako imate bilo kakvih problema sa resetovanjem Vaše "
-"lozinke."
-
-#: templates/account/password_reset_done.html:13
-msgid ""
-"We have sent you an e-mail. Please mind to check your Spam folder too, or "
-"contact us if you do not receive it within a few minutes."
-msgstr ""
-"Poslali smo vam e-mail. Molimo proverite i vaš Spam folder takođe, ili nas "
-"kontaktirajte ako ga ne primite u roku od par minuta."
-
-#: templates/account/password_reset_from_key.html:10
-msgid "Bad Token"
-msgstr "Loš token"
-
-#: templates/account/password_reset_from_key.html:13
+#: templates/account/email/email_confirmation_message.txt:1
 #, python-format
 msgid ""
-"The password reset link was invalid, possibly because it has already been "
-"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</"
-"a>."
+"Hello from %(site_name)s!\n"
+"\n"
+"You're receiving this e-mail because user %(user_display)s at "
+"%(site_domain)s has given yours as an e-mail address to connect their "
+"account.\n"
+"\n"
+"To confirm this is correct, go to %(activate_url)s\n"
 msgstr ""
-"Link za resetovanje lozinke je bio nevalidan, moguće zbog toga što je već "
-"iskorišćen.  Molimo zatražite <a href=\"%(passwd_reset_url)s\">ponovno "
-"resetovanje lozinke</a>."
+"Pozdrav sa %(site_name)s-a!\n"
+"\n"
+"Primili ste ovaj e-mail zbog toga što korisnik %(user_display)s na "
+"%(site_domain)s je dao Vašu e-mail adresu za povezivanje njegovog naloga.\n"
+"\n"
+"Za potvrđivanje tačnosti ovoga, idite na %(activate_url)s\n"
 
-#: templates/account/password_reset_from_key.html:19
-msgid "Change My Password"
-msgstr "Promeni moju lozinku"
-
-#: templates/account/password_reset_from_key.html:22
-#: templates/account/password_reset_from_key_done.html:10
-msgid "Your password is now changed."
-msgstr "Vaša lozinka je sada promenjena."
-
-#: templates/account/signup.html:13 templates/socialaccount/signup.html:13
-msgid "Fill the data"
-msgstr "Popunite podatke"
-
-#: templates/account/signup.html:15 templates/socialaccount/signup.html:16
-msgid "Sign me up!"
-msgstr "Registruj me!"
-
-#: templates/account/signup.html:21
-msgid "Or connect via"
-msgstr "Ili se povežite preko"
-
-#: templates/account/signup_closed.html:5
-#: templates/account/signup_closed.html:8
-msgid "Sign Up Closed"
-msgstr "Registracije zatvorene"
-
-#: templates/account/signup_closed.html:10
-msgid "We are sorry, but the sign up is currently closed."
-msgstr "Žao nam je, ali registracije su trenutno zatvorene."
-
-#: templates/account/verification_sent.html:8
-msgid "Verify Your E-mail Address"
-msgstr "Verifikujte Vašu e-mail adresu"
-
-#: templates/account/verification_sent.html:9
-msgid ""
-"We have sent an e-mail to you for verification. Follow the link provided to "
-"finalize the signup process. Please mind to check your Spam folder too, or "
-"contact us if you do not receive it within a few minutes."
-msgstr ""
-"Mi smo Vam poslali e-mail za verifikaciju. Pratite link koji ćete dobiti da "
-"bi završili proces registracije. Molimo da proverite i vaš Spam folder "
-"takođe, ili da nas kontaktirate opet ako ne dobijete odgovor u razumnom roku."
-
-#: templates/socialaccount/authentication_error.html:8
-msgid "Social Network Login Failure"
-msgstr "Prijava preko socijalne mreže neuspela"
-
-#: templates/socialaccount/authentication_error.html:9
-msgid ""
-"An error occurred while attempting to login via your social network account."
-msgstr ""
-"Desila se greška prilikom pokušaja da Vas prijavimo preko Vašeg naloga na "
-"socijalnoj mreži."
-
-#: templates/socialaccount/login_cancelled.html:5
-#: templates/socialaccount/login_cancelled.html:9
-msgid "Login Cancelled"
-msgstr "Prijavljivanje otkazano"
-
-#: templates/socialaccount/login_cancelled.html:13
+#: templates/account/email/email_confirmation_message.txt:7
 #, python-format
 msgid ""
-"You decided to cancel logging in to our site using one of your existing "
-"accounts."
+"Thank you from %(site_name)s!\n"
+"%(site_domain)s"
 msgstr ""
-"Odlučili ste da otkažete prijavljivanje na naš sajt koristeći jedan od Vaših "
-"postojećih naloga."
+"Vaš %(site_name)s\n"
+"%(site_domain)s"
 
-#: templates/socialaccount/signup.html:14
+#: templates/account/email/email_confirmation_subject.txt:3
+msgid "Please Confirm Your E-mail Address"
+msgstr "Molimo potvrdite Vašu e-mail adresu"
+
+#: templates/account/email/password_reset_key_message.txt:8
+#, python-format
+msgid "In case you forgot, your username is %(username)s."
+msgstr "U slučaju da ste zaboravili, Vaše korisničko ime je %(username)s."
+
+#: templates/account/email/password_reset_key_message.txt:10
 #, python-format
 msgid ""
-"You are about to use your %(provider_name)s account data to signup to "
-"%(site_name)s. As a final step, please complete the following form:"
+"Thank you for using %(site_name)s!\n"
+"%(site_domain)s"
 msgstr ""
-"Vi ćete upravo iskoristiti podatke sa Vašeg %(provider_name)s naloga da se "
-"registrujete na %(site_name)s. Kao poslednji korak, molimo dovršite sledeću "
-"formu:"
+"Hvala Vam što koristite %(site_name)s!\n"
+"%(site_domain)s"
 
-msgid "Enter a valid email address."
-msgstr "Unesite validnu email adresu."
-
-msgid "A user is already registered with this e-mail address."
-msgstr "Korisnik sa ovom e-mail adresom već postoji."
-
-msgid "The username and/or password you specified are not correct."
-msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."
-
-#: main/admin.py:17
-msgid "has any item?"
-msgstr "ima barem jednog proizvoda?"
-
-#: main/admin.py:37
-#: main/admin.py:55
-msgid "like(s)"
-msgstr "sviđanja"
-
-#: main/admin.py:37
-msgid "item(s)"
-msgstr "proizvodi"
-
-#: main/admin.py:37
-msgid "event(s)"
-msgstr "događaji"
-
-#: main/admin.py:41
-msgid "review(s)"
-msgstr "recenzije"
-
-#: main/admin.py:50
-msgid "name/text"
-msgstr "ime/tekst"
-
-#: main/admin.py:59
-msgid "dislike(s)"
-msgstr "nesviđanja"
-
-#: main/admin.py:63
-msgid "comment(s)"
-msgstr "komentari"
-
-#: main/admin.py:85
-msgid "comment"
-msgstr "komentar"
-
-#: main/admin.py:83
-msgid "star count"
-msgstr "broj zvezdica"
-
-#: main/admin.py:83
-msgid "rating"
-msgstr "ocena"
-
-#: main/admin.py:86
-msgid "comments"
-msgstr "komentari"
-
-msgid "created"
-msgstr "napravljeno"
-
-#, python-format
-msgid "The password is too similar to the %(verbose_name)s."
-msgstr "Lozinka je previše slična sa podatkom unetim u polje: %(verbose_name)s."
-
-#: main/apps.py:21
-msgid "review"
-msgstr "recenzija"
-
-#: main/apps.py:22
-msgid "reviews"
-msgstr "recenzije"
-
-msgid "Enter a valid phone number."
-msgstr "Unesi validan broj telefona."
+#: templates/account/email/password_reset_key_subject.txt:3
+msgid "Password Reset E-mail"
+msgstr "Resetovanje lozinke preko e-maila"
 
 #: disposable_email_checker/validators.py:26
 msgid "Blocked email provider."
-msgstr "Dalje nećeš moći :-)"
-
-#, python-format
-msgid ""
-"This password is too short. It must contain at least %(min_length)d "
-"character."
-msgid_plural ""
-"This password is too short. It must contain at least %(min_length)d "
-"characters."
-msgstr[0] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karakter."
-msgstr[1] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
-msgstr[2] "Ova lozinka je previše kratka. Mora sadržati minimalno %(min_length)d karaktera."
-
-msgid "This password is too common."
-msgstr "Ova lozinka je previše učestala."
-
-msgid "This password is entirely numeric."
-msgstr "Ova lozinka je skroz brojčana."
+msgstr "Blokiran e-mail provajder."

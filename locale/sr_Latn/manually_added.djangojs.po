@@ -6,9 +6,21 @@
 #| msgid "item"
 #| msgstr ""
 
+#: main/templates/user.html:44 main/templates/user.html:45
+msgid "Born {{ edit.birth.value | ageFilter }} years ago"
+msgid_plural "Born {{ edit.birth.value | ageFilter }} years ago"
+msgstr[0] "Rođen/a pre {{ edit.birth.value | ageFilter }} godinu"
+msgstr[1] "Rođen/a pre {{ edit.birth.value | ageFilter }} godine"
+msgstr[2] "Rođen/a pre {{ edit.birth.value | ageFilter }} godina"
+
 #: main/static/main/modals/settings.html:6
 msgid "Please type your current password."
 msgstr "Molimo unesite Vašu trenutnu lozinku."
+
+#: main/static/main/js/custom/main.js:268
+#, javascript-format
+msgid "Add (%s)"
+msgstr "Dodaj (%s)"
 
 #: main/static/main/js/custom/main.js:268
 #, javascript-format
@@ -30,5 +42,17 @@ msgstr "Vreme"
 msgid "Close"
 msgstr "Zatvori"
 
-msgid "Invalid current password."
-msgstr "Netačno uneta trenutna lozinka."
+msgid "Regular working time exceeds the one for the business."
+msgstr "Standardno radno vreme prelazi radno vreme ugostiteljskog objekta."
+
+msgid "Sunday working time exceeds the one for the business."
+msgstr "Subotnje radno vreme prelazi radno vreme ugostiteljskog objekta."
+
+msgid "Saturday working time exceeds the one for the business."
+msgstr "Nedeljno radno vreme prelazi radno vreme ugostiteljskog objekta."
+
+msgid "There's a conflict in working times with another waiter on the targeted table."
+msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."
+
+msgid "Targeted person is already waiter at a different business during the specified time span."
+msgstr "Ciljana osoba je već konobar u drugom ugostiteljskom objektu tokom definisanog perioda."

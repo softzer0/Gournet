@@ -123,7 +123,7 @@ def main(target_dir, output_file, source_file=None, overwrite=False, tag=TAG, ex
 	parser = TemplateParser(tag=tag, msgstr_num=msgstr_num)
 
 	if not overwrite and os.path.exists(output_file):
-		with open(output_file, 'r') as f:
+		with open(output_file, 'r', encoding='utf8') as f:
 			parser.data = sync_po.extract_strings(f.readlines())
 	else:
 		parser.data = []
@@ -133,7 +133,7 @@ def main(target_dir, output_file, source_file=None, overwrite=False, tag=TAG, ex
 		for file in files:
 			filepath = subdir + os.sep + file
 			if filepath.endswith(ext):
-				with open(filepath, 'r') as f:
+				with open(filepath, 'r', encoding='utf8') as f:
 					parser.f[0] = (os.path.relpath(filepath, target_dir), os.sep+'static'+os.sep not in filepath)
 					parser.feed(f.read())
 					parser.reset()
@@ -142,5 +142,5 @@ def main(target_dir, output_file, source_file=None, overwrite=False, tag=TAG, ex
 		with source_file as f:
 			sync_po.main(sync_po.extract_strings(f.readlines()), parser.data)
 
-	with open(output_file, 'w') as f:
+	with open(output_file, 'w', encoding='utf8') as f:
 		sync_po.output_strings(parser.data, f)

@@ -14,6 +14,31 @@ msgstr[2] "Vaših %d proizvoda"
 
 # ADD
 
+#~ msgid "created"
+#~ msgstr "napravljeno"
+
+#~ #: templates/account/email/password_reset_key_message.txt:1
+#~ #, python-format
+#~ msgid ""
+#~ "Hello from %(site_name)s!\n"
+#~ "\n"
+#~ "You're receiving this e-mail because you or someone else has requested a "
+#~ "password for your user account at %(site_domain)s.\n"
+#~ "It can be safely ignored if you did not request a password reset. Click the "
+#~ "link below to reset your password."
+#~ msgstr ""
+#~ "Pozdrav sa %(site_name)s-a!\n"
+#~ "\n"
+#~ "Vi ste primili ovaj e-mail pošto ste Vi zatražili lozinku Vašeg naloga na "
+#~ "%(site_domain)s, ili je to bio neko drugi.\n"
+#~ "Možete ovo slobdno ignorisati ako niste Vi zatražili resetovanje lozinke. "
+#~ "Kliknite na link ispod da bi resetovali Vašu lozinku."
+
+#~ #: templates/account/email/password_reset_key_message.txt:8
+#~ #, python-format
+#~ msgid "In case you forgot, your username is %(username)s."
+#~ msgstr "U slučaju da ste zaboravili, Vaše korisničko ime je %(username)s."
+
 #: main/views.py:392
 #, python-format
 msgctxt "commented on"
@@ -42,16 +67,13 @@ msgstr[1] "Vaše %d recenzije"
 msgstr[2] "Vaših %d recenzija"
 
 msgid "Enter a valid email address."
-msgstr "Unesite validnu email adresu."
+msgstr "Unesite validnu e-mail adresu."
 
 msgid "A user is already registered with this e-mail address."
 msgstr "Korisnik sa ovom e-mail adresom već postoji."
 
 msgid "The username and/or password you specified are not correct."
 msgstr "Uneli ste pogrešno korisničko ime i/ili lozinku."
-
-msgid "created"
-msgstr "napravljeno"
 
 #, python-format
 msgid "The password is too similar to the %(verbose_name)s."
@@ -125,28 +147,6 @@ msgstr ""
 #: templates/account/email/email_confirmation_subject.txt:3
 msgid "Please Confirm Your E-mail Address"
 msgstr "Molimo potvrdite Vašu e-mail adresu"
-
-#: templates/account/email/password_reset_key_message.txt:1
-#, python-format
-msgid ""
-"Hello from %(site_name)s!\n"
-"\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(site_domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
-msgstr ""
-"Pozdrav sa %(site_name)s-a!\n"
-"\n"
-"Vi ste primili ovaj e-mail pošto ste Vi zatražili lozinku Vašeg naloga na "
-"%(site_domain)s, ili je to bio neko drugi.\n"
-"Možete ovo slobdno ignorisati ako niste Vi zatražili resetovanje lozinke. "
-"Kliknite na link ispod da bi resetovali Vašu lozinku."
-
-#: templates/account/email/password_reset_key_message.txt:8
-#, python-format
-msgid "In case you forgot, your username is %(username)s."
-msgstr "U slučaju da ste zaboravili, Vaše korisničko ime je %(username)s."
 
 #: templates/account/email/password_reset_key_message.txt:10
 #, python-format

@@ -776,7 +776,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             self.request.session.modified = True
         # else:
         #     del self.request.session['table']
-        models.Notification.objects.create(text=_("You have placed an order at <strong>%s \"%s\"</strong>." % (order.table.business.get_type_display(), order.table.business.name)), link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
+        models.Notification.objects.create(text=_("You have placed an order at <strong>%(type)s \"%(name)s\"</strong>." % {'type': order.table.business.get_type_display(), 'name': order.table.business.name}), link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
         waiter = order.table.get_current_waiter()
         with lang_override(waiter.language):
             self.gen_notif(waiter, order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
@@ -811,7 +811,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             return
         waiter = order.table.get_current_waiter()
         with lang_override(waiter.language):
-            self.gen_notif(waiter, order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>." if order.request_type == 0 else "has requested payment by <strong>credit card</strong> on table <strong>%d</strong>.") % order.table.number)
+            self.gen_notif(waiter, order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>.") if order.request_type == 0 else _("has requested payment by <strong>debit card</strong> on table <strong>%d</strong>.") % order.table.number)
 
 
 def check_if_anonymous_allowed(self, obj):

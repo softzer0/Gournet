@@ -2,815 +2,786 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-23 18:28+0100\n"
-"PO-Revision-Date: 2017-02-23 21:34+0100\n"
+"POT-Creation-Date: 2017-03-12 17:49+0100\n"
+"PO-Revision-Date: 2020-01-18 15:55+0100\n"
 "Last-Translator: Mihailo Popović <mihailosoft@gmail.com>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: Serbian\n"
+"Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Poedit 1.5.4\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Poedit 2.2.4\n"
+"Language-Team: \n"
 
-#: main/static/main/js/custom/base_view.js:119
+#: .\main\static\main\js\custom\base_view.js:122
 #, javascript-format
-msgid ""
-"After changing the %s for the first time, you won't be able to do that again."
+msgid "After changing the %s for the first time, you won't be able to do that again."
 msgstr "Nakon menjanja %s po prvi put, nećete moći to uraditi ponovo."
 
-#: main/static/main/js/custom/manager.js:52
-msgid "This message will disappear once your business is approved. When published, it will become visible/accessible to others."
-msgstr "Ova poruka će nestati jednom kada Vaš ugostiteljski objekat bude potvrđen. Kada bude objavljen, tada će biti vidljiv/dostupan ostalima."
-
-#: main/static/main/js/custom/base_view.js:119
-#: main/static/main/js/custom/manager.js:65
+#: .\main\static\main\js\custom\base_view.js:122 .\main\static\main\js\custom\manager.js:147
 msgid "Are you sure that you want to continue?"
 msgstr "Da li ste sigurni da želite nastaviti?"
 
-#: main/static/main/js/custom/base_view.js:152
+#: .\main\static\main\js\custom\base_view.js:157
 msgid "You can't upload image larger than 4.5MB!"
 msgstr "Ne možete poslati sliku veću od 4.5MB!"
 
-#: main/static/main/js/custom/home.js:4
+#: .\main\static\main\js\custom\home.js:4
 msgid "Go to main page."
 msgstr "Vrati se na početnu stranicu."
 
-#: main/static/main/js/custom/main.js:17
+#: .\main\static\main\js\custom\home.js:17
 msgctxt "page"
 msgid "Search"
 msgstr "Pretraga"
 
-#: main/static/main/js/custom/main.js:25
-msgid "Event(s)"
-msgstr "Događaji"
+#: .\main\static\main\js\custom\home.js:27 .\main\static\main\js\custom\main.js:331
+msgid "Friends"
+msgstr "Prijatelji"
 
-#: main/static/main/js/custom/main.js:28
-msgid "Item(s)"
-msgstr "Proizvodi"
+#: .\main\static\main\js\custom\home.js:32 .\main\static\main\js\custom\main.js:338
+msgid "Favourites"
+msgstr "Omiljeni"
 
-#: main/static/main/js/custom/main.js:32
-msgid "Review(s)"
-msgstr "Recenzije"
-
-#: main/static/main/js/custom/main.js:38
+#: .\main\static\main\js\custom\home.js:37
 msgctxt "page"
 msgid "Main"
 msgstr "Početna"
 
-#: main/static/main/js/custom/main.js:106
+#: .\main\static\main\js\custom\main.js:25
+msgid "Event(s)"
+msgstr "Događaji"
+
+#: .\main\static\main\js\custom\main.js:28
+msgid "Item(s)"
+msgstr "Proizvodi"
+
+#: .\main\static\main\js\custom\main.js:32
+msgid "Review(s)"
+msgstr "Recenzije"
+
+#: .\main\static\main\js\custom\main.js:37
+msgid "Order"
+msgstr "Porudžbina"
+
+#: .\main\static\main\js\custom\main.js:124
 msgid "Yes"
 msgstr "Da"
 
-#: main/static/main/js/custom/main.js:106
+#: .\main\static\main\js\custom\main.js:124
 msgid "OK"
 msgstr "U redu"
 
-#: main/static/main/js/custom/main.js:106
+#: .\main\static\main\js\custom\main.js:124
 msgid "No"
 msgstr "Ne"
 
-#: main/static/main/js/custom/main.js:106
+#: .\main\static\main\js\custom\main.js:124
 msgid "Cancel"
 msgstr "Odustani"
 
-#: main/static/main/js/custom/main.js:127
+#: .\main\static\main\js\custom\main.js:147 .\main\static\main\js\custom\orders.js:142
 msgid "Are you sure?"
 msgstr "Da li ste sigurni?"
 
-#: main/static/main/js/custom/main.js:285
+#: .\main\static\main\js\custom\main.js:331
 msgid "Select friend(s)"
 msgstr "Odaberi prijatelja/e"
 
-#: main/static/main/js/custom/main.js:285
+#: .\main\static\main\js\custom\main.js:331
 msgid "Your friends"
 msgstr "Vaši prijatelji"
 
-#: main/static/main/js/custom/main.js:285
-#: main/static/main/js/custom/home.js:27
-msgid "Friends"
-msgstr "Prijatelji"
-
-#: main/static/main/js/custom/main.js:268
-#, javascript-format
-msgid "Notify (%s)"
-msgstr "Obavesti (%s)"
-
-#: main/static/main/js/custom/main.js:292
-#: main/static/main/js/custom/home.js:32
-msgid "Favourites"
-msgstr "Omiljeni"
-
-#: main/static/main/js/custom/main.js:292
+#: .\main\static\main\js\custom\main.js:338
 msgid "Your favourites"
 msgstr "Vaši favoriti"
 
-#: main/static/main/js/custom/main.js:295
+#: .\main\static\main\js\custom\main.js:341
 msgid "Favoured by"
 msgstr "Favorizovano od strane"
 
-#: main/static/main/js/custom/main.js:299
+#: .\main\static\main\js\custom\main.js:345
 msgid "Ratings"
 msgstr "Ocene"
 
-#: main/static/main/js/custom/main.js:299
+#: .\main\static\main\js\custom\main.js:345
 msgid "Reactions"
 msgstr "Reakcije"
 
-#: main/static/main/js/custom/main.js:330
+#: .\main\static\main\js\custom\main.js:374
 msgid "Liked by"
 msgstr "Sviđa se"
 
-#: main/static/main/js/custom/main.js:330
+#: .\main\static\main\js\custom\main.js:374
 msgid "Disiked by"
 msgstr "Ne sviđa se"
 
-#: main/static/main/js/custom/main.js:694
+#: .\main\static\main\js\custom\main.js:417
+msgid "Mark this order as paid even though the orderer didn't request the payment?"
+msgstr "Označi ovu porudžbinu kao plaćenu iako poručilac nije zatražio plaćanje?"
+
+#: .\main\static\main\js\custom\main.js:785
 msgid "You can't delete the last remaining item!"
 msgstr "Ne možete obrisati posledji preostali proizvod!"
 
-#: main/static/main/events.html:66
-msgid "Load older"
-msgstr "Učitaj starije"
-
-#: main/static/main/js/custom/main.js:917
-msgid "Load newer"
-msgstr "Učitaj novije"
-
-#: main/static/main/js/custom/main.js:963
+#: .\main\static\main\js\custom\main.js:1017
 msgid "(Custom)"
 msgstr "(Osobeno)"
 
-#: main/static/main/js/custom/main.js:972
+#: .\main\static\main\js\custom\main.js:1026
 msgid "15 minutes"
 msgstr "15 minuta"
 
-#: main/static/main/js/custom/main.js:973
+#: .\main\static\main\js\custom\main.js:1027
 msgid "Half an hour"
 msgstr "pola sata"
 
-#: main/static/main/js/custom/main.js:978
+#: .\main\static\main\js\custom\main.js:1032
 msgid "45 minutes"
 msgstr "45 minuta"
 
-#: main/static/main/js/custom/main.js:979
+#: .\main\static\main\js\custom\main.js:1033
 msgid "An hour"
 msgstr "sat"
 
-#: main/static/main/js/custom/main.js:980
+#: .\main\static\main\js\custom\main.js:1034
 msgid "2 hours"
 msgstr "2 sata"
 
-#: main/static/main/js/custom/main.js:981
+#: .\main\static\main\js\custom\main.js:1035
 msgid "3 hours"
 msgstr "3 sata"
 
-#: main/static/main/js/custom/main.js:982
+#: .\main\static\main\js\custom\main.js:1036
 msgid "4 hours"
 msgstr "4 sata"
 
-#: main/static/main/js/custom/main.js:983
+#: .\main\static\main\js\custom\main.js:1037
 msgid "5 hours"
 msgstr "5 sata"
 
-#: main/static/main/js/custom/main.js:984
+#: .\main\static\main\js\custom\main.js:1038
 msgid "Half a day"
 msgstr "pola dana"
 
-#: main/static/main/js/custom/main.js:985
+#: .\main\static\main\js\custom\main.js:1039
 msgid "A day"
 msgstr "dan"
 
-#: main/static/main/js/custom/main.js:986
+#: .\main\static\main\js\custom\main.js:1040
 msgid "2 days"
 msgstr "2 dana"
 
-#: main/static/main/js/custom/main.js:987
+#: .\main\static\main\js\custom\main.js:1041
 msgid "3 days"
 msgstr "3 dana"
 
-#: main/static/main/js/custom/main.js:988
+#: .\main\static\main\js\custom\main.js:1042
 msgid "4 days"
 msgstr "4 dana"
 
-#: main/static/main/js/custom/main.js:989
+#: .\main\static\main\js\custom\main.js:1043
 msgid "5 days"
 msgstr "5 dana"
 
-#: main/static/main/js/custom/main.js:990
+#: .\main\static\main\js\custom\main.js:1044
 msgid "6 days"
 msgstr "6 dana"
 
-#: main/static/main/js/custom/main.js:991
+#: .\main\static\main\js\custom\main.js:1045
 msgid "A week"
 msgstr "nedelju dana"
 
-#: main/static/main/js/custom/main.js:1324
+#: .\main\static\main\js\custom\main.js:1396
 msgid "Settings"
 msgstr "Podešavanja"
 
-#: main/static/main/js/custom/main.js:1402
+#: .\main\static\main\js\custom\main.js:1417
+msgid "Invalid current password."
+msgstr "Netačno uneta trenutna lozinka."
+
+#: .\main\static\main\js\custom\main.js:1447
+#, javascript-format
+msgid "Are you sure that you want to remove email <strong>%s</strong>?"
+msgstr "Da li ste sigurni da želite obrisati email <strong>%s</strong>?"
+
+#: .\main\static\main\js\custom\main.js:1501
 msgid "New password fields don't match."
 msgstr "Polja za unos nove lozinke se ne poklapaju."
 
-#: main/static/main/js/custom/main.js:1420
+#: .\main\static\main\js\custom\main.js:1510
 msgid "Your new password matches the current entered password, choose a different one."
 msgstr "Vaša nova lozinka se poklapa sa trenutnom, izaberite drugu."
 
-#: main/static/main/js/custom/manager.js:65
-msgid ""
-"If you change the business currency now, then item prices in the menu will "
-"be converted to that new currency."
-msgstr ""
-"Ako promenite valutu Vašeg ugostiteljskog objekta sada, onda će cene "
-"proizvoda biti prebačene u tu novu valutu."
+#: .\main\static\main\js\custom\manager.js:132
+msgid "This message will disappear once your business is approved. When published, it will become visible/accessible to others."
+msgstr "Ova poruka će nestati jednom kada Vaš ugostiteljski objekat bude verifikovan. Kada bude objavljen, tada će biti vidljiv/dostupan ostalima."
 
-#: main/static/main/js/custom/user.js:6
+#: .\main\static\main\js\custom\manager.js:147
+msgid "If you change the business currency now, then item prices in the menu will be converted to that new currency."
+msgstr "Ako promenite valutu Vašeg ugostiteljskog objekta sada, onda će cene proizvoda biti prebačene u tu novu valutu."
+
+#: .\main\static\main\js\custom\orders.js:135
+msgid "Choose type of payment"
+msgstr "Odaberi način plaćanja"
+
+#: .\main\static\main\js\custom\orders.js:135
+msgid "Confirm delivery below"
+msgstr "Potvrdi dostavu ispod"
+
+#: .\main\static\main\js\custom\orders.js:135
+msgid "Confirm payment below"
+msgstr "Potvrdi plaćanje ispod"
+
+#: .\main\static\main\js\custom\orders.js:135
+msgid "Choose below"
+msgstr "Odaberi ispod"
+
+#: .\main\static\main\js\custom\user.js:6
 msgid "Events"
 msgstr "Događaji"
 
-#: main/static/main/js/custom/user.js:6
+#: .\main\static\main\js\custom\user.js:6
 msgid "Items"
 msgstr "Proizvodi"
 
-#: main/static/main/js/custom/user.js:6
+#: .\main\static\main\js\custom\user.js:6
 msgid "Reviews"
 msgstr "Recenzije"
 
-#: main/static/main/js/custom/user.js:27
+#: .\main\static\main\js\custom\user.js:28
 msgctxt "after changing"
 msgid "gender"
 msgstr "pola"
 
-#: main/static/main/js/custom/user.js:30
+#: .\main\static\main\js\custom\user.js:31
 msgctxt "after changing"
 msgid "birthdate"
 msgstr "datuma rođenja"
 
-#: main/static/main/js/custom/user.js:33
+#: .\main\static\main\js\custom\user.js:34
 msgid "Invalid address."
 msgstr "Netačna adresa."
 
-#: main/static/main/js/custom/user.js:35
+#: .\main\static\main\js\custom\user.js:36
 msgctxt "after changing"
 msgid "name"
 msgstr "imena"
 
-#: main/static/main/js/custom/view.js:5
+#: .\main\static\main\js\custom\view.js:7
 msgid "Drinks"
 msgstr "Pića"
 
-#: main/static/main/js/custom/view.js:5 main/static/main/js/custom/view.js:83
+#: .\main\static\main\js\custom\view.js:7 .\main\static\main\js\custom\view.js:62
 msgid "Other drinks"
 msgstr "Ostala pića"
 
-#: main/static/main/js/custom/view.js:70
+#: .\main\static\main\js\custom\view.js:49
 msgid "Alcoholic beverages"
 msgstr "Alkoholna pića"
 
-#: main/static/main/js/custom/view.js:71
+#: .\main\static\main\js\custom\view.js:50
 msgid "Ciders"
 msgstr "Cideri"
 
-#: main/static/main/js/custom/view.js:72
+#: .\main\static\main\js\custom\view.js:51
 msgid "Whiskeys"
 msgstr "Viski"
 
-#: main/static/main/js/custom/view.js:73
+#: .\main\static\main\js\custom\view.js:52
 msgid "Wines"
 msgstr "Vina"
 
-#: main/static/main/js/custom/view.js:74
+#: .\main\static\main\js\custom\view.js:53
 msgid "Beers"
 msgstr "Piva"
 
-#: main/static/main/js/custom/view.js:75
+#: .\main\static\main\js\custom\view.js:54
 msgid "Vodkas"
 msgstr "Votke"
 
-#: main/static/main/js/custom/view.js:76
+#: .\main\static\main\js\custom\view.js:55
 msgctxt "plural"
 msgid "Brandy"
 msgstr "Rakije, vinjaci, konjaci i sl."
 
-#: main/static/main/js/custom/view.js:77
+#: .\main\static\main\js\custom\view.js:56
 msgid "Liqueurs"
 msgstr "Likeri"
 
-#: main/static/main/js/custom/view.js:78
+#: .\main\static\main\js\custom\view.js:57
 msgid "Cocktails"
 msgstr "Kokteli"
 
-#: main/static/main/js/custom/view.js:79
+#: .\main\static\main\js\custom\view.js:58
 msgid "Tequilas"
 msgstr "Tekile"
 
-#: main/static/main/js/custom/view.js:80
+#: .\main\static\main\js\custom\view.js:59
 msgid "Gins"
 msgstr "Džin"
 
-#: main/static/main/js/custom/view.js:81
+#: .\main\static\main\js\custom\view.js:60
 msgid "Rums"
 msgstr "Rum"
 
-#: main/static/main/js/custom/view.js:84
+#: .\main\static\main\js\custom\view.js:63
 msgid "Coffees"
 msgstr "Kafe"
 
-#: main/static/main/js/custom/view.js:85
+#: .\main\static\main\js\custom\view.js:64
 msgid "Soft drinks"
 msgstr "Bezalkoholna pića"
 
-#: main/static/main/js/custom/view.js:86
+#: .\main\static\main\js\custom\view.js:65
 msgid "Juices"
 msgstr "Sokovi"
 
-#: main/static/main/js/custom/view.js:87
+#: .\main\static\main\js\custom\view.js:66
 msgid "Teas"
 msgstr "Čajevi"
 
-#: main/static/main/js/custom/view.js:88
+#: .\main\static\main\js\custom\view.js:67
 msgid "Hot chocolates"
 msgstr "Topla čokolada"
 
-#: main/static/main/js/custom/view.js:89
+#: .\main\static\main\js\custom\view.js:68
 msgctxt "plural"
 msgid "Water"
 msgstr "Voda"
 
-#: main/static/main/js/custom/view.js:90
-#: main/static/main/js/custom/view.js:103
+#: .\main\static\main\js\custom\view.js:69 .\main\static\main\js\custom\view.js:86
 msgid "Other"
 msgstr "Ostalo"
 
-#: main/static/main/js/custom/view.js:92
+#: .\main\static\main\js\custom\view.js:71
 msgid "Food"
 msgstr "Hrana"
 
-#: main/static/main/js/custom/view.js:93
+#: .\main\static\main\js\custom\view.js:72
 msgctxt "plural"
 msgid "Fast food"
 msgstr "Brza hrana"
 
-#: main/static/main/js/custom/view.js:94
+#: .\main\static\main\js\custom\view.js:73
 msgid "Sandwiches"
 msgstr "Sendviči"
 
-#: main/static/main/js/custom/view.js:94
+#: .\main\static\main\js\custom\view.js:74
 msgid "Pizzas"
 msgstr "Pice"
 
-#: main/static/main/js/custom/view.js:95
+#: .\main\static\main\js\custom\view.js:75
 msgid "Pastas"
 msgstr "Testenine"
 
-#: main/static/main/js/custom/view.js:95
+#: .\main\static\main\js\custom\view.js:76
 msgid "Pastries"
 msgstr "Testa"
 
-#: main/static/main/js/custom/view.js:96
+#: .\main\static\main\js\custom\view.js:77
 msgid "Breakfasts"
 msgstr "Doručak"
 
-#: main/static/main/js/custom/view.js:96
+#: .\main\static\main\js\custom\view.js:78
 msgid "Appetizers"
 msgstr "Predjela"
 
-#: main/static/main/js/custom/view.js:97
+#: .\main\static\main\js\custom\view.js:79
 msgid "Soups, stews"
 msgstr "Supe, čorbe i sl."
 
-#: main/static/main/js/custom/view.js:98
+#: .\main\static\main\js\custom\view.js:80
 msgid "Meals"
 msgstr "Obroci/jela"
 
-#: main/static/main/js/custom/view.js:99
+#: .\main\static\main\js\custom\view.js:81
 msgctxt "plural"
 msgid "Barbecue"
 msgstr "Roštilj"
 
-#: main/static/main/js/custom/view.js:100
+#: .\main\static\main\js\custom\view.js:82
 msgid "Seafood, fish dishes"
 msgstr "Morska hrana, riblja jela"
 
-#: main/static/main/js/custom/view.js:100
+#: .\main\static\main\js\custom\view.js:83
 msgid "Food additives"
 msgstr "Prilozi"
 
-#: main/static/main/js/custom/view.js:101
+#: .\main\static\main\js\custom\view.js:84
 msgid "Salads"
 msgstr "Salate"
 
-#: main/static/main/js/custom/view.js:102
+#: .\main\static\main\js\custom\view.js:85
 msgid "Desserts"
 msgstr "Dezert"
 
-#: main/static/main/js/custom/view.js:297
+#: .\main\static\main\js\custom\view.js:195
+msgid "Are you sure that you want to place an order? This action cannot be undone."
+msgstr "Da li ste sigurni da želite da poručite? Ova akcija je nepovratna."
+
+#: .\main\static\main\js\custom\view.js:198
+msgid "Your order has been placed. Enjoy!"
+msgstr "Vaša porudžbina je poslata. Uživajte!"
+
+#: .\main\static\main\js\custom\view.js:202
+msgid "There was some error while placing your order."
+msgstr "Desila se neka greška prilikom slanja vaše porudžbine."
+
+#: .\main\static\main\js\custom\view.js:313
+msgid "Order time has expired. You must issue a new link."
+msgstr "Vreme za poručivanje je isteklo. Morate zatražiti novi link."
+
+#: .\main\static\main\js\custom\view.js:337
 msgid "Specified shortname is already taken."
 msgstr "Data skraćenica je već zauzeta."
 
-#: main/static/main/js/custom/view.js:300
+#: .\main\static\main\js\custom\view.js:340
 msgid "Specified shortname is not permitted."
 msgstr "Data skraćenica nije dozvoljena."
 
-#: main/static/main/js/custom/view.js:307
+#: .\main\static\main\js\custom\view.js:347
 msgid "Edit business info"
 msgstr "Izmeni informacije ugostiteljskog objekta"
 
-#: main/static/main/js/custom/view.js:354
+#: .\main\static\main\js\custom\view.js:407
 msgid "The phone number entered is not valid."
 msgstr "Uneti broj telefona nije validan."
 
-#: main/static/main/events.html:5
-msgid ""
-"{{ first_name || 'You' }} {{ e.when !== undefined ? 'posted' : e.price !== "
-"undefined ? 'added' : 'reviewed' }}:"
-msgstr ""
-"{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} {{ e.when !== "
-"undefined ? 'objavio/la' : e.price !== undefined ? 'dodao/la' : 'ostavio/la "
-"recenziju' }}:"
+#: main\static\main\events.html:5
+msgid "{{ first_name || 'You' }} {{ e.when !== undefined ? 'posted' : e.price !== undefined ? 'added' : 'reviewed' }}:"
+msgstr "{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} {{ e.when !== undefined ? 'objavio/la' : e.price !== undefined ? 'dodao/la' : 'ostavio/la recenziju' }}:"
 
-#: main/static/main/events.html:6
-msgid ""
-"{{ first_name || 'You' }} gave {{ e.person_status[0] == 1 ? 'like' : "
-"'dislike' }} to:"
-msgstr ""
-"{{ first_name !== undefined ? first_name+' kaže da mu/joj' : 'Ti kažeš da "
-"ti' }} se {{ e.person_status[0] == 1 ? 'sviđa' : 'ne sviđa' }} ovo:"
+#: main\static\main\events.html:6
+msgid "{{ first_name || 'You' }} gave {{ e.person_status[0] == 1 ? 'like' : 'dislike' }} to:"
+msgstr "{{ first_name !== undefined ? first_name+' kaže da mu/joj' : 'Ti kažeš da ti' }} se {{ e.person_status[0] == 1 ? 'sviđa' : 'ne sviđa' }} ovo:"
 
-#: main/static/main/events.html:7
+#: main\static\main\events.html:7
 msgid "{{ first_name || 'You' }} gave {{ e.person_status[0] }} star to:"
-msgid_plural ""
-"{{ first_name || 'You' }} gave {{ e.person_status[0] }} stars to:"
-msgstr[0] ""
-"{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} dao/la {{ e."
-"person_status[0] }} zvezdicu ovome:"
-msgstr[1] ""
-"{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} dao/la {{ e."
-"person_status[0] }} zvezdice ovome:"
-msgstr[2] ""
-"{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} dao/la {{ e."
-"person_status[0] }} zvezdica ovome:"
+msgid_plural "{{ first_name || 'You' }} gave {{ e.person_status[0] }} stars to:"
+msgstr[0] "{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} dao/la {{ e.person_status[0] }} zvezdicu ovome:"
+msgstr[1] "{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} dao/la {{ e.person_status[0] }} zvezdice ovome:"
+msgstr[2] "{{ first_name !== undefined ? first_name+' je' : 'Ti si' }} dao/la {{ e.person_status[0] }} zvezdica ovome:"
 
-#: main/static/main/events.html:8
-msgid ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> {{ e.when !== "
-"undefined ? 'posted' : e.price !== undefined ? 'added' : e.created !== "
-"undefined ? 'reviewed' : e.target !== undefined ? 'became a friend to' : "
-"'favored' }}:"
+#: main\static\main\events.html:8
+msgid "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> {{ e.when !== undefined ? 'posted' : e.price !== undefined ? 'added' : e.created !== undefined ? 'reviewed' : e.target !== undefined ? 'became a friend to' : 'favored' }}:"
 msgstr ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> je {{ e.when !== "
-"undefined ? 'objavio/la' : e.price !== undefined ? 'dodao/la' : e.created !"
-"== undefined ? 'ostavio/la recenziju' : e.target !== undefined ? 'postao "
-"prijatelj/prijateljica sa' : 'favorizovao/la' }}:"
+"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> je {{ e.when !== undefined ? 'objavio/la' : e.price !== undefined ? 'dodao/la' : e.created !== undefined ? 'ostavio/la recenziju' : e.target !== undefined ? 'postao prijatelj/"
+"prijateljica sa' : 'favorizovao/la' }}:"
 
-#: main/static/main/events.html:9
-msgid ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend.status "
-"== 1 ? 'like' : 'dislike' }} to:"
-msgstr ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> kaže da mu/joj se {{ e."
-"friend.status == 1 ? 'sviđa' : 'ne sviđa' }} ovo:"
+#: main\static\main\events.html:9
+msgid "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend.status == 1 ? 'like' : 'dislike' }} to:"
+msgstr "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> kaže da mu/joj se {{ e.friend.status == 1 ? 'sviđa' : 'ne sviđa' }} ovo:"
 
-#: main/static/main/events.html:10
-msgid ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend."
-"status }} star to:"
-msgid_plural ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend."
-"status }} stars to:"
-msgstr[0] ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> je dao/la {{ e.friend."
-"status }} zvezdicu ovome:"
-msgstr[1] ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> je dao/la {{ e.friend."
-"status }} zvezdice ovome:"
-msgstr[2] ""
-"<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend."
-"first_name }} {{ e.friend.last_name }}</strong></a> je dao/la {{ e.friend."
-"status }} zvezdica ovome:"
+#: main\static\main\events.html:10
+msgid "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend.status }} star to:"
+msgid_plural "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> gave {{ e.friend.status }} stars to:"
+msgstr[0] "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> je dao/la {{ e.friend.status }} zvezdicu ovome:"
+msgstr[1] "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> je dao/la {{ e.friend.status }} zvezdice ovome:"
+msgstr[2] "<a ng-href=\"/user/{{ e.friend.username }}/\"><strong>{{ e.friend.first_name }} {{ e.friend.last_name }}</strong></a> je dao/la {{ e.friend.status }} zvezdica ovome:"
 
-#: main/static/main/events.html:13
+#: main\static\main\events.html:13
 msgid "and"
 msgstr "i"
 
-#: main/static/main/events.html:14
+#: main\static\main\events.html:14
 msgid "and {{ e.friend.count }} other friend"
 msgid_plural "and {{ e.friend.count }} other friends"
 msgstr[0] "i još {{ e.friend.count }} prijatelj"
 msgstr[1] "i još {{ e.friend.count }} prijatelja"
 msgstr[2] "i još {{ e.friend.count }} prijatelja"
 
-#: main/static/main/events.html:14
+#: main\static\main\events.html:14
 msgctxt "they"
 msgid "favoured"
 msgstr "su favorizovali"
 
-#: main/static/main/events.html:14
+#: main\static\main\events.html:14
 msgctxt "they"
 msgid "rated"
 msgstr "su ocenili"
 
-#: main/static/main/events.html:14
+#: main\static\main\events.html:14
 msgctxt "they"
 msgid "reacted to"
 msgstr "su reagovali na"
 
-#: main/static/main/events.html:19
+#: main\static\main\events.html:19
 msgctxt "from user to which business"
 msgid ", to:"
 msgstr " upućuje ka:"
 
-#: main/static/main/events.html:19
+#: main\static\main\events.html:19
+#, javascript-format
 msgctxt "distance"
 msgid "%s away"
 msgstr "%s daleko"
 
-#: main/static/main/events.html:30
+#: main\static\main\events.html:30
 msgid "Currently <strong>{{ e.is_opened ? 'opened' : 'closed' }}</strong>"
 msgstr "Trenutno <strong>{{ e.is_opened ? 'otvoreno' : 'zatvoreno' }}</strong>"
 
-#: main/static/main/events.html:30
+#: main\static\main\events.html:30
 msgid "; {{ e.item_count }} item"
 msgid_plural "; {{ e.item_count }} items"
 msgstr[0] "; {{ e.item_count }} proizvod"
 msgstr[1] "; {{ e.item_count }} proizvoda"
 msgstr[2] "; {{ e.item_count }} proizvoda"
 
-#: main/static/main/events.html:30
+#: main\static\main\events.html:30
 msgid "; supported currency:"
 msgid_plural "; supported currencies:"
 msgstr[0] "; podržana valuta:"
 msgstr[1] "; podržane valute:"
 msgstr[2] "; podržane valute:"
 
-#: main/static/main/events.html:34
-msgid ""
-"Has <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e."
-"target.id)\">{{ e.friend_count[0] }} friend</a>"
-msgid_plural ""
-"Has <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e."
-"target.id)\">{{ e.friend_count[0] }} friends</a>"
-msgstr[0] ""
-"Ima <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e."
-"target.id)\">{{ e.friend_count[0] }} prijatelja</a>"
-msgstr[1] ""
-"Ima <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e."
-"target.id)\">{{ e.friend_count[0] }} prijatelja</a>"
-msgstr[2] ""
-"Ima <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e."
-"target.id)\">{{ e.friend_count[0] }} prijatelja</a>"
+#: main\static\main\events.html:34
+msgid "Has <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e.target.id)\">{{ e.friend_count[0] }} friend</a>"
+msgid_plural "Has <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e.target.id)\">{{ e.friend_count[0] }} friends</a>"
+msgstr[0] "Ima <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e.target.id)\">{{ e.friend_count[0] }} prijatelja</a>"
+msgstr[1] "Ima <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e.target.id)\">{{ e.friend_count[0] }} prijatelja</a>"
+msgstr[2] "Ima <a href=\"javascript:\" ng-click=\"$parent.showFriendsModal(e.id || e.target.id)\">{{ e.friend_count[0] }} prijatelja</a>"
 
-#: main/static/main/events.html:35
+#: main\static\main\events.html:35
 msgid "Has no friends"
 msgstr "Nema prijatelja"
 
-#: main/static/main/events.html:36
+#: main\static\main\events.html:36
 msgid "; <strong>{{ e.friend_count[1] }}</strong> mutual friend"
 msgid_plural "; <strong>{{ e.friend_count[1] }}</strong> mutual friends"
 msgstr[0] "; <strong>{{ e.friend_count[1] }}</strong> zajednički prijatelj"
 msgstr[1] "; <strong>{{ e.friend_count[1] }}</strong> zajednička prijatelja"
 msgstr[2] "; <strong>{{ e.friend_count[1] }}</strong> zajedničkih prijatelja"
 
-#: main/static/main/events.html:37
+#: main\static\main\events.html:37
 msgid "; no mutual friends"
 msgstr "; nema zajedničkih prijatelja"
 
-#: main/static/main/events.html:52
+#: main\static\main\events.html:52
+#, javascript-format
 msgid "Comments (%s)"
 msgstr "Komentari (%s)"
 
-#: main/static/main/events.html:55
+#: main\static\main\events.html:55
 msgid "Remind me for this event"
 msgstr "Podseti me na ovaj događaj"
 
-#: main/static/main/events.html:56
+#: main\static\main\events.html:56
 msgid "Notify friends"
 msgstr "Obavesti prijatelje"
 
-#: main/static/main/events.html:59
+#: main\static\main\events.html:59
+msgid "event"
+msgstr "događaj"
+
+#: main\static\main\events.html:59
 msgid "Are you sure that you want to delete this event?"
 msgstr "Da li ste sigurni da želite obrisati ovaj događaj?"
 
-#: main/static/main/events.html:59
+#: main\static\main\events.html:59
+msgid "item"
+msgstr "proizvod"
+
+#: main\static\main\events.html:59
 msgid "Are you sure that you want to delete this item?"
 msgstr "Da li ste sigurni da želite obrisati ovaj proizvod?"
 
-#: main/static/main/events.html:59
+#: main\static\main\events.html:59
 msgid "Are you sure that you want to delete this review?"
 msgstr "Da li ste sigurni da želite obrisati ovu recenziju?"
 
-#: main/static/main/events.html:59
-#: main/static/main/modals/settings.html:31
+#: main\static\main\events.html:59 main\static\main\modals\settings.html:32
 msgid "Remove"
 msgstr "Izbriši"
 
-#: main/static/main/events.html:72
+#: main\static\main\events.html:65
+msgid "Quantity:"
+msgstr "Kvantitet:"
+
+#: main\static\main\events.html:73
+msgid "Load older"
+msgstr "Učitaj starije"
+
+#: main\static\main\events.html:78
 msgid "Your comment"
 msgstr "Vaš komentar"
 
-#: main/static/main/events.html:77
+#: main\static\main\events.html:83
 msgid "Submit"
 msgstr "Pošalji"
 
-#: main/static/main/modals/friends.html:12
-#: main/static/main/modals/likes.html:17
+#: main\static\main\events.html:89 main\static\main\modals\friends.html:12 main\static\main\modals\likes.html:17
 msgid "Load more"
 msgstr "Učitaj još"
 
-#: main/static/main/events.html:84
+#: main\static\main\events.html:91 main\static\main\modals\order.html:30
 msgid "No results."
 msgstr "Nema rezultata."
 
-#: main/static/main/friend.html:4
-msgid "Is my friend, too"
-msgstr "Takođe je i moj prijatelj"
-
-#: main/static/main/friend.html:4
-msgid "Is my friend"
-msgstr "Moj je prijatelj"
-
-#: main/static/main/friend.html:5
+#: main\static\main\friend.html:5
 msgid "Cancel friend request"
 msgstr "Otkaži zahtev za prijateljstvo"
 
-#: main/static/main/friend.html:6
+#: main\static\main\friend.html:6
 msgid "Accept friend request"
 msgstr "Prihvati zahtev za prijateljstvo"
 
-#: main/static/main/friend.html:7
+#: main\static\main\friend.html:7
 msgid "Remove from friends"
 msgstr "Izbaci iz prijatelja"
 
-#: main/static/main/modals/base.html:12
-#: main/static/main/modals/reminder.html:12
+#: main\static\main\modals\base.html:12 main\static\main\modals\reminder.html:12
 msgid "Working..."
 msgstr "U toku..."
 
-#: main/static/main/modals/friends.html:18
+#: main\static\main\modals\friends.html:18
 msgid "No favourites."
 msgstr "Nema favorita."
 
-#: main/static/main/modals/friends.html:18
+#: main\static\main\modals\friends.html:18
 msgid "No friends."
 msgstr "Nema prijatelja."
 
-#: main/static/main/modals/settings.html:2
-msgid "Password and email(s)"
-msgstr "Lozinka i email-ovi"
+#: main\static\main\modals\order.html:4 main\static\main\modals\order.html:24
+msgid "Cash"
+msgstr "Gotovina"
 
-#: main/static/main/modals/settings.html:3
-msgid "Password must contain at least 8 characters"
-msgstr "Lozinka mora da sadrži minimum 8 karaktera"
+#: main\static\main\modals\order.html:4 main\static\main\modals\order.html:24
+msgid "Debit card"
+msgstr "Platna kartica"
 
-#: main/static/main/modals/settings.html:6
-msgid "Your password has been changed."
-msgstr "Vaša lozinka je promenjena."
+#: main\static\main\modals\order.html:19
+msgid "Ordered at:"
+msgstr "Poručeno:"
 
-#: main/static/main/modals/settings.html:6
-msgid "Please type your current password."
-msgstr "Molimo unesite Vašu trenutnu lozinku."
+#: main\static\main\modals\order.html:20
+msgid "Total:"
+msgstr "Ukupno:"
 
-#: main/static/main/modals/settings.html:8
-msgid "Enter your current password before any changes:"
-msgstr "Unesite Vašu trenutnu lozinku pre bilo kakvih izmena:"
+#: main\static\main\modals\order.html:21
+msgid "Delivered at:"
+msgstr "Dostavljeno:"
 
-#: main/static/main/modals/settings.html:9
-msgid "Current password"
-msgstr "Trenutna lozinka"
+#: main\static\main\modals\order.html:22
+msgid "Select type of payment"
+msgstr "Odaberi način plaćanja"
 
-#: main/static/main/modals/settings.html:10
-msgid "Enter new password:"
-msgstr "Unesite novu lozinku:"
+#: main\static\main\modals\order.html:22
+msgid "Request payment"
+msgstr "Zatraži plaćanje"
 
-#: main/static/main/modals/settings.html:11
-msgid "New password"
-msgstr "Nova lozinka"
+#: main\static\main\modals\order.html:23
+msgid "Mark as delivered"
+msgstr "Označi kao dostavljeno"
 
-#: main/static/main/modals/settings.html:12
-msgid "Repeat new password:"
-msgstr "Ponovite novu lozinku:"
+#: main\static\main\modals\order.html:24
+msgid "To be paid with:"
+msgstr "Način plaćanja:"
 
-#: main/static/main/modals/settings.html:13
-msgid "New password (again)"
-msgstr "Nova lozinka (opet)"
+#: main\static\main\modals\order.html:26
+msgid "Requested payment at:"
+msgstr "Zatraženo plaćanje:"
 
-#: main/static/main/modals/settings.html:14
-msgid "Save"
-msgstr "Sačuvaj"
+#: main\static\main\modals\order.html:27
+msgid "Paid with cash at:"
+msgstr "Plaćeno gotovinom:"
 
-#: main/static/main/modals/settings.html:19
-msgid ""
-"You have currently {{ emails.length }} email address associated with your "
-"account:"
-msgid_plural ""
-"You have currently {{ emails.length }} email addresses associated with your "
-"account:"
-msgstr[0] ""
-"Imate trenutno {{ emails.length }} email adresu povezanu sa Vašim nalogom:"
-msgstr[1] ""
-"Imate trenutno {{ emails.length }} email adrese povezane sa Vašim nalogom:"
-msgstr[2] ""
-"Imate trenutno {{ emails.length }} email adresa povezanih sa Vašim nalogom:"
+#: main\static\main\modals\order.html:27
+msgid "Paid by debit card at:"
+msgstr "Plaćeno platnom karticom:"
 
-#: main/static/main/modals/settings.html:22
-msgid ""
-"Confirmation e-mail has been sent to <span ng-repeat=\"e in sent"
-"\">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>."
-msgstr ""
-"E-mail za verifikaciju je upravo poslat na <span ng-repeat=\"e in sent"
-"\">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>."
+#: main\static\main\modals\order.html:27
+msgid "Paid at:"
+msgstr "Plaćeno:"
 
-#: main/static/main/modals/settings.html:26
-msgid "Verified"
-msgstr "Verifikovano"
-
-#: main/static/main/modals/settings.html:26
-msgid "Primary"
-msgstr "Primarno"
-
-#: main/static/main/modals/settings.html:29
-msgid "Make Primary"
-msgstr "Napravi primarnom"
-
-#: main/static/main/modals/settings.html:30
-msgid "Re-send Verification"
-msgstr "Pošalji ponovo verifikaciju"
-
-#: main/static/main/modals/settings.html:31
-#, javascript-format
-msgid "Are you sure that you want to remove email <strong>%s</strong>?"
-msgstr "Da li ste sigurni da želite obrisati email <strong>%s</strong>?"
-
-#: main/static/main/modals/settings.html:35
-msgid "Email"
-msgstr "Email"
-
-#: main/static/main/modals/settings.html:36
-msgid "Add Email Address"
-msgstr "Dodaj email adresu"
-
-#: main/static/main/modals/settings.html:39
-msgid "Internationalization"
-msgstr "Internacionalizacija"
-
-#: main/static/main/modals/reminder.html:4
+#: main\static\main\modals\reminder.html:4
 msgctxt "before certain period of time"
 msgid "before, or:"
 msgstr "pre, ili:"
 
-#: main/static/main/modals/reminder.html:12
+#: main\static\main\modals\reminder.html:12
 msgid "Set"
 msgstr "Postavi"
 
-#: templates/view.html:48
-#: templates/view.html:49
-msgid ""
-"<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-"
-"heart\"></i> <strong>{{ fav_count }}</strong></a> person has favored this"
-msgid_plural ""
-"<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-"
-"heart\"></i> <strong>{{ fav_count }}</strong></a> persons have favored this"
-msgstr[0] ""
-"<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-"
-"heart\"></i> <strong>{{ fav_count }}</strong></a> osoba je favorizovala ovo"
-msgstr[1] ""
-"<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-"
-"heart\"></i> <strong>{{ fav_count }}</strong></a> osobe su favorizovale ovo"
-msgstr[2] ""
-"<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-"
-"heart\"></i> <strong>{{ fav_count }}</strong></a> osoba je favorizovalo ovo"
+#: main\static\main\modals\settings.html:2
+msgid "Password and email(s)"
+msgstr "Lozinka i email-ovi"
 
-#: templates/user.html:75
-msgid ""
-"<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-"
-"users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> friend"
-msgid_plural ""
-"<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-"
-"users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> friends"
-msgstr[0] ""
-"<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-"
-"users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> prijatelj"
-msgstr[1] ""
-"<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-"
-"users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> prijatelja"
-msgstr[2] ""
-"<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-"
-"users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> prijatelja"
+#: main\static\main\modals\settings.html:5
+msgid "Your password has been changed."
+msgstr "Vaša lozinka je promenjena."
+
+#: main\static\main\modals\settings.html:7
+msgid "Enter your current password before any changes:"
+msgstr "Unesite Vašu trenutnu lozinku pre bilo kakvih izmena:"
+
+#: main\static\main\modals\settings.html:8
+msgid "Current password"
+msgstr "Trenutna lozinka"
+
+#: main\static\main\modals\settings.html:11
+msgid "Enter new password:"
+msgstr "Unesite novu lozinku:"
+
+#: main\static\main\modals\settings.html:12
+msgid "New password"
+msgstr "Nova lozinka"
+
+#: main\static\main\modals\settings.html:13
+msgid "Repeat new password:"
+msgstr "Ponovite novu lozinku:"
+
+#: main\static\main\modals\settings.html:14
+msgid "New password (again)"
+msgstr "Nova lozinka (opet)"
+
+#: main\static\main\modals\settings.html:15
+msgid "Save"
+msgstr "Sačuvaj"
+
+#: main\static\main\modals\settings.html:20
+msgid "You have currently {{ emails.length }} email address associated with your account:"
+msgid_plural "You have currently {{ emails.length }} email addresses associated with your account:"
+msgstr[0] "Imate trenutno {{ emails.length }} email adresu povezanu sa Vašim nalogom:"
+msgstr[1] "Imate trenutno {{ emails.length }} email adrese povezane sa Vašim nalogom:"
+msgstr[2] "Imate trenutno {{ emails.length }} email adresa povezanih sa Vašim nalogom:"
+
+#: main\static\main\modals\settings.html:23
+msgid "Confirmation e-mail has been sent to <span ng-repeat=\"e in sent\">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>."
+msgstr "E-mail za verifikaciju je upravo poslat na <span ng-repeat=\"e in sent\">{{ $first ? '' : ', ' }}<strong>{{ e }}</strong></span>."
+
+#: main\static\main\modals\settings.html:27
+msgid "Verified"
+msgstr "Verifikovano"
+
+#: main\static\main\modals\settings.html:27
+msgid "Primary"
+msgstr "Primarno"
+
+#: main\static\main\modals\settings.html:30
+msgid "Make Primary"
+msgstr "Napravi primarnom"
+
+#: main\static\main\modals\settings.html:31
+msgid "Re-send Verification"
+msgstr "Pošalji ponovo verifikaciju"
+
+#: main\static\main\modals\settings.html:36
+msgid "Email"
+msgstr "Email"
+
+#: main\static\main\modals\settings.html:37
+msgid "Add Email Address"
+msgstr "Dodaj email adresu"
+
+#: main\static\main\modals\settings.html:40
+msgid "Internationalization"
+msgstr "Internacionalizacija"
 
 #: main/templates/user.html:44 main/templates/user.html:45
 msgid "Born {{ edit.birth.value | ageFilter }} years ago"
@@ -818,6 +789,34 @@ msgid_plural "Born {{ edit.birth.value | ageFilter }} years ago"
 msgstr[0] "Rođen/a pre {{ edit.birth.value | ageFilter }} godinu"
 msgstr[1] "Rođen/a pre {{ edit.birth.value | ageFilter }} godine"
 msgstr[2] "Rođen/a pre {{ edit.birth.value | ageFilter }} godina"
+
+#: main\templates\user.html:75
+msgid "<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> friend"
+msgid_plural "<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> friends"
+msgstr[0] "<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> prijatelj"
+msgstr[1] "<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> prijatelja"
+msgstr[2] "<a href=\"javascript:\" ng-click=\"showFriendsModal()\"><i class=\"fa fa-users\"></i> <strong>{{ $parent.u.friend_count }}</strong></a> prijatelja"
+
+#: main\templates\view.html:50
+msgid "<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-heart\"></i> <strong>{{ fav_count }}</strong></a> person has favored this"
+msgid_plural "<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-heart\"></i> <strong>{{ fav_count }}</strong></a> persons have favored this"
+msgstr[0] "<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-heart\"></i> <strong>{{ fav_count }}</strong></a> osoba je favorizovala ovo"
+msgstr[1] "<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-heart\"></i> <strong>{{ fav_count }}</strong></a> osobe su favorizovale ovo"
+msgstr[2] "<a href=\"javascript:\" ng-click=\"showFavouritesModal()\"><i class=\"fa fa-heart\"></i> <strong>{{ fav_count }}</strong></a> osoba je favorizovalo ovo"
+
+#: main/static/main/modals/settings.html:6
+msgid "Please type your current password."
+msgstr "Molimo unesite Vašu trenutnu lozinku."
+
+#: main/static/main/js/custom/main.js:268
+#, javascript-format
+msgid "Add (%s)"
+msgstr "Dodaj (%s)"
+
+#: main/static/main/js/custom/main.js:268
+#, javascript-format
+msgid "Notify (%s)"
+msgstr "Obavesti (%s)"
 
 msgid "Now"
 msgstr "Sada"
@@ -834,5 +833,17 @@ msgstr "Vreme"
 msgid "Close"
 msgstr "Zatvori"
 
-msgid "Invalid current password."
-msgstr "Netačno uneta trenutna lozinka."
+msgid "Regular working time exceeds the one for the business."
+msgstr "Standardno radno vreme prelazi radno vreme ugostiteljskog objekta."
+
+msgid "Sunday working time exceeds the one for the business."
+msgstr "Subotnje radno vreme prelazi radno vreme ugostiteljskog objekta."
+
+msgid "Saturday working time exceeds the one for the business."
+msgstr "Nedeljno radno vreme prelazi radno vreme ugostiteljskog objekta."
+
+msgid "There's a conflict in working times with another waiter on the targeted table."
+msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."
+
+msgid "Targeted person is already waiter at a different business during the specified time span."
+msgstr "Ciljana osoba je već konobar u drugom ugostiteljskom objektu tokom definisanog perioda."

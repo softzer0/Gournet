@@ -78,11 +78,11 @@ def main(source, target):
 				s1['msgstr'] = s['msgstr']
 
 def sync(source, target):
-	target = open(target, 'r')
+	target = open(target, 'r', encoding='utf8')
 	with target as f:
 		data = extract_strings(f.readlines())
-	with open(source, 'r') as f:
+	with open(source, 'r', encoding='utf8') as f:
 		main(extract_strings(f.readlines()), data)
 
-	with open(target.name, 'w') as f:
+	with open(target.name, 'w', encoding='utf8') as f:
 		output_strings(data, f)
