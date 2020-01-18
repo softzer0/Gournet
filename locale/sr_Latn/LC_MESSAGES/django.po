@@ -945,7 +945,7 @@ msgstr "Konobari"
 #: .\main\templates\orders.html:23 .\main\templates\waiters.html:13
 msgctxt "number"
 msgid "Table"
-msgstr "Tabela"
+msgstr "Sto"
 
 #: .\main\templates\orders.html:29
 msgid "For payment with cash"
