@@ -20,7 +20,7 @@ def gen_qs(request, model):
 def get_business_if_waiter(request):
     if request.user.is_authenticated:
         for business in Business.objects.filter(table__waiter__person=request.user).annotate(Count('pk')):
-            if BusinessSerializer.get_is_opened(None, business):
+            if business.is_currently_opened():
                 return business
 
 def recent(request):

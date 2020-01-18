@@ -315,7 +315,14 @@ class Business(Loc, WorkTime):
             self.tz = get_timezone(self.tz)
         now = self.tz.normalize(timezone.now())
         day = now.weekday()
-        return now, self.opened_sat if day == 5 and self.opened_sat else self.opened_sun if day == 6 and self.opened_sun else self.opened if day < 5 else None, self.closed_sat if day == 5 and self.closed_sat else self.closed_sun if day == 6 and self.closed_sun else self.closed if day < 5 else None
+        return now.time(), self.opened_sat if day == 5 and self.opened_sat else self.opened_sun if day == 6 and self.opened_sun else self.opened if day < 5 else None, self.closed_sat if day == 5 and self.closed_sat else self.closed_sun if day == 6 and self.closed_sun else self.closed if day < 5 else None
+
+    def is_currently_opened(self, ret_all=False):
+        now, opened, closed = self.get_now_opened_closed()
+        is_opened = False if opened is None else True if opened == closed else opened <= now < closed if opened > closed else now >= opened or now < closed
+        if ret_all:
+            return now, opened, closed, is_opened
+        return is_opened
 
 @receiver(post_delete, sender=Business)
 def business_review_avatar_delete(instance, **kwargs):
@@ -480,11 +487,10 @@ class Table(models.Model):
         return '%s: Table #%s (@%s)' % (self.business, self.number, self.counter)
 
     def get_current_waiter(self, check_exist=False):
-        now, opened, closed = self.business.get_now_opened_closed()
-        s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
-        now = now.time()
-        if opened < closed and (now < opened or now > closed) or opened > closed and closed < now < opened:
+        now, opened, closed, is_opened = self.business.is_currently_opened(True)
+        if not is_opened:
             return False
+        s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
         waiter = self.waiter_set.filter(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.get(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
         return waiter.first() if not check_exist else True if waiter.exists() else None
 

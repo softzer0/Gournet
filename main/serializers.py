@@ -411,7 +411,7 @@ class BusinessSerializer(serializers.ModelSerializer):
                 self.fields['friend'] = serializers.SerializerMethodField()
             self.fields['currency'] = serializers.ChoiceField(choices=models.CURRENCY) #, source='get_currency_display'
             if not currency:
-                self.fields['is_opened'] = serializers.SerializerMethodField()
+                self.fields['is_opened'] = serializers.BooleanField(source='is_currently_opened')
                 self.fields['item_count'] = serializers.IntegerField(source='item_set.count', read_only=True)
                 self.fields['curruser_status'] = serializers.SerializerMethodField()
                 self.fields['likestars_count'] = serializers.IntegerField(source='likes.count', read_only=True)
@@ -457,16 +457,6 @@ class BusinessSerializer(serializers.ModelSerializer):
 
     def get_distance(self, obj):
         return gen_distance(obj)
-
-    def get_is_opened(self, obj):
-        now, opened, closed = obj.get_now_opened_closed()
-        if opened is None:
-            return False
-        if opened >= closed:
-            if opened > now.time():
-                return now.time() < closed
-            return True
-        return opened <= now.time() < closed
 
     def get_curruser_status(self, obj):
         return -1 if self.context['request'].user == obj.manager else 1 if obj.likes.filter(person=self.context['request'].user).exists() else 0 if self.context['request'].user.is_authenticated else -2

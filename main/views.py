@@ -277,7 +277,7 @@ def show_business(request, shortname):
         return redirect('/')
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
-    if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and not serializers.BusinessSerializer.get_is_opened(None, data['business']):
+    if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and not data['business'].is_currently_opened():
         del request.session['table']
     data['fav_count'] = data['business'].likes.count()
     data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
