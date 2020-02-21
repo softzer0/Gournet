@@ -16,7 +16,7 @@ class TemplateParser(HTMLParser):
 	def __init__(self, *args, **kwargs):
 		self.tag = kwargs.pop('tag')
 		self.msgstr_num = kwargs.pop('msgstr_num')
-		self.prog = compile(r'\{{2} *([^\s|}]+(?: +[^\s|}]+)*) *\| *'+self.tag+r'(?: *:(?:[^:]*): *(["\'])([^"\'}]*(?:(?!\2)["\'][^"\'}]*)*)\2)?[^}]*\}{2}')
+		self.prog = compile(r'\{\{\s*([^}]+)\|\s*'+self.tag+r'(?:\s*:[^:]*:\s*([\"\'])(.*?)\2)?.*?\}\}')
 		super().__init__()
 
 	def genc(self):

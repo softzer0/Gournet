@@ -7,6 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title{% block titleatt %}{% endblock %}>{% block title %}Gournet{% endblock %}</title>
     {% load static %}{% load cache %}{% cache None main_head %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-64121556-3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-64121556-3');
+    </script>
     <link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'main/css/main.css' %}">
     {% endcache %}{% if user.is_anonymous and not workh %}<link rel="stylesheet" href="{% static 'main/css/index.css' %}">
