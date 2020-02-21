@@ -64,7 +64,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         if sociallogin.account.provider == 'facebook':
             response = get('https://graph.facebook.com/v2.9/'+sociallogin.account.extra_data['id']+'/picture?width=128&height=128')
         elif sociallogin.account.provider == 'google':
-            response = get(sociallogin.account.extra_data['picture']+'?sz=128')
+            response = get(sociallogin.account.extra_data['picture']+'=s128')
         else:
             response = None
         if response and response.status_code == 200 and response.headers['content-type'] in ('image/jpeg', 'image/png', 'image/gif'):
