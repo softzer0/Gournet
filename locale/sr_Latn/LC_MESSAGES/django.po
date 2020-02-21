@@ -108,7 +108,7 @@ msgstr "zvezdice"
 
 #: .\main\forms.py:11
 msgid "Either coordinates for specified address are not found, or there's some internal error."
-msgstr "Koordiate za zadatu adresu nisu pronađene, ili je u pitanju neka interna greška."
+msgstr "Koordinate za zadatu adresu nisu pronađene, ili je u pitanju neka interna greška."
 
 #: .\main\forms.py:99
 msgid "You have to adjust the exact location using the map with a marker below."
@@ -1821,6 +1821,11 @@ msgstr "Odlučili ste da otkažete prijavljivanje na naš sajt koristeći jedan 
 msgid "You are about to use your %(provider_name)s account data to signup to %(site_name)s. As a final step, please complete the following form:"
 msgstr "Vi ćete upravo iskoristiti podatke sa Vašeg %(provider_name)s naloga da se registrujete na %(site_name)s. Kao poslednji korak, molimo dovršite sledeću formu:"
 
+msgid "The e-mail address is not assigned to any user account"
+msgstr "E-mail adresa nije povezana ni sa jednim korisnikom"
+
+msgid "An account already exists with this e-mail address. Please sign in to that account first, then connect your %s account."
+msgstr "Ne možete se registrovati preko %s provajdera, jer korisnik sa tom e-mail adresom već postoji."
 
 msgid "Enter a valid email address."
 msgstr "Unesite validnu e-mail adresu."

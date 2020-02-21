@@ -153,6 +153,8 @@
     "Internationalization": "Internacionalizacija",
     "Invalid address.": "Neta\u010dna adresa.",
     "Invalid current password.": "Neta\u010dno uneta trenutna lozinka.",
+    "Is my friend": "Moj je prijatelj",
+    "Is my friend, too": "Tako\u0111e je i moj prijatelj",
     "Item(s)": "Proizvodi",
     "Items": "Proizvodi",
     "Juices": "Sokovi",

@@ -635,6 +635,14 @@ msgstr "Učitaj još"
 msgid "No results."
 msgstr "Nema rezultata."
 
+#: main\static\main\friend.html:4
+msgid "Is my friend, too"
+msgstr "Takođe je i moj prijatelj"
+
+#: main\static\main\friend.html:4
+msgid "Is my friend"
+msgstr "Moj je prijatelj"
+
 #: main\static\main\friend.html:5
 msgid "Cancel friend request"
 msgstr "Otkaži zahtev za prijateljstvo"

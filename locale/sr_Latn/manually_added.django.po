@@ -66,6 +66,12 @@ msgstr[0] "Vašu %d recenziju"
 msgstr[1] "Vaše %d recenzije"
 msgstr[2] "Vaših %d recenzija"
 
+msgid "The e-mail address is not assigned to any user account"
+msgstr "E-mail adresa nije povezana ni sa jednim korisnikom"
+
+msgid "An account already exists with this e-mail address. Please sign in to that account first, then connect your %s account."
+msgstr "Ne možete se registrovati preko %s provajdera, jer korisnik sa tom e-mail adresom već postoji."
+
 msgid "Enter a valid email address."
 msgstr "Unesite validnu e-mail adresu."
 
