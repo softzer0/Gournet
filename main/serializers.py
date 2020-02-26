@@ -746,7 +746,7 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Table
-        fields = ('number') #, 'id'
+        fields = ('business', 'number') #, 'id'
 
     # def __init__(self, *args, **kwargs):
     #     waiter = extarg(kwargs, 'waiter')

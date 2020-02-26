@@ -17,6 +17,18 @@ msgstr[2] "Rođen/a pre {{ edit.birth.value | ageFilter }} godina"
 msgid "Please type your current password."
 msgstr "Molimo unesite Vašu trenutnu lozinku."
 
+#: main\static\main\modals\order.html:25
+msgid "This is already paid with <strong>cash</strong>?"
+msgstr "Ovo je već plaćeno <strong>gotovinom</strong>?"
+
+#: main\static\main\modals\order.html:25
+msgid "This is already paid by <strong>card</strong>?"
+msgstr "Ovo je već plaćeno <strong>karticom</strong>?"
+
+#: main\static\main\modals\order.html:25
+msgid "This is already paid?"
+msgstr "Ovo je već plaćeno?"
+
 #: main/static/main/js/custom/main.js:268
 #, javascript-format
 msgid "Add (%s)"

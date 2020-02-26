@@ -491,7 +491,7 @@ class Table(models.Model):
         if not is_opened:
             return False
         s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
-        waiter = self.waiter_set.filter(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.get(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
+        waiter = self.waiter_set.filter(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.filter(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
         return waiter.first() if not check_exist else True if waiter.exists() else None
 
 class OrderedItem(models.Model):

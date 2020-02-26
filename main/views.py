@@ -766,13 +766,14 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         context = super().get_serializer_context()
         if self.kwargs['pk']:
             context['single'] = None
-        if self.kwargs['waiter'] is True or self.kwargs['waiter'] == self.request.user:
+        if 'waiter' in self.kwargs and (self.kwargs['waiter'] is True or self.kwargs['waiter'] == self.request.user):
             context['waiter'] = None
         return context
 
     def gen_notif(self, order, text):
-        with lang_override(self.kwargs['waiter'].language):
-            models.Notification.objects.create(user=self.kwargs['waiter'], text='<strong>'+(order.person.first_name+' '+order.person.last_name if order.person else _("Anonymous"))+'</strong> '+text, link='#/show='+str(order.pk)+'&type=order')
+        waiter = self.kwargs.get('waiter', self.get_waiter(order))
+        with lang_override(waiter.language):
+            models.Notification.objects.create(user=waiter, text='<strong>'+(order.person.first_name+' '+order.person.last_name if order.person else _("Anonymous"))+'</strong> '+text, link='#/show='+str(order.pk)+'&type=order')
 
     def perform_create(self, serializer):
         order = serializer.save()
@@ -781,7 +782,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             self.request.session.modified = True
         # else:
         #     del self.request.session['table']
-        models.Notification.objects.create(text=_("You have placed an order at <strong>%(type)s \"%(name)s\"</strong>." % {'type': order.table.business.get_type_display(), 'name': order.table.business.name}), link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
+        models.Notification.objects.create(text=_("You have placed an order at <strong>%(type)s \"%(name)s\"</strong>.") % {'type': order.table.business.get_type_display(), 'name': order.table.business.name}, link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
         self.gen_notif(order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
 
     def update(self, request, *args, **kwargs):
@@ -790,7 +791,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             data = []
             context = self.get_serializer_context()
             for instance in models.Order.objects.filter(Q(table__waiter__person=self.request.user)|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[pk for pk in self.request.query_params['ids'].split(',') if pk.isdigit()]):
-                if self.context['waiter'] == self.request.user:
+                if self.get_waiter(instance) == self.request.user:
                     context['waiter'] = None
                 elif 'waiter' in context:
                     del context['waiter']

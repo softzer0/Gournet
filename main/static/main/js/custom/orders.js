@@ -38,11 +38,11 @@ app
                                 if (!d) {
                                     ind = {};
                                     if (person.orders[k].ordered_items.length == result[i].ordered_items.length) for (var l = 0; l < person.orders[k].ordered_items.length; l++) for (j = 0; j < result[i].ordered_items.length; j++) if (result[i].ordered_items[j].item.id == person.orders[k].ordered_items[l].item.id) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
-                                    if (result[i].paid == null && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null)) d = true;
+                                    d = result[i].paid == null && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null);
                                 }
                                 if (person.orders[k].ids.indexOf(result[i].id) > -1 || d) {
                                     obj[person.orders[k].ids.indexOf(result[i].id) > -1 ? 1 : 0] = person.orders[k];
-                                    if (!d) o = k;
+                                    if (obj[1] != null) o = k;
                                     if (obj[0] != null && obj[1] != null) break;
                                 }
                             }
@@ -82,6 +82,7 @@ app
                             }
                             if (obj[1] != null) {
                                 for (j = 0; j < obj[1].ordered_items.length; j++) {
+                                    obj[1].ordered_items[j].quantity -= ind[obj[1].ordered_items[j].item.id];
                                     p = ind[obj[1].ordered_items[j].item.id] * (obj[1].ordered_items[j].item.converted || obj[1].ordered_items[j].item.price);
                                     obj[1].total -= p;
                                     if (props.is_waiter) person.total -= p;

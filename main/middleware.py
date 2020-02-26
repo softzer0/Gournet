@@ -59,9 +59,9 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                     table = Table.objects.filter(business=business, number=request.GET['t']).first()
                     if table:
                         hotp, i = HOTP(table.business.table_secret), 1
-                        while i < 101 and request.GET['p'] != hotp.at(table.counter+i):
+                        while i < 1001 and request.GET['p'] != hotp.at(table.counter+i):
                             i += 1
-                        if i < 101:
+                        if i < 1001:
                             table.counter += i
                             table.save()
                             if table.get_current_waiter(True):
