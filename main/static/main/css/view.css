@@ -195,6 +195,17 @@
     background-color: rgba(255, 255, 255, 0.8);
 }
 
+.img_l:not(.text-center) {
+	height: 128px;
+    width: 128px;
+    margin: auto;
+}
+
+.tb .img_p, .tb .img_l, .tb td img {
+	margin-top: -2px;
+	margin-right: 7px;
+}
+
 .prof > .img_l > .loa {
 	margin-top: 50px;
 }

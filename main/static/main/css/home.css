@@ -101,13 +101,8 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
 	display: inline-block;
 }
 
-.tb > tbody > tr > td:first-of-type div:not(.img_p), .tb > tbody > tr > td:not(.eshc) + td:not(:first-of-type) > div {
+.tb > tbody > tr > td:first-of-type div:not(.img_p):not(.img_l), .tb > tbody > tr > td:not(.eshc) + td:not(:first-of-type) > div {
 	margin-top: 6px;
-}
-
-.tb .img_p, .tb td img {
-	margin-top: -2px;
-	margin-right: 7px;
 }
 
 .ord > tbody > tr > td:first-of-type {

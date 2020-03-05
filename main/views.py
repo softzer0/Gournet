@@ -52,6 +52,8 @@ from django.utils.translation import override as lang_override
 from django.utils.timezone import get_current_timezone
 from datetime import datetime
 from rest_framework.serializers import ValidationError
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 User = get_user_model()
 
@@ -136,6 +138,7 @@ def gen_resp(msg):
 
 @table_session_check()
 class ImageAPIView(APIView):
+    @method_decorator(ensure_csrf_cookie)
     def get(self, request, type, pk=None, size=None):
         img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+type+'/'
         if not pk and type == 'item':
