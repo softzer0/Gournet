@@ -766,7 +766,7 @@ msgstr "Registruj se na Gournet-u"
 msgid "You can also drag an new image here"
 msgstr "Ovde takođe možete i prevući novu sliku"
 
-#: .\main\templates\contact.html:14
+#: .\main\templates\contact.html:14 .\main\templates\view.html:169
 msgid "Send"
 msgstr "Pošalji"
 
@@ -897,6 +897,14 @@ msgstr "Prijavite se"
 #: .\main\templates\index.html:48
 msgid "Forgot your password?"
 msgstr "Zaboravili ste lozinku?"
+
+#: .\main\templates\orders.html:14
+msgid "Notes:"
+msgstr "Napomene:"
+
+#: .\main\templates\orders.html:15
+msgid "Note:"
+msgstr "Napomena:"
 
 #: .\main\templates\orders.html:13
 msgid "Nothing to do."
@@ -1445,6 +1453,10 @@ msgstr "Ime mora imati najmanje 2 karaktera."
 #: .\main\templates\view.html:112
 msgid "Name conflicts with the existing item."
 msgstr "Ime je u konfliktu sa već postojećim proizvodom."
+
+#: .\main\templates\view.html:169
+msgid "Enter a note (optional, max. 100 characters):"
+msgstr "Unesite napomenu (opciono, maks. 100 karaktera):"
 
 #: .\main\templates\view.html:174
 msgid "Total:"

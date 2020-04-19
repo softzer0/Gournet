@@ -156,10 +156,10 @@ app
                 }
                 return e;
             },
-            order: function () {
+            order: function (note) {
                 var items = [], keys = localStorageService.keys();
-                for (var k in keys) { items.push({'item': parseInt(keys[k]), 'quantity': localStorageService.get(keys[k])}) }
-                return APIService.init(13).save({'ordered_items': items}, this.reset_order).$promise;
+                for (var k in keys) { items.push({item: parseInt(keys[k]), quantity: localStorageService.get(keys[k])}) }
+                return APIService.init(13).save({note: note, ordered_items: items}, this.reset_order).$promise;
             },
             reset_order: function(){
                 while (props.ordered_items.length > 0) { props.ordered_items.pop().quantity = 0 }
@@ -190,10 +190,11 @@ app
                         menuService.load($scope.id).then(function () { $scope.objloaded[1] = true });
 
                         if (OWNER_MANAGER !== null) return;
+                        $scope.note = null;
                         $scope.submitOrder = function () {
                             $scope.o_disabled = null;
                             dialogService.show(gettext("Are you sure that you want to place an order? This action cannot be undone.")).then(function () {
-                                menuService.order().then(function () {
+                                menuService.order($scope.note).then(function () {
                                     $scope.o_disabled = true;
                                     dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
                                     $scope.resetTime();

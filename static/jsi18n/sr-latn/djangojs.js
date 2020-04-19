@@ -175,6 +175,7 @@
     "No friends.": "Nema prijatelja.",
     "No results.": "Nema rezultata.",
     "Noon": "Podne",
+    "Note:": "Napomena:",
     "Notify (%s)": "Obavesti (%s)",
     "Notify friends": "Obavesti prijatelje",
     "Now": "Sada",

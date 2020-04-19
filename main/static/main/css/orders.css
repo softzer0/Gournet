@@ -1,7 +1,3 @@
-.popover {
-    z-index: 1039;
-}
-
 .ng-enter {
     animation: enter 2.5s linear;
 }

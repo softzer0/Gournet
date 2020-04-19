@@ -676,6 +676,10 @@ msgid "Debit card"
 msgstr "Platna kartica"
 
 #: main\static\main\modals\order.html:19
+msgid "Note:"
+msgstr "Napomena:"
+
+#: main\static\main\modals\order.html:19
 msgid "Ordered at:"
 msgstr "Poručeno:"
 

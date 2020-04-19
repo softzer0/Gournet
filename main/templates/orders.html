@@ -11,8 +11,10 @@
 {% block container %}{% cache None orders request.LANGUAGE_CODE is_waiter %}
         <script type="text/ng-template" id="actionPopover">
             <center>
-                <span ng-show="popover.title === undefined">{% trans "Nothing to do." %}</span>
-                <span ng-show="popover.title !== undefined">
+                <p ng-if="popover.notes"><strong>{% trans "Notes:" %}</strong> {% verbatim %}{{ popover.notes }}{% endverbatim %}</p>
+                <p ng-if="popover.target.note"><strong>{% trans "Note:" %}</strong> {% verbatim %}{{ popover.target.note }}{% endverbatim %}</p>
+                <span ng-if="popover.title === undefined">{% trans "Nothing to do." %}</span>
+                <span ng-if="popover.title !== undefined">
                     <input{% if is_waiter %} ng-show="popover.type[0].list.length > 0"{% endif %} type="submit" class="btn btn-primary" ng-attr-value="{{ '{' }}{ popover.type[0].count > 1 ? {% if is_waiter %}'{% trans "All is delivered" %}' : '{% trans "It's delivered" %}'{% else %}'{% trans "All with cash" %}' : '{% trans "With cash" %}'{% endif %} }{{ '}' }}" ng-click="doAction(0)">
                     <input{% if is_waiter %} ng-show="popover.type[1].list.length > 0"{% endif %} type="submit" class="btn btn-success" ng-attr-value="{{ '{' }}{ popover.type[1].count > 1 ? {% if is_waiter %}'{% trans "All is paid" %}' : '{% trans "It's paid" %}'{% else %}'{% trans "All by debit card" %}' : '{% trans "By debit card" %}'{% endif %} }{{ '}' }}" ng-click="doAction(1)">
                 </span>

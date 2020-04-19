@@ -133,6 +133,15 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
 	}
 }
 
+.popover {
+    z-index: 1039;
+}
+
+.tb .img_p, .tb .img_l, .tb td img {
+	margin-top: -2px;
+	margin-right: 7px;
+}
+
 .order > .input-group {
     width: 9.5em;
 }

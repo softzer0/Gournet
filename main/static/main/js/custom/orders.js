@@ -38,7 +38,7 @@ app
                                 if (!d) {
                                     ind = {};
                                     if (person.orders[k].ordered_items.length == result[i].ordered_items.length) for (var l = 0; l < person.orders[k].ordered_items.length; l++) for (j = 0; j < result[i].ordered_items.length; j++) if (result[i].ordered_items[j].item.id == person.orders[k].ordered_items[l].item.id) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
-                                    d = result[i].paid == null && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null);
+                                    d = result[i].paid == null && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null) && person.orders[k].note == result[i].note;
                                 }
                                 if (person.orders[k].ids.indexOf(result[i].id) > -1 || d) {
                                     obj[person.orders[k].ids.indexOf(result[i].id) > -1 ? 1 : 0] = person.orders[k];
@@ -125,10 +125,13 @@ app
                         Array.prototype.push.apply($scope.popover.type[1].list, o.ids);
                         $scope.popover.type[1].count++;
                     }
+                    if ($scope.popover.notes !== undefined && o.note) $scope.popover.notes++;
                 }
                 if (obj.hasOwnProperty('persons')) {
+                    $scope.popover.notes = 0;
                     for (var i = 0; i < obj.persons.length; i++) for (var j = 0; j < obj.persons[i].orders.length; j++) check(obj.persons[i].orders[j]);
                 } else if (obj.hasOwnProperty('orders')) {
+                    $scope.popover.notes = 0;
                     for (i = 0; i < obj.orders.length; i++) check(obj.orders[i]);
                 } else check(obj);
                 $scope.popover.target = obj;

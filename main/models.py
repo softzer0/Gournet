@@ -319,7 +319,7 @@ class Business(Loc, WorkTime):
 
     def is_currently_opened(self, ret_all=False):
         now, opened, closed = self.get_now_opened_closed()
-        is_opened = False if opened is None else True if opened == closed else opened <= now < closed if opened > closed else now >= opened or now < closed
+        is_opened = False if opened is None else True if opened == closed else opened <= now < closed if opened < closed else now >= opened or now < closed
         if ret_all:
             return now, opened, closed, is_opened
         return is_opened
@@ -507,6 +507,7 @@ class Order(models.Model):
     session = models.CharField(max_length=32, null=True, blank=True)
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     ordered_items = models.ManyToManyField(Item, through=OrderedItem)
+    note = models.CharField(max_length=100, null=True, blank=True)
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
     delivered = models.DateTimeField(pgettext_lazy("order", "delivered on"), null=True, blank=True)
     request_type = models.IntegerField(_("payment type"), choices=((0, _("Cash")), (1, _("Debit card"))), null=True, blank=True)

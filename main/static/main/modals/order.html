@@ -16,6 +16,7 @@
                 </tr>
             </tbody>
         </table>
+        <p ng-if="order.note"><strong>{{ "Note:" | translate }}</strong> {{ order.note }}</p>
         <div class="ib mr12"><strong>{{ "Ordered at:" | translate }}</strong> {{ order.created|date:'dd.MM.yyyy HH:mm' }}</div>
         <div class="pull-right ml12"><strong>{{ "Total:" | translate }}</strong> {{ total|currency:curr }}</div>
         <div ng-if="order.delivered" class="ib"><strong>{{ "Delivered at:" | translate }}</strong> {{ order.delivered|date:'dd.MM.yyyy HH:mm' }}</div>

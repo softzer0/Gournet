@@ -1,6 +1,6 @@
-from django.db.models import Count
+from django.db.models import F, Q, Count
+from django.utils.timezone import now as timezone_now
 from .models import User, Business, Recent, get_has_stars, REVIEW_STATUS
-from .serializers import BusinessSerializer
 
 REVIEW_STATUS_E = ( #important
     (REVIEW_STATUS[0][1], 'label-primary'), #Started
@@ -17,17 +17,19 @@ recent_ord = ['-recent__' + _[1:] for _ in Recent._meta.ordering]
 def gen_qs(request, model):
     return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)
 
-def get_business_if_waiter(request):
-    if request.user.is_authenticated:
-        for business in Business.objects.filter(table__waiter__person=request.user).annotate(Count('pk')):
-            if business.is_currently_opened():
-                return business
+def get_business_if_waiter(request, check_exist=False):
+    now = timezone_now()
+    day = '_sat' if now.weekday() == 5 else '_sun' if now.weekday() >= 5 else ''
+    now = now.time()
+    q = Q(**{'table__waiter__opened'+day+'__isnull': False}) & (Q(**{'table__waiter__closed'+day: F('table__waiter__opened'+day)}) | Q(**{'table__waiter__closed'+day+'__lt': F('table__waiter__opened'+day)}) & (Q(**{'table__waiter__opened'+day+'__lte': now}) | Q(**{'table__waiter__closed'+day+'__gt': now})) | Q(**{'table__waiter__closed'+day+'__gt': F('table__waiter__opened'+day)}) & (Q(**{'table__waiter__opened'+day+'__lte': now}) & Q(**{'table__waiter__closed'+day+'__gt': now})))
+    qs = Business.objects.filter(Q(table__waiter__person=request.user) & q).annotate(Count('pk'))
+    return qs.first() if not check_exist else qs.exists()
 
 def recent(request):
     dic = {
         'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars(),
-        'show_orders': bool('table' in request.session or get_business_if_waiter(request)),
+        'show_orders': bool('table' in request.session or get_business_if_waiter(request, True)),
         'is_manager': Business.objects.filter(manager=request.user).exists() if request.user.is_authenticated else False
     }
     if request.user.is_authenticated:
