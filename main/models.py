@@ -498,6 +498,9 @@ class Card(models.Model):
     number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     counter = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        unique_together = (('table', 'number'),)
+
     def __str__(self):
         return '%s, card #%s [%s]' % (self.table, self.number, self.counter)
 
