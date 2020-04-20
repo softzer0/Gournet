@@ -478,13 +478,12 @@ class Table(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     waiters = models.ManyToManyField(User, through=Waiter)
-    counter = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = (('business', 'number'),)
 
     def __str__(self):
-        return '%s: Table #%s (@%s)' % (self.business, self.number, self.counter)
+        return '%s: Table #%s' % (self.business, self.number)
 
     def get_current_waiter(self, check_exist=False):
         now, opened, closed, is_opened = self.business.is_currently_opened(True)
@@ -493,6 +492,14 @@ class Table(models.Model):
         s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
         waiter = self.waiter_set.filter(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.filter(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
         return waiter.first() if not check_exist else True if waiter.exists() else None
+
+class Card(models.Model):
+    table = models.ForeignKey(Table, on_delete=models.CASCADE)
+    number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    counter = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return '%s, card #%s [%s]' % (self.table, self.number, self.counter)
 
 class OrderedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
