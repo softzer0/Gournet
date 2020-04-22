@@ -183,4 +183,10 @@ app
         };
 
         $scope.$parent.dragFn = function (e, i) { return s.partial_update({object_id: e.id, ordering: i}).$promise };
+
+        $scope.$parent.setUnavailable = function (i) {
+            dialogService.show(!i.unavailable ? gettext("Are you sure that you want to set this item as unavailable? The item won't be visible in search.") : gettext("Are you sure that you want to set this item as available? Guests would be able to order it.")).then(function () {
+                s.partial_update({object_id: i.id, unavailable: !i.unavailable}, function (result) { i.unavailable = result.unavailable });
+            });
+        };
     });

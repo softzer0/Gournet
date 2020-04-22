@@ -1036,7 +1036,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         qs = super().getnopk()
         if self.request.query_params.get('search', False):
             self.kwargs['search'] = None
-            return get_loc(self, qs, deford=False) #.order_by(Case(When(Q(business__currency=self.request.session['currency']) | Q(business__supported_curr__contains=self.request.session['currency']), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
+            return get_loc(self, qs.filter(unavailable=False), deford=False) #.order_by(Case(When(Q(business__currency=self.request.session['currency']) | Q(business__supported_curr__contains=self.request.session['currency']), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
         return qs.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):

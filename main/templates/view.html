@@ -140,7 +140,8 @@
                                                         {% endif %}<img class="bor" ng-src="/images/item/{% verbatim %}{{ i.id }}{% endverbatim %}/avatar/32/{% if fav_state == -1 %}{% verbatim %}{{ img[i.id].ts || '' }}{% endverbatim %}" ng-init="img[i.id].file = null" uib-tooltip="{% verbatim %}{{ drag_txt }}{% endverbatim %}" ngf-drop ngf-select ng-model="img[i.id].file" ng-disabled="img[i.id].file" ng-class="{'clickable': !img[i.id].file}"
                                                         ><div class="img_l text-center" ng-show="img[i.id].file"><div class="loa loa-c"><i class="fa fa-spinner"></i></div></div
                                                     ></div{% else %}"{% endif %}
-                                                    ><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div>
+                                                    ><div>{% verbatim %}{{ i.name }}{% endverbatim %}</div{% if fav_state == -1 %}
+                                                    ><a href="javascript:" class="ml7" ng-click="$event.stopPropagation(); setUnavailable(i)" uib-tooltip="{{ '{' }}{ !i.unavailable ? '{% trans "This item is available for ordering. Click to make it unavailable." %}' : '{% trans "This item is unavailable for ordering. Click to make it available." %}' }{{ '}' }}"><i class="fa" ng-class="!i.unavailable ? 'fa-square' : 'fa-square-o'"></i></a{% endif %}>
                                                 </td>
                                                 <td><div{% if fav_state == -1 %} class="inline" ng-init="edit_i[i.id] = {form: i.price, disabled: true}" click-outside="co(edit_i[i.id], 'disabled'); sc.form_disabled = true">
                                                     <a class="n clickable" ng-show="edit_i[i.id].disabled" ng-click="enableForm(sc, i)"{% endif %}><div class="pull-right">{{ '{' }}{{ '{' }} i.converted || i.price|currency:{% if fav_state == -1 %}curr[1] {{ '}' }}{{ '}' }}</a>

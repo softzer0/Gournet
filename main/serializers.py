@@ -649,7 +649,7 @@ class ItemSerializer(BaseSerializer):
             if 'edit' in self.context:
                 self.fields['name'].read_only = True
             if 'ordered' not in self.context and 'table' in self.context['request'].session:
-                self.fields['can_order'] = serializers.SerializerMethodField()
+                self.fields['has_order_session'] = serializers.SerializerMethodField()
             self.fields['category_display'] = serializers.CharField(source='get_category_display', read_only=True)
 
     def get_distance(self, obj):
@@ -659,7 +659,7 @@ class ItemSerializer(BaseSerializer):
         if obj.business.currency != self.context['request'].session['currency'] and self.context['request'].session['currency'] in obj.business.supported_curr:
             return str(curr_convert(obj.price, obj.business.currency, self.context['request'].session['currency']))
 
-    def get_can_order(self, obj):
+    def get_has_order_session(self, obj):
         return obj.business.shortname == self.context['request'].session['table']['shortname']
 
 
@@ -739,6 +739,8 @@ class OrderedItemSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['item'].business.shortname != self.context['request'].session['table']['shortname']:
             raise serializers.ValidationError("Item %d does not belong to the targeted business." % attrs['item'].pk)
+        if attrs['item'].unavailable:
+            raise serializers.ValidationError("Item %d is unavailable for ordering." % attrs['item'].pk)
         return attrs
 
 class TableSerializer(serializers.ModelSerializer):
@@ -797,7 +799,7 @@ class OrderSerializer(serializers.ModelSerializer):
             if 'table' not in self.context['request'].session:
                 raise serializers.ValidationError("There is no table session.")
             if self.context['request'].session['table']['time'] is None:
-                raise serializers.ValidationError("You have already placed an order with this session.")
+                raise serializers.ValidationError("You have already placed an order with the current session.")
             time = datetime.fromtimestamp(self.context['request'].session['table']['time'], get_current_timezone())
             if time < timezone.localtime(timezone.now()):
                 raise serializers.ValidationError("Maximum time for ordering for current session is exceeded: %s" % time)
@@ -812,8 +814,8 @@ class OrderSerializer(serializers.ModelSerializer):
         ordered_items = []
         for ordered_item in validated_data['ordereditem_set']:
             ordered_item = models.OrderedItem(order=order, **ordered_item)
-            if ordered_item.item.business.shortname == self.context['request'].session['table']['shortname']:
-                ordered_items.append(ordered_item)
+            # if ordered_item.item.business.shortname == self.context['request'].session['table']['shortname']:
+            ordered_items.append(ordered_item)
         if not len(ordered_items):
             order.delete()
             gen_err("List of items for ordering is empty for the targeted business.")

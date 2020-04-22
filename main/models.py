@@ -413,6 +413,7 @@ class Item(models.Model):
     category = models.CharField(_("category"), choices=CATEGORY, validators=[MinLengthValidator(3)], max_length=19) #important
     name = models.CharField(_("name"), validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
     price = models.DecimalField(_("price"), max_digits=8, decimal_places=2)
+    unavailable = models.BooleanField(_("unavailable?"), default=False)
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
     has_image = models.BooleanField(_("has image?"), default=False)
     likes = GenericRelation('Like')

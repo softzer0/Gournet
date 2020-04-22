@@ -262,6 +262,10 @@
 	height: 32px;
 }
 
+.ml7 {
+	margin-left: 7px;
+}
+
 .inline > div:not(.mpd):not(.form-group) > div > div > * {
 	display: table-cell;
 	background-clip: padding-box;

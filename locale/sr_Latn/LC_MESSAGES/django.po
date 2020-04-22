@@ -1454,6 +1454,14 @@ msgstr "Ime mora imati najmanje 2 karaktera."
 msgid "Name conflicts with the existing item."
 msgstr "Ime je u konfliktu sa već postojećim proizvodom."
 
+#: .\main\templates\view.html:144
+msgid "This item is available for ordering. Click to make it unavailable."
+msgstr "Ovaj proizvod je dostupan za poručivanje. Kliknite da ga načinite nedostupnim."
+
+#: .\main\templates\view.html:144
+msgid "This item is unavailable for ordering. Click to make it available."
+msgstr "Ovaj proizvod je nedostupan za poručivanje. Kliknite da ga načinite dostupnim."
+
 #: .\main\templates\view.html:169
 msgid "Enter a note (optional, max. 100 characters):"
 msgstr "Unesite napomenu (opciono, maks. 100 karaktera):"

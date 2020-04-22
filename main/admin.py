@@ -85,7 +85,7 @@ class EventAdmin(BaseObjAdmin, DisLike, Comment):
 @admin.register(models.Item)
 class ItemAdmin(BaseObjAdmin, DisLike, Comment):
     list_filter = BaseObjAdmin.list_filter + ('category', 'has_image')
-    list_display = ('id', 'business', 'category', 'name_text', 'price', 'stars_avg', 'stars_count', 'comment_count', 'created', 'has_image')
+    list_display = ('id', 'business', 'category', 'name_text', 'price', 'unavailable', 'stars_avg', 'stars_count', 'comment_count', 'created', 'has_image')
     search_fields = ('business__name', 'name', 'price')
 
     def get_queryset(self, request):

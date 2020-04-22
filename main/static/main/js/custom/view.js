@@ -12,7 +12,7 @@ app
                     if (menu[i].content[j].category == item.category) {
                         if (!n && localStorageService) {
                             item.quantity = localStorageService.get(item.id);
-                            if (item.quantity) {
+                            if (!item.unavailable && item.quantity) {
                                 props.total_price += item.price * item.quantity;
                                 menu[i].content[j].has_q = menu[i].content[j].has_q ? menu[i].content[j].has_q + 1 : 1;
                                 props.ordered_items.push(item);
@@ -157,12 +157,20 @@ app
                 return e;
             },
             order: function (note) {
-                var items = [], keys = localStorageService.keys();
-                for (var k in keys) { items.push({item: parseInt(keys[k]), quantity: localStorageService.get(keys[k])}) }
+                var items = [];
+                for (var i = 0; i < props.ordered_items.length; i++) items.push({item: props.ordered_items[i].id, quantity: props.ordered_items[i].quantity})
                 return APIService.init(13).save({note: note, ordered_items: items}, this.reset_order).$promise;
             },
+            remove_ordered_item: function (id){
+                // localStorageService.remove(id);
+                for (var i = 0; i < props.ordered_items.length; i++) if (id == props.ordered_items[i].id) {
+                    props.total_price -= props.ordered_items[i].price * props.ordered_items[i].quantity;
+                    props.ordered_items.splice(i, 1)[0].quantity = 0
+                    break;
+                }
+            },
             reset_order: function(){
-                while (props.ordered_items.length > 0) { props.ordered_items.pop().quantity = 0 }
+                while (props.ordered_items.length > 0) props.ordered_items.pop().quantity = 0;
                 props.total_price = 0;
                 localStorageService.clearAll();
             }
@@ -200,6 +208,17 @@ app
                                     $scope.resetTime();
                                 }, function (res) {
                                     delete $scope.o_disabled;
+                                    if (res.data && res.data.ordered_items && res.data.ordered_items.length && res.data.ordered_items[0].non_field_errors) {
+                                        var removed;
+                                        for (var i = 0; i < res.data.ordered_items.length; i++) if (res.data.ordered_items[i].non_field_errors[0].indexOf('unavailable') > -1) {
+                                            menuService.remove_ordered_item(res.data.ordered_items[i].non_field_errors[0].substring(5, res.data.ordered_items[i].non_field_errors[0].indexOf(' ', 5)));
+                                            removed = true;
+                                        }
+                                        if (removed) {
+                                            dialogService.show(gettext("Some of items have become unavailable in the meantime. They have been removed from orders, so please recheck before submitting again."), false);
+                                            return;
+                                        }
+                                    }
                                     dialogService.show(res.data && res.data.non_field_errors ? gettext("Can't place an order due to the following:") + ' ' + gettext(res.data.non_field_errors[0]) : gettext("There was some error while placing your order."), false);
                                 });
                             }, function (){ if (!$scope.o_disabled) delete $scope.o_disabled });

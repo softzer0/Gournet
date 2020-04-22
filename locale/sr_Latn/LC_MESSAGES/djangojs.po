@@ -234,6 +234,14 @@ msgstr "Ova poruka će nestati jednom kada Vaš ugostiteljski objekat bude verif
 msgid "If you change the business currency now, then item prices in the menu will be converted to that new currency."
 msgstr "Ako promenite valutu Vašeg ugostiteljskog objekta sada, onda će cene proizvoda biti prebačene u tu novu valutu."
 
+#: .\main\static\main\js\custom\manager.js:188
+msgid "Are you sure that you want to set this item as unavailable? The item won't be visible in search."
+msgstr "Da li ste sigurni da želite staviti ovaj proizvod kao nedostupan? Proizvod neće biti vidljiv u pretrazi."
+
+#: .\main\static\main\js\custom\manager.js:188
+msgid "Are you sure that you want to set this item as available? Guests would be able to order it."
+msgstr "Da li ste sigurni da želite staviti ovaj proizvod kao dostupan? Mušterije će ga moći poručivati."
+
 #: .\main\static\main\js\custom\orders.js:135
 msgid "Choose type of payment"
 msgstr "Odaberi način plaćanja"
@@ -441,6 +449,10 @@ msgstr "Vaša porudžbina je poslata. Uživajte!"
 msgid "Can't place an order due to the following:"
 msgstr "Nije moguće poručiti zbog sledećeg:"
 
+#: .\main\static\main\js\custom\view.js:218
+msgid "Some of items have become unavailable in the meantime. They have been removed from orders, so please recheck before submitting again."
+msgstr "Neki od proizvoda su postali nedostupni u međuvremenu. Pošto su obrisani iz porudžbina, molimo da proverite sve ponovo pre slanja."
+
 #: .\main\static\main\js\custom\view.js:202
 msgid "There was some error while placing your order."
 msgstr "Desila se neka greška prilikom slanja vaše porudžbine."
@@ -610,6 +622,10 @@ msgstr "Da li ste sigurni da želite obrisati ovu recenziju?"
 #: main\static\main\events.html:59 main\static\main\modals\settings.html:32
 msgid "Remove"
 msgstr "Izbriši"
+
+#: main\static\main\events.html:64
+msgid "Not available for ordering."
+msgstr "Nije dostupno za poručivanje."
 
 #: main\static\main\events.html:65
 msgid "Quantity:"
@@ -883,6 +899,12 @@ msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."
 
 msgid "Targeted person is already waiter at a different business during the specified time span."
 msgstr "Ciljana osoba je već konobar u drugom ugostiteljskom objektu tokom definisanog perioda."
+
+msgid "There is no table session."
+msgstr "Ne postoji sesija za sto."
+
+msgid "You have already placed an order with the current session."
+msgstr "Već ste poručili sa trenutnom sesijom."
 
 msgid "The business has been closed in the meantime."
 msgstr "Ugostiteljski objekat se u međuvremenu zatvorio."
