@@ -34,3 +34,11 @@
 .item {
     padding-left: 30px !important;
 }
+
+.action-popover > .popover-inner > .popover-content {
+    padding-bottom: 0;
+}
+
+.action-popover .btn {
+    margin-bottom: 9px;
+}

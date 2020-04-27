@@ -3,8 +3,8 @@
     <input type="submit" class="btn btn-info" ng-attr-value="{{ 'Debit card' | translate }}" ng-click="doAction(1)">
 </script>
 <div ng-class="{'um': modal_loaded}" ng-controller="OrderCtrl" ng-cloak>
-    <div class="mpd" ng-if="order">
-        <table class="table tb ord mb15 table-hover">
+    <div class="ord-popup mpd" ng-if="order">
+        <table class="table tb ord mb15 table-hover" ng-if="$parent.order.ordered_items.length > 0">
             <tbody>
                 <tr ng-repeat="i in $parent.order.ordered_items">
                     <td><a ng-attr-href="#/show={{ i.item.id }}&type=item">
@@ -18,12 +18,12 @@
         </table>
         <p ng-if="order.note"><strong>{{ "Note:" | translate }}</strong> {{ order.note }}</p>
         <div class="ib mr12"><strong>{{ "Ordered at:" | translate }}</strong> {{ order.created|date:'dd.MM.yyyy HH:mm' }}</div>
-        <div class="pull-right ml12"><strong>{{ "Total:" | translate }}</strong> {{ total|currency:curr }}</div>
+        <div class="pull-right ml12" ng-if="total > 0"><strong>{{ "Total:" | translate }}</strong> {{ total|currency:curr }}</div>
         <div ng-if="order.delivered" class="ib"><strong>{{ "Delivered at:" | translate }}</strong> {{ order.delivered|date:'dd.MM.yyyy HH:mm' }}</div>
-        <button type="button" class="btn btn-primary pull-right ml12" ng-if="!order.paid && order.requested == null && order.person === undefined" ng-disabled="working" uib-popover-template="'paymentPopover'" popover-title="{{ 'Select type of payment' | translate }}" popover-trigger="outsideClick" popover-is-open="opened" ng-click="opened = !opened" popover-placement="left">{{ "Request payment" | translate }}</button>
+        <button type="button" class="btn btn-primary pull-right ml12" ng-if="total > 0 && !order.paid && order.requested == null && order.person === undefined" ng-disabled="working" uib-popover-template="'paymentPopover'" popover-title="{{ 'Select type of payment' | translate }}" popover-trigger="outsideClick" popover-is-open="opened" ng-click="opened = !opened" popover-placement="bottom-left">{{ "Request payment" | translate }}</button>
         <button type="button" class="btn btn-primary pull-right ml12" ng-if="!order.paid && order.requested == null && order.person !== undefined && !order.delivered" ng-disabled="working" ng-click="doAction()">{{ "Mark as delivered" | translate }}</button>
         <div class="ib pull-right ml12" ng-if="!order.paid && order.person === undefined && order.requested != null"><strong>{{ "To be paid with:" | translate }}</strong> {{ order.request_type === 0 ? "Cash" : "Debit card" | translate }}</div>
-        <a class="ib pull-right ml12" href="javascript:" ng-if="!order.paid && order.person !== undefined" ng-click="doAction(null)" ng-bind-html="order.request_type === 0 ? 'This is already paid with <strong>cash</strong>?' : order.request_type === 1 ? 'This is already paid by <strong>card</strong>?' : 'This is already paid?' | unsafe | translate"></a>
+        <a class="ib pull-right ml12" href="javascript:" ng-if="total > 0 && !order.paid && order.person !== undefined" ng-click="doAction(null)" ng-bind-html="order.request_type === 0 ? 'This is already paid with <strong>cash</strong>?' : order.request_type === 1 ? 'This is already paid by <strong>card</strong>?' : 'This is already paid?' | unsafe | translate"></a>
         <div ng-if="order.requested" class="ib mr12"><strong>{{ "Requested payment at:" | translate }}</strong> {{ order.requested|date:'dd.MM.yyyy HH:mm' }}</div>
         <div ng-if="order.paid" class="ib pull-right ml12"><strong>{{ order.request_type === 0 ? "Paid with cash at:" : order.request_type === 1 ? "Paid by debit card at:" : "Paid at:" | translate }}</strong> {{ order.paid|date:'dd.MM.yyyy HH:mm' }}</div>
         <div style="clear: both;"></div>

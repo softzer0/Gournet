@@ -38,7 +38,7 @@ app
                                 if (!d) {
                                     ind = {};
                                     if (person.orders[k].ordered_items.length == result[i].ordered_items.length) for (var l = 0; l < person.orders[k].ordered_items.length; l++) for (j = 0; j < result[i].ordered_items.length; j++) if (result[i].ordered_items[j].item.id == person.orders[k].ordered_items[l].item.id) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
-                                    d = result[i].paid == null && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null) && person.orders[k].note == result[i].note;
+                                    d = result[i].paid == null && (result[i].ordered_items.length > 0 || result[i].delivered == null) && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null) && person.orders[k].note == result[i].note;
                                 }
                                 if (person.orders[k].ids.indexOf(result[i].id) > -1 || d) {
                                     obj[person.orders[k].ids.indexOf(result[i].id) > -1 ? 1 : 0] = person.orders[k];
@@ -47,7 +47,7 @@ app
                                 }
                             }
                             var id = result[i].id, p;
-                            if (result[i].paid == null) {
+                            if (result[i].paid == null && (result[i].ordered_items.length > 0 || result[i].delivered == null)) {
                                 if (obj[0] != null) {
                                     if (obj[0].ids.indexOf(id) === -1) {
                                         obj[0].ids.push(id);
@@ -118,10 +118,10 @@ app
                 $scope.popover = {type: [{count: 0, list: []}]};
                 if (is_waiter) $scope.popover.type.push({count: 0, list: []});
                 function check(o) {
-                    if (o.request_type == null && (!is_waiter || o.delivered == null)) {
+                    if (o.request_type == null && (!is_waiter && o.total > 0 || is_waiter && o.delivered == null)) {
                         Array.prototype.push.apply($scope.popover.type[0].list, o.ids);
                         $scope.popover.type[0].count++;
-                    } else if (is_waiter) {
+                    } else if (is_waiter && o.total > 0) {
                         Array.prototype.push.apply($scope.popover.type[1].list, o.ids);
                         $scope.popover.type[1].count++;
                     }
@@ -136,7 +136,7 @@ app
                 } else check(obj);
                 $scope.popover.target = obj;
                 $timeout(function (){
-                    if (!is_waiter && $scope.popover.type[0].list.length > 0) $scope.popover.title = gettext("Choose type of payment"); else $scope.popover.title = $scope.popover.type[0].list.length > 0 && $scope.popover.type[1].list.length == 0 ? gettext("Confirm delivery below") : $scope.popover.type[1].list.length > 0 && $scope.popover.type[0].list.length == 0 ? gettext("Confirm payment below") : gettext("Choose below");
+                    if (obj.total == 0 && $scope.popover.type[0].list.length == 0) $scope.popover.title = null; else if (!is_waiter && $scope.popover.type[0].list.length > 0) $scope.popover.title = gettext("Choose type of payment"); else $scope.popover.title = $scope.popover.type[0].list.length > 0 && ($scope.popover.type.length == 1 || $scope.popover.type[1].list.length == 0) ? gettext("Confirm delivery below") : $scope.popover.type[1].list.length > 0 && $scope.popover.type[0].list.length == 0 ? gettext("Confirm payment below") : gettext("Choose below");
                     obj.opened = true;
                 });
             } else $timeout(function (){ obj.opened = false });

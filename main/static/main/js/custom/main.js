@@ -393,7 +393,7 @@ app
         $scope.total = 0;
         $scope.opened = false;
         orderService.get(o).then(function (order){
-            $scope.curr = order.ordered_items[0].item.converted === null ? order.table.business.currency : USER.currency;
+            if (order.ordered_items.length > 0) $scope.curr = order.ordered_items[0].item.converted === null ? order.table.business.currency : USER.currency;
             $scope.order = order;
             for (var i = 0; i < order.ordered_items.length; i++) {
                 o = order.ordered_items[i];
@@ -1176,7 +1176,10 @@ app
                 if (increment) {
                     sc.has_q = sc.has_q ? sc.has_q+1 : 1;
                     menuService.props.ordered_items.push(i);
-                } else if ($scope.quantity[$scope.objs[index].id] == 0) sc.has_q--;
+                } else if ($scope.quantity[$scope.objs[index].id] == 0) {
+                    if (sc.has_q > 0) sc.has_q--;
+                    menuService.props.ordered_items.splice(menuService.props.ordered_items.indexOf(i), 1);
+                }
             });
         };
     })

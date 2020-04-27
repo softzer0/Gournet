@@ -146,7 +146,7 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
     width: 9.5em;
 }
 
-.ord ~ .btn {
+.ord-popup .btn {
     line-height: 0;
     height: 20px;
 }

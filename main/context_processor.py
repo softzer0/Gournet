@@ -18,6 +18,8 @@ def gen_qs(request, model):
     return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)
 
 def get_business_if_waiter(request, check_exist=False):
+    if request.user.is_anonymous:
+        return None
     now = timezone_now()
     day = '_sat' if now.weekday() == 5 else '_sun' if now.weekday() >= 5 else ''
     now = now.time()

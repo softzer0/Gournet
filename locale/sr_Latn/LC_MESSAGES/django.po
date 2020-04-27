@@ -919,12 +919,14 @@ msgid "It's delivered"
 msgstr "Dostavljeno"
 
 #: .\main\templates\orders.html:15
+msgctxt "paid/to be paid"
 msgid "All with cash"
-msgstr "Sve je plaćeno gotovinom"
+msgstr "Sve gotovinom"
 
 #: .\main\templates\orders.html:15
+msgctxt "paid/to be paid"
 msgid "With cash"
-msgstr "Plaćeno gotovinom"
+msgstr "Gotovina"
 
 #: .\main\templates\orders.html:16
 msgid "All is paid"
@@ -935,12 +937,14 @@ msgid "It's paid"
 msgstr "Plaćeno je"
 
 #: .\main\templates\orders.html:16
+msgctxt "paid/to be paid"
 msgid "All by debit card"
-msgstr "Sve je plaćeno karticom"
+msgstr "Sve debitnom karticom"
 
 #: .\main\templates\orders.html:16
+msgctxt "paid/to be paid"
 msgid "By debit card"
-msgstr "Plaćeno karticom"
+msgstr "Debitna kartica"
 
 #: .\main\templates\orders.html:21
 msgid "There are currently no orders."
@@ -1466,6 +1470,10 @@ msgstr "Ovaj proizvod je nedostupan za poručivanje. Kliknite da ga načinite do
 msgid "Enter a note (optional, max. 100 characters):"
 msgstr "Unesite napomenu (opciono, maks. 100 karaktera):"
 
+#: .\main\templates\view.html:169
+msgid "Enter a note (max. 100 characters):"
+msgstr "Unesite napomenu (maks. 100 karaktera):"
+
 #: .\main\templates\view.html:174
 msgid "Total:"
 msgstr "Ukupno:"
@@ -1473,6 +1481,10 @@ msgstr "Ukupno:"
 #: .\main\templates\view.html:174
 msgid "Confirm order"
 msgstr "Potvrdi porudžbinu"
+
+#: .\main\templates\view.html:174
+msgid "Special request"
+msgstr "Poseban zahtev"
 
 #: .\main\templates\view.html:174
 msgid "Reset"

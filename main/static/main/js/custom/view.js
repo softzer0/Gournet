@@ -2,7 +2,7 @@ app
     .filter('revc', function() { return function(input) { return input.split(',')[1]+','+input.split(',')[0] } })
 
     .factory('menuService', function ($q, $injector, APIService){
-        var itemService = APIService.init(8), menu, defer = $q.defer(), props = {loaded: false, total_price: 0, ordered_items: []}, localStorageService = OWNER_MANAGER === null && $injector.get('localStorageService'); //, category
+        var itemService = APIService.init(8), menu, defer = $q.defer(), props = {loaded: false, total_price: 0, ordered_items: [], note: ''}, localStorageService = OWNER_MANAGER === null && $injector.get('localStorageService'); //, category
 
         function chngmenu() { if (!menu[0].hascontent) menu[1].name = gettext("Drinks"); else menu[1].name = gettext("Other drinks") } //menu[0].name == "Other drinks" / if (menu.length)
         function add(item, n) {
@@ -11,11 +11,13 @@ app
                 if (c === false) for (var j = 0; j < menu[i].content.length; j++) {
                     if (menu[i].content[j].category == item.category) {
                         if (!n && localStorageService) {
-                            item.quantity = localStorageService.get(item.id);
-                            if (!item.unavailable && item.quantity) {
-                                props.total_price += item.price * item.quantity;
-                                menu[i].content[j].has_q = menu[i].content[j].has_q ? menu[i].content[j].has_q + 1 : 1;
-                                props.ordered_items.push(item);
+                            if (!item.unavailable) {
+                                item.quantity = localStorageService.get(item.id);
+                                if (item.quantity) {
+                                    props.total_price += item.price * item.quantity;
+                                    menu[i].content[j].has_q = menu[i].content[j].has_q ? menu[i].content[j].has_q + 1 : 1;
+                                    props.ordered_items.push(item);
+                                }
                             }
                         }
                         menu[i].content[j].content.push(item);
@@ -156,10 +158,10 @@ app
                 }
                 return e;
             },
-            order: function (note) {
+            order: function () {
                 var items = [];
                 for (var i = 0; i < props.ordered_items.length; i++) items.push({item: props.ordered_items[i].id, quantity: props.ordered_items[i].quantity})
-                return APIService.init(13).save({note: note, ordered_items: items}, this.reset_order).$promise;
+                return APIService.init(13).save({note: props.note, ordered_items: items}, this.reset_order).$promise;
             },
             remove_ordered_item: function (id){
                 // localStorageService.remove(id);
@@ -198,19 +200,19 @@ app
                         menuService.load($scope.id).then(function () { $scope.objloaded[1] = true });
 
                         if (OWNER_MANAGER !== null) return;
-                        $scope.note = null;
                         $scope.submitOrder = function () {
                             $scope.o_disabled = null;
                             dialogService.show(gettext("Are you sure that you want to place an order? This action cannot be undone.")).then(function () {
-                                menuService.order($scope.note).then(function () {
+                                $scope.opened = false;
+                                menuService.order().then(function () {
                                     $scope.o_disabled = true;
                                     dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
                                     $scope.resetTime();
                                 }, function (res) {
                                     delete $scope.o_disabled;
-                                    if (res.data && res.data.ordered_items && res.data.ordered_items.length && res.data.ordered_items[0].non_field_errors) {
+                                    if (res.data && res.data.ordered_items && res.data.ordered_items.length) {
                                         var removed;
-                                        for (var i = 0; i < res.data.ordered_items.length; i++) if (res.data.ordered_items[i].non_field_errors[0].indexOf('unavailable') > -1) {
+                                        for (var i = 0; i < res.data.ordered_items.length; i++) if (res.data.ordered_items[i].non_field_errors && res.data.ordered_items[i].non_field_errors[0].indexOf('unavailable') > -1) {
                                             menuService.remove_ordered_item(res.data.ordered_items[i].non_field_errors[0].substring(5, res.data.ordered_items[i].non_field_errors[0].indexOf(' ', 5)));
                                             removed = true;
                                         }

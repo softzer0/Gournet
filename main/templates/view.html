@@ -166,12 +166,19 @@
                                     </table>
                                 </div>
                             </div>{% if table %}
-                        <script type="text/ng-template" id="notePopover">
-                            <center><p class="mb4">{% trans "Enter a note (optional, max. 100 characters):" %}</p>
-                            <input type="text" class="form-control mb4" ng-model="$parent.$parent.$parent.$parent.note" maxlength="100">
-                            <button type="button" class="btn btn-success" ng-click="submitOrder()">{% trans "Send" %}</button></center>
-                        </script>
-                        <div class="mb9 pull-right" ng-if="menu_props.total_price > 0"><strong><div class="ib mr12 mb9">{% trans "Total:" %}</strong> {{ '{' }}{{ '{' }} menu_props.total_price|currency:'{{ currency }}{{ "' }" }}{{ '}' }}</div><div class="ib"><input type="submit" class="btn btn-primary" value="{% trans "Confirm order" %}" ng-disabled="o_disabled" uib-popover-template="'notePopover'" popover-title="{% trans "Order confirmation" %}" popover-trigger="outsideClick" popover-placement="top" popover-is-open="opened" ng-click="opened = !opened"><input type="submit" class="btn btn-default ml5" value="{% trans "Reset" %}" ng-click="resetOrder()"></div></div>
+                            <script type="text/ng-template" id="notePopover">
+                                <center><p class="mb4">{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Enter a note (optional, max. 100 characters):" %}' : '{% trans "Enter a note (max. 100 characters):" %}' }{{ '}' }}</p>
+                                <input type="text" class="form-control mb4" ng-model="menu_props.note" maxlength="100">
+                                <button type="button" class="btn btn-success" ng-click="submitOrder()" ng-disabled="menu_props.note.length < 4 && (menu_props.ordered_items.length == 0 || menu_props.note.length > 0)">{% trans "Send" %}</button></center>
+                            </script>
+                            <div class="mb9 pull-right"
+                                ><div class="ib mr12 mb9" ng-if="menu_props.ordered_items.length > 0"
+                                    ><strong>{% trans "Total:" %}</strong> {{ '{' }}{{ '{' }} menu_props.total_price|currency:'{{ currency }}{{ "' }" }}{{ '}' }}</div
+                                ><div class="ib"
+                                    ><input type="submit" class="btn btn-primary" ng-attr-value="{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Confirm order" %}' : '{% trans "Special request" %}'}{{ '}' }}" ng-disabled="o_disabled" uib-popover-template="'notePopover'" popover-class="note-popover" popover-trigger="outsideClick" popover-placement="top-right" popover-is-open="opened" ng-click="opened = !opened"
+                                    ><input ng-if="menu_props.ordered_items.length > 0" type="submit" class="btn btn-default ml5" value="{% trans "Reset" %}" ng-click="resetOrder()"
+                                ></div
+                            ></div>
                             <div ng-init="startTime({% if request.session|get_item:'table'|get_item:'time' %}{% widthratio request.session|get_item:'table'|get_item:'time' 1 1000 %}{% else %}0{% endif %})" style="clear: right;" class="pull-right"><strong>{% trans "Remaining time:" %}</strong> {% verbatim %}{{ remaining }}{% endverbatim %}</div>
                             <div style="clear: right;"></div>{% endif %}
                             <div class="mt5 mb13 loa loa-c" ng-if="active == 1 && (!objloaded[1] || refreshing)"><i class="fa fa-spinner fa-2x"></i></div>

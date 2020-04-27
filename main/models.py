@@ -315,13 +315,13 @@ class Business(Loc, WorkTime):
             self.tz = get_timezone(self.tz)
         now = self.tz.normalize(timezone.now())
         day = now.weekday()
-        return now.time(), self.opened_sat if day == 5 and self.opened_sat else self.opened_sun if day == 6 and self.opened_sun else self.opened if day < 5 else None, self.closed_sat if day == 5 and self.closed_sat else self.closed_sun if day == 6 and self.closed_sun else self.closed if day < 5 else None
+        return now.time(), self.opened_sat if day == 5 and self.opened_sat else self.opened_sun if day == 6 and self.opened_sun else self.opened if day < 5 else None, self.closed_sat if day == 5 and self.closed_sat else self.closed_sun if day == 6 and self.closed_sun else self.closed if day < 5 else None, day
 
     def is_currently_opened(self, ret_all=False):
-        now, opened, closed = self.get_now_opened_closed()
+        now, opened, closed, day = self.get_now_opened_closed()
         is_opened = False if opened is None else True if opened == closed else opened <= now < closed if opened < closed else now >= opened or now < closed
         if ret_all:
-            return now, opened, closed, is_opened
+            return now, opened, closed, is_opened, day
         return is_opened
 
 @receiver(post_delete, sender=Business)
@@ -487,10 +487,10 @@ class Table(models.Model):
         return '%s: Table #%s' % (self.business, self.number)
 
     def get_current_waiter(self, check_exist=False):
-        now, opened, closed, is_opened = self.business.is_currently_opened(True)
+        now, opened, closed, is_opened, day = self.business.is_currently_opened(True)
         if not is_opened:
             return False
-        s = '_sun' if opened == self.business.opened_sat else '_sat' if opened == self.business.opened_sun else ''
+        s = '_sun' if day == 6 else '_sat' if day >= 5 else ''
         waiter = self.waiter_set.filter(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.filter(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
         return waiter.first() if not check_exist else True if waiter.exists() else None
 
@@ -518,7 +518,7 @@ class Order(models.Model):
     session = models.CharField(max_length=32, null=True, blank=True)
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     ordered_items = models.ManyToManyField(Item, through=OrderedItem)
-    note = models.CharField(max_length=100, null=True, blank=True)
+    note = models.CharField(max_length=100, validators=[MinLengthValidator(4)], null=True, blank=True)
     created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
     delivered = models.DateTimeField(pgettext_lazy("order", "delivered on"), null=True, blank=True)
     request_type = models.IntegerField(_("payment type"), choices=((0, _("Cash")), (1, _("Debit card"))), null=True, blank=True)

@@ -773,7 +773,7 @@ class OrderSerializer(serializers.ModelSerializer):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
         if self.context['request'].method in ('GET', 'POST'):
-            self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, allow_empty=False, context=self.context)
+            self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, context=self.context)
             if self.context['request'].method == 'GET':
                 if 'single' in self.context:
                     self.fields['table'] = TableSerializer()
@@ -816,9 +816,9 @@ class OrderSerializer(serializers.ModelSerializer):
             ordered_item = models.OrderedItem(order=order, **ordered_item)
             # if ordered_item.item.business.shortname == self.context['request'].session['table']['shortname']:
             ordered_items.append(ordered_item)
-        if not len(ordered_items):
+        if not len(ordered_items) and not validated_data.get('note', None):
             order.delete()
-            gen_err("List of items for ordering is empty for the targeted business.")
+            gen_err("You must include either one or more items or a note.")
         order.ordereditem_set.bulk_create(ordered_items)
         return order
 
