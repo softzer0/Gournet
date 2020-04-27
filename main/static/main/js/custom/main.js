@@ -1167,16 +1167,17 @@ app
         $scope.quantity = itemService.quantity;
         $scope.get_quantity = function (index){ $scope.quantity[$scope.objs[index].id] = localStorageService.get($scope.objs[index].id) || 0 };
         $scope.set_quantity = function (index, num){
+            var increment = $scope.quantity[$scope.objs[index].id];
             $scope.quantity[$scope.objs[index].id] = !num && !$scope.quantity[$scope.objs[index].id] || num && (($scope.quantity[$scope.objs[index].id] + num) < 0) ? 0 : !num ? parseInt($scope.quantity[$scope.objs[index].id]) : ($scope.quantity[$scope.objs[index].id] + num);
-            var increment = $scope.quantity[$scope.objs[index].id] > 0 && localStorageService.keys().indexOf(''+$scope.objs[index].id) == -1;
+            increment = $scope.quantity[$scope.objs[index].id] > 0 && localStorageService.keys().indexOf(''+$scope.objs[index].id) == -1 ? true : increment > 0 ? false : null;
             if ($scope.quantity[$scope.objs[index].id] > 0) localStorageService.set($scope.objs[index].id, $scope.quantity[$scope.objs[index].id]); else localStorageService.remove($scope.objs[index].id);
             if (menuService && menuService.props.loaded) menuService.find('id', $scope.objs[index].id, $scope.objs[index].category, function (i, sc) {
-                menuService.props.total_price += i.price * ($scope.quantity[$scope.objs[index].id] - i.quantity);
+                menuService.props.total_price += i.price * ($scope.quantity[$scope.objs[index].id] - i.quantity || 0);
                 i.quantity = $scope.quantity[$scope.objs[index].id];
                 if (increment) {
                     sc.has_q = sc.has_q ? sc.has_q+1 : 1;
                     menuService.props.ordered_items.push(i);
-                } else if ($scope.quantity[$scope.objs[index].id] == 0) {
+                } else if (increment === false && $scope.quantity[$scope.objs[index].id] == 0) {
                     if (sc.has_q > 0) sc.has_q--;
                     menuService.props.ordered_items.splice(menuService.props.ordered_items.indexOf(i), 1);
                 }
