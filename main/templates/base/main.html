@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
+    <meta property="og:image" content="https://gournet.co{% static 'main/logo.png' %}">
     <meta http-equiv="Content-Language" content="{{ lang }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title{% block titleatt %}{% endblock %}>{% block title %}Gournet{% endblock %}</title>
@@ -42,7 +43,7 @@
                 <div>
                     <div class="text-muted {{ lang }}">
                         <small>&copy; 2020 -</small>
-                        <img id="author-logo" src="{% static "main/author.png" %}" alt="Soft.0" title="Soft.0"
+                        <img id="author-logo" src="{% static 'main/author.png' %}" alt="Soft.0" title="Soft.0"
                         /><span class="lr5">&middot;</span
                         ><a href="https://fb.me/gournet.co" title="{% trans "For news about the platform" %}" target="_blank"><i class="fa fa-facebook-square"></i></a>
                     </div>
