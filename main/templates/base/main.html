@@ -1,4 +1,4 @@
-{% load i18n %}{% get_current_language as lang %}<!DOCTYPE html>
+{% load static %}{% load i18n %}{% get_current_language as lang %}<!DOCTYPE html>
 <html lang="{{ lang }}"{% comment %}{% block htmlatt %}{% endcomment %} ng-app="mainApp">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Language" content="{{ lang }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title{% block titleatt %}{% endblock %}>{% block title %}Gournet{% endblock %}</title>
-    {% load static %}{% load cache %}{% cache None main_head %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}">
+    {% load cache %}{% cache None main_head %}<link rel="shortcut icon" href="{% static 'main/favicon.ico' %}">
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-64121556-3"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
