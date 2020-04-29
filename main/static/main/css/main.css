@@ -232,3 +232,7 @@ footer > div > div > div > div > .nav > li > * {
     padding-top: 15px;
     padding-bottom: 15px;
 }
+
+#author-logo {
+    margin-top: -4px;
+}
