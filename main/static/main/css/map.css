@@ -1,0 +1,57 @@
+.gm-bundled-control-on-bottom {
+  right: 30px !important;
+  bottom: 116px !important;
+}
+.gm-bundled-control-on-bottom > div:first-child {
+   top: 44px !important;
+}
+.gmnoprint > .gmnoprint > div {
+  height: 60px !important;
+  width: 30px !important;
+}
+.gmnoprint > .gmnoprint > div > div { /* seperator */
+  width: 22.5px !important;
+  margin: 0 3.75px !important;
+}
+.gmnoprint > .gmnoprint button {
+  width: 30px !important;
+  height: 30px !important;
+}
+.gmnoprint > .gmnoprint button img {
+  height: 13.5px !important;
+  width: 13.5px !important;
+}
+
+/* yellow person button design*/
+.gm-svpc {
+	width: 30px !important;
+	height: 30px !important;
+}
+.gm-svpc img:nth-child(1), .gm-svpc img:nth-child(2){
+	width: 13.5px !important;
+	height: 22.5px !important;
+}
+.gm-svpc img:nth-child(3) {
+	width: 24px !important;
+	height: 30px !important;
+}
+
+/* MAP|Satellite buttons design*/
+.gm-style-mtc > div:nth-child(1) {
+  padding: 0 9px !important;
+  height: 30px !important;
+  font-size: 15px !important;
+}
+.gm-style-mtc > div:nth-child(2) {
+  top: 30px !important;
+}
+.gm-style-mtc > div:nth-child(2) > div {
+  padding: 2px 4px 2px 2px !important;
+  font-size: 14px !important;
+}
+
+/* full screen button design */
+.gm-fullscreen-control {
+    width: 30px !important;
+    height: 30px !important;
+}

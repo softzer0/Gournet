@@ -4,6 +4,7 @@
 {% block head %}{{ block.super }}
     {% include 'base/home_extra.html' %}
     {% load static %}<link rel="stylesheet" href="{% static 'main/css/home_extra.css' %}">
+    <link rel="stylesheet" href="{% static 'main/css/map.css' %}">
     <script src="{% static 'main/js/custom/map.js' %}"></script>
     <script src="{% static 'main/js/custom/home_extra.js' %}"></script>
     <script src="{% static 'main/js/custom/home.js' %}"></script>{% endblock %}
