@@ -1,6 +1,6 @@
-{% url 'account_login' as home_url %}<link rel="stylesheet" href="{% static 'main/css/map.css' %}">{% if request.path != home_url %}
+{% url 'account_login' as home_url %}<link rel="stylesheet" href="{% load static %}{% static 'main/css/map.css' %}">{% if request.path != home_url %}
     <link rel="stylesheet" href="{% load static %}{% static 'main/css/create.css' %}">
     {% endif %}<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.1/lodash.min.js"></script>
-    <script src="{% load static %}{% static 'main/js/angular-simple-logger.light.min.js' %}"></script>
+    <script src="{% static 'main/js/angular-simple-logger.light.min.js' %}"></script>
     <script>app.constant('LANG', '{{ request.LANGUAGE_CODE }}').constant('GMAPS_API_KEY', '{{ settings.GMAPS_API_KEY_FRONTEND }}')</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-google-maps/2.4.1/angular-google-maps.min.js"></script>
