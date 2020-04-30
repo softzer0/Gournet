@@ -3,8 +3,7 @@
 
 {% block head %}{{ block.super }}
     {% include 'base/home_extra.html' %}
-    {% load static %}<link rel="stylesheet" href="{% static 'main/css/map.css' %}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/speakingurl/10.0.0/speakingurl.min.js"></script>
+    {% load static %}<script src="https://cdnjs.cloudflare.com/ajax/libs/speakingurl/10.0.0/speakingurl.min.js"></script>
     <script src="{% static 'main/js/angular-speakingurl.js' %}"></script>
     <script src="{% static 'main/js/custom/map.js' %}"></script>
     <script src="{% static 'main/js/custom/create.js' %}"></script>{% endblock %}
