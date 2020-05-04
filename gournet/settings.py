@@ -22,11 +22,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'fbf0+@#!&9&!rb%6s4veb_#f7)r+1=u9ktofp_sc@=oi#%tnal'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False #True #repl with False
+TESTING = bool(os.environ.get('TESTING', False))
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co'] #['*'] #repl with
-SESSION_COOKIE_DOMAIN = '.gournet.co' #disable
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = TESTING #True #repl with False
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co'] if not TESTING else ['*'] #['*'] #repl with
+if not TESTING:
+    SESSION_COOKIE_DOMAIN = '.gournet.co' #disable
 
 # Application definition
 
@@ -226,7 +229,7 @@ WSGI_APPLICATION = 'gournet.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'gournet',
+        'NAME': 'gournet' if not TESTING else 'gournet_test',
         'USER': 'mikisoft',
         'PASSWORD': 'bed85ae9c2',
         'HOST': 'localhost',
