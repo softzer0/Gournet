@@ -1,4 +1,5 @@
 from os import environ
+from os.path import abspath, join, dirname
 from sys import path
 import django
 path.append(abspath(join(dirname(__file__), '..')))
