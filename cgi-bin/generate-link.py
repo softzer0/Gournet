@@ -1,12 +1,12 @@
+import django
 from os import environ
 from os.path import abspath, join, dirname
 from sys import path
-import django
 path.append(abspath(join(dirname(__file__), '..')))
 environ.setdefault('DJANGO_SETTINGS_MODULE', 'gournet.settings')
 environ.setdefault('DEBUG', '1')
 django.setup()
-from main.models import Business, Card
+from main.models import Card
 from pyotp import HOTP
 card = Card.objects.first()
 print('Content-type: text/html\n\n')
