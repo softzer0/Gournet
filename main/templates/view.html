@@ -172,12 +172,12 @@
                                 <button type="button" class="btn btn-success" ng-click="submitOrder()" ng-disabled="menu_props.note.length < 4 && (menu_props.ordered_items.length == 0 || menu_props.note.length > 0)">{% trans "Send" %}</button></center>
                             </script>
                             <div class="mb9 pull-right"
-                                ><div class="ib mr12 mb9" ng-if="menu_props.ordered_items.length > 0"
+                                ><div class="ib mr12 mb9 f" ng-if="menu_props.ordered_items.length > 0"
                                     ><strong>{% trans "Total:" %}</strong> {{ '{' }}{{ '{' }} menu_props.total_price|currency:'{{ currency }}{{ "' }" }}{{ '}' }}</div
-                                ><div class="ib"
-                                    ><input type="submit" class="btn btn-primary" ng-attr-value="{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Confirm order" %}' : '{% trans "Special request" %}'}{{ '}' }}" ng-disabled="o_disabled" uib-popover-template="'notePopover'" popover-class="note-popover" popover-trigger="outsideClick" popover-placement="top-right" popover-is-open="opened" ng-click="opened = !opened"
-                                    ><input ng-if="menu_props.ordered_items.length > 0" type="submit" class="btn btn-default ml5" value="{% trans "Reset" %}" ng-click="resetOrder()"
-                                ></div
+                                ><div class="ib pull-right"
+                                    ><input ng-if="menu_props.ordered_items.length > 0" type="submit" class="btn btn-default" value="{% trans "Reset" %}" ng-click="resetOrder()"
+                                    ><input type="submit" class="btn btn-primary ml5" ng-attr-value="{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Confirm order" %}' : '{% trans "Special request" %}'}{{ '}' }}" ng-disabled="o_disabled" uib-popover-template="'notePopover'" popover-class="note-popover" popover-trigger="outsideClick" popover-placement="top-right" popover-is-open="opened" ng-click="opened = !opened"
+                            ></div
                             ></div>
                             <div ng-init="startTime({% if request.session|get_item:'table'|get_item:'time' %}{% widthratio request.session|get_item:'table'|get_item:'time' 1 1000 %}{% else %}0{% endif %})" style="clear: right;" class="pull-right"><strong>{% trans "Remaining time:" %}</strong> {% verbatim %}{{ remaining }}{% endverbatim %}</div>
                             <div style="clear: right;"></div>{% endif %}
