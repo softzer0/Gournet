@@ -25,8 +25,13 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
 
     var chng = false, init = null;
 
+    function triggerGA() {
+        if (window.ga !== undefined) $timeout(function() { window.ga('send', 'pageview', window.location.pathname+window.location.hash) });
+    }
+
     function setCurr() {
         location.hash = '#/'+tabs[$scope.active].name;
+        triggerGA();
         $timeout(function () { chng = false });
     }
 
@@ -35,8 +40,9 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
         return tabs[$scope.active].name == value;
     }
 
+    if (location.hash.slice(2) == '' && OWNER_MANAGER === null) location.hash = '#/menu';
     $scope.$watch(function () { return location.hash }, function (value, oldvalue) {
-        if (chng || location.hash.slice(7) == '#/show=') return;
+        if (chng || location.hash.substring(0, 7) == '#/show=') return;
         if (init !== undefined) init = value;
         value = value.slice(2);
         if (value != '') {
@@ -68,9 +74,12 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
         if (value === undefined) return;
         chng = true;
         tabs[value].func();
-        if (value != 0) { if (location.hash != '#/'+tabs[value].name) location.hash = '#/'+tabs[value].name } else if (location.hash !== init && location.hash.substr(2) != '' && location.hash != '#/'+tabs[0].name) {
+        if (value != 0) { if (location.hash != '#/'+tabs[value].name) {
+            location.hash = '#/'+tabs[value].name;
+            triggerGA();
+        } } else if (location.hash !== init && location.hash.substr(2) != '' && location.hash != '#/'+tabs[0].name) {
             location.hash = '#/'+tabs[0].name;
-            if (window.ga !== undefined) $timeout(function() { window.ga('send', 'pageview', window.location.pathname+window.location.hash) });
+            triggerGA();
         }
         if (init !== undefined) init = undefined;
         $timeout(function () { chng = false });
