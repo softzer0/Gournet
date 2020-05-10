@@ -61,8 +61,8 @@ app
         });
     })
 
-    .run(function($rootScope, $http) {
-        if (window.ga !== undefined) $rootScope.$on('$stateChangeSuccess', function() { window.ga('send', 'pageview', window.location.pathname+window.location.hash) });
+    .run(function($rootScope, $window, $http) {
+        if ($window.gtag !== undefined) $rootScope.$on('$stateChangeSuccess', function() { $window.gtag('event', 'page_view', {page_path: location.pathname+location.hash}) });
 
         $rootScope.sendreq = function(url, data) {
             return $http({

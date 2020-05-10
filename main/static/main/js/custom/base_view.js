@@ -20,13 +20,13 @@ if (OWNER_MANAGER) {
     });
 }
 
-app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $injector, tabs) {
+app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $injector, $window, tabs) {
     // Tabs
 
     var chng = false, init = null;
 
     function triggerGA() {
-        if (window.ga !== undefined) $timeout(function() { window.ga('send', 'pageview', window.location.pathname+window.location.hash) });
+        if ($window.gtag !== undefined) $window.gtag('event', 'page_view', {page_path: location.pathname+location.hash});
     }
 
     function setCurr() {
