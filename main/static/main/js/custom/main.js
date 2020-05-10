@@ -62,6 +62,8 @@ app
     })
 
     .run(function($rootScope, $http) {
+        if (window.ga !== undefined) $rootScope.$on('$stateChangeSuccess', function() { window.ga('send', 'pageview', window.location.pathname+window.location.hash) });
+
         $rootScope.sendreq = function(url, data) {
             return $http({
                 method: data !== undefined ? 'POST' : 'GET',

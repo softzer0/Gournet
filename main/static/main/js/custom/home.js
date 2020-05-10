@@ -47,7 +47,6 @@ app
                 $state.go('main.main', null, {location: false}).then(function () { $state.go(toState, toParams) });
             }
         });
-        if (window.ga !== undefined) $rootScope.$on('$stateChangeSuccess', function() { $timeout(function() { window.ga('send', 'pageview', window.location.pathname+window.location.hash) }) });
     })*/
 
     .factory('markerService', function () {
