@@ -204,8 +204,8 @@ app
                             $scope.o_disabled = null;
                             dialogService.show(gettext("Are you sure that you want to place an order? This action cannot be undone.")).then(function () {
                                 $scope.opened = false;
+                                $scope.o_disabled = true;
                                 menuService.order().then(function () {
-                                    $scope.o_disabled = true;
                                     dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
                                     $scope.resetTime();
                                 }, function (res) {
