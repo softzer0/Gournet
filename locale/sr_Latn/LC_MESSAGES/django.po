@@ -550,6 +550,10 @@ msgstr "ima sliku?"
 msgid "item"
 msgstr "proizvod"
 
+#: .\main\models.py:417
+msgid "unavailable?"
+msgstr "nedostupan?"
+
 #: .\main\models.py:418
 msgid "items"
 msgstr "proizvodi"
