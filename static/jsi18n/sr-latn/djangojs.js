@@ -129,6 +129,7 @@
     "Edit business info": "Izmeni informacije ugostiteljskog objekta",
     "Either the business has been closed in the meantime, or there is currently no waiter for the table.": "Ugostiteljski objekat je u me\u0111uvremenu zatvoren, ili trenutno nema konobara za stolom.",
     "Email": "Email",
+    "Energy drinks": "Energetska pi\u0107a",
     "Enter new password:": "Unesite novu lozinku:",
     "Enter your current password before any changes:": "Unesite Va\u0161u trenutnu lozinku pre bilo kakvih izmena:",
     "Event(s)": "Doga\u0111aji",

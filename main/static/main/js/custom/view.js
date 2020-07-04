@@ -64,6 +64,7 @@ app
                     {first: false, hascontent: false, name: gettext("Other drinks"), content: [
                         {category: 'coffee', name: gettext("Coffees"), content: []},
                         {category: 'soft_drink', name: gettext("Soft drinks"), content: []},
+                        {category: 'energy_drink', name: gettext("Energy drinks"), content: []},
                         {category: 'juice', name: gettext("Juices"), content: []},
                         {category: 'tea', name: gettext("Teas"), content: []},
                         {category: 'hot_chocolate', name: gettext("Hot chocolates"), content: []},

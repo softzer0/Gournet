@@ -438,6 +438,10 @@ msgstr "Kafa"
 msgid "Soft drink"
 msgstr "Bezalkoholno piće"
 
+#: .\main\models.py:374
+msgid "Energy drink"
+msgstr "Energetsko piće"
+
 #: .\main\models.py:375
 msgid "Juice"
 msgstr "Sok"

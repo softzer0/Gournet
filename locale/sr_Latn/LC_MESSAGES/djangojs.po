@@ -354,6 +354,10 @@ msgstr "Kafe"
 msgid "Soft drinks"
 msgstr "Bezalkoholna pića"
 
+#: .\main\static\main\js\custom\view.js:64
+msgid "Energy drinks"
+msgstr "Energetska pića"
+
 #: .\main\static\main\js\custom\view.js:65
 msgid "Juices"
 msgstr "Sokovi"

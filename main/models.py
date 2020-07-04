@@ -379,6 +379,7 @@ CATEGORY = (
     (_("Other drinks"), (
             ('coffee', _("Coffee")),
             ('soft_drink', _("Soft drink")),
+            ('energy_drink', _("Energy drink")),
             ('juice', _("Juice")),
             ('tea', _("Tea")),
             ('hot_chocolate', _("Hot chocolate")),
@@ -421,7 +422,6 @@ class Item(models.Model):
     class Meta:
         ordering = ['business', 'category', 'ordering']
         unique_together = (('business', 'name', 'category'),)
-        #ordering = ['category', 'name', 'price']
         verbose_name = _("item")
         verbose_name_plural = _("items")
 
