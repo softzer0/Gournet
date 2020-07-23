@@ -43,12 +43,12 @@ app
                                 if (person.orders[k].ids.indexOf(result[i].id) > -1 || d) {
                                     obj[person.orders[k].ids.indexOf(result[i].id) > -1 ? 1 : 0] = person.orders[k];
                                     if (obj[1] != null) o = k;
-                                    if (obj[0] != null && obj[1] != null) break;
+                                    if ((obj[0] != null || result[i].paid != null) && obj[1] != null) break;
                                 }
                             }
-                            var id = result[i].id, p;
+                            var id = result[i].id, e = obj[0] != null, p = 0;
                             if (result[i].paid == null && (result[i].ordered_items.length > 0 || result[i].delivered == null)) {
-                                if (obj[0] != null) {
+                                if (e) {
                                     if (obj[0].ids.indexOf(id) === -1) {
                                         obj[0].ids.push(id);
                                         for (j = 0; j < obj[0].ordered_items.length; j++) obj[0].ordered_items[j].quantity += ind[obj[0].ordered_items[j].item.id];
@@ -60,25 +60,29 @@ app
                                 } else {
                                     ind = {};
                                     for (j = 0; j < result[i].ordered_items.length; j++) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
-                                    person.orders.push(result[i]);
-                                    obj[0] = person.orders[person.orders.length-1];
-                                    obj[0].total = 0;
-                                    obj[0].ids = [id];
-                                    delete obj[0].id;
-                                    delete obj[0].table_number;
-                                }
-                                if (props.is_waiter && obj[0].person != null) {
-                                    if (!persons.hasOwnProperty(obj[0].person.id)) persons[obj[0].person.id] = obj[0].person;
-                                    delete obj[0].person;
+                                    obj[0] = result[i];
                                 }
                                 for (j = 0; j < obj[0].ordered_items.length; j++) {
-                                    p = ind[obj[0].ordered_items[j].item.id] * (obj[0].ordered_items[j].item.converted || obj[0].ordered_items[j].item.price);
+                                    p += ind[obj[0].ordered_items[j].item.id] * (obj[0].ordered_items[j].item.converted || obj[0].ordered_items[j].item.price);
+                                }
+                                if (p > 0 || obj[0].delivered == null) {
+                                    if (!e) {
+                                        person.orders.push(obj[0]);
+                                        obj[0].total = 0;
+                                        obj[0].ids = [id];
+                                        delete obj[0].id;
+                                        delete obj[0].table_number;
+                                    }
                                     obj[0].total += p;
                                     if (props.is_waiter) person.total += p;
                                     tables.list[a].total += p;
+                                    if (props.is_waiter && obj[0].person != null) {
+                                        if (!persons.hasOwnProperty(obj[0].person.id)) persons[obj[0].person.id] = obj[0].person;
+                                        delete obj[0].person;
+                                    }
+                                    var date = obj[0].requested || obj[0].created;
+                                    if (person.date == null || date != null && new Date(person.date) < new Date(date)) person.date = date;
                                 }
-                                var date = obj[0].requested || obj[0].created;
-                                if (person.date == null || date != null && new Date(person.date) < new Date(date)) person.date = date;
                             }
                             if (obj[1] != null) {
                                 for (j = 0; j < obj[1].ordered_items.length; j++) {
@@ -121,11 +125,11 @@ app
                     if (o.request_type == null && (!is_waiter && o.total > 0 || is_waiter && o.delivered == null)) {
                         Array.prototype.push.apply($scope.popover.type[0].list, o.ids);
                         $scope.popover.type[0].count++;
-                    } else if (is_waiter && o.total > 0) {
+                        if ($scope.popover.notes !== undefined && o.note) $scope.popover.notes++;
+                    } else if (is_waiter) {
                         Array.prototype.push.apply($scope.popover.type[1].list, o.ids);
                         $scope.popover.type[1].count++;
                     }
-                    if ($scope.popover.notes !== undefined && o.note) $scope.popover.notes++;
                 }
                 if (obj.hasOwnProperty('persons')) {
                     $scope.popover.notes = 0;
@@ -136,7 +140,7 @@ app
                 } else check(obj);
                 $scope.popover.target = obj;
                 $timeout(function (){
-                    if (obj.total == 0 && $scope.popover.type[0].list.length == 0) $scope.popover.title = null; else if (!is_waiter && $scope.popover.type[0].list.length > 0) $scope.popover.title = gettext("Choose type of payment"); else $scope.popover.title = $scope.popover.type[0].list.length > 0 && ($scope.popover.type.length == 1 || $scope.popover.type[1].list.length == 0) ? gettext("Confirm delivery below") : $scope.popover.type[1].list.length > 0 && $scope.popover.type[0].list.length == 0 ? gettext("Confirm payment below") : gettext("Choose below");
+                    if (!is_waiter && $scope.popover.type[0].list.length == 0) $scope.popover.title = null; else if (!is_waiter && $scope.popover.type[0].list.length > 0) $scope.popover.title = gettext("Choose type of payment"); else $scope.popover.title = $scope.popover.type[0].list.length > 0 && ($scope.popover.type.length == 1 || $scope.popover.type[1].list.length == 0) ? gettext("Confirm delivery below") : $scope.popover.type[1].list.length > 0 && $scope.popover.type[0].list.length == 0 ? gettext("Confirm payment below") : gettext("Choose below");
                     obj.opened = true;
                 });
             } else $timeout(function (){ obj.opened = false });

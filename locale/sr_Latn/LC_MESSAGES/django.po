@@ -976,6 +976,10 @@ msgid "For payment by debit card"
 msgstr "Za plaćanje karticom"
 
 #: .\main\templates\orders.html:29
+msgid "For delivery (with note)"
+msgstr "Za dostavljanje (sa napomenom)"
+
+#: .\main\templates\orders.html:29
 msgid "For delivery"
 msgstr "Za dostavljanje"
 
