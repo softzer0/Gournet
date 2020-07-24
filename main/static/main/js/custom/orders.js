@@ -106,7 +106,7 @@ app
                     service.query({is_waiter: props.is_waiter, after: after}, function (result) {
                         load(result);
                         props.ti = $timeout(tick, 10000);
-                    });
+                    }, function () { props.ti = $timeout(tick, 10000) });
                 })();
             },
             tables: tables,

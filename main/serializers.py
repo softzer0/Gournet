@@ -788,8 +788,7 @@ class OrderSerializer(serializers.ModelSerializer):
             if self.context['request'].method in ('PUT', 'PATCH'):
                 self.fields['delivered'] = BooleanDateTimeField(required=False)
                 self.fields['paid'] = BooleanDateTimeField(required=False)
-            elif self.context['request'].method == 'GET':
-                self.fields['person'] = UserSerializer()
+            self.fields['person'] = UserSerializer(read_only=True)
             self.fields['request_type'].read_only = True
 
     def validate(self, attrs):
