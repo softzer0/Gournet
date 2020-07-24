@@ -167,7 +167,7 @@
                                 </div>
                             </div>{% if table %}
                             <script type="text/ng-template" id="notePopover">
-                                <center><p class="mb4">{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Enter a note (optional, max. 100 characters):" %}' : '{% trans "Enter a note (max. 100 characters):" %}' }{{ '}' }}</p>
+                                <center><p class="mb4">{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Enter a note (optional, e.g. a glass of water, yellow sugar, etc.):" %}' : '{% trans "Enter a note (e.g. a glass of water, yellow sugar, etc.):" %}' }{{ '}' }}</p>
                                 <input type="text" class="form-control mb4" ng-model="menu_props.note" maxlength="100">
                                 <button type="button" class="btn btn-success" ng-click="submitOrder()" ng-disabled="menu_props.note.length < 4 && (menu_props.ordered_items.length == 0 || menu_props.note.length > 0)">{% trans "Send" %}</button></center>
                             </script>
