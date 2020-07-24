@@ -772,15 +772,13 @@ class OrderSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
-        if self.context['request'].method in ('GET', 'POST'):
-            self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, context=self.context)
-            if self.context['request'].method == 'GET':
-                if 'single' in self.context:
-                    self.fields['table'] = TableSerializer()
-                else:
-                    self.fields['table_number'] = serializers.IntegerField(read_only=True)
-                if 'after' not in self.context['request'].query_params and 'single' not in self.context:
-                    self.fields.pop('paid')
+        self.fields['ordered_items'] = OrderedItemSerializer(source='ordereditem_set', many=True, context=self.context, read_only=self.context['request'].method != 'POST')
+        if 'single' in self.context:
+            self.fields['table'] = TableSerializer(read_only=True)
+        else:
+            self.fields['table_number'] = serializers.IntegerField(read_only=True)
+        if self.context['request'].method == 'GET' and 'after' not in self.context['request'].query_params and 'single' not in self.context:
+            self.fields.pop('paid')
         if 'waiter' not in self.context:
             if self.context['request'].method in ('PUT', 'PATCH'):
                 self.fields['request_type'].required = True

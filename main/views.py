@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Case, When, IntegerField, F, Q, Max, Avg, Count
+from django.db.models import Case, When, IntegerField, F, Q, Max, Avg, Count, Sum
 # from django.conf.urls.static import static
 # from django.shortcuts import get_object_or_404
 # from django.db.models.functions import Coalesce
@@ -763,7 +763,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         if 'after' in self.request.query_params and self.request.query_params['after'].isdigit():
             t = datetime.fromtimestamp(int(self.request.query_params['after']) / 1000, get_current_timezone())
             qs = qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(paid__gt=t))
-        return qs.filter(Q(paid=None) & (~Q(ordered_items=None) | Q(delivered=None))) if self.request.method == 'GET' and 'after' not in self.request.query_params else qs
+        return qs.annotate(price_sum=Sum('ordered_items__price')).filter(Q(paid=None) & (Q(price_sum__gt=0) | Q(delivered=None))) if self.request.method == 'GET' and 'after' not in self.request.query_params else qs
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -793,7 +793,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             errors = []
             data = []
             context = self.get_serializer_context()
-            for instance in models.Order.objects.filter((Q(table__waiter__person=self.request.user) if self.request.user.is_authenticated else Q())|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[pk for pk in self.request.query_params['ids'].split(',') if pk.isdigit()]):
+            for instance in models.Order.objects.filter((Q(table__waiter__person=self.request.user) if self.request.user.is_authenticated else Q())|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[pk for pk in self.request.query_params['ids'].split(',') if pk.isdigit()]).annotate(table_number=F('table__number')):
                 if self.get_waiter(instance) == self.request.user:
                     context['waiter'] = None
                 elif 'waiter' in context:
@@ -816,7 +816,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         order = serializer.save()
         if order.requested is None or order.paid:
             return
-        self.gen_notif(order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>.") if order.request_type == 0 else _("has requested payment by <strong>debit card</strong> on table <strong>%d</strong>.") % order.table.number)
+        self.gen_notif(order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>.") % order.table.number if order.request_type == 0 else _("has requested payment by <strong>debit card</strong> on table <strong>%d</strong>.") % order.table.number)
 
 
 def check_if_anonymous_allowed(self, obj):
