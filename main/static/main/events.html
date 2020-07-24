@@ -63,13 +63,13 @@
                 ><span class="pull-right" ng-if="e.unavailable || e.has_order_session">
                     <span ng-if="e.unavailable" class="bg-danger">{{ 'Not available for ordering.' | translate }}</span>
                     <div ng-if="!e.unavailable && e.has_order_session" class="order" ng-class="{'mb3': e.showcomm[1]}" ng-init="get_quantity($index)">{{ "Quantity:" | translate }}
-                        <div class="input-group" ng-class="{'mb4': modal_loaded && e.has_image}">
+                        <div class="input-group" ng-class="{'mb4': modal_loaded && e.has_image !== undefined}">
                             <span class="input-group-btn"><button type="button" class="btn btn-danger btn-number" ng-click="set_quantity($index, -1)"><i class="fa fa-minus"></i></button></span>
                             <input type="number" class="form-control text-center" min="0" ng-model="quantity[e.id]" ng-change="set_quantity($index)">
                             <span class="input-group-btn"><button type="button" class="btn btn-success btn-number" ng-click="set_quantity($index, 1)"><i class="fa fa-plus"></i></button></span>
                         </div>
-                        <input ng-if="modal_loaded && e.has_image" type="submit" ng-attr-id="{{ $index }}bor" class="btn btn-danger btn-sm" value="{{ 'Reset' | translate }}" ng-click="set_quantity($index, -quantity[e.id])">
-                        <input ng-if="modal_loaded && e.has_image" type="submit" ng-attr-id="{{ $index }}bo" class="btn btn-primary btn-sm pull-right" value="{{ 'Continue' | translate }}" ng-click="$parent.close()">
+                        <input ng-if="modal_loaded && e.has_image !== undefined" type="submit" ng-attr-id="{{ $index }}bor" class="btn btn-danger btn-sm" value="{{ 'Reset' | translate }}" ng-click="set_quantity($index, -quantity[e.id])">
+                        <input ng-if="modal_loaded && e.has_image !== undefined" type="submit" ng-attr-id="{{ $index }}bo" class="btn btn-primary btn-sm pull-right" value="{{ 'Continue' | translate }}" ng-click="$parent.close()">
                     </div>
                 </span>
             </div>
