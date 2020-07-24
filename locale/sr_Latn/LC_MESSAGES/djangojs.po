@@ -465,6 +465,10 @@ msgstr "Desila se neka greška prilikom slanja vaše porudžbine."
 msgid "Order time has expired. You must issue a new link."
 msgstr "Vreme za poručivanje je isteklo. Morate zatražiti novi link."
 
+#: .\main\static\main\js\custom\view.js:318
+msgid "You must be logged in to do this action. Click Yes to go to the home page."
+msgstr "Morate biti ulogovani da bi odradili ovu akciju. Da bi otišli na početnu stranicu, kliknite na Da."
+
 #: .\main\static\main\js\custom\view.js:337
 msgid "Specified shortname is already taken."
 msgstr "Data skraćenica je već zauzeta."
@@ -634,6 +638,14 @@ msgstr "Nije dostupno za poručivanje."
 #: main\static\main\events.html:65
 msgid "Quantity:"
 msgstr "Kvantitet:"
+
+#: main\static\main\events.html:71
+msgid "Reset"
+msgstr "Resetuj"
+
+#: main\static\main\events.html:72
+msgid "Continue"
+msgstr "Nastavi"
 
 #: main\static\main\events.html:73
 msgid "Load older"

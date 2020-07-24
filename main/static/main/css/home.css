@@ -57,7 +57,7 @@ legend {
     padding-bottom: 18px;
 }
 
-.op > a, .op > span:not(:last-child), .op > span > span:first-child:not(:only-child), .op > span > span:not(:last-child), .op span:not(.star-rating):not(.btn-group) > *:not(.star-rating):not(div):first-child:not(:only-child), .op span:not(.star-rating):not(.btn-group) > *:not(.star-rating):not(:last-child):not(div), .mr12 {
+.op > a, .op > span:not(:last-child), .op > span > span:first-child:not(:only-child), .op > span > span:not(:last-child), .op span:not(.star-rating):not(.btn-group) > *:not(.star-rating):not(div):first-child:not(:only-child), .op span:not(.star-rating):not(.btn-group):not(.order) > *:not(.star-rating):not(:last-child):not(div), .mr12 {
     margin-right: 12px;
 }
 

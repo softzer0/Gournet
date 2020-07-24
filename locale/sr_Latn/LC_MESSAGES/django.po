@@ -1479,12 +1479,12 @@ msgid "This item is unavailable for ordering. Click to make it available."
 msgstr "Ovaj proizvod je nedostupan za poručivanje. Kliknite da ga načinite dostupnim."
 
 #: .\main\templates\view.html:169
-msgid "Enter a note (optional, max. 100 characters):"
-msgstr "Unesite napomenu (opciono, maks. 100 karaktera):"
+msgid "Enter a note (optional, e.g. a glass of water, yellow sugar, etc.):"
+msgstr "Unesite napomenu (opciono, npr. čaša vode, žuti šećer, itd.):"
 
 #: .\main\templates\view.html:169
-msgid "Enter a note (max. 100 characters):"
-msgstr "Unesite napomenu (maks. 100 karaktera):"
+msgid "Enter a note (e.g. a glass of water, yellow sugar, etc.):"
+msgstr "Unesite napomenu (npr. čaša vode, žuti šećer, itd.):"
 
 #: .\main\templates\view.html:174
 msgid "Total:"
@@ -1517,6 +1517,10 @@ msgstr "Molimo unesite poruku sa \"+minchar+\" ili više karaktera."
 #: .\main\templates\view.html:184
 msgid "Please select how many stars you give."
 msgstr "Molimo odaberite koliko zvezdica dajete."
+
+#: .\main\templates\view.html:201
+msgid "Leave a review"
+msgstr "Ostavite recenziju"
 
 #: .\main\templates\waiters.html:17
 msgid "Waiter"

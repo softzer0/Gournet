@@ -292,10 +292,6 @@ app
                         });
                 }
             };
-            $scope.show_favs_or_redirect = function () {
-                if (USER.anonymous) location.href = '/';
-                $scope.showFavouritesModal();
-            };
 
             $scope.submitReview = function () {
                 var el = angular.element('[name="forms.review"] [name="text"]'), cond;
@@ -318,6 +314,9 @@ app
 
         if (OWNER_MANAGER === null) {
             var time;
+            $scope.showRedirectToHomeMsg = function () {
+                dialogService.show(gettext("You must be logged in to do this action. Click Yes to go to the home page.")).then(function () { location.href = '/' });
+            };
             $scope.resetTime = function (){ time = (new Date()).getTime() };
             $scope.startTime = function (t){
                 time = t;

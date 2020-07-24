@@ -45,7 +45,7 @@
 
 {% block img %}business/{{ business.pk }}{% endblock %}
 
-{% block other %}<li{% if fav_state > -1 %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" readonly="true"{% else %}><span star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}"{% endif %}{% endif %}></span></li>
+{% block other %}<li{% if fav_state > -1 %} ng-init="rating = {value: {{ rating.0 }}, count: {{ rating.1 }}, user: {{ rating.2 }}}"><span star-rating="rating.value" user-number="rating.count" user-rating="rating.user" readonly="true"{% else %}><{% if request.user.is_anonymous %}a href="javascript:" ng-click="showRedirectToHomeMsg()"{% else %}span{% endif %} star-rating="{{ rating.0 }}"{% if rating.1 > 0 %} user-number="{{ rating.1 }}"{% endif %}{% endif %}></{% if request.user.is_anonymous %}a{% else %}span{% endif %}></li>
                         <li
                             >{% if fav_state > -1 %}<span ng-show="fav_count > 0" translate="fav_count"><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> person has favored this<br plural><a href="javascript:" ng-click="showFavouritesModal()"><i class="fa fa-heart"></i> <strong>{% verbatim %}{{ fav_count }}{% endverbatim %}</strong></a> persons have favored this</span
                             ><span ng-show="fav_count == 0"><i class="fa fa-heart"></i> {% trans "Nobody favored this" %}</span
@@ -58,7 +58,7 @@
                                     ><i class="fa fa-minus-square"></i> {% trans "It's not my favorite anymore" %}</span
                             ></a
                         >{% comment %}<li><a href="javascript:"><i class="fa fa-ticket"></i> Rezervisanje mesta</a></li>
-                        {% endcomment %}{% else %}<span>{% if fav_count > 0 %}<a href="javascript:" ng-click="{% if 'table' in request.session %}show_favs_or_redirect{% else %}showFavouritesModal{% endif %}()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}{% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
+                        {% endcomment %}{% else %}<span>{% if fav_count > 0 %}<a href="javascript:" ng-click="{% if request.user.is_anonymous %}showRedirectToHomeMsg{% else %}showFavouritesModal{% endif %}()"><i class="fa fa-heart"></i> {% blocktrans count counter=fav_count %}<strong>{{ counter }}</strong></a> person has favored this{% plural %}<strong>{{ counter }}</strong></a> persons have favored this{% endblocktrans %}{% else %}<i class="fa fa-heart"></i> {% trans "Nobody favored this" %}
                         {% endif %}</span></li>
                         {% endif %}<li>
                             <hr style="margin: 8px 13px 13px;">{% if fav_state == -1 %}
@@ -198,4 +198,5 @@
 						</div>
 
 {% endif %}                        <div class="mn1 vi" ng-init="t = 'review'" ng-if="objloaded[2] || active == 2" ng-include="'/static/main/events.html'"></div>
+                                   {% if request.user.is_anonymous %}<button class="btn btn-primary" ng-click="showRedirectToHomeMsg()">{% trans "Leave a review" %}</button>{% endif %}
                     </uib-tab>{% endblock %}

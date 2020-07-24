@@ -40,10 +40,11 @@ app.controller('BaseViewCtrl', function($scope, $timeout, $state, $document, $in
         return tabs[$scope.active].name == value;
     }
 
+    init = location.hash;
     if (location.hash.slice(2) == '' && OWNER_MANAGER === null) location.hash = '#/menu';
     $scope.$watch(function () { return location.hash }, function (value, oldvalue) {
         if (chng || location.hash.substring(0, 7) == '#/show=') return;
-        if (init !== undefined) init = value;
+        if (!init) init = value;
         value = value.slice(2);
         if (value != '') {
             oldvalue = oldvalue.slice(2);

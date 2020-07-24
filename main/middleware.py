@@ -65,7 +65,7 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                             card.counter += i
                             card.save()
                             if card.table.get_current_waiter(True):
-                                request.session['table'] = {'id': card.table.pk, 'shortname': business.shortname, 'time': (timezone_now()+timedelta(minutes=5)).timestamp()}
+                                request.session['table'] = {'id': card.table.pk, 'shortname': business.shortname, 'time': (timezone_now()+timedelta(minutes=10)).timestamp()}
                                 return None
                         elif 'table' in request.session and card.table.get_current_waiter(True):
                             return None
