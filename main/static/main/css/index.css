@@ -27,7 +27,7 @@ footer > div > div > div > *:first-child {
     }
 
     footer > div > div > div > *:first-child {
-        width: 29%;
+        width: 29% !important;
     }
 
     footer .more_b {
@@ -37,36 +37,36 @@ footer > div > div > div > *:first-child {
 
 @media (max-width: 405px) {
     footer > div > div > div > .sr-latn {
-        width: 33%;
+        width: 33% !important;
     }
 }
 
 @media (max-width: 360px) {
     footer > div > div > div > .sr-latn {
-        width: 40%;
+        width: 40% !important;
     }
 }
 
 @media (max-width: 305px) {
     footer > div > div > div > .sr-latn {
-        width: 43%;
+        width: 43% !important;
     }
 }
 
 @media (max-width: 415px) {
     footer > div > div > div > .en-us {
-        width: 31%;
+        width: 31% !important;
     }
 }
 
 @media (max-width: 385px) {
     footer > div > div > div > .en-us {
-        width: 33%;
+        width: 33% !important;
     }
 }
 
 @media (max-width: 360px) {
     footer > div > div > div > .en-us {
-        width: 37%;
+        width: 38% !important;
     }
 }

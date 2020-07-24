@@ -563,12 +563,12 @@ img.prof, .prof > img, .nw hr, .ord {
 }
 
 footer > div > div > div > *:first-child {
-    width: 29%;
+    width: 23%;
 }
 
-@media (max-width: 591px) {
+@media (max-width: 510px) {
     footer > div > div > div > *:first-child {
-        width: 54%;
+        width: 38%;
     }
 
     footer .more {
