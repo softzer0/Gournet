@@ -116,7 +116,7 @@
         <p>{% verbatim %}{{ m.obj.text }}{% endverbatim %} <small class="text-muted">&mdash; {% verbatim %}{{ m.obj.created | timeAgo }}{% endverbatim %}</small></p>
     </script>{% endcache %}{% endblock %}
 
-{% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}{% block footer_extra %}{% endblock %}
+{% block navbar_container %}{% endblock %}{% block navbar_container_end %}{% endblock %}{% block footer_extra %}{% if request.user.is_anonymous %}{{ block.super }}{% endif %}{% endblock %}
 {% block navbar %}{% cache None navbar request.LANGAUGE_CODE %}<form class="navbar-form navbar-left" role="search">
                 <div class="form-group" click-outside="co(search, 'show', true)">
                     <input type="text" class="form-control" id="sr" placeholder="{% trans "Search" %}" select-on-click ng-model="search.keywords" ng-change="search.func()" ng-focus="search.show = search.keywords != ''; search.chngl()" ng-model-options="{updateOn: 'default blur', debounce: {default: 1000, blur: 0}}">
