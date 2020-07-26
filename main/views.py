@@ -141,20 +141,25 @@ class ImageAPIView(APIView):
     @method_decorator(ensure_csrf_cookie)
     def get(self, request, type, pk=None, size=None):
         img_folder = path.join(settings.MEDIA_ROOT, 'images')+'/'+type+'/'
-        if not pk and type == 'item':
-            return Response(gen_resp("Missing ID parameter for item."), status=status.HTTP_400_BAD_REQUEST)
-        avatar = img_folder+(pk or str(request.user.pk if type == 'user' else get_b_from(request.user).pk))+'/avatar'
+        if not pk:
+            if type == 'item':
+                return Response(gen_resp("Missing ID parameter for item."), status=status.HTTP_400_BAD_REQUEST)
+            pk = str(request.user.pk if type == 'user' else get_b_from(request.user).pk) if request.user.is_authenticated else None
         s = '.'
-        st = None
         if size:
             s += size+'x'+size+'.'
-        mimeext = 'png'
-        if path.isfile(avatar+s+'jpg'):
-            avatar += s+'jpg'
-            mimeext = 'jpeg'
-        elif path.isfile(avatar+s+'png'):
-            avatar += s+'png'
-        else:
+        if pk:
+            avatar = img_folder+pk+'/avatar'
+            st = None
+            mimeext = 'png'
+            if path.isfile(avatar+s+'jpg'):
+                avatar += s+'jpg'
+                mimeext = 'jpeg'
+            elif path.isfile(avatar+s+'png'):
+                avatar += s+'png'
+            else:
+                pk = None
+        if not pk:
             avatar = img_folder+'avatar'+s+'png'
             st = status.HTTP_404_NOT_FOUND
         return HttpResponse(open(avatar, 'rb'), content_type='image/'+mimeext, status=st)
