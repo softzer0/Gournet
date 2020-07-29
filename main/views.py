@@ -54,6 +54,7 @@ from datetime import datetime
 from rest_framework.serializers import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
+from re import match
 
 User = get_user_model()
 
@@ -145,13 +146,13 @@ class ImageAPIView(APIView):
             if type == 'item':
                 return Response(gen_resp("Missing ID parameter for item."), status=status.HTTP_400_BAD_REQUEST)
             pk = str(request.user.pk if type == 'user' else get_b_from(request.user).pk) if request.user.is_authenticated else None
+        st = None
+        mimeext = 'png'
         s = '.'
         if size:
             s += size+'x'+size+'.'
         if pk:
             avatar = img_folder+pk+'/avatar'
-            st = None
-            mimeext = 'png'
             if path.isfile(avatar+s+'jpg'):
                 avatar += s+'jpg'
                 mimeext = 'jpeg'
@@ -758,6 +759,8 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
                 table = False
         else:
             qs = models.Order.objects.filter(**serializers.get_person_or_session(self.request))
+        if self.request.method != 'GET':
+            return qs
         if not table:
             qs = qs.annotate(table_number=F('table__number')).order_by('table__number', 'created')
         else:
@@ -765,10 +768,10 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         # if qs.exists():
         #     now, opened, _ = serializers.get_now_opened_closed(qs[0].table.business)
         #     qs = qs.filter(created__gt=now.replace(hour=opened.hour, minute=opened.minute, second=0, microsecond=0))
-        if 'after' in self.request.query_params and self.request.query_params['after'].isdigit():
-            t = datetime.fromtimestamp(int(self.request.query_params['after']) / 1000, get_current_timezone())
-            qs = qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(paid__gt=t))
-        return qs.annotate(price_sum=Sum('ordered_items__price')).filter(Q(paid=None) & (Q(price_sum__gt=0) | Q(delivered=None))) if self.request.method == 'GET' and 'after' not in self.request.query_params else qs
+        if 'after' in self.request.query_params and match(r'^\d+(\.\d+)?$', self.request.query_params['after']) is not None:
+            t = datetime.fromtimestamp(float(self.request.query_params['after']), get_current_timezone())
+            return qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(paid__gt=t))
+        return qs.annotate(price_sum=Sum('ordered_items__price')).filter(Q(paid=None) & (Q(price_sum__gt=0) | Q(delivered=None)))
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

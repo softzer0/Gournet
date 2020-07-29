@@ -467,7 +467,7 @@ msgstr "Vreme za poručivanje je isteklo. Morate zatražiti novi link."
 
 #: .\main\static\main\js\custom\view.js:318
 msgid "You must be logged in to do this action. Click Yes to go to the home page."
-msgstr "Morate biti ulogovani da bi odradili ovu akciju. Da bi otišli na početnu stranicu, kliknite na Da."
+msgstr "Morate biti ulogovani da biste odradili ovu akciju. Da biste otišli na početnu stranicu, kliknite na Da."
 
 #: .\main\static\main\js\custom\view.js:337
 msgid "Specified shortname is already taken."
@@ -905,10 +905,10 @@ msgid "Regular working time exceeds the one for the business."
 msgstr "Standardno radno vreme prelazi radno vreme ugostiteljskog objekta."
 
 msgid "Sunday working time exceeds the one for the business."
-msgstr "Subotnje radno vreme prelazi radno vreme ugostiteljskog objekta."
+msgstr "Nedeljno radno vreme prelazi radno vreme ugostiteljskog objekta."
 
 msgid "Saturday working time exceeds the one for the business."
-msgstr "Nedeljno radno vreme prelazi radno vreme ugostiteljskog objekta."
+msgstr "Subotnje radno vreme prelazi radno vreme ugostiteljskog objekta."
 
 msgid "There's a conflict in working times with another waiter on the targeted table."
 msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."

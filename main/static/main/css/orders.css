@@ -42,3 +42,9 @@
 .action-popover .btn {
     margin-bottom: 9px;
 }
+
+.orders_sep {
+    border-top-width: 6px;
+    border-radius: 3px;
+    border-top-color: #181a1dcc;
+}

@@ -236,3 +236,7 @@ footer > div > div > div > div > .nav > li > * {
 #author-logo {
     margin-top: -4px;
 }
+
+* {
+    touch-action: manipulation;
+}

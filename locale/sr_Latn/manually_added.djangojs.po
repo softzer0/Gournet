@@ -58,10 +58,10 @@ msgid "Regular working time exceeds the one for the business."
 msgstr "Standardno radno vreme prelazi radno vreme ugostiteljskog objekta."
 
 msgid "Sunday working time exceeds the one for the business."
-msgstr "Subotnje radno vreme prelazi radno vreme ugostiteljskog objekta."
+msgstr "Nedeljno radno vreme prelazi radno vreme ugostiteljskog objekta."
 
 msgid "Saturday working time exceeds the one for the business."
-msgstr "Nedeljno radno vreme prelazi radno vreme ugostiteljskog objekta."
+msgstr "Subotnje radno vreme prelazi radno vreme ugostiteljskog objekta."
 
 msgid "There's a conflict in working times with another waiter on the targeted table."
 msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."

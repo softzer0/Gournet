@@ -35,6 +35,7 @@
                         <td class="item">{% verbatim %}{{ item.item.name }} x {{ item.quantity }}{% endverbatim %}</td>
                     </tr>
                 </table>
+                <hr class="orders_sep" ng-if="!$last"/>
             </div>
         </div>
 {% endcache %}{% endblock %}

@@ -12,25 +12,36 @@ app
     .factory('orderListService', function ($timeout, $filter, USER, APIService){
         var service = APIService.init(13), tables = {list: []}, persons = {}, after = null, props;
 
+        var fields = ['created', 'delivered', 'requested', 'paid'];
         function load(result){
-            after = new Date().getTime();
             for (var i = 0; i < result.length; i++) {
-                var person;
+                var date;
+                for (var a = 0; a < fields.length; a++) if (result[i][fields[a]]) {
+                    date = parseFloat(Date.parse(result[i][fields[a]]) / 1000 + parseFloat('0.000'+result[i][fields[a]].substr(-4, 3)));
+                    if (after < date) after = date;
+                }
+                var table = null, person;
                 if (tables.curr === undefined) tables.curr = result[i].ordered_items[0].item.converted === null ? props.curr : USER.currency;
-                for (var a = 0; a < tables.list.length; a++) if (tables.list[a].num == result[i].table_number) break;
-                if (a == tables.list.length) {
-                    tables.list.push({num: result[i].table_number, total: 0});
-                    if (props.is_waiter) tables.list[a].persons = []; else tables.list[a].orders = [];
+                for (a = 0; a < tables.list.length; a++) if (tables.list[a].num == result[i].table_number) {
+                    table = tables.list[a];
+                    break;
+                }
+                var nt = table === null;
+                if (nt) {
+                    table = {num: result[i].table_number, total: 0};
+                    if (props.is_waiter) table.persons = []; else table.orders = [];
                 }
                 if (props.is_waiter) {
                     person = result[i].person != null ? result[i].person.id : result[i].session;
-                    for (var b = 0; b < tables.list[a].persons.length; b++) if (tables.list[a].persons[b].id == person) break;
-                    if (b == tables.list[a].persons.length) tables.list[a].persons.push({id: person, total: 0, orders: []});
-                    person = tables.list[a].persons[b];
+                    for (a = 0; a < table.persons.length; a++) if (table.persons[a].id == person) {
+                        person = table.persons[a];
+                        break;
+                    }
+                    if (a === table.persons.length) person = {id: person, total: 0, orders: []};
                 } else {
-                    person = {orders: tables.list[a].orders};
+                    person = {orders: table.orders};
                 }
-                var j, obj = [null, null], d = false, o, ind;
+                var j, obj = [null, null], d = false, o = null, ind;
                 for (var k = 0; k < person.orders.length; k++) {
                     if (!d) {
                         ind = {};
@@ -39,7 +50,7 @@ app
                     }
                     if (person.orders[k].ids.indexOf(result[i].id) > -1 || d) {
                         obj[person.orders[k].ids.indexOf(result[i].id) > -1 ? 1 : 0] = person.orders[k];
-                        if (obj[1] != null) o = k;
+                        if (obj[1] != null && o === null) o = k;
                         if ((obj[0] != null || result[i].paid != null) && obj[1] != null) break;
                     }
                 }
@@ -72,13 +83,15 @@ app
                         }
                         obj[0].total += p;
                         if (props.is_waiter) person.total += p;
-                        tables.list[a].total += p;
+                        table.total += p;
                         if (props.is_waiter && obj[0].person != null) {
                             if (!persons.hasOwnProperty(obj[0].person.id)) persons[obj[0].person.id] = obj[0].person;
                             delete obj[0].person;
                         }
-                        var date = obj[0].requested || obj[0].created;
+                        date = obj[0].requested || obj[0].created;
                         if (person.date == null || date != null && new Date(person.date) < new Date(date)) person.date = date;
+                        if (props.is_waiter && a === table.persons.length) table.persons.push(person);
+                        if (nt) tables.list.push(table);
                     }
                 }
                 if (obj[1] != null) {
@@ -87,12 +100,12 @@ app
                         p = ind[obj[1].ordered_items[j].item.id] * (obj[1].ordered_items[j].item.converted || obj[1].ordered_items[j].item.price);
                         obj[1].total -= p;
                         if (props.is_waiter) person.total -= p;
-                        tables.list[a].total -= p;
+                        table.total -= p;
                     }
                     obj[1].ids.splice(obj[1].ids.indexOf(id), 1);
-                    if (obj[1].ids.length == 0) {
+                    if (obj[1].ids.length === 0) {
                         person.orders.splice(o, 1);
-                        if (props.is_waiter && person.orders.length == 0) tables.list[a].persons.splice(b, 1);
+                        if (props.is_waiter && person.orders.length === 0) table.persons.splice(a, 1);
                     }
                 }
             }

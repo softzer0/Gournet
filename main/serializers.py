@@ -629,6 +629,8 @@ class ItemSerializer(BaseSerializer):
             self.fields['business'] = BusinessSerializer(default=CurrentBusinessDefault(), currency=True, location='search' in self.context or 'feed' in self.context)
         if 'ordered' in self.context or 'menu' not in self.context and self.context['request'].method == 'GET':
             self.fields.pop('ordering')
+        if 'ordered' in self.context:
+            self.fields.pop('unavailable')
         if 'menu' in self.context or 'currency' in self.context:
             self.fields.pop('curruser_status')
             self.fields.pop('likestars_count')
