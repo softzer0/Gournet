@@ -412,14 +412,14 @@ app
                     if ($scope.order.person === undefined) {
                         $scope.order.request_type = result.request_type;
                         $scope.order.requested = result.requested;
-                    } else if (result.paid != null) $scope.order.paid = result.paid; else $scope.order.delivered = result.delivered;
+                    } else if (result.finished != null) $scope.order.finished = result.finished; else $scope.order.delivered = result.delivered;
                     delete $scope.working;
                 }, function (res){
                     delete $scope.working;
                     dialogService.show(res.data && res.data.detail ? gettext("Either the business has been closed in the meantime, or there is currently no waiter for the table.") : gettext("There was some error while doing this action."), false);
                 });
             }
-            if ($scope.order.person !== undefined && $scope.order.requested == null && r === null) dialogService.show(gettext("Mark this order as paid even though the orderer didn't request the payment?")).then(cont); else cont();
+            if ($scope.order.person !== undefined && $scope.order.requested == null && r === null) dialogService.show(gettext("Mark this order as finished even though the orderer didn't request the payment?")).then(cont); else cont();
         };
     })
 
@@ -556,7 +556,7 @@ app
             },
             send: function (id, r){
                 var o = {object_id: id};
-                if (typeof r === 'number') o.request_type = r; else if (r === null) o.paid = true; else o.delivered = true;
+                if (typeof r === 'number') o.request_type = r; else if (r === null) o.finished = true; else o.delivered = true;
                 return service.update(o).$promise;
             }
         }

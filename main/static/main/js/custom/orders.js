@@ -12,7 +12,7 @@ app
     .factory('orderListService', function ($timeout, $filter, USER, APIService){
         var service = APIService.init(13), tables = {list: []}, persons = {}, after = null, props;
 
-        var fields = ['created', 'delivered', 'requested', 'paid'];
+        var fields = ['created', 'delivered', 'requested', 'finished'];
         function load(result){
             for (var i = 0; i < result.length; i++) {
                 var date;
@@ -46,16 +46,16 @@ app
                     if (!d) {
                         ind = {};
                         if (person.orders[k].ordered_items.length == result[i].ordered_items.length) for (var l = 0; l < person.orders[k].ordered_items.length; l++) for (j = 0; j < result[i].ordered_items.length; j++) if (result[i].ordered_items[j].item.id == person.orders[k].ordered_items[l].item.id) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
-                        d = result[i].paid == null && (result[i].ordered_items.length > 0 || result[i].delivered == null) && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null) && person.orders[k].note == result[i].note;
+                        d = result[i].finished == null && (result[i].ordered_items.length > 0 || result[i].delivered == null) && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null) && person.orders[k].note == result[i].note;
                     }
                     if (person.orders[k].ids.indexOf(result[i].id) > -1 || d) {
                         obj[person.orders[k].ids.indexOf(result[i].id) > -1 ? 1 : 0] = person.orders[k];
                         if (obj[1] != null && o === null) o = k;
-                        if ((obj[0] != null || result[i].paid != null) && obj[1] != null) break;
+                        if ((obj[0] != null || result[i].finished != null) && obj[1] != null) break;
                     }
                 }
                 var id = result[i].id, e = obj[0] != null, p = 0;
-                if (result[i].paid == null && (result[i].ordered_items.length > 0 || result[i].delivered == null)) {
+                if (result[i].finished == null && (result[i].ordered_items.length > 0 || result[i].delivered == null)) {
                     if (e) {
                         if (obj[0].ids.indexOf(id) === -1) {
                             obj[0].ids.push(id);
@@ -167,7 +167,7 @@ app
             $scope.doAction = function (t){
                 dialogService.show(gettext("Are you sure?")).then(function (){
                     var data = {ids: '&ids='+$scope.popover.type[$scope.popover.type.length === 2 ? t : 0].list.join(',')};
-                    if ($scope.popover.type.length === 1) data.request_type = t; else if (t == 0) data.delivered = true; else data.paid = true;
+                    if ($scope.popover.type.length === 1) data.request_type = t; else if (t == 0) data.delivered = true; else data.finished = true;
                     service.update(data, function (result){ orderListService.load(result.data) }, function (res) {
                         dialogService.show(res.data && res.data.detail ? gettext("Either the business has been closed in the meantime, or there is currently no waiter for the table.") : gettext("There was some error while doing this action."), false);
                     });

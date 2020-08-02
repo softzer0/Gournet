@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^api/users/(?:(?P<pk>\d+)/)?$', views.UserAPIView.as_view()),
     url(r'^api/business/(?:(?P<pk>\d+)/)?$', views.BusinessAPIView.as_view()),
     url(r'^api/orders/(?:(?P<pk>\d+)/)?$', views.OrderAPIView.as_view()),
+    url(r'^api/ordered-items/(?:(?P<pk>\d+)/)?$', views.OrderedItemAPIView.as_view()),
     url(r'^api/waiters/(?:(?P<pk>\d+)/)?$', views.WaiterAPIView.as_view()),
     url(r'^api/home/$', views.HomeAPIView.as_view()),
     url(r'^api/recent/$', views.RecentAPIView.as_view()),

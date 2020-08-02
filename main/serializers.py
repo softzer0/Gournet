@@ -667,10 +667,9 @@ class ItemSerializer(BaseSerializer):
 
 class UserFriendsField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        qs = User.objects.all()
         if 'request' in self.context: #and self.context['request'].user.is_authenticated:
-            qs = friends_from(self.context['request'].user)
-        return qs
+            return friends_from(self.context['request'].user)
+        return User.objects.all()
 
 class UniqueTogetherValidatorWithoutRequired(UniqueTogetherValidator):
     def enforce_required_fields(self, attrs):
@@ -679,26 +678,32 @@ class UniqueTogetherValidatorWithoutRequired(UniqueTogetherValidator):
 class WaiterSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Waiter
-        fields = '__all__'
+        exclude = ('business',)
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
         self.fields['person'] = UserSerializer() if self.context['request'].method == 'GET' else UserFriendsField(required=True)
-        self.fields['table'] = serializers.IntegerField(source='table.number', required=True, **{'write_only': True} if 'table' in self.context else {})
+        self.fields['table'] = serializers.IntegerField(min_value=1, source='table.number', required=False, **{'write_only': True} if 'table' in self.context else {})
 
     def create_and_validate_table(self, validated_data, instance=None):
+        is_preparator = 'table' not in validated_data and (not instance or not instance.table)
         try:
             business = models.Business.objects.get(manager=self.context['request'].user)
         except:
             gen_err(NOT_MANAGER_MSG)
-        validated_data['table'] = models.Table.objects.get_or_create(business=business, number=validated_data['table']['number'] if 'table' in validated_data else instance.table.number)[0]
-        if 'person' in validated_data and models.Waiter.objects.filter(person=validated_data['person'], table__pk=validated_data['table'].pk).exists():
-            gen_err(UniqueTogetherValidator.message.format(field_names='person, table'), code='unique')
+        if not is_preparator:
+            validated_data['table'] = models.Table.objects.get_or_create(business=business, number=validated_data['table']['number'] if 'table' in validated_data else instance.table.number)[0]
+            if 'person' in validated_data and models.Waiter.objects.filter(person=validated_data['person'], table__pk=validated_data['table'].pk).exists():
+                gen_err(UniqueTogetherValidator.message.format(field_names='person, table'), code='unique')
+            validated_data.pop('business', False)
+            validated_data.pop('categories', False)
+        else:
+            validated_data['business'] = business
         fi = None
         for f in ('', '_sat', '_sun'):
             opened, closed = validated_data.get('opened'+f), validated_data.get('closed'+f)
-            business_opened = getattr(validated_data['table'].business, 'opened'+f)
+            business_opened = getattr(business, 'opened'+f)
             if not business_opened:
                 validated_data.pop('opened'+f, False)
                 validated_data.pop('closed'+f, False)
@@ -707,16 +712,16 @@ class WaiterSerializer(serializers.ModelSerializer):
                 validated_data['opened'+f] = None
                 validated_data['closed'+f] = None
                 continue
-            business_closed = getattr(validated_data['table'].business, 'closed'+f)
+            business_closed = getattr(business, 'closed'+f)
             if business_opened != business_closed and opened == closed or business_opened < business_closed and (opened > closed or opened < business_opened or closed > business_closed) or business_opened > business_closed and (business_closed < opened < business_opened or business_closed < closed < business_opened):
                 gen_err(("Sunday" if f == '_sun' else "Saturday" if f == '_sat' else "Regular")+" working time exceeds the one for the business.")
             q = Q(**{'opened'+f+'__isnull': False}) & (Q(**{'closed'+f: F('opened'+f)}) | Q(**{'closed'+f+'__lt': F('opened'+f)}) & (Q(**{'opened'+f+'__lte': opened}) | Q(**{'opened'+f+'__lt': closed}) | Q(**{'closed'+f+'__gt': opened}) | Q(**{'closed'+f+'__gte': closed})) | Q(**{'closed'+f+'__gt': F('opened'+f)}) & (Q(**{'opened'+f+'__lte': opened}) & Q(**{'closed'+f+'__gt': opened}) | Q(**{'opened'+f+'__lt': closed}) & Q(**{'closed'+f+'__gte': closed})))
             fi = (fi | q) if fi else q
         if fi is not None:
-            if models.Waiter.objects.filter(Q(table=validated_data['table']) & ~Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
+            if not is_preparator and models.Waiter.objects.filter(Q(table=validated_data['table']) & ~Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
                 gen_err("There's a conflict in working times with another waiter on the targeted table.")
-            if models.Waiter.objects.filter(~Q(table__business=validated_data['table'].business) & Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
-                gen_err("Targeted person is already waiter at a different business during the specified time span.")
+            if models.Waiter.objects.filter(~Q(table__business=business) & ~Q(business=business) & Q(person=validated_data['person'] if 'person' in validated_data else instance.person) & fi).exists():
+                gen_err("Targeted person is already waiter/preparator at a different business during the specified time span.")
 
     def create(self, validated_data):
         self.create_and_validate_table(validated_data)
@@ -729,7 +734,7 @@ class WaiterSerializer(serializers.ModelSerializer):
 class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.OrderedItem
-        fields = ('item', 'quantity')
+        fields = ('id', 'item', 'quantity', 'made')
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -737,13 +742,31 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         if self.context['request'].method != 'POST':
             self.context.update({'menu': None, 'ordered': None})
             self.fields['item'] = ItemSerializer(context=self.context)
+        if 'noord' in self.context:
+            self.fields['table_number'] = serializers.IntegerField(source='order.table.number', read_only=True)
+            self.fields['note'] = serializers.CharField(source='order.note', read_only=True)
+        else:
+            self.fields.pop('id')
+        if 'singlei' in self.context:
+            self.fields['item'].read_only = True
+            self.fields['quantity'].read_only = True
+            self.fields['made'] = BooleanDateTimeField(required=True)
+        else:
+            self.fields['made'].read_only = True
 
     def validate(self, attrs):
-        if attrs['item'].business.shortname != self.context['request'].session['table']['shortname']:
-            raise serializers.ValidationError("Item %d does not belong to the targeted business." % attrs['item'].pk)
-        if attrs['item'].unavailable:
-            raise serializers.ValidationError("Item %d is unavailable for ordering." % attrs['item'].pk)
+        if 'item' in attrs:
+            if attrs['item'].business.shortname != self.context['request'].session['table']['shortname']:
+                raise serializers.ValidationError("Item %d does not belong to the targeted business." % attrs['item'].pk)
+            if attrs['item'].unavailable:
+                raise serializers.ValidationError("Item %d is unavailable for ordering." % attrs['item'].pk)
         return attrs
+
+    def update(self, instance, validated_data):
+        if validated_data.get('made', None) is not None:
+            instance.made = timezone.now()
+            instance.save()
+        return instance
 
 class TableSerializer(serializers.ModelSerializer):
     business = BusinessSerializer(currency=True)
@@ -769,7 +792,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Order
         exclude = ('ordered_items', 'table')
-        extra_kwargs = {'created': {'read_only': True}, 'session': {'read_only': True}, 'person': {'read_only': True}, 'delivered': {'read_only': True}, 'requested': {'read_only': True}, 'paid': {'read_only': True}}
+        extra_kwargs = {'created': {'read_only': True}, 'session': {'read_only': True}, 'person': {'read_only': True}, 'delivered': {'read_only': True}, 'requested': {'read_only': True}, 'finished': {'read_only': True}}
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -780,7 +803,7 @@ class OrderSerializer(serializers.ModelSerializer):
         else:
             self.fields['table_number'] = serializers.IntegerField(read_only=True)
         if self.context['request'].method == 'GET' and 'after' not in self.context['request'].query_params and 'single' not in self.context:
-            self.fields.pop('paid')
+            self.fields.pop('finished')
         if 'waiter' not in self.context:
             if self.context['request'].method in ('PUT', 'PATCH'):
                 self.fields['request_type'].required = True
@@ -789,7 +812,7 @@ class OrderSerializer(serializers.ModelSerializer):
         else:
             if self.context['request'].method in ('PUT', 'PATCH'):
                 self.fields['delivered'] = BooleanDateTimeField(required=False)
-                self.fields['paid'] = BooleanDateTimeField(required=False)
+                self.fields['finished'] = BooleanDateTimeField(required=False)
             self.fields['person'] = UserSerializer(read_only=True)
             self.fields['request_type'].read_only = True
 
@@ -809,29 +832,39 @@ class OrderSerializer(serializers.ModelSerializer):
         has_waiter = table.get_current_waiter(True)
         if not has_waiter:
             gen_err("The business has been closed in the meantime." if has_waiter is False else "There are currently no waiters for the table.")
+        prep_pks = models.get_current_waiter(table.business, models.Waiter.objects.filter(business=table.business, table=None)).values_list('pk', flat=True)
         order = models.Order.objects.create(table=table, note=validated_data.get('note', None), **get_person_or_session(self.context['request']))
         ordered_items = []
+        preparators = {}
         for ordered_item in validated_data['ordereditem_set']:
             ordered_item = models.OrderedItem(order=order, **ordered_item)
             # if ordered_item.item.business.shortname == self.context['request'].session['table']['shortname']:
+            if ordered_item.item.category not in preparators:
+                preparators[ordered_item.item.category] = models.Waiter.objects.filter(pk__in=prep_pks, categories__contains=ordered_item.item.category).order_by('item_sum').first()
+            ordered_item.preparator = preparators[ordered_item.item.category]
+            if ordered_item.preparator:
+                ordered_item.preparator.item_sum = F('item_sum') + ordered_item.quantity
             ordered_items.append(ordered_item)
         if not len(ordered_items) and not validated_data.get('note', None):
             order.delete()
-            gen_err("You must include either one or more items or a note.")
+            gen_err("You must include at least one item or a note.")
         order.ordereditem_set.bulk_create(ordered_items)
+        for ordered_item in ordered_items:
+            if ordered_item.preparator:
+                ordered_item.preparator.save()
         return order
 
     def update(self, instance, validated_data):
-        for f in ('delivered', 'paid'):
+        for f in ('delivered', 'finished'):
             if validated_data.get(f):
                 if getattr(instance, f):
-                    gen_err("You have already marked this order as paid." if f == 'paid' else "You have already marked this order as delivered.")
+                    gen_err("You have already marked this order as finished." if f == 'finished' else "You have already marked this order as delivered.")
                 setattr(instance, f, timezone.now())
                 instance.save()
                 return instance
         if validated_data.get('request_type', None) is not None:
-            if instance.paid:
-                gen_err("This order is already marked as paid.")
+            if instance.finished:
+                gen_err("This order is already marked as finished.")
             if instance.request_type:
                 gen_err("You have already marked this order for paying.")
             instance.request_type = validated_data['request_type']

@@ -913,8 +913,8 @@ msgstr "Subotnje radno vreme prelazi radno vreme ugostiteljskog objekta."
 msgid "There's a conflict in working times with another waiter on the targeted table."
 msgstr "Postoji konflikt sa radnim vremenom drugog konobara na ciljanom stolu."
 
-msgid "Targeted person is already waiter at a different business during the specified time span."
-msgstr "Ciljana osoba je već konobar u drugom ugostiteljskom objektu tokom definisanog perioda."
+msgid "Targeted person is already waiter/preparator at a different business during the specified time span."
+msgstr "Ciljana osoba je već konobar/spremač u drugom ugostiteljskom objektu tokom definisanog perioda."
 
 msgid "There is no table session."
 msgstr "Ne postoji sesija za sto."

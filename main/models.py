@@ -415,7 +415,7 @@ class Item(models.Model):
     name = models.CharField(_("name"), validators=[MinLengthValidator(ITEM_MIN_CHAR)], max_length=60)
     price = models.DecimalField(_("price"), max_digits=8, decimal_places=2)
     unavailable = models.BooleanField(_("unavailable?"), default=False)
-    created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
+    created = models.DateTimeField(pgettext_lazy("item/comment/review/order", "created on"), auto_now_add=True)
     has_image = models.BooleanField(_("has image?"), default=False)
     likes = GenericRelation('Like')
 
@@ -457,10 +457,10 @@ def item_reorder_notify_published(instance, created, **kwargs):
 
 class Waiter(WorkTime):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
-    table = models.ForeignKey('Table', on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = (('person', 'table'),)
+    table = models.ForeignKey('Table', on_delete=models.CASCADE, null=True, blank=True)
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, null=True, blank=True)
+    categories = MultiSelectField(choices=CATEGORY, null=True, blank=True)
+    item_sum = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return '%s @ %s' % (self.person, self.table)
@@ -468,12 +468,19 @@ class Waiter(WorkTime):
 @receiver(pre_save, sender=Waiter)
 def remove_sufficient_work_times(instance, **kwargs):
     for f in ('_sat', '_sun'):
-        if not getattr(instance.table.business, 'opened'+f):
+        if not getattr(instance.table.business if instance.table else instance.business, 'opened'+f):
             setattr(instance, 'opened'+f, None)
             setattr(instance, 'closed'+f, None)
 
 for subclass in WorkTime.__subclasses__():
     pre_save.connect(check_time, subclass)
+
+def get_current_waiter(business, qs):
+    now, opened, closed, is_opened, day = business.is_currently_opened(True)
+    if not is_opened:
+        return False
+    s = '_sun' if day == 6 else '_sat' if day >= 5 else ''
+    return qs.filter(**{'opened' + s + '__lte': now, 'closed' + s + '__gt': now}) if opened < closed else qs.filter(Q(**{'opened' + s + '__lte': now}) | Q(**{'closed' + s + '__gt': now}))
 
 class Table(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
@@ -487,16 +494,12 @@ class Table(models.Model):
         return '%s: Table #%s' % (self.business, self.number)
 
     def get_current_waiter(self, check_exist=False):
-        now, opened, closed, is_opened, day = self.business.is_currently_opened(True)
-        if not is_opened:
-            return False
-        s = '_sun' if day == 6 else '_sat' if day >= 5 else ''
-        waiter = self.waiter_set.filter(**{'opened'+s+'__lte': now, 'closed'+s+'__gt': now}) if opened < closed else self.waiter_set.filter(Q(**{'opened'+s+'__lte': now}) | Q(**{'closed'+s+'__gt': now}))
+        waiter = get_current_waiter(self.business, self.waiter_set)
         return waiter.first() if not check_exist else True if waiter.exists() else None
 
 class Card(models.Model):
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
-    number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    number = models.PositiveSmallIntegerField()
     counter = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -509,6 +512,8 @@ class OrderedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     order = models.ForeignKey('Order', on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(default=1)
+    preparator = models.ForeignKey(Waiter, on_delete=models.CASCADE, null=True, blank=True)
+    made = models.DateTimeField(pgettext_lazy("ordered item", "made on"), null=True, blank=True)
 
     def __str__(self):
         return 'Item [%s] x%s' % (self.item, self.quantity)
@@ -519,11 +524,11 @@ class Order(models.Model):
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     ordered_items = models.ManyToManyField(Item, through=OrderedItem)
     note = models.CharField(max_length=100, validators=[MinLengthValidator(4)], null=True, blank=True)
-    created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
+    created = models.DateTimeField(pgettext_lazy("item/comment/review/order", "created on"), auto_now_add=True)
     delivered = models.DateTimeField(pgettext_lazy("order", "delivered on"), null=True, blank=True)
-    request_type = models.IntegerField(_("payment type"), choices=((0, _("Cash")), (1, _("Debit card"))), null=True, blank=True)
-    requested = models.DateTimeField(pgettext_lazy("order", "requested payment on"), null=True, blank=True)
-    paid = models.DateTimeField(pgettext_lazy("order", "paid on"), null=True, blank=True)
+    request_type = models.IntegerField(_("payment type/cancel"), choices=((0, _("Cash")), (1, _("Debit card")), (2, _("Cancel"))), null=True, blank=True)
+    requested = models.DateTimeField(pgettext_lazy("order", "requested payment/cancellation on"), null=True, blank=True)
+    finished = models.DateTimeField(pgettext_lazy("order", "finished on"), null=True, blank=True)
 
     class Meta:
         ordering = ['-delivered', '-created']
@@ -545,7 +550,7 @@ REVIEW_STATUS = ((0, _("Started")), (1, _("Closed")), (2, _("Completed")), (3, _
 class Comment(CT):
     person = models.ForeignKey(User, verbose_name=_("person"), on_delete=models.CASCADE)
     text = models.TextField(_("text"), validators=[MaxLengthValidator(1000)])
-    created = models.DateTimeField(pgettext_lazy("item/comment/review", "created on"), auto_now_add=True)
+    created = models.DateTimeField(pgettext_lazy("item/comment/review/order", "created on"), auto_now_add=True)
     stars = models.PositiveSmallIntegerField(_("stars"), validators=[MaxValueValidator(5)], null=True, blank=True)
     main_comment = models.ForeignKey('Comment', verbose_name=_("main comment"), null=True, blank=True, on_delete=models.SET_NULL)
     status = models.SmallIntegerField(_("status"), choices=REVIEW_STATUS, null=True, blank=True)

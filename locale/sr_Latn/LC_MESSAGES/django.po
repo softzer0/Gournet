@@ -537,8 +537,12 @@ msgstr "ime"
 msgid "price"
 msgstr "cena"
 
+#: .\main\models.py:417
+msgid "unavailable?"
+msgstr "nedostupno?"
+
 #: .\main\models.py:409 .\main\models.py:504 .\main\models.py:530
-msgctxt "item/comment/review"
+msgctxt "item/comment/review/order"
 msgid "created on"
 msgstr "napravljen"
 
@@ -558,14 +562,19 @@ msgstr "nedostupan?"
 msgid "items"
 msgstr "proizvodi"
 
+#: .\main\models.py:516
+msgctxt "ordered item"
+msgid "made on"
+msgstr "napravljeno"
+
 #: .\main\models.py:505
 msgctxt "order"
 msgid "delivered on"
 msgstr "dostavljena"
 
 #: .\main\models.py:506
-msgid "payment type"
-msgstr "način plaćanja"
+msgid "payment type/cancel"
+msgstr "način plaćanja/otkazivanje"
 
 #: .\main\models.py:506
 msgid "Cash"
@@ -575,15 +584,19 @@ msgstr "Gotovina"
 msgid "Debit card"
 msgstr "Platna kartica"
 
+#: .\main\models.py:506
+msgid "Cancel"
+msgstr "Otkazano"
+
 #: .\main\models.py:507
 msgctxt "order"
-msgid "requested payment on"
-msgstr "zatraženo plaćanje"
+msgid "requested payment/cancellation on"
+msgstr "zatraženo plaćanje/otkazivanje"
 
 #: .\main\models.py:508
 msgctxt "order"
-msgid "paid on"
-msgstr "plaćeno"
+msgid "finished on"
+msgstr "završeno"
 
 #: .\main\models.py:518
 msgid "object type"

@@ -232,7 +232,7 @@
     "Specified shortname is not permitted.": "Data skra\u0107enica nije dozvoljena.",
     "Submit": "Po\u0161alji",
     "Sunday working time exceeds the one for the business.": "Nedeljno radno vreme prelazi radno vreme ugostiteljskog objekta.",
-    "Targeted person is already waiter at a different business during the specified time span.": "Ciljana osoba je ve\u0107 konobar u drugom ugostiteljskom objektu tokom definisanog perioda.",
+    "Targeted person is already waiter/preparator at a different business during the specified time span.": "Ciljana osoba je ve\u0107 konobar/sprema\u010d u drugom ugostiteljskom objektu tokom definisanog perioda.",
     "Teas": "\u010cajevi",
     "Tequilas": "Tekile",
     "The business has been closed in the meantime.": "Ugostiteljski objekat se u me\u0111uvremenu zatvorio.",

@@ -468,7 +468,7 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
         qs = serializers.friends_from(person, True) #serializers.sort_related(qs, where=serializers.gen_where('user', self.request.user.pk, 'recent', 'user', ct=ContentType.objects.get(model='user').pk))"""
         exc = self.request.query_params.get('exclude', False)
         if exc:
-            qs = qs.exclude(pk__in=[pk for pk in exc.split(',') if pk.isdigit()])
+            qs = qs.exclude(pk__in=[int(pk) for pk in exc.split(',') if pk.isdigit()])
         return qs
 
     def get_serializer_context(self):
@@ -571,7 +571,7 @@ class NotificationAPIView(generics.ListAPIView): #, generics.UpdateAPIView, gene
         f = {'unread': True}
         last = self.request.query_params.get('last', False)
         if last and last.isdigit():
-            f['pk__gt'] = last
+            f['pk__gt'] = int(last)
         if get_param_bool(self.request.query_params.get('skip_orders', False)):
             f1 = f.copy()
             f1['link__icontains'] = 'type=order'
@@ -593,7 +593,7 @@ class BaseNotifAPIView(APIView):
 @table_session_check()
 class SetNotifsReadAPIView(BaseNotifAPIView):
     def t(self):
-        return filter_notifs(self, {'pk__in': [n for n in self.request.query_params['ids'].split(',') if n.isdigit()]})
+        return filter_notifs(self, {'pk__in': [int(n) for n in self.request.query_params['ids'].split(',') if n.isdigit()]})
 
     def cont(self, objpks, **kwargs):
         cnt = 0
@@ -606,7 +606,7 @@ class SetNotifsReadAPIView(BaseNotifAPIView):
 
 class SendNotifsAPIView(BaseNotifAPIView):
     def t(self):
-        return [n for n in self.request.query_params['to'].split(',') if n.isdigit()]
+        return [int(n) for n in self.request.query_params['to'].split(',') if n.isdigit()]
 
     def cont(self, objpks, **kwargs):
         try:
@@ -651,7 +651,7 @@ def get_loc(self, qs, f=True, loc=False, store=False, deford=True):
         else:
             f = ''
         if loc:
-            qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=self.request.query_params['distance'] if 'distance' in self.request.query_params and self.request.query_params['distance'].replace('.','',1).isdigit() else 5))})
+            qs = qs.filter(**{f+'loc_projected__distance_lte': (pos, D(km=float(self.request.query_params['distance']) if 'distance' in self.request.query_params and self.request.query_params['distance'].replace('.','',1).isdigit() else 5))})
         if loc is not None:
             qs = qs.annotate(distance=Distance(f+'loc_projected', pos)).order_by('distance')
         return qs.order_by(*qs.model._meta.ordering) if deford else qs
@@ -701,7 +701,7 @@ class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAP
     pagination_class = None
 
     def get_queryset(self):
-        qs = models.Waiter.objects.filter(table__business__manager__pk=self.request.user.pk)
+        qs = models.Waiter.objects.filter(Q(table__business__manager__pk=self.request.user.pk) | Q(business__manager__pk=self.request.user.pk))
         table = self.request.query_params.get('table', False)
         if table and table.isdigit():
             self.kwargs['table'] = None
@@ -724,15 +724,39 @@ class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAP
         return res
 
 
-@table_session_check(True)
-class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
-    serializer_class = serializers.OrderSerializer
-    pagination_class = None
-
+class BaseOrderAPIView(generics.ListAPIView, generics.RetrieveUpdateAPIView):
     def list(self, request, *args, **kwargs):
         if self.kwargs['pk']:
             return self.retrieve(request, *args, **kwargs)
         return super().list(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if 'ids' in self.request.query_params:
+            errors = []
+            data = []
+            context = self.get_serializer_context()
+            for instance in self.get_bulk_objs():
+                if self.check_context(instance, context) is False:
+                    errors.append({instance.id: ["Not found."]})
+                    continue
+                serializer = self.get_serializer_class()(instance, data=request.data, context=context, partial=True)
+                serializer.is_valid()
+                if serializer.errors:
+                    errors.append({instance.id: serializer.errors})
+                    break
+                try:
+                    serializer.save()
+                except ValidationError as error:
+                    errors.append({instance.id: error.detail})
+                else:
+                    data.append(serializer.data)
+            return Response({'data': data, 'errors': errors}, status.HTTP_200_OK if not len(errors) else status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)
+
+@table_session_check(True)
+class OrderAPIView(BaseOrderAPIView, generics.CreateAPIView):
+    serializer_class = serializers.OrderSerializer
+    pagination_class = None
 
     def get_waiter(self, obj):
         waiter = obj.table.get_current_waiter()
@@ -754,7 +778,7 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
             qs = models.Order.objects.filter(table__waiter__person__pk=self.request.user.pk)
             table = self.request.query_params.get('table', False)
             if table and table.isdigit():
-                qs = qs.filter(table__number=table)
+                qs = qs.filter(table__number=int(table))
             else:
                 table = False
         else:
@@ -768,10 +792,13 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         # if qs.exists():
         #     now, opened, _ = serializers.get_now_opened_closed(qs[0].table.business)
         #     qs = qs.filter(created__gt=now.replace(hour=opened.hour, minute=opened.minute, second=0, microsecond=0))
-        if 'after' in self.request.query_params and match(r'^\d+(\.\d+)?$', self.request.query_params['after']) is not None:
-            t = datetime.fromtimestamp(float(self.request.query_params['after']), get_current_timezone())
-            return qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(paid__gt=t))
-        return qs.annotate(price_sum=Sum('ordered_items__price')).filter(Q(paid=None) & (Q(price_sum__gt=0) | Q(delivered=None)))
+        if 'after' in self.request.query_params:
+            try:
+                t = datetime.fromtimestamp(float(self.request.query_params['after']), get_current_timezone())
+                return qs.filter(Q(created__gt=t)|Q(delivered__gt=t)|Q(requested__gt=t)|Q(finished__gt=t)|(Q(delivered=None) & Q(finished=None) & Q(ordereditem__made__gt=t)))
+            except:
+                pass
+        return qs.annotate(price_sum=Sum('ordered_items__price')).filter(Q(finished=None) & (Q(price_sum__gt=0) | Q(delivered=None)))
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -795,36 +822,70 @@ class OrderAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateAPIView):
         #     del self.request.session['table']
         models.Notification.objects.create(text=_("You have placed an order at <strong>%(type)s \"%(name)s\"</strong>.") % {'type': order.table.business.get_type_display(), 'name': order.table.business.name}, link='#/show='+str(order.pk)+'&type=order', **serializers.get_person_or_session(self.request, True)) #, unread=False
         self.gen_notif(order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
+        prs = {}
+        for ordered_item in order.ordered_items:
+            if ordered_item.preparator:
+                if ordered_item.preparator.person.pk not in prs:
+                    prs[ordered_item.preparator.person.pk] = (ordered_item.preparator.person, [])
+                prs[ordered_item.preparator.person.pk][1].append(ordered_item.pk)
+        for pr in prs.items():
+            with lang_override(pr[0].language):
+                models.Notification.objects.create(user=pr[0], text=_("You have new ordered item(s) to prepare."), link='#/show=' + pr[1].join(',') + '&type=ordered-item')
 
-    def update(self, request, *args, **kwargs):
-        if 'ids' in self.request.query_params:
-            errors = []
-            data = []
-            context = self.get_serializer_context()
-            for instance in models.Order.objects.filter((Q(table__waiter__person=self.request.user) if self.request.user.is_authenticated else Q())|Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[pk for pk in self.request.query_params['ids'].split(',') if pk.isdigit()]).annotate(table_number=F('table__number')):
-                if self.get_waiter(instance) == self.request.user:
-                    context['waiter'] = None
-                elif 'waiter' in context:
-                    del context['waiter']
-                serializer = self.get_serializer_class()(instance, data=request.data, context=context, partial=True)
-                serializer.is_valid()
-                if serializer.errors:
-                    errors.append({instance.id: serializer.errors})
-                    break
-                try:
-                    serializer.save()
-                except ValidationError as error:
-                    errors.append({instance.id: error.detail})
-                else:
-                    data.append(serializer.data)
-            return Response({'data': data, 'errors': errors}, status.HTTP_200_OK if not len(errors) else status.HTTP_400_BAD_REQUEST)
-        return super().update(request, *args, **kwargs)
+    def get_bulk_objs(self):
+        return models.Order.objects.filter((Q(table__waiter__person__pk=self.request.user.pk) if self.request.user.is_authenticated else Q()) | Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[int(pk) for pk in self.request.query_params['ids'].split(',') if pk.isdigit()]).annotate(table_number=F('table__number'))
+
+    def check_context(self, instance, context):
+        if self.get_waiter(instance) == self.request.user:
+            context['waiter'] = None
+        elif 'waiter' in context:
+            del context['waiter']
 
     def perform_update(self, serializer):
         order = serializer.save()
-        if order.requested is None or order.paid:
+        if order.requested is None or order.finished:
             return
         self.gen_notif(order, _("has requested payment with <strong>cash</strong> on table <strong>%d</strong>.") % order.table.number if order.request_type == 0 else _("has requested payment by <strong>debit card</strong> on table <strong>%d</strong>.") % order.table.number)
+
+class OrderedItemAPIView(BaseOrderAPIView):
+    serializer_class = serializers.OrderedItemSerializer
+    pagination_class = None
+
+    def get_preparator(self, obj):
+        if obj.preparator:
+            waiter = models.get_current_waiter(obj.item.business, models.Waiter.objects.filter(pk=obj.preparator.pk)).first()
+            return waiter.person if waiter else None
+
+    def get_object(self):
+        obj = get_object(self.kwargs['pk'], models.OrderedItem)
+        self.kwargs['preparator'] = self.get_preparator(obj)
+        if self.kwargs['preparator'] != self.request.user:
+            raise NotFound("OrderedItem not found.")
+        return obj
+
+    def get_queryset(self):
+        qs = models.OrderedItem.objects.filter(preparator__person__pk=self.request.user.pk, order__delivered=None, order__finished=None)
+        if 'after' in self.request.query_params:
+            try:
+                t = datetime.fromtimestamp(float(self.request.query_params['after']), get_current_timezone())
+                return qs.filter(made__gt=t)
+            except:
+                pass
+        return qs.filter(made=None)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['noord'] = None
+        if self.kwargs['pk']:
+            context['singlei'] = None
+        return context
+
+    def get_bulk_objs(self):
+        return models.OrderedItem.objects.filter(Q(preparator__person__pk=self.request.user.pk)).filter(pk__in=[int(pk) for pk in self.request.query_params['ids'].split(',') if pk.isdigit()])
+
+    def check_context(self, instance):
+        if self.get_preparator(instance) != self.request.user:
+            return False
 
 
 def check_if_anonymous_allowed(self, obj):
@@ -862,7 +923,7 @@ class BaseAPIView(IsOwnerOrReadOnly, generics.ListCreateAPIView, generics.Destro
 
     def get_queryset(self):
         if (self.request.user.is_authenticated or isinstance(self, ItemAPIView)) and self.request.query_params.get('ids', False):
-            objs = self.model.objects.filter(pk__in=[n for n in self.request.query_params['ids'].split(',') if n.isdigit()])
+            objs = self.model.objects.filter(pk__in=[int(n) for n in self.request.query_params['ids'].split(',') if n.isdigit()])
             return objs.filter(business__shortname=self.request.session['table']['shortname']) if self.request.user.is_anonymous else objs
         if self.request.user.is_authenticated and get_param_bool(self.request.query_params.get('is_person', False)):
             if self.kwargs['pk']:
@@ -1206,7 +1267,7 @@ class LikeAPIView(IsOwnerOrReadOnly, BaseLikeView, generics.ListCreateAPIView, g
         else:
             stars = self.request.query_params.get('stars', False)
             if stars and stars.isdigit() and 1 <= int(stars) <= 5:
-                qs = qs.filter(stars=stars)
+                qs = qs.filter(stars=int(stars))
             else:
                 self.kwargs['context']['showtype'] = None
         return qs #serializers.sort_related(, self.request.user)
