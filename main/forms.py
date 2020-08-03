@@ -65,6 +65,9 @@ def business_clean_data(self, cleaned_data, upd=False):
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)
 
+class DummyCategoryMultiple(forms.Form):
+    cat = forms.MultipleChoiceField(label='', widget=forms.SelectMultiple(attrs={'ng-model': 'categs.sel'}), choices=CATEGORY)
+
 class BaseForm(forms.ModelForm):
     address = forms.CharField(required=False, max_length=130)
     location = forms.RegexField(r'^-?[\d]+(?:\.[\d]+)?,-?[\d]+(?:\.?[\d]+)?$')

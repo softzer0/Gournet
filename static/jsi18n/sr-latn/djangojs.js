@@ -236,7 +236,7 @@
     "Teas": "\u010cajevi",
     "Tequilas": "Tekile",
     "The business has been closed in the meantime.": "Ugostiteljski objekat se u me\u0111uvremenu zatvorio.",
-    "The phone number entered is not valid.": "Uneti broj telefona nije validan.",
+    "The entered phone number is not valid.": "Uneti broj telefona nije validan.",
     "There are currently no waiters for the table.": "Trenutno nema konobara za stolom.",
     "There is no table session.": "Ne postoji sesija za sto.",
     "There was some error while doing this action.": "Desila se neka gre\u0161ka.",

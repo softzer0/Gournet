@@ -678,13 +678,14 @@ class UniqueTogetherValidatorWithoutRequired(UniqueTogetherValidator):
 class WaiterSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Waiter
-        exclude = ('business',)
+        exclude = ('business', 'categories', 'item_sum')
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
         self.fields['person'] = UserSerializer() if self.context['request'].method == 'GET' else UserFriendsField(required=True)
         self.fields['table'] = serializers.IntegerField(min_value=1, source='table.number', required=False, **{'write_only': True} if 'table' in self.context else {})
+        self.fields['categories'] = serializers.ListField(child=serializers.CharField(), required=False)
 
     def create_and_validate_table(self, validated_data, instance=None):
         is_preparator = 'table' not in validated_data and (not instance or not instance.table)
@@ -700,6 +701,8 @@ class WaiterSerializer(serializers.ModelSerializer):
             validated_data.pop('categories', False)
         else:
             validated_data['business'] = business
+            if not instance and not len(validated_data.get('categories', [])):
+                gen_err("You must specify at least one category for a preparator.")
         fi = None
         for f in ('', '_sat', '_sun'):
             opened, closed = validated_data.get('opened'+f), validated_data.get('closed'+f)
@@ -766,6 +769,8 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         if validated_data.get('made', None) is not None:
             instance.made = timezone.now()
             instance.save()
+            instance.preparator.item_sum = F('item_sum') - instance.quantity
+            instance.preparator.save()
         return instance
 
 class TableSerializer(serializers.ModelSerializer):

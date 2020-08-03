@@ -245,7 +245,7 @@ def manage_waiters(request):
             wt[-1].append(r+']')
         else:
             wt.append(False)
-    return render_with_recent(request, 'waiters.html', {'wt': wt})
+    return render_with_recent(request, 'waiters.html', {'wt': wt, 'form': forms.DummyCategoryMultiple()})
 
 
 def create_business(request):
@@ -707,7 +707,7 @@ class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAP
             self.kwargs['table'] = None
             qs = qs.filter(table__number=table)
         else:
-            qs = qs.order_by('table__number')
+            qs = qs.order_by('table__number', 'pk')
         return qs
 
     def get_serializer_context(self):
@@ -719,7 +719,7 @@ class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAP
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
         res = super().delete(request, *args, **kwargs)
-        if not obj.table.waiter_set.exists():
+        if obj.table and not obj.table.waiter_set.exists():
             obj.table.delete()
         return res
 

@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django.conf import settings
 from markdown import markdown as do_markdown
+from django.template.defaultfilters import stringfilter
 
 @register.filter
 def get_item(dictionary, key):
@@ -33,3 +34,8 @@ class MarkdownNode(Node):
                 raise TemplateSyntaxError("Error in `markdown` tag: "
                     "The Markdown library isn't installed.")
         return force_text(value)
+
+@register.filter(is_safe=False)
+@stringfilter
+def endswith(value, suffix):
+    return value.endswith(suffix)

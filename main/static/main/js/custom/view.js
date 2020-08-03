@@ -180,7 +180,7 @@ app
         }
     })
 
-    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $injector, $state, $timeout, USER, APIService, menuService, itemService, dialogService) {
+    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $state, $timeout, USER, APIService, menuService, itemService, dialogService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope,
@@ -340,97 +340,6 @@ app
             };
         }
 
-        if (!OWNER_MANAGER) return;
         // Manager
-        $scope.edit = [];
-        $scope.data = $injector.get('EDIT_DATA');
-        services = [$injector.get('dialogService'), $injector.get('$uibModal'), $injector.get('BASE_MODAL')];
-
-        //$rootScope.$watch('currTime', function (val){ if (val !== undefined) });
-        var s = APIService.init(9);
-        $scope.s = s;
-        function showerr(msg){
-            services[0].show(msg, false);
-            $scope.form[2] = '';
-            return true;
-        }
-        $scope.doAction = function (){
-            $scope.execA(null, ['type', 'name', 'shortname'], undefined, undefined, function (result){
-                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k in result.data) if (k == 'shortname') return showerr(gettext("Specified shortname is already taken."));
-            }, function () {
-                //if (!/^[\w.-]+$/.test($scope.edit.form[2])) showerr("Specified shortname is invalid.");
-                if ($scope.edit.form[2] && $scope.edit.form[2] != $scope.edit.value[2]) for (var k = 0; k < $scope.forbidden.length; k++) if ($scope.edit.form[2] == $scope.forbidden[k]) return showerr(gettext("Specified shortname is not permitted."));
-            });
-        };
-
-        $scope.openEdit = function (){
-            services[1].open({size: 'md', windowClass: 'ai', templateUrl: services[2], controller: function ($rootScope, $scope, $controller, $uibModalInstance, EDIT_DATA, checkField, dialogService){
-                $scope.data = EDIT_DATA;
-                $scope.title = gettext("Edit business info");
-                $scope.file = '../../../edit';
-                angular.extend(this, $controller('ModalCtrl', {$scope: $scope, $uibModalInstance: $uibModalInstance}), $controller('CreateCtrl', {$scope: $scope}));
-
-                function disablef(d) {
-                    $scope.data.disabled = d;
-                    $scope.map.marker.options.draggable = !d;
-                }
-                $scope.doSave = function (){
-                    var d = {};
-                    if (checkField($scope.data, 1)) d.phone = $scope.data.form[1];
-                    for (var i = 0; i < $scope.data.form[2].length; i++) if ($scope.data.form[2][i] == $scope.data.curr) {
-                        $scope.data.form[2].splice(i, 1);
-                        break;
-                    }
-                    if (checkField($scope.data, 2)) d.supported_curr = $scope.data.form[2];
-                    if (checkField($scope.data, 3) || checkField($scope.data, 4)) {
-                        d.address = $scope.data.form[3];
-                        d.location = $scope.data.form[4];
-                    }
-                    function f(v){ return moment(v).format('HH:mm') }
-                    for (i = 0; i < 3; i++) {
-                        if (i > 0 && !$scope.work[i-1]) break;
-                        if ($scope.data.form[0][2*i].getTime() == $scope.data.form[0][2*i+1].getTime() && f($scope.data.form[0][2*i]) != '00:00') {
-                            $scope.data.form[0][2*i] = new Date(0, 0, 0, 0, 0);
-                            $scope.data.form[0][2*i+1] = new Date(0, 0, 0, 0, 0);
-                        }
-                    }
-                    var a = [0], p = ['phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'], r;
-                    for (i = 0; i < 6; i++) if (i < 2 || $scope.work[i < 4 ? 0 : 1]) {
-                        a[1] = i;
-                        r = checkField($scope.data, a, false, f);
-                        if (r) d[p[i+4]] = r;
-                    } else if ($scope.data.value[0].length > i) d[p[i+4]] = null;
-                    if (Object.keys(d).length == 0) {
-                        $scope.close();
-                        return;
-                    }
-                    disablef(true);
-                    s.partial_update(d, function (result) {
-                        $scope.data.error = false;
-                        a = Object.keys(d);
-                        for (i = 0; i < a.length; i++) {
-                            r = p.indexOf(a[i]);
-                            if (r >= 4) {
-                                if (r >= 6 && !$scope.work[r < 8 ? 0 : 1]) {
-                                    $scope.data.value[0].splice(r-4);
-                                    break;
-                                }
-                                $scope.data.value[0][r-4] = d[a[i]];
-                            } else $scope.data.value[r+1] = $scope.data.form[r+1];
-                        }
-                        if (d.address !== undefined || d.location !== undefined || r >= 4) {
-                            $scope.data.tz = result.tz;
-                            $rootScope.currTime = new Date();
-                        }
-                        $scope.close();
-                    }, function (result) {
-                        if (result.data.phone !== undefined) {
-                            $scope.data.form[1] = '';
-                            dialogService.show(gettext("The phone number entered is not valid."), false);
-                        }
-                        disablef(false);
-                    });
-                };
-            }}).result.finally(function (){ $scope.data.disabled = false });
-        };
+        if (OWNER_MANAGER) angular.extend(this, $controller('ManagerCtrl', {$scope: $scope}));
     });

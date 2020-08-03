@@ -482,7 +482,7 @@ msgid "Edit business info"
 msgstr "Izmeni informacije ugostiteljskog objekta"
 
 #: .\main\static\main\js\custom\view.js:407
-msgid "The phone number entered is not valid."
+msgid "The entered phone number is not valid."
 msgstr "Uneti broj telefona nije validan."
 
 #: main\static\main\events.html:5

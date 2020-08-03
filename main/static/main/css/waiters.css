@@ -24,3 +24,11 @@
 .w1 {
     width: 1%;
 }
+
+.categs-popover .form-group {
+    margin-bottom: 10px;
+}
+
+.categs-popover select {
+    height: 270px;
+}
