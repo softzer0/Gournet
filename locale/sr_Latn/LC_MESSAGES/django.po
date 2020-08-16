@@ -675,8 +675,8 @@ msgid "My ordered items"
 msgstr "Moji poručeni proizvodi"
 
 #: .\main\templates\base\home.html:65
-msgid "Manage waiters"
-msgstr "Uredi konobare"
+msgid "Manage waiters and preparators"
+msgstr "Uredi konobare i spremače"
 
 #: .\main\templates\base\home.html:66
 msgid "My business"
