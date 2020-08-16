@@ -1,0 +1,7 @@
+{% extends 'base/home.html' %}
+{% load staticfiles %}
+{% load cache %}
+
+{% block head %}{% cache None ordersb %}{{ block.super }}
+    <link rel="stylesheet" href="{% static 'main/css/orders.css' %}">
+    <script src="{% static 'main/js/custom/orders_extra.js' %}"></script>{% endcache %}{% endblock %}

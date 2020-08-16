@@ -17,21 +17,22 @@ recent_ord = ['-recent__' + _[1:] for _ in Recent._meta.ordering]
 def gen_qs(request, model):
     return model.objects.filter(recent__user=request.user).order_by(*recent_ord + model._meta.ordering)
 
-def get_business_if_waiter(request, check_exist=False):
+def get_business_if_waiter(request, prefix='table__', check_exist=False):
     if request.user.is_anonymous:
-        return None
+        return
     now = timezone_now()
     day = '_sat' if now.weekday() == 5 else '_sun' if now.weekday() >= 5 else ''
     now = now.time()
-    q = Q(**{'table__waiter__opened'+day+'__isnull': False}) & (Q(**{'table__waiter__closed'+day: F('table__waiter__opened'+day)}) | Q(**{'table__waiter__closed'+day+'__lt': F('table__waiter__opened'+day)}) & (Q(**{'table__waiter__opened'+day+'__lte': now}) | Q(**{'table__waiter__closed'+day+'__gt': now})) | Q(**{'table__waiter__closed'+day+'__gt': F('table__waiter__opened'+day)}) & (Q(**{'table__waiter__opened'+day+'__lte': now}) & Q(**{'table__waiter__closed'+day+'__gt': now})))
-    qs = Business.objects.filter(Q(table__waiter__person=request.user) & q).annotate(Count('pk'))
+    q = Q(**{prefix+'waiter__opened'+day+'__isnull': False}) & (Q(**{prefix+'waiter__closed'+day: F(prefix+'waiter__opened'+day)}) | Q(**{prefix+'waiter__closed'+day+'__lt': F(prefix+'waiter__opened'+day)}) & (Q(**{prefix+'waiter__opened'+day+'__lte': now}) | Q(**{prefix+'waiter__closed'+day+'__gt': now})) | Q(**{prefix+'waiter__closed'+day+'__gt': F(prefix+'waiter__opened'+day)}) & (Q(**{prefix+'waiter__opened'+day+'__lte': now}) & Q(**{prefix+'waiter__closed'+day+'__gt': now})))
+    qs = Business.objects.filter(Q(**{prefix+'waiter__person': request.user}) & q).annotate(Count('pk'))
     return qs.first() if not check_exist else qs.exists()
 
 def recent(request):
     dic = {
         'review_status': REVIEW_STATUS_E,
         'has_stars': get_has_stars(),
-        'show_orders': bool('table' in request.session or get_business_if_waiter(request, True)),
+        'show_orders': 'table' in request.session or get_business_if_waiter(request, check_exist=True),
+        'show_ordereditems': get_business_if_waiter(request, '', True),
         'is_manager': Business.objects.filter(manager=request.user).exists() if request.user.is_authenticated else False
     }
     if request.user.is_authenticated:

@@ -59,16 +59,16 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                     card = Card.objects.filter(table__business=business, table__number=request.GET['t'], number=request.GET['c']).first()
                     if card:
                         hotp, i = HOTP(business.table_secret), 1
-                        while i < 1001 and request.GET['p'] != hotp.at(card.counter+i):
+                        while i < 301 and request.GET['p'] != hotp.at(card.counter+i):
                             i += 1
-                        if i < 1001:
+                        if i < 301:
                             card.counter += i
                             card.save()
                             if card.table.get_current_waiter(True):
                                 request.session['table'] = {'id': card.table.pk, 'shortname': business.shortname, 'time': (timezone_now()+timedelta(minutes=10)).timestamp()}
-                                return None
+                                return
                         elif 'table' in request.session and card.table.get_current_waiter(True):
-                            return None
+                            return
             else:
-                return None
+                return
         return super().process_view(request, view_func, view_args, view_kwargs)

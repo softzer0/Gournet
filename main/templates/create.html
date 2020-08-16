@@ -1,18 +1,19 @@
 {% extends 'base/home.html' %}
 {% load i18n %}
+{% load cache %}
 
-{% block head %}{{ block.super }}
+{% block head %}{% cache None create0 %}{{ block.super }}
     {% include 'base/home_extra.html' %}
     {% load static %}<script src="https://cdnjs.cloudflare.com/ajax/libs/speakingurl/10.0.0/speakingurl.min.js"></script>
     <script src="{% static 'main/js/angular-speakingurl.js' %}"></script>
     <script src="{% static 'main/js/custom/map.js' %}"></script>
-    <script src="{% static 'main/js/custom/create.js' %}"></script>{% endblock %}
+    <script src="{% static 'main/js/custom/create.js' %}"></script>{% endcache %}{% endblock %}
 
 {% block container %}
         <div class="row">
             <div class="col-sm-12">
                 <form action="{{ request.path }}" method="post" ng-controller="CreateCtrl" class="well bs-component nw ai" style="max-width: 500px;">{% csrf_token %}
-                    <legend>{% trans "Create Your Business" %}</legend>
+                    {% cache None cache1 request.LANGUAGE_CODE %}<legend>{% trans "Create Your Business" %}</legend>
                     {% load bootstrap3 %}{% bootstrap_field form.type %}
                     {% bootstrap_field form.name %}
                     {% bootstrap_field form.shortname %}
@@ -22,4 +23,4 @@
                 </form>
             </div>
         </div>
-{% endblock %}
+{% endcache %}{% endblock %}

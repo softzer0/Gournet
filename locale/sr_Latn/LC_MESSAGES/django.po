@@ -554,10 +554,6 @@ msgstr "ima sliku?"
 msgid "item"
 msgstr "proizvod"
 
-#: .\main\models.py:417
-msgid "unavailable?"
-msgstr "nedostupan?"
-
 #: .\main\models.py:418
 msgid "items"
 msgstr "proizvodi"
@@ -673,6 +669,10 @@ msgstr "Anoniman"
 #: .\main\templates\base\home.html:64
 msgid "My orders"
 msgstr "Moje porudžbine"
+
+#: .\main\templates\base\home.html:64
+msgid "My ordered items"
+msgstr "Moji poručeni proizvodi"
 
 #: .\main\templates\base\home.html:65
 msgid "Manage waiters"
@@ -950,12 +950,12 @@ msgid "With cash"
 msgstr "Gotovina"
 
 #: .\main\templates\orders.html:16
-msgid "All is paid"
-msgstr "Sve je plaćeno"
+msgid "All is finished"
+msgstr "Sve je završeno"
 
 #: .\main\templates\orders.html:16
-msgid "It's paid"
-msgstr "Plaćeno je"
+msgid "It's finished"
+msgstr "Završeno je"
 
 #: .\main\templates\orders.html:16
 msgctxt "paid/to be paid"
@@ -966,6 +966,16 @@ msgstr "Sve debitnom karticom"
 msgctxt "paid/to be paid"
 msgid "By debit card"
 msgstr "Debitna kartica"
+
+#: .\main\templates\orders.html:20
+msgctxt "orders"
+msgid "Cancel all"
+msgstr "Otkaži sve"
+
+#: .\main\templates\orders.html:20
+msgctxt "order"
+msgid "Cancel"
+msgstr "Otkaži"
 
 #: .\main\templates\orders.html:21
 msgid "There are currently no orders."
@@ -981,12 +991,32 @@ msgid "Table"
 msgstr "Sto"
 
 #: .\main\templates\orders.html:29
+msgid "For delivery and payment with cash (with note)"
+msgstr "Za dostavljanje i plaćanje gotovinom (sa napomenom)"
+
+#: .\main\templates\orders.html:29
+msgid "For delivery and payment with cash"
+msgstr "Za dostavljanje i plaćanje gotovinom"
+
+#: .\main\templates\orders.html:29
 msgid "For payment with cash"
 msgstr "Za plaćanje gotovinom"
 
 #: .\main\templates\orders.html:29
+msgid "For delivery and payment by debit card (with note)"
+msgstr "Za dostavljanje i plaćanje karticom (sa napomenom)"
+
+#: .\main\templates\orders.html:29
+msgid "For delivery and payment by debit card"
+msgstr "Za dostavljanje i plaćanje karticom"
+
+#: .\main\templates\orders.html:29
 msgid "For payment by debit card"
 msgstr "Za plaćanje karticom"
+
+#: .\main\templates\orders.html:29
+msgid "For cancellation"
+msgstr "Za otkazivanje"
 
 #: .\main\templates\orders.html:29
 msgid "For delivery (with note)"
@@ -999,6 +1029,27 @@ msgstr "Za dostavljanje"
 #: .\main\templates\orders.html:29
 msgid "Delivered"
 msgstr "Dostavljeno"
+
+#: .\main\templates\ordered-items.html:6
+msgid "Ordered items"
+msgstr "Poručeni proizvodi"
+
+#: .\main\templates\ordered-items.html:14
+msgid "It's made"
+msgstr "Napravljeno je"
+
+#: .\main\templates\ordered-items.html:18
+msgid "There are currently no ordered items."
+msgstr "Trenutno nema poručenih proizvoda."
+
+#: .\main\templates\ordered-items.html:22
+msgid "Confirmation"
+msgstr "Potvrda"
+
+#: .\main\templates\ordered-items.html:23
+msgctxt "ordered item"
+msgid "(with note)"
+msgstr "(sa napomenom)"
 
 #: .\main\templates\pp.html:9
 msgid ""
@@ -1564,15 +1615,31 @@ msgstr "Da li ste sigurni da želite da nastavite?"
 
 #: .\main\templates\waiters.html:25
 msgid "All data related to the waiter would be lost."
-msgstr "Svi podaci vezani za ciljanog konobara biće obrisani."
+msgstr "Svi podaci vezani za ciljanog konobara biće izgubljeni."
 
 #: .\main\templates\waiters.html:25
 msgid "All data related to the whole table would be lost."
-msgstr "Svi podaci vezani za ovaj sto biće obrisani."
+msgstr "Svi podaci vezani za ovaj sto biće izgubljeni."
+
+#: .\main\templates\waiters.html:22
+msgid "One more preparator group"
+msgstr "Još jedna grupa spremača"
 
 #: .\main\templates\waiters.html:59
 msgid "One more table"
 msgstr "Još jedan sto"
+
+#: .\main\templates\waiters_table.html:4
+msgid "Preparators"
+msgstr "Spremači"
+
+#: .\main\templates\waiters_table.html:4
+msgid "No preparators yet"
+msgstr "Još nema spremača"
+
+#: .\main\templates\waiters_table.html:12
+msgid "All data related to the preparator would be lost."
+msgstr "Svi podaci vezani za ciljanog spremača biće obrisani."
 
 #: .\main\views.py:184
 msgid "Image format not supproted."
@@ -1674,6 +1741,11 @@ msgstr "Upravo ste poručili u <strong>%(type)s \"%(name)s\"</strong>."
 #, python-format
 msgid "has placed an order on table <strong>%d</strong>."
 msgstr "je poručio/la na stolu <strong>%d</strong>."
+
+#: .\main\views.py:849
+#, python-format
+msgid "You have new ordered item(s) to prepare."
+msgstr "Imate nov(e) poručen(e) proizvod(e) za spremanje."
 
 #: .\main\views.py:814
 #, python-format

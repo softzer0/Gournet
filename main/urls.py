@@ -74,6 +74,7 @@ urlpatterns = [
     url(r"^edit\.html$", views.edit_view, name="edit"),
     url(r"^i18n/$", views.i18n_view, name="i18n"),
     url(r'^my-business/$', views.create_business, name="create_business"),
+    url(r'^my-ordered-items/$', views.list_ordereditems, name="list_ordereditems"),
     url(r'^my-orders/$', views.list_orders, name="list_orders"),
     url(r'^manage-waiters/$', views.manage_waiters, name="manage_waiters"),
     url(r"^user/(?P<username>[\w.-]+)/$", views.show_profile, name="user_profile"),

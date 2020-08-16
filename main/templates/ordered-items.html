@@ -1,0 +1,29 @@
+{% extends 'base/orders.html' %}
+{% load staticfiles %}
+{% load i18n %}
+{% load cache %}
+
+{% block title %}{% trans "Ordered items" %} - Gournet{% endblock %}
+{% block head %}{{ block.super }}
+    <script src="{% static 'main/js/custom/ordered-items.js' %}"></script>{% endblock %}
+
+{% block container %}{% cache None orders1 request.LANGUAGE_CODE %}
+        <script type="text/ng-template" id="actionPopover">
+            <center>
+                <p ng-if="target.note"><strong>{% trans "Note:" %}</strong> {% verbatim %}{{ target.note }}{% endverbatim %}</p>
+                <input type="submit" class="btn btn-primary" value="{% trans "It's made" %}" ng-click="doAction()">
+            </center>
+        </script>
+        <div class="orders row" ng-controller="OrdersCtrl" ng-init="loadOrders()">
+            <div ng-if="!orders.length" class="text-center text-muted"><i class="fa fa-reorder"></i><h4>{% trans "There are currently no ordered items." %}</h4></div>
+            <div ng-if="orders.length" ng-cloak>
+                <table class="table table-hover table-condensed animate">
+                    <tr ng-repeat="order in orders" class="angular-animate">
+                        <td ng-class="{'bg-danger': order.to_remove, 'clickable': !order.to_remove}" uib-popover-template="'actionPopover'" popover-class="action-popover" popover-title="{% trans "Confirmation" %}" popover-trigger="outsideClick" popover-is-open="order.opened" ng-click="openPopover(order)" popover-placement="bottom-left">
+                            <button class="close" ng-if="order.to_remove" ng-click="remove($index)">&times;</button> {% verbatim %}{{ order.item.category_display }}: <strong>{{ order.item.name }} x {{ order.quantity }}</strong><span ng-if="order.note"> {% endverbatim %}{% trans "(with note)" context "ordered item" %}</span><span class="small text-muted"> - {% verbatim %}{{ order.created | timeAgo }}{% endverbatim %}</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+{% endcache %}{% endblock %}

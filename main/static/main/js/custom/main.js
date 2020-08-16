@@ -10,7 +10,7 @@ app
         var name = (window.location.pathname != '/' ? 'main.' : '') + 'showObjs';
         if (window.location.pathname != '/') $stateProvider.state('main', {url: '/'}); else if (window.location.hash == '' || window.location.hash == '#') window.location.hash = '#/';
         $stateProvider.state(name, {
-            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:business|event|item|review|order)}{showcomments:(?:&showcomments)?}', //important
+            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:business|event|item|review|order)}{showcomments:(?:&showcomments)?}{preparator:(?:&preparator)?}', //important
             params: {ts: null},
             modal: true,
             templateUrl: BASE_MODAL,
@@ -33,7 +33,7 @@ app
                     }
                     $scope.file = '../events';
                 } else {
-                    $scope.order_id = $stateParams.ids;
+                    $scope.params = [$stateParams.ids, $stateParams.preparator == '&preparator'];
                     $scope.title = gettext("Order");
                     $scope.file = 'order';
                 }
@@ -389,24 +389,25 @@ app
         })();
     })
 
-    .controller('OrderCtrl', function ($scope, dialogService, orderService, USER) {
-        var o = $scope.$parent.order_id;
-        delete $scope.$parent.order_id;
+    .controller('OrderCtrl', function ($scope, orderErrorService, dialogService, orderService, USER, APIService) {
+        var o = $scope.$parent.params;
+        delete $scope.$parent.params;
         $scope.total = 0;
         $scope.opened = false;
-        orderService.get(o).then(function (order){
-            if (order.ordered_items.length > 0) $scope.curr = order.ordered_items[0].item.converted === null ? order.table.business.currency : USER.currency;
-            $scope.order = order;
-            for (var i = 0; i < order.ordered_items.length; i++) {
-                o = order.ordered_items[i];
-                $scope.total += o.quantity * (o.item.converted || o.item.price);
+        $scope.is_waiter = !o[1];
+        if (!$scope.is_waiter) {
+            var orderedItemService = APIService.init(15);
+            function upd(result) {
+                result = result.data ? result.data : [result];
+                for (var i = 0; i < result.length; i++) for (var j = 0; j < $scope.order.ordered_items.length; j++) if (result[i].id === $scope.order.ordered_items[j].id) {
+                    $scope.order.ordered_items[j].made = result[i].made;
+                    $scope.total++;
+                    break;
+                }
+                delete $scope.working;
             }
-            $scope.$parent.loaded();
-        }, $scope.$parent.loaded);
-
-        $scope.doAction = function (r){
-            if ($scope.working) return;
-            function cont(){
+        } else {
+            function cont(r){
                 $scope.working = true;
                 orderService.send($scope.order.id, r).then(function (result){
                     if ($scope.order.person === undefined) {
@@ -416,10 +417,35 @@ app
                     delete $scope.working;
                 }, function (res){
                     delete $scope.working;
-                    dialogService.show(res.data && res.data.detail ? gettext("Either the business has been closed in the meantime, or there is currently no waiter for the table.") : gettext("There was some error while doing this action."), false);
+                    orderErrorService(res, true);
                 });
             }
-            if ($scope.order.person !== undefined && $scope.order.requested == null && r === null) dialogService.show(gettext("Mark this order as finished even though the orderer didn't request the payment?")).then(cont); else cont();
+        }
+        orderService.get.apply(null, o).then(function (order){
+            if (order.ordered_items.length > 0) $scope.curr = order.ordered_items[0].item.converted === null ? order.table.business.currency : USER.currency;
+            $scope.order = order;
+            for (var i = 0; i < order.ordered_items.length; i++) {
+                o = order.ordered_items[i];
+                if ($scope.is_waiter) $scope.total += o.quantity * (o.item.converted || o.item.price); else if (o.made != null) $scope.total++;
+            }
+            $scope.$parent.loaded();
+        }, $scope.$parent.loaded);
+
+        $scope.doAction = function (r){
+            if ($scope.working) return;
+            if (!$scope.is_waiter) {
+                $scope.working = true;
+                var data = {made: true};
+                if (r === true) {
+                    data.ids = '&ids=';
+                    for (var i = 0; i < $scope.order.ordered_items.length; i++) if ($scope.order.ordered_items[i].is_preparator && $scope.order.ordered_items[i].made == null) data.ids += $scope.order.ordered_items[i].id+',';
+                    data.ids = data.ids.substring(0, data.ids.length - 1);
+                } else data.object_id = r;
+                orderedItemService.update(data).$promise.then(function (result) { upd(result) }, function (res) {
+                    upd(res.data);
+                    orderErrorService(res);
+                })
+            } else if ($scope.order.person !== undefined && $scope.order.requested == null && r === null) dialogService.show(gettext("Mark this order as paid even though the orderer didn't request the payment?")).then(function () { cont(r) }); else cont(r);
         };
     })
 
@@ -466,6 +492,9 @@ app
                         break;
                     case 14:
                         n = 'waiters';
+                        break;
+                    case 15:
+                        n = 'ordered-items';
                         break;
                     default: n = 'users'
                 }
@@ -551,8 +580,8 @@ app
         var service = APIService.init(13);
 
         return {
-            get: function (id){
-                return service.get({id: id}).$promise;
+            get: function (id, prep){
+                return service.get({id: id, is_preparator: prep}).$promise;
             },
             send: function (id, r){
                 var o = {object_id: id};
@@ -561,6 +590,8 @@ app
             }
         }
     })
+
+    .factory('orderErrorService', function (dialogService) { return function (res, is_waiter) { dialogService.show(res.data && res.data.detail ? is_waiter ? gettext("Either the business has been closed in the meantime, or there is currently no waiter for the table.") : gettext("Either the business has been closed in the meantime, or your work time is over.") : res.data && res.data.non_field_errors ? gettext(res.data.non_field_errors[0]) : gettext("There was some error while doing this action."), false) } })
 
     .factory('uniService', function ($q, $timeout, $injector, APIService, dialogService, USER){
         var u = false, likeService = APIService.init(3), commentService = APIService.init(7), services = {}; //, rs = false
@@ -1289,6 +1320,7 @@ app
                 var d = {};
                 if ($scope.unread) d.last = $scope.notifs[0].id;
                 if (location.pathname == '/my-orders/') d.skip_orders = true; //important
+                if (location.pathname == '/my-ordered-items/') d.skip_ordereditems = true; //important
                 ret = notifService.query(d);
             } else ret = notifService.get({page: page_num});
             ret.$promise.then(function (result) {

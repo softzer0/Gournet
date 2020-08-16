@@ -184,6 +184,16 @@ def rem_avatar(instance):
     except:
         pass
 
+@receiver(pre_save, sender=User)
+def user_pre_save_store_username(sender, instance, **kwargs):
+    if instance.pk:
+        instance._username = User.objects.get(pk=instance.pk).username
+
+@receiver(post_save, sender=User)
+def user_change_username_notification(sender, instance, **kwargs):
+    if hasattr(instance, '_username') and instance.username != instance._username:
+        Notification.objects.filter(link=reverse('user_profile', kwargs={'username': instance._username})).update(link=reverse('user_profile', kwargs={'username': instance.username}))
+
 @receiver(post_delete, sender=User)
 def user_avatar_delete(instance, **kwargs):
     rem_avatar(instance)
@@ -240,7 +250,7 @@ def relationship_delete_notification_recent(instance, **kwargs):
         instance.notification.delete()
     Recent.objects.filter(user=instance.from_person, content_type=ContentType.objects.get(model='user'), object_id=instance.to_person.pk).delete()
 
-FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images', 'my-business', 'my-orders', 'manage-waiters', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
+FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images', 'my-business', 'my-orders', 'my-ordered-items', 'manage-waiters', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
 def not_forbidden(value):
     if value in FORBIDDEN:
         raise ValidationError(ugettext("\"%s\" is not permitted as a shortname.") % value)
@@ -463,7 +473,7 @@ class Waiter(WorkTime):
     item_sum = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
-        return '%s @ %s' % (self.person, self.table)
+        return '%s @ %s / [%s]' % (self.person, self.table, self.categories)
 
 @receiver(pre_save, sender=Waiter)
 def remove_sufficient_work_times(instance, **kwargs):
@@ -495,7 +505,7 @@ class Table(models.Model):
 
     def get_current_waiter(self, check_exist=False):
         waiter = get_current_waiter(self.business, self.waiter_set)
-        return waiter.first() if not check_exist else True if waiter.exists() else None
+        return waiter.first() if not check_exist else True if waiter and waiter.exists() else None
 
 class Card(models.Model):
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
@@ -512,7 +522,7 @@ class OrderedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     order = models.ForeignKey('Order', on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(default=1)
-    preparator = models.ForeignKey(Waiter, on_delete=models.CASCADE, null=True, blank=True)
+    preparator = models.ForeignKey(Waiter, on_delete=models.SET_NULL, null=True, blank=True)
     made = models.DateTimeField(pgettext_lazy("ordered item", "made on"), null=True, blank=True)
 
     def __str__(self):
@@ -526,7 +536,7 @@ class Order(models.Model):
     note = models.CharField(max_length=100, validators=[MinLengthValidator(4)], null=True, blank=True)
     created = models.DateTimeField(pgettext_lazy("item/comment/review/order", "created on"), auto_now_add=True)
     delivered = models.DateTimeField(pgettext_lazy("order", "delivered on"), null=True, blank=True)
-    request_type = models.IntegerField(_("payment type/cancel"), choices=((0, _("Cash")), (1, _("Debit card")), (2, _("Cancel"))), null=True, blank=True)
+    request_type = models.IntegerField(_("payment type/cancel"), choices=((0, _("Cancel")), (1, _("Cash")), (2, _("Debit card"))), null=True, blank=True)
     requested = models.DateTimeField(pgettext_lazy("order", "requested payment/cancellation on"), null=True, blank=True)
     finished = models.DateTimeField(pgettext_lazy("order", "finished on"), null=True, blank=True)
 

@@ -1,25 +1,19 @@
 app
-    .directive('animateOnChange', function($animate, $timeout) {
-        return function(scope, elem, attr) {
-            scope.$watch(attr.animateOnChange, function(nv, ov) {
-                if (nv == ov) return;
-                var c = 'change';
-                $animate.addClass(elem, c).then(function() { $timeout(function() { $animate.removeClass(elem, c) }, 2500) });
-            });
-       }
-    })
-
     .factory('orderListService', function ($timeout, $filter, USER, APIService){
         var service = APIService.init(13), tables = {list: []}, persons = {}, after = null, props;
 
+        function parseDate(d) { return parseFloat(Date.parse(d) / 1000 + parseFloat('0.000'+d.substr(-4, 3))) }
+        function parseAfter(d) {
+            if (d) {
+                var date = parseDate(d);
+                if (after < date) after = date;
+            }
+        }
         var fields = ['created', 'delivered', 'requested', 'finished'];
         function load(result){
             for (var i = 0; i < result.length; i++) {
-                var date;
-                for (var a = 0; a < fields.length; a++) if (result[i][fields[a]]) {
-                    date = parseFloat(Date.parse(result[i][fields[a]]) / 1000 + parseFloat('0.000'+result[i][fields[a]].substr(-4, 3)));
-                    if (after < date) after = date;
-                }
+                for (var a = 0; a < fields.length; a++) parseAfter(result[i][fields[a]]);
+                for (a = 0; a < result[i].ordered_items.length; a++) parseAfter(result[i].ordered_items[a].made);
                 var table = null, person;
                 if (tables.curr === undefined) tables.curr = result[i].ordered_items[0].item.converted === null ? props.curr : USER.currency;
                 for (a = 0; a < tables.list.length; a++) if (tables.list[a].num == result[i].table_number) {
@@ -41,25 +35,34 @@ app
                 } else {
                     person = {orders: table.orders};
                 }
-                var j, obj = [null, null], d = false, o = null, ind;
+                var j, obj = [null, null], d = false, d1 = false, o = null, ind, io = false;
                 for (var k = 0; k < person.orders.length; k++) {
+                    io = person.orders[k].ids.indexOf(result[i].id) > -1;
                     if (!d) {
                         ind = {};
-                        if (person.orders[k].ordered_items.length == result[i].ordered_items.length) for (var l = 0; l < person.orders[k].ordered_items.length; l++) for (j = 0; j < result[i].ordered_items.length; j++) if (result[i].ordered_items[j].item.id == person.orders[k].ordered_items[l].item.id) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
-                        d = result[i].finished == null && (result[i].ordered_items.length > 0 || result[i].delivered == null) && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null) && person.orders[k].note == result[i].note;
+                        if (person.orders[k].ordered_items.length === result[i].ordered_items.length) {
+                            for (var l = 0; l < person.orders[k].ordered_items.length; l++) for (j = 0; j < result[i].ordered_items.length; j++) if (result[i].ordered_items[j].item.id == person.orders[k].ordered_items[l].item.id) {
+                                if (!d1) d1 = person.orders[k].ordered_items[l].made == null && result[i].ordered_items[j].made != null;
+                                ind[result[i].ordered_items[j].item.id] = [result[i].ordered_items[j].quantity, person.orders[k].ordered_items[l].made != result[i].ordered_items[j].made && result[i].ordered_items[j].made, +(!io || person.orders[k].ordered_items[l].made != result[i].ordered_items[j].made)];
+                            }
+                            d = result[i].finished == null && (result[i].ordered_items.length > 0 || result[i].delivered == null) && Object.keys(ind).length == result[i].ordered_items.length && (person.orders[k].created != null) == (result[i].created != null) && (person.orders[k].delivered != null) == (result[i].delivered != null) && person.orders[k].request_type == result[i].request_type && (person.orders[k].requested != null) == (result[i].requested != null) && (person.orders[k].note == result[i].note || result[i].delivered != null);
+                        }
                     }
-                    if (person.orders[k].ids.indexOf(result[i].id) > -1 || d) {
-                        obj[person.orders[k].ids.indexOf(result[i].id) > -1 ? 1 : 0] = person.orders[k];
+                    if (io || d) {
+                        if (io) obj[1] = person.orders[k]; else if (obj[0] == null) obj[0] = person.orders[k];
                         if (obj[1] != null && o === null) o = k;
                         if ((obj[0] != null || result[i].finished != null) && obj[1] != null) break;
                     }
                 }
+                if (d1 && d && obj[0] == null) obj.splice(0, 1);
                 var id = result[i].id, e = obj[0] != null, p = 0;
                 if (result[i].finished == null && (result[i].ordered_items.length > 0 || result[i].delivered == null)) {
                     if (e) {
-                        if (obj[0].ids.indexOf(id) === -1) {
-                            obj[0].ids.push(id);
-                            for (j = 0; j < obj[0].ordered_items.length; j++) obj[0].ordered_items[j].quantity += ind[obj[0].ordered_items[j].item.id];
+                        io = obj[0].ids.indexOf(id) === -1;
+                        if (io) obj[0].ids.push(id);
+                        for (j = 0; j < obj[0].ordered_items.length; j++) {
+                            if (!d1 || io) obj[0].ordered_items[j].quantity += ind[obj[0].ordered_items[j].item.id][0] * ind[obj[0].ordered_items[j].item.id][2];
+                            if (ind[obj[0].ordered_items[j].item.id][1] && (obj[0].ordered_items[j].made == null || parseDate(obj[0].ordered_items[j].made) < parseDate(ind[obj[0].ordered_items[j].item.id][1]))) obj[0].ordered_items[j].made = ind[obj[0].ordered_items[j].item.id][1];
                         }
                         obj[0].created = result[i].created;
                         obj[0].delivered = result[i].delivered;
@@ -67,12 +70,16 @@ app
                         obj[0].requested = result[i].requested;
                     } else {
                         ind = {};
-                        for (j = 0; j < result[i].ordered_items.length; j++) ind[result[i].ordered_items[j].item.id] = result[i].ordered_items[j].quantity;
+                        for (j = 0; j < result[i].ordered_items.length; j++) ind[result[i].ordered_items[j].item.id] = [result[i].ordered_items[j].quantity, result[i].ordered_items[j].made];
                         obj[0] = result[i];
                     }
+                    var ap = null;
                     for (j = 0; j < obj[0].ordered_items.length; j++) {
-                        p += ind[obj[0].ordered_items[j].item.id] * (obj[0].ordered_items[j].item.converted || obj[0].ordered_items[j].item.price);
+                        p += ind[obj[0].ordered_items[j].item.id][0] * (obj[0].ordered_items[j].item.converted || obj[0].ordered_items[j].item.price);
+                        if (ind[obj[0].ordered_items[j].item.id][1]) obj[0].ordered_items[j].made_quantity = (obj[0].ordered_items[j].made_quantity || 0) + ind[obj[0].ordered_items[j].item.id][0];
+                        if (obj[0].ordered_items[j].has_preparator && ap !== false) ap = obj[0].ordered_items[j].quantity === obj[0].ordered_items[j].made_quantity;
                     }
+                    if (ap !== null) obj[0].all_prepared = ap;
                     if (p > 0 || obj[0].delivered == null) {
                         if (!e) {
                             person.orders.push(obj[0]);
@@ -81,14 +88,16 @@ app
                             delete obj[0].id;
                             delete obj[0].table_number;
                         }
-                        obj[0].total += p;
-                        if (props.is_waiter) person.total += p;
-                        table.total += p;
+                        if (!d1 || io) {
+                            obj[0].total += p;
+                            if (props.is_waiter) person.total += p;
+                            table.total += p;
+                        }
                         if (props.is_waiter && obj[0].person != null) {
                             if (!persons.hasOwnProperty(obj[0].person.id)) persons[obj[0].person.id] = obj[0].person;
                             delete obj[0].person;
                         }
-                        date = obj[0].requested || obj[0].created;
+                        var date = obj[0].requested || obj[0].created;
                         if (person.date == null || date != null && new Date(person.date) < new Date(date)) person.date = date;
                         if (props.is_waiter && a === table.persons.length) table.persons.push(person);
                         if (nt) tables.list.push(table);
@@ -96,8 +105,8 @@ app
                 }
                 if (obj[1] != null) {
                     for (j = 0; j < obj[1].ordered_items.length; j++) {
-                        obj[1].ordered_items[j].quantity -= ind[obj[1].ordered_items[j].item.id];
-                        p = ind[obj[1].ordered_items[j].item.id] * (obj[1].ordered_items[j].item.converted || obj[1].ordered_items[j].item.price);
+                        obj[1].ordered_items[j].quantity -= ind[obj[1].ordered_items[j].item.id][0];
+                        p = ind[obj[1].ordered_items[j].item.id][0] * (obj[1].ordered_items[j].item.converted || obj[1].ordered_items[j].item.price);
                         obj[1].total -= p;
                         if (props.is_waiter) person.total -= p;
                         table.total -= p;
@@ -127,7 +136,7 @@ app
         }
     })
 
-    .controller('OrdersCtrl', function ($scope, $timeout, APIService, orderListService, dialogService){
+    .controller('OrdersCtrl', function ($scope, $timeout, APIService, orderListService, orderErrorService, dialogService){
         $scope.loadOrders = orderListService.query;
         $scope.tables = orderListService.tables;
         $scope.persons = orderListService.persons;
@@ -158,7 +167,7 @@ app
                 } else check(obj);
                 $scope.popover.target = obj;
                 $timeout(function (){
-                    if (!is_waiter && $scope.popover.type[0].list.length == 0) $scope.popover.title = null; else if (!is_waiter && $scope.popover.type[0].list.length > 0) $scope.popover.title = gettext("Choose type of payment"); else $scope.popover.title = $scope.popover.type[0].list.length > 0 && ($scope.popover.type.length == 1 || $scope.popover.type[1].list.length == 0) ? gettext("Confirm delivery below") : $scope.popover.type[1].list.length > 0 && $scope.popover.type[0].list.length == 0 ? gettext("Confirm payment below") : gettext("Choose below");
+                    if (!is_waiter && $scope.popover.type[0].list.length == 0) $scope.popover.title = null; else if (!is_waiter && $scope.popover.type[0].list.length > 0) $scope.popover.title = gettext("Choose type of payment or request cancellation"); else $scope.popover.title = $scope.popover.type[0].list.length > 0 && ($scope.popover.type.length == 1 || $scope.popover.type[1].list.length == 0) ? gettext("Confirm delivery below") : $scope.popover.type[1].list.length > 0 && $scope.popover.type[0].list.length == 0 ? gettext("Confirm finishment below") : $scope.popover.type[0].list.length > 0 && ($scope.popover.type.length == 1 || $scope.popover.type[1].list.length > 0) ? gettext("Choose below") : null;
                     obj.opened = true;
                 });
             } else $timeout(function (){ obj.opened = false });
@@ -166,10 +175,11 @@ app
             var service = APIService.init(13);
             $scope.doAction = function (t){
                 dialogService.show(gettext("Are you sure?")).then(function (){
-                    var data = {ids: '&ids='+$scope.popover.type[$scope.popover.type.length === 2 ? t : 0].list.join(',')};
-                    if ($scope.popover.type.length === 1) data.request_type = t; else if (t == 0) data.delivered = true; else data.finished = true;
+                    var data = {ids: '&ids='+$scope.popover.type[$scope.popover.type.length === 2 ? t-1 : 0].list.join(',')};
+                    if ($scope.popover.type.length === 1) data.request_type = t; else if (t == 1) data.delivered = true; else data.finished = true;
                     service.update(data, function (result){ orderListService.load(result.data) }, function (res) {
-                        dialogService.show(res.data && res.data.detail ? gettext("Either the business has been closed in the meantime, or there is currently no waiter for the table.") : gettext("There was some error while doing this action."), false);
+                        if (res.data && res.data.data) orderListService.load(res.data.data);
+                        orderErrorService(res, true);
                     });
                 });
             };

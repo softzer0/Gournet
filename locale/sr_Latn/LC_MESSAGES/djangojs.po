@@ -89,9 +89,41 @@ msgstr "Odustani"
 msgid "Are you sure?"
 msgstr "Da li ste sigurni?"
 
-#: .\main\static\main\js\custom\main.js:202 .\main\static\main\js\custom\orders.js:146
+#: .\main\static\main\js\custom\main.js:594
 msgid "Either the business has been closed in the meantime, or there is currently no waiter for the table."
 msgstr "Ugostiteljski objekat je u međuvremenu zatvoren, ili trenutno nema konobara za stolom."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "Either the business has been closed in the meantime, or your work time is over."
+msgstr "Ugostiteljski objekat je u međuvremenu zatvoren, ili je tvoje radno vreme završeno."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already marked this order as finished."
+msgstr "Već ste označili ovu porudžbinu kao završenu."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already marked this order as delivered."
+msgstr "Već ste označili ovu porudžbinu kao dostavljenu."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "This order can't be cancelled as it is already delivered."
+msgstr "Ova porudžbina ne može biti otkazana jer je već dostavljena."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "This order is already marked as finished."
+msgstr "Ova porudžbina je vec označena kao završena."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already made a request for this order."
+msgstr "Već ste napravili zahtev za ovu porudžbinu."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already marked this ordered item as made."
+msgstr "Već ste označili ovaj poručen proizvod kao napravljen."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "The ordered item is either already delivered or cancelled."
+msgstr "Ovaj poručeni proizvod je već dostavljen ili pak otkazan."
 
 #: .\main\static\main\js\custom\main.js:202 .\main\static\main\js\custom\orders.js:146
 msgid "There was some error while doing this action."
@@ -243,16 +275,16 @@ msgid "Are you sure that you want to set this item as available? Guests would be
 msgstr "Da li ste sigurni da želite staviti ovaj proizvod kao dostupan? Mušterije će ga moći poručivati."
 
 #: .\main\static\main\js\custom\orders.js:135
-msgid "Choose type of payment"
-msgstr "Odaberi način plaćanja"
+msgid "Choose type of payment or request cancellation"
+msgstr "Odaberi način plaćanja ili zatraži otkazivanje"
 
 #: .\main\static\main\js\custom\orders.js:135
 msgid "Confirm delivery below"
 msgstr "Potvrdi dostavu ispod"
 
 #: .\main\static\main\js\custom\orders.js:135
-msgid "Confirm payment below"
-msgstr "Potvrdi plaćanje ispod"
+msgid "Confirm finishment below"
+msgstr "Potvrdi završetak ispod"
 
 #: .\main\static\main\js\custom\orders.js:135
 msgid "Choose below"
@@ -442,8 +474,8 @@ msgid "Desserts"
 msgstr "Dezert"
 
 #: .\main\static\main\js\custom\view.js:195
-msgid "Are you sure that you want to place an order? This action cannot be undone."
-msgstr "Da li ste sigurni da želite da poručite? Ova akcija je nepovratna."
+msgid "Are you sure that you want to place an order?"
+msgstr "Da li ste sigurni da želite da poručite?"
 
 #: .\main\static\main\js\custom\view.js:198
 msgid "Your order has been placed. Enjoy!"
@@ -723,6 +755,14 @@ msgstr "Ukupno:"
 msgid "Delivered at:"
 msgstr "Dostavljeno:"
 
+#: main\static\main\modals\order.html:21
+msgid "Mark remaining as made"
+msgstr "Označi preostalo kao napravljeno"
+
+#: main\static\main\modals\order.html:21
+msgid "Mark all as made"
+msgstr "Označi sve kao napravljeno"
+
 #: main\static\main\modals\order.html:22
 msgid "Select type of payment"
 msgstr "Odaberi način plaćanja"
@@ -766,6 +806,30 @@ msgstr "Plaćeno platnom karticom:"
 #: main\static\main\modals\order.html:27
 msgid "Paid at:"
 msgstr "Plaćeno:"
+
+#: main\static\main\modals\order.html:32
+msgid "Are you sure that you want to cancel this order? This action cannot be undone."
+msgstr "Da li želite da otkažete ovu porudžbinu? Ova akcija je nepovratna."
+
+#: main\static\main\modals\order.html:32
+msgid "Request cancellation"
+msgstr "Zatraži otkazivanje"
+
+#: main\static\main\modals\order.html:32
+msgid "Confirm cancellation"
+msgstr "Potvrdi otkazivanje"
+
+#: main\static\main\modals\order.html:34
+msgid "Requested cancellation at:"
+msgstr "Zatraženo otkazivanje:"
+
+#: main\static\main\modals\order.html:35
+msgid "Cancelled at:"
+msgstr "Otkazano:"
+
+#: main\static\main\modals\order.html:35
+msgid "Finished at:"
+msgstr "Završeno:"
 
 #: main\static\main\modals\reminder.html:4
 msgctxt "before certain period of time"

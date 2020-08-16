@@ -80,3 +80,31 @@ msgstr "Ugostiteljski objekat se u međuvremenu zatvorio."
 
 msgid "There are currently no waiters for the table."
 msgstr "Trenutno nema konobara za stolom."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already marked this order as finished."
+msgstr "Već ste označili ovu porudžbinu kao završenu."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already marked this order as delivered."
+msgstr "Već ste označili ovu porudžbinu kao dostavljenu."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "This order can't be cancelled as it is already delivered."
+msgstr "Ova porudžbina ne može biti otkazana jer je već dostavljena."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "This order is already marked as finished."
+msgstr "Ova porudžbina je vec označena kao završena."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already made a request for this order."
+msgstr "Već ste napravili zahtev za ovu porudžbinu."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "You have already marked this ordered item as made."
+msgstr "Već ste označili ovaj poručen proizvod kao napravljen."
+
+#: .\main\static\main\js\custom\main.js:594
+msgid "The ordered item is either already delivered or cancelled."
+msgstr "Ovaj poručeni proizvod je već dostavljen ili pak otkazan."

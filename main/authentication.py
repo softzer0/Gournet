@@ -25,7 +25,7 @@ class SessionAuthentication(DefSessionAuthentication):
 
         # Unauthenticated, CSRF validation not required
         if 'table' not in request.session and (not user or not user.is_active):
-            return None
+            return
 
         self.enforce_csrf(request)
 

@@ -27,7 +27,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         if isinstance(obj, Event) or isinstance(obj, Item):
             user = obj.business.manager
         elif isinstance(obj, Waiter):
-            user = obj.table.business.manager
+            user = obj.table.business.manager if obj.table else obj.business.manager
         else:
             user = getattr(obj, 'person', getattr(obj, 'user', getattr(obj, 'manager', obj)))
 

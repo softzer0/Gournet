@@ -1,4 +1,4 @@
-.ng-enter {
+.orders .ng-enter {
     animation: enter 2.5s linear;
 }
 
@@ -6,7 +6,7 @@
     100% {background-color: #dff0d8; opacity: 1;}
 }
 
-.ng-leave {
+.orders .ng-leave {
     animation: leave 2.5s linear;
 }
 
@@ -14,16 +14,16 @@
     100% {background-color: #e4b9b9; opacity: 0;}
 }
 
-.row > div {
+.orders > div {
     padding-left: 5px;
     padding-right: 5px;
 }
 
-.change {
+.orders .change {
     animation: move 2.5s linear;
 }
 
-.fa-reorder {
+.orders .fa-reorder {
     font-size: 12em;
 }
 
@@ -31,20 +31,40 @@
     50% {background-color: #afd9ee;}
 }
 
-.item {
-    padding-left: 30px !important;
+.orders .item::before {
+    content: "\a0\a0\a0\a0\a0";
 }
 
-.action-popover > .popover-inner > .popover-content {
+.orders .item.it_cmp::before {
+    content: "\2022\a0\a0\a0";
+}
+
+.orders.no_w .action-popover {
+    max-width: none;
+}
+
+.orders .action-popover > .popover-inner > .popover-content {
     padding-bottom: 0;
 }
 
-.action-popover .btn {
+.orders .action-popover .btn {
     margin-bottom: 9px;
 }
 
-.orders_sep {
+.orders .orders_sep {
     border-top-width: 6px;
     border-radius: 3px;
     border-top-color: #181a1dcc;
+}
+
+.orders.ordr .bg-danger {
+    color: #fff;
+    background-color: #b94a48;
+}
+
+.orders .close {
+    float: left;
+    margin-top: -2px;
+    margin-right: 4px;
+    opacity: 0.4;
 }

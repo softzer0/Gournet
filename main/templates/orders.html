@@ -1,27 +1,28 @@
-{% extends 'base/home.html' %}
+{% extends 'base/orders.html' %}
 {% load staticfiles %}
 {% load i18n %}
 {% load cache %}
+{% load main_tags %}
 
 {% block title %}{% trans "Orders" %} - Gournet{% endblock %}
 {% block head %}{{ block.super }}
-    <link rel="stylesheet" href="{% static 'main/css/orders.css' %}">
     <script src="{% static 'main/js/custom/orders.js' %}"></script>{% endblock %}
 
 {% block container %}{% cache None orders request.LANGUAGE_CODE is_waiter %}
         <script type="text/ng-template" id="actionPopover">
             <center>
                 <p ng-if="popover.notes"><strong>{% trans "Notes:" %}</strong> {% verbatim %}{{ popover.notes }}{% endverbatim %}</p>
-                <p ng-if="popover.target.note"><strong>{% trans "Note:" %}</strong> {% verbatim %}{{ popover.target.note }}{% endverbatim %}</p>
+                <p ng-if="popover.target.delivered == null && popover.target.note"><strong>{% trans "Note:" %}</strong> {% verbatim %}{{ popover.target.note }}{% endverbatim %}</p>
                 <p ng-if="!popover.title">{% trans "Nothing to do." %}</p>
                 <span ng-if="popover.title">
-                    <input{% if is_waiter %} ng-show="popover.type[0].list.length > 0"{% endif %} type="submit" class="btn btn-primary" ng-attr-value="{{ '{' }}{ popover.type[0].count > 1 ? {% if is_waiter %}'{% trans "All is delivered" %}' : '{% trans "It's delivered" %}'{% else %}'{% trans "All with cash" context "paid/to be paid" %}' : '{% trans "With cash" context "paid/to be paid" %}'{% endif %} }{{ '}' }}" ng-click="doAction(0)">
-                    <input{% if is_waiter %} ng-show="popover.type[1].list.length > 0"{% endif %} type="submit" class="btn btn-success" ng-attr-value="{{ '{' }}{ popover.type[{% if is_waiter %}1{% else %}0{% endif %}].count > 1 ? {% if is_waiter %}'{% trans "All is paid" %}' : '{% trans "It's paid" %}'{% else %}'{% trans "All by debit card" context "paid/to be paid" %}' : '{% trans "By debit card" context "paid/to be paid" %}'{% endif %} }{{ '}' }}" ng-click="doAction(1)">
+                    <input{% if is_waiter %} ng-show="popover.type[0].list.length > 0"{% endif %} type="submit" class="btn btn-primary" ng-attr-value="{{ '{' }}{ popover.type[0].count > 1 ? {% if is_waiter %}'{% trans "All is delivered" %}' : '{% trans "It's delivered"|escsquote %}'{% else %}'{% trans "All with cash" context "paid/to be paid" %}' : '{% trans "With cash" context "paid/to be paid" %}'{% endif %} }{{ '}' }}" ng-click="doAction(1)">
+                    <input{% if is_waiter %} ng-show="popover.type[1].list.length > 0"{% endif %} type="submit" class="btn btn-success" ng-attr-value="{{ '{' }}{ popover.type[{% if is_waiter %}1{% else %}0{% endif %}].count > 1 ? {% if is_waiter %}'{% trans "All is finished" %}' : '{% trans "It's finished"|escsquote %}'{% else %}'{% trans "All by debit card" context "paid/to be paid" %}' : '{% trans "By debit card" context "paid/to be paid" %}'{% endif %} }{{ '}' }}" ng-click="doAction(2)">
+                    {% if not is_waiter %}<input type="submit" class="btn btn-danger" ng-attr-value="{{ '{' }}{ popover.type[0].count > 1 ? '{% trans "Cancel all" context "orders" %}' : '{% trans "Cancel" context "order" %}' }{{ '}' }}" ng-click="doAction(0)">{% endif %}
                 </span>
             </center>
         </script>
-        <div class="row" ng-controller="OrdersCtrl" ng-init="loadOrders({{ is_waiter|lower }}, '{{ curr }}')">
-            <div ng-if="!tables.list.length" class="text-center text-muted"><i class="fa fa-reorder"></i><h4>{% trans "There are currently no orders." %}</h4></div>
+        <div class="orders ordr row{% if not is_waiter %} no_w{% endif %}" ng-controller="OrdersCtrl" ng-init="loadOrders({{ is_waiter|lower }}, '{{ curr }}')">
+            <div ng-if="!tables.list.length" class="text-center text-muted"><i class="fa fa-reorder ordr"></i><h4>{% trans "There are currently no orders." %}</h4></div>
             <div ng-if="tables.list.length" ng-repeat="table in tables.list" ng-cloak>
                 <h4 class="clickable" animate-on-change="table.total" uib-popover-template="'actionPopover'" popover-class="action-popover" popover-title="{% verbatim %}{{ popover.title }}{% endverbatim %}" popover-trigger="outsideClick" popover-is-open="table.opened" ng-click="openPopover({{ is_waiter|lower }}, table)" popover-placement="bottom-left">{% trans "Table" context "number" %} {% verbatim %}{{ table.num }} - {{ table.total | currency:tables.curr }}{% endverbatim %}</h4>
                 <table class="table table-hover table-condensed angular-animate animate"{% if is_waiter %} ng-repeat="obj in table.persons | orderBy:sortPerson:true"{% endif %}>
@@ -29,10 +30,10 @@
                         <th class="clickable" animate-on-change="obj.total" uib-popover-template="'actionPopover'" popover-class="action-popover" popover-title="{% verbatim %}{{ popover.title }}{% endverbatim %}" popover-trigger="outsideClick" popover-is-open="obj.opened" ng-click="openPopover(true, obj)" popover-placement="bottom-left">{{ '{' }}{persons[obj.id] !== undefined ? persons[obj.id].first_name+' '+persons[obj.id].last_name : '{% trans "Anonymous" %}' {% verbatim %}}} - {{ obj.total | currency:tables.curr }}{% endverbatim %}</th>
                     </tr>
                     {% endif %}<tr ng-repeat-start="order in {% if is_waiter %}obj{% else %}table{% endif %}.orders | orderBy:sortItem:true" class="angular-animate">
-                        <td class="clickable" ng-class="{'bg-warning': order.request_type == null && order.delivered == null, 'bg-primary': order.request_type != null}" uib-popover-template="'actionPopover'" popover-class="action-popover" popover-title="{% verbatim %}{{ popover.title }}{% endverbatim %}" popover-trigger="outsideClick" popover-is-open="order.opened" ng-click="openPopover({{ is_waiter|lower }}, order)" popover-placement="bottom-left"><u>{{ '{' }}{ order.request_type != null ? order.request_type === 0 ? '{% trans "For payment with cash" %}' : '{% trans "For payment by debit card" %}' : order.delivered == null ? order.note ? '{% trans "For delivery (with note)" %}' : '{% trans "For delivery" %}' : '{% trans "Delivered" %}' {% verbatim %}}}:</u> {{ order.ordered_items.length > 0 ? (order.total | currency:tables.curr) : '' }}{% endverbatim %}<span class="small" ng-class="{'text-muted': order.request_type == null}"> - {% verbatim %}{{ order.requested || order.delivered || order.created | timeAgo }}{% endverbatim %}</span></td>
+                        <td class="clickable" ng-class="{'bg-warning': order.request_type == null && order.delivered == null && order.all_prepared !== false, 'bg-primary': order.request_type > 0, 'bg-danger': order.request_type === 0}" uib-popover-template="'actionPopover'" popover-class="action-popover" popover-title="{% verbatim %}{{ popover.title }}{% endverbatim %}" popover-trigger="outsideClick" popover-is-open="order.opened" ng-click="openPopover({{ is_waiter|lower }}, order)" popover-placement="bottom-left"><u>{{ '{' }}{ order.request_type != null ? order.request_type === 1 ? order.delivered == null ? order.note ? '{% trans "For delivery and payment with cash (with note)" %}' : '{% trans "For delivery and payment with cash" %}' : '{% trans "For payment with cash" %}' : order.request_type === 2 ? order.delivered == null ? order.note ? '{% trans "For delivery and payment by debit card (with note)" %}' : '{% trans "For delivery and payment by debit card" %}' : '{% trans "For payment by debit card" %}' : '{% trans "For cancellation" %}' : order.delivered == null ? order.note ? '{% trans "For delivery (with note)" %}' : '{% trans "For delivery" %}' : '{% trans "Delivered" %}' {% verbatim %}}}:</u> {{ order.ordered_items.length > 0 ? (order.total | currency:tables.curr) : '' }}{% endverbatim %}<span class="small" ng-class="{'text-muted': order.request_type == null}"> - {% verbatim %}{{ order.requested || order.delivered || order.created | timeAgo }}{% endverbatim %}</span></td>
                     </tr>
                     <tr ng-repeat-end ng-repeat="item in order.ordered_items">
-                        <td class="item">{% verbatim %}{{ item.item.name }} x {{ item.quantity }}{% endverbatim %}</td>
+                        <td class="item" ng-class="{'it_cmp': order.delivered == null && item.made_quantity === item.quantity}" ng-style="{'background-color': 'rgba(204, 204, 204, '+(order.delivered == null && item.made_quantity ? item.made_quantity/item.quantity : 0)+')'}">{% verbatim %}{{ item.item.name }} x {{ item.quantity }}{% endverbatim %}<span ng-if="order.delivered == null && item.made" class="small text-muted"> - {% verbatim %}{{ item.made | timeAgo }}{% endverbatim %}</span></td>
                     </tr>
                 </table>
                 <hr class="orders_sep" ng-if="!$last"/>

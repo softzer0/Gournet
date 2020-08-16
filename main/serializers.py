@@ -652,6 +652,7 @@ class ItemSerializer(BaseSerializer):
                 self.fields['name'].read_only = True
             if 'ordered' not in self.context and 'table' in self.context['request'].session:
                 self.fields['has_order_session'] = serializers.SerializerMethodField()
+        if 'menu' not in self.context and 'currency' not in self.context or 'ordered' in self.context and self.context['request'].method == 'GET':
             self.fields['category_display'] = serializers.CharField(source='get_category_display', read_only=True)
 
     def get_distance(self, obj):
@@ -738,6 +739,7 @@ class OrderedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.OrderedItem
         fields = ('id', 'item', 'quantity', 'made')
+        extra_kwargs = {'made': {'read_only': True}}
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('fields', None)
@@ -747,15 +749,22 @@ class OrderedItemSerializer(serializers.ModelSerializer):
             self.fields['item'] = ItemSerializer(context=self.context)
         if 'noord' in self.context:
             self.fields['table_number'] = serializers.IntegerField(source='order.table.number', read_only=True)
+            self.fields['created'] = serializers.DateTimeField(source='order.created', read_only=True)
             self.fields['note'] = serializers.CharField(source='order.note', read_only=True)
-        else:
-            self.fields.pop('id')
-        if 'singlei' in self.context:
             self.fields['item'].read_only = True
             self.fields['quantity'].read_only = True
-            self.fields['made'] = BooleanDateTimeField(required=True)
+            if self.context['request'].method != 'GET':
+                self.fields['made'] = BooleanDateTimeField(required=True)
+            # if 'ids' not in self.context or self.context['request'].method != 'GET':
+            self.fields['request_type'] = serializers.IntegerField(source='order.request_type', read_only=True)
+            self.fields['requested'] = serializers.DateTimeField(source='order.requested', read_only=True)
+            # if 'after' in self.context['request'].query_params:
+            self.fields['delivered'] = serializers.DateTimeField(source='order.delivered', read_only=True)
+            self.fields['finished'] = serializers.DateTimeField(source='order.finished', read_only=True)
+            if self.context['request'].method == 'GET' and 'after' not in self.context['request'].query_params:
+                self.fields.pop('made')
         else:
-            self.fields['made'].read_only = True
+            self.fields['is_preparator' if 'prep' in self.context else 'has_preparator'] = serializers.SerializerMethodField()
 
     def validate(self, attrs):
         if 'item' in attrs:
@@ -767,11 +776,21 @@ class OrderedItemSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if validated_data.get('made', None) is not None:
+            if instance.made:
+                gen_err("You have already marked this ordered item as made.")
+            if instance.order.delivered or instance.order.finished:
+                gen_err("The ordered item is either already delivered or cancelled.")
             instance.made = timezone.now()
             instance.save()
             instance.preparator.item_sum = F('item_sum') - instance.quantity
             instance.preparator.save()
         return instance
+
+    def get_has_preparator(self, obj):
+        return bool(obj.preparator)
+
+    def get_is_preparator(self, obj):
+        return obj.preparator.person == self.context['request'].user
 
 class TableSerializer(serializers.ModelSerializer):
     business = BusinessSerializer(currency=True)
@@ -838,7 +857,8 @@ class OrderSerializer(serializers.ModelSerializer):
         if not has_waiter:
             gen_err("The business has been closed in the meantime." if has_waiter is False else "There are currently no waiters for the table.")
         prep_pks = models.get_current_waiter(table.business, models.Waiter.objects.filter(business=table.business, table=None)).values_list('pk', flat=True)
-        order = models.Order.objects.create(table=table, note=validated_data.get('note', None), **get_person_or_session(self.context['request']))
+        note = validated_data.get('note', None)
+        order = models.Order.objects.create(table=table, note=note if note != '' else None, **get_person_or_session(self.context['request']))
         ordered_items = []
         preparators = {}
         for ordered_item in validated_data['ordereditem_set']:
@@ -865,13 +885,16 @@ class OrderSerializer(serializers.ModelSerializer):
                 if getattr(instance, f):
                     gen_err("You have already marked this order as finished." if f == 'finished' else "You have already marked this order as delivered.")
                 setattr(instance, f, timezone.now())
+                models.Waiter.objects.filter(ordereditem__order__pk=instance.pk, item_sum__gt=0).distinct().update(item_sum=0)
                 instance.save()
                 return instance
         if validated_data.get('request_type', None) is not None:
+            if validated_data['request_type'] == 0 and instance.delivered:
+                gen_err("This order can't be cancelled as it is already delivered.")
             if instance.finished:
                 gen_err("This order is already marked as finished.")
             if instance.request_type:
-                gen_err("You have already marked this order for paying.")
+                gen_err("You have already made a request for this order.")
             instance.request_type = validated_data['request_type']
             instance.requested = timezone.now()
             instance.save()
@@ -1014,7 +1037,7 @@ class CommentSerializer(CTSerializer, BaseSerializer):
     def get_person(self, obj):
         if obj.is_liked:
             return UserSerializer(obj.person).data
-        return None
+        return
 
     def get_distance(self, obj):
         return gen_distance(obj)

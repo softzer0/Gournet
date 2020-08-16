@@ -176,7 +176,7 @@
                                     ><strong>{% trans "Total:" %}</strong> {{ '{' }}{{ '{' }} menu_props.total_price|currency:'{{ currency }}{{ "' }" }}{{ '}' }}</div
                                 ><div class="ib pull-right"
                                     ><input ng-if="menu_props.ordered_items.length > 0" type="submit" class="btn btn-default" value="{% trans "Reset" %}" ng-click="resetOrder()"
-                                    ><input type="submit" class="btn btn-primary ml5" ng-attr-value="{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Confirm order" %}' : '{% trans "Special request" %}'}{{ '}' }}" ng-disabled="o_disabled" uib-popover-template="'notePopover'" popover-class="note-popover" popover-trigger="outsideClick" popover-placement="top-right" popover-is-open="opened" ng-click="opened = !opened"
+                                    ><input type="submit" class="btn btn-primary ml5" ng-attr-value="{{ '{' }}{ menu_props.ordered_items.length > 0 ? '{% trans "Confirm order" %}' : '{% trans "Special request" %}'}{{ '}' }}" ng-disabled="o_disabled" uib-popover-template="'notePopover'" popover-class="note-popover" popover-trigger="outsideClick" popover-placement="top-right" popover-is-open="o_opened" ng-click="o_opened = !o_opened"
                             ></div
                             ></div>
                             <div ng-init="startTime({% if request.session|get_item:'table'|get_item:'time' %}{% widthratio request.session|get_item:'table'|get_item:'time' 1 1000 %}{% else %}0{% endif %})" style="clear: right;" class="pull-right"><strong>{% trans "Remaining time:" %}</strong> {% verbatim %}{{ remaining }}{% endverbatim %}</div>
@@ -198,5 +198,5 @@
 						</div>
 
 {% endif %}                        <div class="mn1 vi" ng-init="t = 'review'" ng-if="objloaded[2] || active == 2" ng-include="'/static/main/events.html'"></div>
-                                   {% if request.user.is_anonymous %}<button class="btn btn-primary" ng-click="showRedirectToHomeMsg()">{% trans "Leave a review" %}</button>{% endif %}
+                                   {% if request.user.is_anonymous %}<button class="btn btn-primary mt10" ng-click="showRedirectToHomeMsg()">{% trans "Leave a review" %}</button>{% endif %}
                     </uib-tab>{% endblock %}

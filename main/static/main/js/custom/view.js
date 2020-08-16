@@ -180,7 +180,7 @@ app
         }
     })
 
-    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $state, $timeout, USER, APIService, menuService, itemService, dialogService) {
+    .controller('BusinessCtrl', function($rootScope, $scope, $controller, $state, $timeout, $interval, USER, APIService, menuService, itemService, dialogService, reviewService) {
         $scope.forms = {review_stars: 0};
         $scope.objloaded = [false, false, false];
         angular.extend(this, $controller('BaseViewCtrl', {$scope: $scope,
@@ -203,8 +203,8 @@ app
                         if (OWNER_MANAGER !== null) return;
                         $scope.submitOrder = function () {
                             $scope.o_disabled = null;
-                            dialogService.show(gettext("Are you sure that you want to place an order? This action cannot be undone.")).then(function () {
-                                $scope.opened = false;
+                            dialogService.show(gettext("Are you sure that you want to place an order?")).then(function () {
+                                $scope.o_opened = false;
                                 $scope.o_disabled = true;
                                 menuService.order().then(function () {
                                     dialogService.show(gettext("Your order has been placed. Enjoy!"), false);
@@ -266,13 +266,11 @@ app
             delete $scope.dismissI;
         };
 
-        var services;
         // Not manager
         if (!OWNER_MANAGER) $scope.data = {value: [], tz: undefined};
         if (!OWNER_MANAGER && !USER.anonymous) {
             //$scope.name = angular.element('.lead.text-center.br2').text();
             var likeService = APIService.init(3), loading;
-            services = [$injector.get('$timeout'), $injector.get('reviewService')];
             $scope.doFavouriteAction = function () {
                 if (loading) return;
                 loading = true;
@@ -281,14 +279,14 @@ app
                         function () {
                             $scope.fav_state = 1;
                             $scope.fav_count++;
-                            services[0](function() { loading = false });
+                            $timeout(function() { loading = false });
                         });
                 } else {
                     likeService.delete({content_type: 'business', id: $scope.$parent.id},
                         function (){
                             $scope.fav_state = 0;
                             $scope.fav_count--;
-                            services[0](function() { loading = false });
+                            $timeout(function() { loading = false });
                         });
                 }
             };
@@ -304,9 +302,9 @@ app
                 } else $scope.forms.review.alert = 0;
                 $scope.loading = true;
                 function l(){ $timeout(function(){ delete $scope.loading }) }
-                services[1].new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
+                reviewService.new(el.val(), $scope.forms.review_stars, $scope.$parent.id).then(function () {
                     $scope.showrevf = false;
-                    $scope.rating.user = services[1].getobjs(false, false)[0].stars;
+                    $scope.rating.user = reviewService.getobjs(false, false)[0].stars;
                     l();
                 }, l);
             };
@@ -334,8 +332,8 @@ app
                         }
                         if (!$scope.o_disabled && time > 0) dialogService.show(gettext("Order time has expired. You must issue a new link."), false);
                         $scope.o_disabled = true;
-                        if (i) $injector.get('$interval').cancel(i);
-                    } else if (!i) i = $injector.get('$interval')(f, 1000);
+                        if (i) $interval.cancel(i);
+                    } else if (!i) i = $interval(f, 1000);
                 })();
             };
         }

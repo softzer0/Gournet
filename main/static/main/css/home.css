@@ -159,7 +159,11 @@ legend, [class*=objs] p, .ww, .namef > a:first-child, .namef > p {
     margin-top: 13px !important;
 }
 
-.comb, .mr7 {
+.mr7 {
+    margin-right: 7px;
+}
+
+.comb {
     margin-right: 5px;
 }
 

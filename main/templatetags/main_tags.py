@@ -35,7 +35,12 @@ class MarkdownNode(Node):
                     "The Markdown library isn't installed.")
         return force_text(value)
 
-@register.filter(is_safe=False)
+@register.filter
 @stringfilter
 def endswith(value, suffix):
     return value.endswith(suffix)
+
+@register.filter
+@stringfilter
+def escsquote(value):
+    return value.replace('\'', '\\\'')
