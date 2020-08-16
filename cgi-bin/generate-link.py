@@ -10,4 +10,4 @@ from main.models import Card
 from pyotp import HOTP
 card = Card.objects.first()
 print('Content-type: text/html\n\n')
-print('<a href="{0}">{0}</a>'.format('https://test.gournet.co/%s/?t=%s&c=%s&p=%s' % (card.table.business.shortname, card.table.pk, card.pk, HOTP(card.table.business.table_secret).at(card.counter+1))))
+print('<a href="{0}">{0}</a>'.format('https://test.gournet.co/%s/?t=%s&c=%s&p=%s' % (card.table.business.shortname, card.table.number, card.number, HOTP(card.table.business.table_secret).at(card.counter+1))))
