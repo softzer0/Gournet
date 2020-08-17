@@ -886,7 +886,7 @@ class OrderSerializer(serializers.ModelSerializer):
                     gen_err("You have already marked this order as finished." if f == 'finished' else "You have already marked this order as delivered.")
                 setattr(instance, f, timezone.now())
                 instance.save()
-                for obj in instance.ordereditem_set.exclude(preparator=None):
+                for obj in instance.ordereditem_set.filter(made=None).exclude(preparator=None):
                     obj.preparator.item_sum = F('item_sum') - obj.quantity
                     obj.preparator.save()
                 return instance
