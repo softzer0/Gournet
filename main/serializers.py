@@ -885,8 +885,10 @@ class OrderSerializer(serializers.ModelSerializer):
                 if getattr(instance, f):
                     gen_err("You have already marked this order as finished." if f == 'finished' else "You have already marked this order as delivered.")
                 setattr(instance, f, timezone.now())
-                models.Waiter.objects.filter(ordereditem__order__pk=instance.pk, item_sum__gt=0).distinct().update(item_sum=0)
                 instance.save()
+                for obj in instance.ordereditem_set.exclude(preparator=None):
+                    obj.preparator.item_sum = F('item_sum') - obj.quantity
+                    obj.preparator.save()
                 return instance
         if validated_data.get('request_type', None) is not None:
             if validated_data['request_type'] == 0 and instance.delivered:
