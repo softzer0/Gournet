@@ -54,7 +54,11 @@ from datetime import datetime
 from rest_framework.serializers import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from re import match
+from random import randint, choices
+from string import digits
+from io import BytesIO
+from zipfile import ZipFile, ZIP_DEFLATED
+from qrcode import QRCode
 
 User = get_user_model()
 
@@ -279,6 +283,10 @@ def create_business(request):
     return render_with_recent(request, 'create.html', {'form': form, 'f': ['date', '', '']})
 
 
+def mask(number, length=6):
+    pos = randint(0, length - len(number))
+    return '%d%02d%s%s%s' % (len(number), pos, ''.join(choices(digits, k=pos)), number, ''.join(choices(digits, k=length - len(number) - pos)))
+
 def increase_recent(request, obj):
     models.increment(models.Recent, {'user': request.user, 'content_type': ContentType.objects.get_for_model(obj), 'object_id': obj.pk})
 
@@ -292,6 +300,19 @@ def show_business(request, shortname):
         return redirect('/')
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
+    if request.user.is_staff and get_param_bool(request.GET.get('gen_qr')):
+        zip_buffer = BytesIO()
+        with ZipFile(zip_buffer, 'a', ZIP_DEFLATED, False) as zip_file:
+            for card in models.Card.objects.filter(table__business=data['business']):
+                qr = QRCode(version=None)
+                qr.add_data('http://gournet.local/' + mask(str(card.pk)))
+                qr.make(fit=True)
+                imgByteArr = BytesIO()
+                qr.make_image(back_color='transparent').save(imgByteArr, format='PNG')
+                zip_file.writestr('Sto %s, kartica %s.png' % (card.table.number, card.number), imgByteArr.getvalue())
+        resp = HttpResponse(zip_buffer.getvalue(), content_type='application/x-zip-compressed')
+        resp['Content-Disposition'] = 'attachment; filename=' + data['business'].shortname + '.zip'
+        return resp
     if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and not data['business'].is_currently_opened():
         del request.session['table']
     data['fav_count'] = data['business'].likes.count()

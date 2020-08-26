@@ -29,6 +29,8 @@ from django.core.urlresolvers import reverse
 from rest_framework_simplejwt.utils import datetime_to_epoch
 from disposable_email_checker.fields import DisposableEmailField
 from pyotp import random_base32
+from random import SystemRandom
+from string import ascii_letters, digits, punctuation
 
 TF_OBJ = TimezoneFinder()
 
@@ -250,7 +252,7 @@ def relationship_delete_notification_recent(instance, **kwargs):
         instance.notification.delete()
     Recent.objects.filter(user=instance.from_person, content_type=ContentType.objects.get(model='user'), object_id=instance.to_person.pk).delete()
 
-FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'email', 'user', 'images', 'my-business', 'my-orders', 'my-ordered-items', 'manage-waiters', 'i18n', 'upload', 'privacy-policy', 'terms-of-service', 'edit.html') # important
+FORBIDDEN = ('contact', 'static', 'admin', 'signup', 'social', 'logout', 'api', 'password', 'inactive', 'email', 'user', 'images', 'my-business', 'my-orders', 'my-ordered-items', 'manage-waiters', 'i18n', 'privacy-policy', 'terms-of-service', 'edit.html') # important
 def not_forbidden(value):
     if value in FORBIDDEN:
         raise ValidationError(ugettext("\"%s\" is not permitted as a shortname.") % value)
@@ -290,6 +292,10 @@ def check_time(instance, **kwargs):
 def gen_random_secret():
     return random_base32(32)
 
+RND_CHARS = ascii_letters + punctuation.replace('\'', '', 1).replace('"', '', 1) + digits
+def gen_qr_secret():
+    return ''.join(SystemRandom().choice(RND_CHARS) for _ in range(16))
+
 class Business(Loc, WorkTime):
     shortname = models.CharField(
         _("shortname"),
@@ -307,6 +313,7 @@ class Business(Loc, WorkTime):
     supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True)
     is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
     table_secret = models.CharField(max_length=32, default=gen_random_secret)
+    table_qr_secret = models.CharField(max_length=16, default=gen_qr_secret)
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
@@ -511,6 +518,7 @@ class Card(models.Model):
     table = models.ForeignKey(Table, on_delete=models.CASCADE)
     number = models.PositiveSmallIntegerField()
     counter = models.PositiveIntegerField(default=0)
+    qr_counter = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = (('table', 'number'),)
