@@ -300,12 +300,12 @@ def show_business(request, shortname):
         return redirect('/')
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
-    if request.user.is_staff and get_param_bool(request.GET.get('gen_qr')):
+    if request.user.is_staff and request.GET.get('gen_qr'):
         zip_buffer = BytesIO()
         with ZipFile(zip_buffer, 'a', ZIP_DEFLATED, False) as zip_file:
             for card in models.Card.objects.filter(table__business=data['business']):
                 qr = QRCode(version=None)
-                qr.add_data('http://gournet.local/' + mask(str(card.pk)))
+                qr.add_data('http://'+request.GET['gen_qr']+'/'+mask(str(card.pk)))
                 qr.make(fit=True)
                 imgByteArr = BytesIO()
                 qr.make_image(back_color='transparent').save(imgByteArr, format='PNG')
