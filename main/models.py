@@ -31,6 +31,7 @@ from disposable_email_checker.fields import DisposableEmailField
 from pyotp import random_base32
 from random import SystemRandom
 from string import ascii_letters, digits, punctuation
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 TF_OBJ = TimezoneFinder()
 
@@ -289,6 +290,9 @@ def check_time(instance, **kwargs):
             setattr(instance, 'opened'+f, t)
             setattr(instance, 'closed'+f, t)
 
+def gen_random_new_secret():
+    return AESGCM.generate_key(128)
+
 def gen_random_secret():
     return random_base32(32)
 
@@ -314,6 +318,7 @@ class Business(Loc, WorkTime):
     is_published = models.BooleanField(pgettext_lazy("business", "is published?"), default=False)
     table_secret = models.CharField(max_length=32, default=gen_random_secret)
     table_qr_secret = models.CharField(max_length=16, default=gen_qr_secret)
+    table_new_secret = models.BinaryField(default=gen_random_new_secret)
     created = models.DateTimeField(auto_now_add=True)
     likes = GenericRelation('Like')
     recent = GenericRelation('Recent')
@@ -519,6 +524,7 @@ class Card(models.Model):
     number = models.PositiveSmallIntegerField()
     counter = models.PositiveIntegerField(default=0)
     qr_counter = models.PositiveIntegerField(default=0)
+    new_counter = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = (('table', 'number'),)
