@@ -148,7 +148,7 @@ def gen_session(request, card, business):
 
 class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
     def process_view(self, request, view_func, view_args, view_kwargs):
-        b = [request.GET.get('t', '').isnumeric() and request.GET.get('c', '').isnumeric(), request.GET.get('q')]
+        b = [request.GET.get('t', '').isnumeric() and request.GET.get('c', '').isnumeric() or None, request.GET.get('q')]
         if b[0] and not b[1]:
             b[0] = False if request.GET.get('p', '').isnumeric() else True if len(request.GET.get('d', '')) == 32 and len(request.GET.get('m', '')) == 16 else None
         c = None
