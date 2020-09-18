@@ -311,7 +311,7 @@ class Business(Loc, WorkTime):
     )
     manager = models.OneToOneField(User, on_delete=models.CASCADE)
     type = models.SmallIntegerField(_("type"), choices=BUSINESS_TYPE, default=0)
-    name = models.CharField(_("first name"), max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', _("Enter a valid business name."))])
+    name = models.CharField(_("business name"), max_length=60, validators=[RegexValidator(r'^(?!\s)(?!.*\s$)(?=.*\w)[\w +.$\-()\'*`\^&#@%\\/<>;:,|\[\]{}~=?!]{1,}$', _("Enter a valid business name."))])
     phone = PhoneNumberField(_("phone number")) #, help_text=_("In national format, e.g: 017448739.")
     currency = models.CharField(_("default currency"), choices=CURRENCY, default=settings.DEFAULT_CURRENCY, validators=[MinLengthValidator(3)], max_length=3)
     supported_curr = MultiSelectField(_("other supported currencies (if any)"), choices=CURRENCY, null=True, blank=True)

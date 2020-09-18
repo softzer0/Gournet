@@ -451,6 +451,8 @@ class BusinessSerializer(serializers.ModelSerializer):
         return obj
 
     def update(self, instance, validated_data):
+        if instance.is_published and ('shortname' in validated_data and instance.shortname != validated_data['shortname'] or 'type' in validated_data and instance.type != validated_data['type'] or 'name' in validated_data and instance.name != validated_data['name']):
+            gen_err("You can't change shortname, type and name when the business is published.")
         if 'currency' in validated_data and validated_data['currency'] in CURRENCY_ARR:
             mass_convert(instance.pk, instance, validated_data['currency'])
         return super().update(instance, validated_data)

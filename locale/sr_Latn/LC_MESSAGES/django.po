@@ -328,6 +328,10 @@ msgstr "Ljudi mogu pristupiti Vašem ugostiteljskom objektu stavljanjem njegove 
 msgid "type"
 msgstr "tip"
 
+#: .\main\models.py:314
+msgid "business name"
+msgstr "ime ugo. obj."
+
 #: .\main\models.py:294
 msgid "Enter a valid business name."
 msgstr "Unesite validno ime ugostiteljskog objekta."
