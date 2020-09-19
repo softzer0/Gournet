@@ -347,7 +347,9 @@ def show_business(request, shortname):
         popl()
         data['workh']['display'] = WORKH
     data['minchar'] = models.EVENT_MIN_CHAR
-    data['currency'] = request.session['currency'] if data['business'].currency != request.session['currency'] and request.session['currency'] in data['business'].supported_curr else data['business'].currency
+    data['currency'] = getattr(request.user, 'currency', request.session['currency'])
+    if data['currency'] not in data['business'].supported_curr:
+        data['currency'] = data['business'].currency
     data['table'] = 'table' in request.session and request.session['table']['shortname'] == data['business'].shortname
     return render_with_recent(request, 'view.html', data)
 
@@ -444,7 +446,7 @@ class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
 
     def get_queryset(self):
         qs = not isinstance(self, BusinessAPIView)
-        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False) #.order_by(Case(When(Q(currency=self.request.session['currency']) | Q(supported_curr__contains=self.request.session['currency']), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
+        qs = get_loc(self, filter_published(self, model=models.Business), False, qs, qs, False) #.order_by(Case(When(Q(currency=getattr(self.request.user, 'currency', self.request.session['currency'])) | Q(supported_curr__contains=getattr(self.request.user, 'currency', self.request.session['currency'])), then=Value(0)), output_field=IntegerField()), *models.Business._meta.ordering)
         return qs.only('id', 'shortname', 'name') if get_param_bool(self.request.query_params.get('quick', False)) else qs.defer('manager', 'phone', 'address', 'is_published')
 
     def filter_queryset(self, queryset):
@@ -1146,7 +1148,7 @@ class ItemAPIView(BaseAPIView, generics.UpdateAPIView):
         qs = super().getnopk()
         if self.request.query_params.get('search', False):
             self.kwargs['search'] = None
-            return get_loc(self, qs.filter(unavailable=False), deford=False) #.order_by(Case(When(Q(business__currency=self.request.session['currency']) | Q(business__supported_curr__contains=self.request.session['currency']), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
+            return get_loc(self, qs.filter(unavailable=False), deford=False) #.order_by(Case(When(Q(business__currency=getattr(self.request.user, 'currency', self.request.session['currency'])) | Q(business__supported_curr__contains=getattr(self.request.user, 'currency', self.request.session['currency'])), then=Value(0)), output_field=IntegerField()), *models.Item._meta.ordering)
         return qs.filter(business=get_b_from(self.request.user))
 
     def get_queryset(self):

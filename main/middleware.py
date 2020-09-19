@@ -189,7 +189,8 @@ class LoginRequiredMiddleware(StrongholdLoginRequiredMiddleware):
                                 while i < 301 and request.GET['p'] != hotp.at(c.counter+i):
                                     i += 1
                                 if i < 301:
-                                    c.update(counter=F('counter') + i)
+                                    c.counter = F('counter') + i
+                                    c.save()
                                     if c.table.get_current_waiter(True):
                                         return gen_session(request, c, business)
         if 'table' in request.session and (Table.objects.get(pk=request.session['table']['id']) if not c else c.table).get_current_waiter(True):

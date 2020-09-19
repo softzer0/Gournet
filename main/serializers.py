@@ -661,8 +661,9 @@ class ItemSerializer(BaseSerializer):
         return gen_distance(obj)
 
     def get_converted(self, obj):
-        if obj.business.currency != self.context['request'].session['currency'] and self.context['request'].session['currency'] in obj.business.supported_curr:
-            return str(curr_convert(obj.price, obj.business.currency, self.context['request'].session['currency']))
+        curr = getattr(self.context['request'].user, 'currency', self.context['request'].session['currency'])
+        if obj.business.currency != curr and curr in obj.business.supported_curr:
+            return str(curr_convert(obj.price, obj.business.currency, curr))
 
     def get_has_order_session(self, obj):
         return obj.business.shortname == self.context['request'].session['table']['shortname']
