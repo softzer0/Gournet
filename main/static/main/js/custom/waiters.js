@@ -73,11 +73,11 @@ app
 
         $scope.edit_objs = {};
         $scope.showEdit = function (waiter){
-            $scope.edit_objs[waiter.id] = angular.extend({}, waiter.obj);
+            $scope.edit_objs[waiter.obj.id] = angular.extend({}, waiter.obj);
             for (var i = 0; i < wt.length; i++) {
                 for (var j = 0; j < 2; j++){
-                    var v = $scope.edit_objs[waiter.id][oc[j]+wt[i][0]];
-                    $scope.edit_objs[waiter.id][oc[j]+wt[i][0]] = v != null ? new Date(0, 0, 0, v.split(':')[0], v.split(':')[1]) : new Date(0, 0, 0, wt[i][1][j][0], wt[i][1][j][1]);
+                    var v = $scope.edit_objs[waiter.obj.id][oc[j]+wt[i][0]];
+                    $scope.edit_objs[waiter.obj.id][oc[j]+wt[i][0]] = v != null ? new Date(0, 0, 0, v.split(':')[0], v.split(':')[1]) : new Date(0, 0, 0, wt[i][1][j][0], wt[i][1][j][1]);
                 }
                 if (i > 0) waiter.edit[wt[i][0]] = !!v;
             }
@@ -94,7 +94,7 @@ app
             var c = false;
             for (var i = 0; i < wt.length; i++) for (var j = 0; j < 2; j++) {
                 if (i === 0 || target.edit[wt[i][0]]) {
-                    var v = $scope.edit_objs[target.id][oc[j] + wt[i][0]], h = '' + v.getHours(), m = '' + v.getMinutes();
+                    var v = $scope.edit_objs[target.obj.id][oc[j] + wt[i][0]], h = '' + v.getHours(), m = '' + v.getMinutes();
                     obj[oc[j] + wt[i][0]] = '00'.substring(0, 2 - h.length) + h + ':' + '00'.substring(0, 2 - m.length) + m;
                 } else obj[oc[j] + wt[i][0]] = null;
                 if (!c) c = obj[oc[j] + wt[i][0]] !== target.obj[oc[j] + wt[i][0]];
