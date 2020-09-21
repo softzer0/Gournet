@@ -15,21 +15,21 @@
                                 <td>{{ '{' }}{ {{ str }}.obj.person.first_name }{{ '}' }} {{ '{' }}{ {{ str }}.obj.person.last_name }{{ '}' }}</td>
                                 {% for f in wt %}{% if f.0 == '' or f.0 %}<td>
                                     <span ng-show="{{ str }}.edit.state === false">{{ '{' }}{ {{ str }}.obj.opened{{ f.0 }} }{{ '}' }}</span>
-                                    <span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="edit_objs[{{ str }}.id].opened{{ f.0 }}" enable-date="false" is-open="edit_objs[{{ str }}.id].dt[{{ forloop.counter0 }}][0]"></span>
+                                    <span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="edit_objs[{{ str }}.obj.id].opened{{ f.0 }}" enable-date="false" is-open="edit_objs[{{ str }}.obj.id].dt[{{ forloop.counter0 }}][0]"></span>
                                     {% if f.0 != '' %}<div ng-show="{{ str }}.edit.state" class="ib checkbox"><input type="checkbox" ng-model="{{ str }}.edit.{{ f.0 }}" ng-disabled="{{ str }}.edit.state === null"></div>
                                     {% endif %}<fieldset ng-disabled="{% if f.0 != '' %}!{{ str }}.edit.{{ f.0 }} || {% endif %}{{ str }}.edit.state === null">
                                         <span ng-show="{{ str }}.edit.state !== false" class="input-group input-group-sm">
-                                            <input class="form-control" datetime="HH:mm" ng-model="edit_objs[{{ str }}.id].opened{{ f.0 }}">
+                                            <input class="form-control" datetime="HH:mm" ng-model="edit_objs[{{ str }}.obj.id].opened{{ f.0 }}">
                                             <span class="input-group-btn">
-                                                <button class="btn btn-default" type="button" ng-click="edit_objs[{{ str }}.id].dt[{{ forloop.counter0 }}][0] = true"><i class="fa fa-clock-o"></i></button>
+                                                <button class="btn btn-default" type="button" ng-click="edit_objs[{{ str }}.obj.id].dt[{{ forloop.counter0 }}][0] = true"><i class="fa fa-clock-o"></i></button>
                                             </span>
                                         </span>
                                         <div class="ib" ng-class="{'hdt': {{ str }}.edit.state !== false}">-</div>
-                                        <span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="edit_objs[{{ str }}.id].closed{{ f.0 }}" enable-date="false" is-open="edit_objs[{{ str }}.id].dt[{{ forloop.counter0 }}][1]"></span>
+                                        <span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="edit_objs[{{ str }}.obj.id].closed{{ f.0 }}" enable-date="false" is-open="edit_objs[{{ str }}.obj.id].dt[{{ forloop.counter0 }}][1]"></span>
                                         <span ng-show="{{ str }}.edit.state !== false" class="input-group input-group-sm">
-                                            <input class="form-control" datetime="HH:mm" ng-model="edit_objs[{{ str }}.id].closed{{ f.0 }}">
+                                            <input class="form-control" datetime="HH:mm" ng-model="edit_objs[{{ str }}.obj.id].closed{{ f.0 }}">
                                             <span class="input-group-btn">
-                                                <button class="btn btn-default" type="button" ng-click="edit_objs[{{ str }}.id].dt[{{ forloop.counter0 }}][1] = true"><i class="fa fa-clock-o"></i></button>
+                                                <button class="btn btn-default" type="button" ng-click="edit_objs[{{ str }}.obj.id].dt[{{ forloop.counter0 }}][1] = true"><i class="fa fa-clock-o"></i></button>
                                             </span>
                                         </span>
                                     </fieldset>
