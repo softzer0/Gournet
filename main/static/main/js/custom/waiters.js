@@ -59,7 +59,7 @@ app
             $scope.loading = true;
             days = d;
             wt = w;
-            waiterService.load([w.length >= 7 && days[6], w.length >= 8 && days[7]]).then(function (){ delete $scope.loading });
+            waiterService.load([!!(w.length >= 7 && days[6]), !!(w.length >= 8 && days[7])]).then(function (){ delete $scope.loading });
         };
 
         function delWaiterObj (p, i){
