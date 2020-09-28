@@ -502,12 +502,16 @@ class Waiter(WorkTimeNotReq):
 for subclass in WorkTime.__subclasses__() + WorkTimeNotReq.__subclasses__():
     pre_save.connect(check_time, subclass)
 
+def _gen_q_waiter(now, d, opened, closed):
+    return Q(**{'opened'+d+'__isnull': False}) & (Q(**{'opened'+d+'__lte': now, 'closed'+d+'__gt': now}) if opened < closed else (Q(**{'opened'+d+'__lte': now}) | Q(**{'closed'+d+'__gt': now})))
+
 def get_current_waiter(business, qs, annotate=False):
     now, opened, closed, is_opened, day = business.is_currently_opened(True)
     if not is_opened:
         return False
-    d = DAYS[day] if getattr(business, PERIOD[0][0]+DAYS[day]) else DAYS[0]
-    q = Q(**{'opened'+d+'__lte': now, 'closed'+d+'__gt': now}) if opened < closed else (Q(**{'opened'+d+'__lte': now}) | Q(**{'closed'+d+'__gt': now}))
+    q = _gen_q_waiter(now, DAYS[day], opened, closed)
+    if day < 6:
+        q |= Q(**{'opened'+DAYS[day]+'__isnull': True}) & _gen_q_waiter(now, DAYS[0], opened, closed)
     return qs.filter(q) if not annotate else qs.annotate(is_current=Case(When(q, then=True), default=False, output_field=models.BooleanField()))
 
 class Table(models.Model):
