@@ -1,3 +1,4 @@
+function formatTime(v){ return moment(v).format('HH:mm') }
 app
     .directive('dragToReorder', function() {
         return {
@@ -79,7 +80,7 @@ app
         }
     })
 
-    .constant('EDIT_DATA', {value: [[]], form: [[]], tz: undefined})
+    .constant('EDIT_DATA', {value: {0: {}}, form: {0: {}}, tz: undefined})
 
     .controller('EventCtrl', function($rootScope, $scope, $timeout, eventService) {
         //$scope.name = angular.element('.lead.text-center.br2').text();
@@ -225,30 +226,27 @@ app
                 }
                 $scope.doSave = function (){
                     var d = {};
-                    if (checkField($scope.data, 1)) d.phone = $scope.data.form[1];
-                    for (var i = 0; i < $scope.data.form[2].length; i++) if ($scope.data.form[2][i] == $scope.data.curr) {
-                        $scope.data.form[2].splice(i, 1);
+                    if (checkField($scope.data, 'phone')) d.phone = $scope.data.form.phone;
+                    for (var i = 0; i < $scope.data.form.supported_curr.length; i++) if ($scope.data.form.supported_curr[i] == $scope.data.curr) {
+                        $scope.data.form.supported_curr.splice(i, 1);
                         break;
                     }
-                    if (checkField($scope.data, 2)) d.supported_curr = $scope.data.form[2];
-                    if (checkField($scope.data, 3) || checkField($scope.data, 4)) {
-                        d.address = $scope.data.form[3];
-                        d.location = $scope.data.form[4];
+                    if (checkField($scope.data, 'supported_curr')) d.supported_curr = $scope.data.form.supported_curr;
+                    if (checkField($scope.data, 'address') || checkField($scope.data, 'location')) {
+                        d.address = $scope.data.form.address;
+                        d.location = $scope.data.form.location;
                     }
-                    function f(v){ return moment(v).format('HH:mm') }
-                    for (i = 0; i < 3; i++) {
-                        if (i > 0 && !$scope.work[i-1]) break;
-                        if ($scope.data.form[0][2*i].getTime() == $scope.data.form[0][2*i+1].getTime() && f($scope.data.form[0][2*i]) != '00:00') {
-                            $scope.data.form[0][2*i] = new Date(0, 0, 0, 0, 0);
-                            $scope.data.form[0][2*i+1] = new Date(0, 0, 0, 0, 0);
+                    for (i = 0; i < $scope.data.wks.length; i+=2) {
+                        var w = i === 0 || $scope.work[Math.floor(i / 2)-1];
+                        if (w && $scope.data.form[0][$scope.data.wks[i]].getTime() == $scope.data.form[0][$scope.data.wks[i+1]].getTime() && formatTime($scope.data.form[0][$scope.data.wks[i]]) != '00:00') {
+                            $scope.data.form[0][$scope.data.wks[i]] = new Date(0, 0, 0, 0, 0);
+                            $scope.data.form[0][$scope.data.wks[i+1]] = new Date(0, 0, 0, 0, 0);
+                        }
+                        for (var j = 0; j < 2; j++) {
+                            var r = w ? checkField($scope.data, [0, $scope.data.wks[i+j]], false, formatTime) : $scope.data.value[0][$scope.data.wks[i+j]] ? null : false;
+                            if (r !== false) d[$scope.data.wks[i+j]] = r;
                         }
                     }
-                    var a = [0], p = ['phone', 'supported_curr', 'address', 'location', 'opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'], r;
-                    for (i = 0; i < 6; i++) if (i < 2 || $scope.work[i < 4 ? 0 : 1]) {
-                        a[1] = i;
-                        r = checkField($scope.data, a, false, f);
-                        if (r) d[p[i+4]] = r;
-                    } else if ($scope.data.value[0].length > i) d[p[i+4]] = null;
                     if (Object.keys(d).length == 0) {
                         $scope.close();
                         return;
@@ -256,25 +254,19 @@ app
                     disablef(true);
                     s.partial_update(d, function (result) {
                         $scope.data.error = false;
-                        a = Object.keys(d);
-                        for (i = 0; i < a.length; i++) {
-                            r = p.indexOf(a[i]);
-                            if (r >= 4) {
-                                if (r >= 6 && !$scope.work[r < 8 ? 0 : 1]) {
-                                    $scope.data.value[0].splice(r-4);
-                                    break;
-                                }
-                                $scope.data.value[0][r-4] = d[a[i]];
-                            } else $scope.data.value[r+1] = $scope.data.form[r+1];
+                        r = false;
+                        for (i in $scope.data.form) if (i != 0) $scope.data.value[i] = $scope.data.form[i]; else for (j = 0; j < $scope.data.wks.length; j++) if (d[$scope.data.wks[j]] !== undefined) {
+                            r = true;
+                            $scope.data.value[0][$scope.data.wks[j]] = d[$scope.data.wks[j]];
                         }
-                        if (d.address !== undefined || d.location !== undefined || r >= 4) {
+                        if (d.address !== undefined || d.location !== undefined || r) {
                             $scope.data.tz = result.tz;
                             $rootScope.currTime = new Date();
                         }
                         $scope.close();
                     }, function (result) {
                         if (result.data.phone !== undefined) {
-                            $scope.data.form[1] = '';
+                            $scope.data.form.phone = '';
                             dialogService.show(gettext("The entered phone number is not valid."), false);
                         }
                         disablef(false);

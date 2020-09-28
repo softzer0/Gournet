@@ -5,14 +5,19 @@ from django.utils.encoding import force_text
 from django.conf import settings
 from markdown import markdown as do_markdown
 from django.template.defaultfilters import stringfilter
+from ..models import DAYS, PERIOD
 
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key, False)
 
 @register.filter
+def index(indexable, i):
+    return indexable[int(i)]
+
+@register.filter
 def r_i(value, i):
-    return value.format(i=i)
+    return value.format(i=i, f=PERIOD[i % 2][0]+DAYS[i // 2])
 
 @register.tag
 def markdown(parser, token):

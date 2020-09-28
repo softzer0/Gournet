@@ -12,14 +12,14 @@
             {% load bootstrap3 %}{% bootstrap_field form.cat %}
             <button class="btn btn-primary btn-block" ng-click="addCategs()">{% trans "Add" %}</button>
         </script>
-        <div class="row" ng-controller="WaitersCtrl" ng-init="loadCategs({{ '{' }}{% for cat in form.cat.field.choices %}{% for subcat in cat.1 %}{{ subcat.0 }}: '{{ subcat.1 }}{% load main_tags %}{% if subcat.0|endswith:'_other' %} ({{ cat.0 }}){% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}{% if not forloop.last %}, {% endif %}{% endfor %}{{ '}' }});{% endcache %} loadWaiters({{ wt.0.1 }}, {% if wt.1.0 %}{{ wt.1.1 }}{% else %}false{% endif %}, {% if wt.2.0 %}{{ wt.2.1 }}{% else %}false{% endif %})">
+        <div class="row wtp" ng-controller="WaitersCtrl" ng-init="loadCategs({{ '{' }}{% for cat in form.cat.field.choices %}{% for subcat in cat.1 %}{{ subcat.0 }}: '{{ subcat.1 }}{% load main_tags %}{% if subcat.0|endswith:'_other' %} ({{ cat.0 }}){% endif %}'{% if not forloop.last %}, {% endif %}{% endfor %}{% if not forloop.last %}, {% endif %}{% endfor %}{{ '}' }}); loadWaiters(['{{ days|join:'\', \'' }}'], [{% endcache %}{{ wt|join:', '|lower }}])">
             <div class="col-sm-12" ng-if="!loading">
                 <uib-accordion close-others="false">
-                    <div uib-accordion-group heading="{% verbatim %}{{ preparators.display }}{% endverbatim %}" ng-repeat="preparators in categs.list">
-                        {% include 'waiters_table.html' with str='preparator' strs='preparators.list' %}
+                    <div uib-accordion-group heading="{% verbatim %}{{ preparers.display }}{% endverbatim %}" ng-repeat="preparers in categs.list">
+                        {% include 'waiters_table.html' with str='preparer' strs='preparers.list' %}
                     </div>
                 </uib-accordion>
-                <button class="btn btn-primary btn-block" uib-popover-template="'categsPopover'" popover-class="categs-popover" popover-trigger="outsideClick" popover-is-open="categs.opened" popover-placement="bottom" ng-click="categs.opened = !categs.opened">{% trans "One more preparator group" %}</button>
+                <button class="btn btn-primary btn-block" uib-popover-template="'categsPopover'" popover-class="categs-popover" popover-trigger="outsideClick" popover-is-open="categs.opened" popover-placement="bottom" ng-click="categs.opened = !categs.opened">{% trans "One more preparer group" %}</button>
                 <hr/>
                 <uib-accordion close-others="false">
                     <div uib-accordion-group heading="{% trans "Table" context "number" %} {% verbatim %}{{ $index + 1 }}{% endverbatim %}" ng-repeat="waiters in tables">

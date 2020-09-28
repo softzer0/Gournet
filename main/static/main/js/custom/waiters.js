@@ -19,7 +19,7 @@ app
             } else t = add_categs(o.categories);
             delete o.table;
             delete o.categories;
-            var r = {obj: o, edit: {state: false}, dt: [[false, false]]};
+            var r = {obj: o, edit: {state: false}, dt: [[false, false], [false, false], [false, false], [false, false], [false, false], [false, false]]};
             t.push(r);
             for (var j = 0; j < 2; j++) if (has_satsun[j] === true) t[t.length-1].dt.push([false, false]); else for (var k = 0; k < 2; k++) delete o[oc[k]+has_satsun[j]];
             tables.last++;
@@ -54,13 +54,12 @@ app
             waiterService.add_categs(categs);
         };
 
-        var wt = [['']];
-        $scope.loadWaiters = function (regular, sat, sun){
+        var wt, days;
+        $scope.loadWaiters = function (d, w){
             $scope.loading = true;
-            wt[0].push(regular);
-            if (sat) wt.push(['_sat', sat]);
-            if (sun) wt.push(['_sun', sun]);
-            waiterService.load([!!sat || '_sat', !!sun || '_sun']).then(function (){ delete $scope.loading });
+            days = d;
+            wt = w;
+            waiterService.load([w.length >= 7 && days[6], w.length >= 8 && days[7]]).then(function (){ delete $scope.loading });
         };
 
         function delWaiterObj (p, i){
@@ -76,10 +75,10 @@ app
             $scope.edit_objs[waiter.obj.id] = angular.extend({}, waiter.obj);
             for (var i = 0; i < wt.length; i++) {
                 for (var j = 0; j < 2; j++){
-                    var v = $scope.edit_objs[waiter.obj.id][oc[j]+wt[i][0]];
-                    $scope.edit_objs[waiter.obj.id][oc[j]+wt[i][0]] = v != null ? new Date(0, 0, 0, v.split(':')[0], v.split(':')[1]) : new Date(0, 0, 0, wt[i][1][j][0], wt[i][1][j][1]);
+                    var v = $scope.edit_objs[waiter.obj.id][oc[j]+days[i]];
+                    $scope.edit_objs[waiter.obj.id][oc[j]+days[i]] = v != null ? new Date(0, 0, 0, v.split(':')[0], v.split(':')[1]) : new Date(0, 0, 0, wt[i][j] ? wt[i][j][0] : j === 0 ? 8 : 0, wt[i][j] ? wt[i][j][1] : 0);
                 }
-                if (i > 0) waiter.edit[wt[i][0]] = !!v;
+                waiter.edit['e'+days[i]] = !!v;
             }
             waiter.edit.state = true;
         };
@@ -91,18 +90,19 @@ app
                  delete obj.id;
                  delete obj.person;
             } else obj.person = obj.person.id;
-            var c = false;
+            var c = false, c1 = false;
             for (var i = 0; i < wt.length; i++) for (var j = 0; j < 2; j++) {
-                if (i === 0 || target.edit[wt[i][0]]) {
-                    var v = $scope.edit_objs[target.obj.id][oc[j] + wt[i][0]], h = '' + v.getHours(), m = '' + v.getMinutes();
-                    obj[oc[j] + wt[i][0]] = '00'.substring(0, 2 - h.length) + h + ':' + '00'.substring(0, 2 - m.length) + m;
-                } else obj[oc[j] + wt[i][0]] = null;
-                if (!c) c = obj[oc[j] + wt[i][0]] !== target.obj[oc[j] + wt[i][0]];
+                if (target.edit['e'+days[i]]) {
+                    c1 = true;
+                    var v = $scope.edit_objs[target.obj.id][oc[j] + days[i]], h = '' + v.getHours(), m = '' + v.getMinutes();
+                    obj[oc[j] + days[i]] = '00'.substring(0, 2 - h.length) + h + ':' + '00'.substring(0, 2 - m.length) + m;
+                } else obj[oc[j] + days[i]] = null;
+                if (!c) c = obj[oc[j] + days[i]] !== target.obj[oc[j] + days[i]];
             }
             if (!c) {
                 target.edit.state = false;
                 return;
-            }
+            } else if (!c1) return dialogService.show(gettext("You must set at least one working day."), false);
             target.edit.state = null;
             if (!id) if (!p.list) obj.table = $scope.tables.indexOf(p)+1; else obj.categories = p.types;
             waiterService.save(obj, id).then(function (res){

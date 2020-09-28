@@ -288,30 +288,6 @@ msgctxt "type of business"
 msgid "Fast food"
 msgstr "Usluga brze hrane"
 
-#: .\main\models.py:258
-msgid "opening time"
-msgstr "vreme otvaranja"
-
-#: .\main\models.py:259
-msgid "opening time on Saturday"
-msgstr "vreme otvaranja u subotu"
-
-#: .\main\models.py:260
-msgid "opening time on Sunday"
-msgstr "vreme otvaranja u nedelju"
-
-#: .\main\models.py:261
-msgid "closing time"
-msgstr "vreme zatvaranja"
-
-#: .\main\models.py:262
-msgid "closing time on Saturday"
-msgstr "vreme zatvaranja u subotu"
-
-#: .\main\models.py:263
-msgid "closing time on Sunday"
-msgstr "vreme zatvaranja u nedelju"
-
 #: .\main\models.py:285
 msgid "shortname"
 msgstr "skraćenica"
@@ -679,7 +655,7 @@ msgid "My ordered items"
 msgstr "Moji poručeni proizvodi"
 
 #: .\main\templates\base\home.html:65
-msgid "Manage waiters and preparators"
+msgid "Manage waiters and preparers"
 msgstr "Uredi konobare i spremače"
 
 #: .\main\templates\base\home.html:66
@@ -808,12 +784,12 @@ msgid "Create Your Business"
 msgstr "Zavedi svoj ugostiteljski objekat"
 
 #: .\main\templates\create_extra.html:14
-msgid "My business also works on <strong>Saturday</strong>"
-msgstr "Moj ugostiteljski objekat radi i <strong>subotom</strong>"
+msgid "My business also works on <strong>Saturday</strong>."
+msgstr "Moj ugostiteljski objekat radi i <strong>subotom</strong>."
 
 #: .\main\templates\create_extra.html:19
-msgid "And on <strong>Sunday</strong>, too"
-msgstr "I <strong>nedeljom</strong>, takođe"
+msgid "And on <strong>Sunday</strong>, too."
+msgstr "I <strong>nedeljom</strong>, takođe."
 
 #: .\main\templates\create_extra.html:24 .\main\templates\i18n.html:23
 msgid "Save"
@@ -1483,18 +1459,8 @@ msgstr "Trenutno zatvoreno"
 
 #: .\main\templates\view.html:73
 #, python-format
-msgid "Monday-Friday, from %(wf)s to %(wt)s"
-msgstr "Radnim danima od %(wf)s do %(wt)s"
-
-#: .\main\templates\view.html:74
-#, python-format
-msgid "Saturday, from %(wf)s to %(wt)s"
-msgstr "Subotom od %(wf)s do %(wt)s"
-
-#: .\main\templates\view.html:75
-#, python-format
-msgid "Sunday, from %(wf)s to %(wt)s"
-msgstr "Nedeljom od %(wf)s do %(wt)s"
+msgid "%(dt)s, from %(wf)s to %(wt)s"
+msgstr "%(dt)s, od %(wf)s do %(wt)s"
 
 #: .\main\templates\view.html:84
 #, python-format
@@ -1598,21 +1564,6 @@ msgstr "Konobar"
 msgid "No waiters yet"
 msgstr "Još nema konobara"
 
-#: .\main\templates\waiters.html:18
-msgctxt "title"
-msgid "Monday-Friday"
-msgstr "Ponedeljak-petak"
-
-#: .\main\templates\waiters.html:19
-msgctxt "title"
-msgid "Saturday"
-msgstr "Subota"
-
-#: .\main\templates\waiters.html:20
-msgctxt "title"
-msgid "Sunday"
-msgstr "Nedelja"
-
 #: .\main\templates\waiters.html:25
 msgid "Are you sure that you want to proceed?"
 msgstr "Da li ste sigurni da želite da nastavite?"
@@ -1626,7 +1577,7 @@ msgid "All data related to the whole table would be lost."
 msgstr "Svi podaci vezani za ovaj sto biće izgubljeni."
 
 #: .\main\templates\waiters.html:22
-msgid "One more preparator group"
+msgid "One more preparer group"
 msgstr "Još jedna grupa spremača"
 
 #: .\main\templates\waiters.html:59
@@ -1634,15 +1585,15 @@ msgid "One more table"
 msgstr "Još jedan sto"
 
 #: .\main\templates\waiters_table.html:4
-msgid "Preparators"
+msgid "Preparers"
 msgstr "Spremači"
 
 #: .\main\templates\waiters_table.html:4
-msgid "No preparators yet"
+msgid "No preparers yet"
 msgstr "Još nema spremača"
 
 #: .\main\templates\waiters_table.html:12
-msgid "All data related to the preparator would be lost."
+msgid "All data related to the preparer would be lost."
 msgstr "Svi podaci vezani za ciljanog spremača biće obrisani."
 
 #: .\main\views.py:184
@@ -2067,3 +2018,90 @@ msgstr "Resetovanje lozinke preko e-maila"
 #: disposable_email_checker/validators.py:26
 msgid "Blocked email provider."
 msgstr "Blokiran e-mail provajder."
+
+msgid "regular"
+msgstr "regularno"
+
+#: .\main\models.py:278
+msgid "opening time on regular"
+msgstr "regularno vreme otvaranja"
+
+#: .\main\models.py:278
+msgid "opening time on Monday"
+msgstr "vreme otvaranja u ponedeljak"
+
+#: .\main\models.py:278
+msgid "opening time on Tuesday"
+msgstr "vreme otvaranja u utorak"
+
+#: .\main\models.py:278
+msgid "opening time on Wednesday"
+msgstr "vreme otvaranja u sredu"
+
+#: .\main\models.py:278
+msgid "opening time on Thursday"
+msgstr "vreme otvaranja u četvrtak"
+
+#: .\main\models.py:278
+msgid "opening time on Friday"
+msgstr "vreme otvaranja u petak"
+
+#: .\main\models.py:278
+msgid "opening time on Saturday"
+msgstr "vreme otvaranja u subotu"
+
+#: .\main\models.py:278
+msgid "opening time on Sunday"
+msgstr "vreme otvaranja u nedelju"
+
+#: .\main\models.py:278
+msgid "closing time on regular"
+msgstr "regularno vreme zatvaranja"
+
+#: .\main\models.py:278
+msgid "closing time on Monday"
+msgstr "vreme zatvaranja u ponedeljak"
+
+#: .\main\models.py:278
+msgid "closing time on Tuesday"
+msgstr "vreme zatvaranja u utorak"
+
+#: .\main\models.py:278
+msgid "closing time on Wednesday"
+msgstr "vreme zatvaranja u sredu"
+
+#: .\main\models.py:278
+msgid "closing time on Thursday"
+msgstr "vreme zatvaranja u četvrtak"
+
+#: .\main\models.py:278
+msgid "closing time on Friday"
+msgstr "vreme zatvaranja u petak"
+
+#: .\main\models.py:278
+msgid "closing time on Saturday"
+msgstr "vreme zatvaranja u subotu"
+
+#: .\main\models.py:278
+msgid "closing time on Sunday"
+msgstr "vreme zatvaranja u nedelju"
+
+#: .\main\templates\create_extra.html:12
+msgid "My business has custom work time for <strong>Monday</strong>."
+msgstr "Moj ugostiteljski objekat ima specifično radno vreme za <strong>ponedeljak</strong>."
+
+#: .\main\templates\create_extra.html:12
+msgid "My business has custom work time for <strong>Tuesday</strong>."
+msgstr "Moj ugostiteljski objekat ima specifično radno vreme za <strong>utorak</strong>."
+
+#: .\main\templates\create_extra.html:12
+msgid "My business has custom work time for <strong>Wednesday</strong>."
+msgstr "Moj ugostiteljski objekat ima specifično radno vreme za <strong>sredu</strong>."
+
+#: .\main\templates\create_extra.html:12
+msgid "My business has custom work time for <strong>Thursday</strong>."
+msgstr "Moj ugostiteljski objekat ima specifično radno vreme za <strong>četvrtak</strong>."
+
+#: .\main\templates\create_extra.html:12
+msgid "My business has custom work time for <strong>Friday</strong>."
+msgstr "Moj ugostiteljski objekat ima specifično radno vreme za <strong>petak</strong>."

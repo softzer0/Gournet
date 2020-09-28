@@ -4,21 +4,14 @@
                     {% bootstrap_field form.address %}
                     {% bootstrap_field form.location addon_after='<button class="btn btn-default" type="button" ng-click="refresh()" ng-disabled="map == undefined'|add:f.1|add:'"><i class="fa fa-dot-circle-o"></i></button>' %}
                     <ui-gmap-google-map ng-if="map !== undefined" control="map.control" center="map.center" zoom="map.zoom">
-                        <ui-gmap-search-box template="'searchbox'" parentdiv="'sbparent'" options="map.searchbox.options" events="map.searchbox.events"{% if request.path != create_url %} ng-model="data.form[3]"{% endif %}></ui-gmap-search-box>
+                        <ui-gmap-search-box template="'searchbox'" parentdiv="'sbparent'" options="map.searchbox.options" events="map.searchbox.events"{% if request.path != create_url %} ng-model="data.form.address"{% endif %}></ui-gmap-search-box>
                         <ui-gmap-marker coords="map.marker.coords" options="map.marker.options" events="map.marker.events" idkey="map.marker.id"></ui-gmap-marker>
                     </ui-gmap-google-map>
                     <div class="loa loa-c" ng-if="map === undefined"><i class="fa fa-spinner fa-2x"></i></div>
-                    <hr>{% with before='<span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="'|add:f.0|add:'[{i}]"'|add:f.2|add:' enable-date="false" is-open="isOpen[{i}]"></span>' class='form-group seti' button='<button class="btn btn-default" type="button" ng-click="isOpen[{i}] = true"'|add:f.2|add:'><i class="fa fa-clock-o"></i></button>' %}
-                    {% load main_tags %}{{ before|r_i:0|safe }}{% bootstrap_field form.opened form_group_class=class addon_after=button|r_i:0 %}
-                    <div class="ib">{{ before|r_i:1|safe }}{% bootstrap_field form.closed form_group_class=class addon_after=button|r_i:1 %}</div>
-                    <div class="checkbox"><label><input name="t" type="checkbox" ng-init="work[0] = {% if request.path != create_url %}data.value[0].length >= 4{% else %}{% if request.POST.t == 'on' %}true{% else %}false{% endif %}{% endif %}" ng-model="work[0]"{{ f.2|safe }} ng-click="work[1] = !work[0] ? false : work[1]"> {% blocktrans %}My business also works on <strong>Saturday</strong>{% endblocktrans %}.</label></div>
-                    <div ng-show="work[0]">
-                        {{ before|r_i:2|safe }}{% bootstrap_field form.opened_sat form_group_class=class addon_after=button|r_i:2 %}
-                        <div class="ib">{{ before|r_i:3|safe }}{% bootstrap_field form.closed_sat form_group_class=class addon_after=button|r_i:3 %}</div>
-                    </div>
-                    <div class="checkbox" ng-class="{'mb15': !work[1]}"><label><input name="t1" type="checkbox" ng-init="work[1] = {% if request.path != create_url %}data.value[0].length == 6{% else %}{% if request.POST.t1 == 'on' %}true{% else %}false{% endif %}{% endif %}" ng-model="work[1]" ng-disabled="!work[0]{{ f.1 }}"> {% blocktrans %}And on <strong>Sunday</strong>, too{% endblocktrans %}.</label></div>
-                    <div ng-show="work[1]">
-                        {{ before|r_i:4|safe }}{% bootstrap_field form.opened_sun form_group_class=class addon_after=button|r_i:4 %}
-                        <div class="ib">{{ before|r_i:5|safe }}{% bootstrap_field form.closed_sun form_group_class=class addon_after=button|r_i:5 %}</div>{% endwith %}
-                    </div>
+                    <hr>{% with before='<span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="'|add:f.0|add:'.{f}"'|add:f.2|add:' enable-date="false" is-open="isOpen[{i}]"></span>' class='form-group seti' button='<button class="btn btn-default" type="button" ng-click="isOpen[{i}] = true"'|add:f.2|add:'><i class="fa fa-clock-o"></i></button>' %}{% for field in form.visible_fields|slice:f.3 %}{% load main_tags %}{% widthratio forloop.counter0 2 1 as i %}
+                    {% if forloop.counter0|divisibleby:2 %}{% if forloop.counter > 1 %}<div class="checkbox"><label><input{% if request.path == create_url %} name="{{ days|index:i }}"{% endif %} type="checkbox" ng-init="work[{{ i|add:'-1' }}] = {% if request.path != create_url %}!!(data.value[0].{{ field.name }}){% else %}{% with days|index:i as d %}{% if request.POST|get_item:d == 'on' %}true{% else %}false{% endif %}{% endwith %}{% endif %}" ng-model="work[{{ i|add:'-1' }}]"{{ f.2|safe }}{% if forloop.counter0 == 12 %} ng-click="work[6] = !work[5] ? false : work[6]"> {% blocktrans %}My business also works on <strong>Saturday</strong>.{% endblocktrans %}{% elif forloop.counter0 == 14 %}> {% blocktrans %}And on <strong>Sunday</strong>, too.{% endblocktrans %}{% else %}> {% with days_text|index:i as d %}{% autoescape off %}{% with "My business has custom work time for <strong>"|add:d|add:"</strong>." as t %}{% trans t %}{% endwith %}{% endautoescape %}{% endwith %}{% endif %}</label></div>
+                    <div ng-show="work[{{ i|add:'-1' }}]">
+                    {% endif %}{{ before|r_i:forloop.counter0|safe }}{% bootstrap_field field form_group_class=class addon_after=button|r_i:forloop.counter0 %}
+                    {% else %}<div class="ib">{{ before|r_i:forloop.counter0|safe }}{% bootstrap_field field form_group_class=class addon_after=button|r_i:forloop.counter0 %}</div>
+                    {% if forloop.counter > 2 %}</div>{% endif %}{% endif %}{% endfor %}{% endwith %}
                     <input type="submit" class="f1 btn btn-primary btn-block{% if request.path != create_url %} loaded" value="{% trans "Save" %}" ng-click="doSave(){% else %}" value="{% trans "Create" %}{% endif %}"{{ f.2|safe }}>

@@ -77,7 +77,7 @@ app
                     for (j = 0; j < obj[0].ordered_items.length; j++) {
                         p += ind[obj[0].ordered_items[j].item.id][0] * (obj[0].ordered_items[j].item.converted || obj[0].ordered_items[j].item.price);
                         if (ind[obj[0].ordered_items[j].item.id][1]) obj[0].ordered_items[j].made_quantity = (obj[0].ordered_items[j].made_quantity || 0) + ind[obj[0].ordered_items[j].item.id][0];
-                        if (obj[0].ordered_items[j].has_preparator && ap !== false) ap = obj[0].ordered_items[j].quantity === obj[0].ordered_items[j].made_quantity;
+                        if (obj[0].ordered_items[j].has_preparer && ap !== false) ap = obj[0].ordered_items[j].quantity === obj[0].ordered_items[j].made_quantity;
                     }
                     if (ap !== null) obj[0].all_prepared = ap;
                     if (p > 0 || obj[0].delivered == null) {

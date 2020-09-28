@@ -25,6 +25,7 @@ SECRET_KEY = 'fbf0+@#!&9&!rb%6s4veb_#f7)r+1=u9ktofp_sc@=oi#%tnal'
 # SECURITY WARNING: don't run with debug turned on in production!
 from ast import literal_eval
 DEBUG = bool(literal_eval(os.environ['DEBUG'])) if 'DEBUG' in os.environ else False #True #repl with False
+DEMO = bool(literal_eval(os.environ['DEMO'])) if 'DEMO' in os.environ else False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.gournet.co'] if not DEBUG else ['*'] #['*'] #repl with
 if not DEBUG:

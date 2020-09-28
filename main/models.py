@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.db.models.signals import post_delete, pre_save, post_save
-from django.db.models import Q
+from django.db.models import Q, Case, When
 from django.dispatch.dispatcher import receiver
 from django.core.exceptions import ValidationError
 #from django_thumbs.db.models import ImageWithThumbsField
@@ -32,6 +32,7 @@ from pyotp import random_base32
 from random import SystemRandom
 from string import ascii_letters, digits, punctuation
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from os import path
 
 TF_OBJ = TimezoneFinder()
 
@@ -267,28 +268,30 @@ class BusinessManager(GeoManager):
 
 BUSINESS_TYPE = ((0, _("Restaurant")), (1, _("Tavern")), (2, _("Bistro")), (3, _("Cafe")), (4, _("Pub")), (5, _("Bar")), (6, _("Nightclub")), (7, pgettext_lazy('type of business', "Fast food")))
 
-class WorkTime(models.Model):
-    opened = models.TimeField(_("opening time"), default=datetime.time(8, 0))
-    opened_sat = models.TimeField(_("opening time on Saturday"), null=True, blank=True)
-    opened_sun = models.TimeField(_("opening time on Sunday"), null=True, blank=True)
-    closed = models.TimeField(_("closing time"), default=datetime.time(0, 0))
-    closed_sat = models.TimeField(_("closing time on Saturday"), null=True, blank=True)
-    closed_sun = models.TimeField(_("closing time on Sunday"), null=True, blank=True)
-
+DAYS = ('', '_mon', '_tue', '_wed', '_thu', '_fri', '_sat', '_sun')
+PERIOD = (('opened', "opening time"), ('closed', "closing time"))
+DAYS_TEXT = ("regular", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+def generate_worktime_class(not_req):
     class Meta:
         abstract = True
+    return type('WorkTimeNotReq' if not_req else 'WorkTime', (models.Model,), {
+        **{p[0]+DAYS[i]: models.TimeField(_(p[1]+" on "+DAYS_TEXT[i]), **({'default': datetime.time(8 if p[0] == 'opened' else 0, 0)} if not not_req and DAYS[i] == DAYS[0] else {'null': True, 'blank': True})) for i in range(len(DAYS)) for p in PERIOD},
+        **{'__module__': path.basename(path.dirname(__file__))+'.models', 'Meta': Meta}
+    })
 
+WorkTime = generate_worktime_class(False)
+WorkTimeNotReq = generate_worktime_class(True)
+
+TIME_MIDNIGHT = datetime.time(0, 0)
 def check_time(instance, **kwargs):
-    t = datetime.time(0, 0)
-    for f in ('', '_sat', '_sun'):
-        if f != '':
-            if getattr(instance, 'opened'+f) and not getattr(instance, 'closed'+f):
-                setattr(instance, 'opened'+f, None)
-            elif getattr(instance, 'closed'+f) and not getattr(instance, 'opened'+f):
-                setattr(instance, 'closed'+f, None)
-        if (f == '' or getattr(instance, 'opened'+f)) and getattr(instance, 'opened'+f) == getattr(instance, 'closed'+f) and getattr(instance, 'opened'+f) != t:
-            setattr(instance, 'opened'+f, t)
-            setattr(instance, 'closed'+f, t)
+    for f in DAYS:
+        if getattr(instance, 'opened'+f) and not getattr(instance, 'closed'+f):
+            setattr(instance, 'opened'+f, None)
+        elif getattr(instance, 'closed'+f) and not getattr(instance, 'opened'+f):
+            setattr(instance, 'closed'+f, None)
+        elif getattr(instance, 'opened'+f) and getattr(instance, 'opened'+f) == getattr(instance, 'closed'+f) and getattr(instance, 'opened'+f) != TIME_MIDNIGHT:
+            setattr(instance, 'opened'+f, TIME_MIDNIGHT)
+            setattr(instance, 'closed'+f, TIME_MIDNIGHT)
 
 def gen_random_new_secret():
     return AESGCM.generate_key(128)
@@ -337,10 +340,12 @@ class Business(Loc, WorkTime):
             self.tz = get_timezone(self.tz)
         now = self.tz.normalize(timezone.now())
         day = now.weekday()
-        return now.time(), self.opened_sat if day == 5 and self.opened_sat else self.opened_sun if day == 6 and self.opened_sun else self.opened if day < 5 else None, self.closed_sat if day == 5 and self.closed_sat else self.closed_sun if day == 6 and self.closed_sun else self.closed if day < 5 else None, day
+        return now.time(), getattr(self, 'opened'+DAYS[day]), getattr(self, 'closed'+DAYS[day]), day
 
     def is_currently_opened(self, ret_all=False):
         now, opened, closed, day = self.get_now_opened_closed()
+        if not opened and day < 6:
+            opened, closed = self.opened, self.closed
         is_opened = False if opened is None else True if opened == closed else opened <= now < closed if opened < closed else now >= opened or now < closed
         if ret_all:
             return now, opened, closed, is_opened, day
@@ -477,7 +482,7 @@ def item_reorder_notify_published(instance, created, **kwargs):
         Item.objects.filter(business=instance.business, category=instance.category, **{'ordering__' + ('gte' if instance.ordering < instance._ordering else 'lte'): instance.ordering, 'ordering__' + ('lt' if instance.ordering < instance._ordering else 'gt'): instance._ordering}).exclude(pk=instance.pk).update(ordering=models.F('ordering') + (1 if instance.ordering < instance._ordering else -1))
 
 
-class Waiter(WorkTime):
+class Waiter(WorkTimeNotReq):
     person = models.ForeignKey(User, on_delete=models.CASCADE)
     table = models.ForeignKey('Table', on_delete=models.CASCADE, null=True, blank=True)
     business = models.ForeignKey(Business, on_delete=models.CASCADE, null=True, blank=True)
@@ -487,22 +492,23 @@ class Waiter(WorkTime):
     def __str__(self):
         return '%s @ %s / [%s]' % (self.person, self.table, self.categories)
 
-@receiver(pre_save, sender=Waiter)
-def remove_sufficient_work_times(instance, **kwargs):
-    for f in ('_sat', '_sun'):
-        if not getattr(instance.table.business if instance.table else instance.business, 'opened'+f):
-            setattr(instance, 'opened'+f, None)
-            setattr(instance, 'closed'+f, None)
+# @receiver(pre_save, sender=Waiter)
+# def remove_sufficient_work_times(instance, **kwargs):
+#     for i in range(1, len(DAYS)):
+#         if not getattr(instance.table.business if instance.table else instance.business, 'opened'+DAYS[i]):
+#             setattr(instance, 'opened'+DAYS[i], None)
+#             setattr(instance, 'closed'+DAYS[i], None)
 
-for subclass in WorkTime.__subclasses__():
+for subclass in WorkTime.__subclasses__() + WorkTimeNotReq.__subclasses__():
     pre_save.connect(check_time, subclass)
 
-def get_current_waiter(business, qs):
+def get_current_waiter(business, qs, annotate=False):
     now, opened, closed, is_opened, day = business.is_currently_opened(True)
     if not is_opened:
         return False
-    s = '_sun' if day == 6 else '_sat' if day >= 5 else ''
-    return qs.filter(**{'opened' + s + '__lte': now, 'closed' + s + '__gt': now}) if opened < closed else qs.filter(Q(**{'opened' + s + '__lte': now}) | Q(**{'closed' + s + '__gt': now}))
+    d = DAYS[day] if getattr(business, PERIOD[0][0]+DAYS[day]) else DAYS[0]
+    q = Q(**{'opened'+d+'__lte': now, 'closed'+d+'__gt': now}) if opened < closed else (Q(**{'opened'+d+'__lte': now}) | Q(**{'closed'+d+'__gt': now}))
+    return qs.filter(q) if not annotate else qs.annotate(is_current=Case(When(q, then=True), default=False, output_field=models.BooleanField()))
 
 class Table(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
@@ -536,7 +542,7 @@ class OrderedItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     order = models.ForeignKey('Order', on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(default=1)
-    preparator = models.ForeignKey(Waiter, on_delete=models.SET_NULL, null=True, blank=True)
+    preparer = models.ForeignKey(Waiter, on_delete=models.SET_NULL, null=True, blank=True)
     made = models.DateTimeField(pgettext_lazy("ordered item", "made on"), null=True, blank=True)
 
     def __str__(self):

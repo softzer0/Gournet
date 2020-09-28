@@ -7,10 +7,9 @@
     margin: -20px 3px 0;
 }
 
-.wt .checkbox {
-    position: absolute;
-    margin-top: 5px;
-    margin-bottom: 0;
+.wt input[type='checkbox'] {
+    float: left;
+    margin: 9px 5px 5px 0;
 }
 
 .wt fieldset {
@@ -31,4 +30,20 @@
 
 .categs-popover select {
     height: 270px;
+}
+
+.wtp .panel-body {
+    overflow-x: auto;
+}
+
+.wtp .edt .name {
+    min-width: 125px;
+}
+
+.wtp .edt .worktime {
+    min-width: 225px;
+}
+
+.wtp .datetime-picker-dropdown {
+    position: relative;
 }

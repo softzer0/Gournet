@@ -13,7 +13,7 @@
         <div class="row">
             <div class="col-sm-12">
                 <form action="{{ request.path }}" method="post" ng-controller="CreateCtrl" class="well bs-component nw ai" style="max-width: 500px;">{% csrf_token %}
-                    {% cache None cache1 request.LANGUAGE_CODE %}<legend>{% trans "Create Your Business" %}</legend>
+                    <legend>{% trans "Create Your Business" %}</legend>
                     {% load bootstrap3 %}{% bootstrap_field form.type %}
                     {% bootstrap_field form.name %}
                     {% bootstrap_field form.shortname %}
@@ -23,4 +23,4 @@
                 </form>
             </div>
         </div>
-{% endcache %}{% endblock %}
+{% endblock %}

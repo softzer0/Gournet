@@ -61,7 +61,7 @@
                 {% if show_orders %}<li><a ng-click="c()" href="{% url 'list_orders' as orders_url %}{% if request.path == orders_url %}javascript:{% else %}{{ orders_url }}{% endif %}">{% trans "My orders" %}</a></li>{% endif %}
                 {% if show_ordereditems %}<li><a ng-click="c()" href="{% url 'list_ordereditems' as ordereditems_url %}{% if request.path == ordereditems_url %}javascript:{% else %}{{ ordereditems_url }}{% endif %}">{% trans "My ordered items" %}</a></li>{% endif %}
                 <li><a ng-click="c()" href="{% url 'create_business' as create_url %}{% if request.path == create_url or business and business.manager == request.user %}javascript:{% else %}{{ create_url }}{% endif %}">{% trans "My business" %}</a></li>
-                {% if is_manager %}<li><a ng-click="c()" href="{% url 'manage_waiters' as waiters_url %}{% if request.path == waiters_url %}javascript:{% else %}{{ waiters_url }}{% endif %}">{% trans "Manage waiters and preparators" %}</a></li>{% endif %}
+                {% if is_manager %}<li><a ng-click="c()" href="{% url 'manage_waiters' as waiters_url %}{% if request.path == waiters_url %}javascript:{% else %}{{ waiters_url }}{% endif %}">{% trans "Manage waiters and preparers" %}</a></li>{% endif %}
                 {% comment %}<li><a href="{% if request.path == "/notifications/" %}{{ current }}{% else %}/notifications{% endif %}">Notifications</a></li>{% endcomment %}
                 <li uib-dropdown><a href="javascript:" id="favourites" class="dropdown-toggle" uib-dropdown-toggle>{% trans "Favourites" %} <b class="caret"></b></a>
                     <ul class="dropdown-menu navmenu-nav" uib-dropdown-menu aria-labelledby="favourites">

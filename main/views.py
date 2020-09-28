@@ -100,7 +100,7 @@ class InfoView(StrongholdPublicMixin, TemplateView):
         return context
 
 def edit_view(request):
-    return render(request, 'create_extra.html', {'form': forms.BaseForm(), 'f': ['data.form[0]', ' || data.disabled', ' ng-disabled="data.disabled"']})
+    return render(request, 'create_extra.html', {'form': forms.BaseForm(), 'f': ['data.form[0]', ' || data.disabled', ' ng-disabled="data.disabled"', '2:-4'], 'days_text': models.DAYS_TEXT})
 
 
 def get_param_bool(param):
@@ -246,16 +246,15 @@ def manage_waiters(request):
     except:
         return redirect('/')
     wt = []
-    for s in ('', '_sat', '_sun'):
+    for s in models.DAYS:
         if getattr(b, 'opened'+s):
-            wt.append([s])
-            r = ''
-            for f in ('opened', 'closed'):
-                r += (', ' if r else '[') + '[%d, %d]' % (int(getattr(b, f+s).strftime("%H")), int(getattr(b, f+s).strftime("%M")))
-            wt[-1].append(r+']')
-        else:
+            wt.append('')
+            for f in models.PERIOD:
+                wt[-1] += (', ' if wt[-1] else '[') + '[%d, %d]' % (int(getattr(b, f[0]+s).strftime("%H")), int(getattr(b, f[0]+s).strftime("%M")))
+            wt[-1] += ']'
+        elif s not in ('_sat', '_sun'):
             wt.append(False)
-    return render_with_recent(request, 'waiters.html', {'wt': wt, 'form': forms.DummyCategoryMultiple()})
+    return render_with_recent(request, 'waiters.html', {'wt': wt, 'days': models.DAYS, 'days_text': models.DAYS_TEXT, 'form': forms.DummyCategoryMultiple()})
 
 
 def create_business(request):
@@ -267,10 +266,10 @@ def create_business(request):
         return redirect('/'+b.shortname+'/')
     if request.method == 'POST':
         request.POST._mutable = True
-        for s in (('t', 'sat'), ('t1', 'sun')):
-            if request.POST.get(s[0], False) != 'on':
-                request.POST.pop('opened_'+s[1], None)
-                request.POST.pop('closed_'+s[1], None)
+        for d in models.DAYS[1:]:
+            if request.POST.get(d, False) != 'on':
+                request.POST.pop('opened'+d, None)
+                request.POST.pop('closed'+d, None)
         form = forms.BusinessForm(data=request.POST)
         if form.is_valid():
             form.cleaned_data['manager'] = request.user
@@ -280,7 +279,7 @@ def create_business(request):
             return redirect('/'+form.cleaned_data['shortname']+'/')
     else:
         form = forms.BusinessForm()
-    return render_with_recent(request, 'create.html', {'form': form, 'f': ['date', '', '']})
+    return render_with_recent(request, 'create.html', {'form': form, 'f': ['date', '', '', '2:-6'], 'days': models.DAYS, 'days_text': models.DAYS_TEXT})
 
 
 def mask(number, length=6):
@@ -290,7 +289,7 @@ def mask(number, length=6):
 def increase_recent(request, obj):
     models.increment(models.Recent, {'user': request.user, 'content_type': ContentType.objects.get_for_model(obj), 'object_id': obj.pk})
 
-WORKH = ['{{ data.value[0]['+str(i)+'] }}' for i in range(0, 6)]
+WORKH = {p[0]+d: '{{ data.value[0].'+p[0]+d+' }}' for d in models.DAYS for p in models.PERIOD}
 @table_session_check()
 @request_passes_test(lambda request, *args, **kwargs: request.user.is_authenticated or 'table' not in request.session or request.session['table']['shortname'] == kwargs['shortname'])
 def show_business(request, shortname):
@@ -319,11 +318,10 @@ def show_business(request, shortname):
     data['rating'] = models.Review.objects.filter(object_id=data['business'].pk).aggregate(Count('stars'), Avg('stars'))
     data['rating'] = [data['rating']['stars__avg'] or 0, data['rating']['stars__count'] or 0]
     def popl():
-        data['workh'] = {'value': []}
-        for f in ('', '_sat', '_sun'):
-            if getattr(data['business'], 'opened'+f) is not None:
-                data['workh']['value'].append(time_format(getattr(data['business'], 'opened'+f), 'H:i'))
-                data['workh']['value'].append(time_format(getattr(data['business'], 'closed'+f), 'H:i'))
+        data['workh'] = {'value': {}, 'days': models.DAYS, 'days_text': models.DAYS_TEXT}
+        for f in models.DAYS:
+            for p in models.PERIOD:
+                data['workh']['value'][p[0]+f] = time_format(getattr(data['business'], p[0]+f), 'H:i') if getattr(data['business'], p[0]+f) else ''
     if request.user != data['business'].manager:
         if request.user.is_authenticated and data['business'].likes.filter(person=request.user).exists():
             increase_recent(request, data['business'])
@@ -335,9 +333,11 @@ def show_business(request, shortname):
             data['rating'].append(models.Review.objects.get(object_id=data['business'].pk, person=request.user).stars)
         except:
             data['rating'].append(0)
-        if data['business'].opened != data['business'].closed or not data['business'].opened_sat or data['business'].opened_sat != data['business'].closed_sat or not data['business'].opened_sun or data['business'].opened_sun != data['business'].closed_sun:
-            popl()
-            data['workh']['display'] = data['workh']['value']
+        for i in range(len(models.DAYS)):
+            if i > 5 and not getattr(data['business'], 'opened'+models.DAYS[i]) or getattr(data['business'], 'opened'+models.DAYS[i]) != getattr(data['business'], 'closed'+models.DAYS[i]):
+                popl()
+                data['workh']['display'] = data['workh']['value']
+                break
     else:
         data['fav_state'] = -1
         if not cache.get(make_template_fragment_key('edit_data')):
@@ -436,7 +436,9 @@ class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
     max = 5
 
     def get_object(self):
-        return get_object(self.kwargs['pk'], models.Business) if self.kwargs['pk'] else get_b_from(self.request.user)
+        obj = get_object(self.kwargs['pk'], models.Business) if self.kwargs['pk'] else get_b_from(self.request.user)
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def paginate_queryset(self, queryset):
         if not get_param_bool(self.request.query_params.get('quick', False)):
@@ -485,7 +487,9 @@ class UserAPIView(SearchAPIView, generics.CreateAPIView):
         return serializers.UserSerializer
 
     def get_object(self):
-        return get_object(self.kwargs['pk']) if self.kwargs['pk'] and int(self.kwargs['pk']) != self.request.user.pk else self.request.user
+        obj = get_object(self.kwargs['pk']) if self.kwargs['pk'] and int(self.kwargs['pk']) != self.request.user.pk else self.request.user
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def get_queryset(self):
         if self.request.query_params.get('search', False):
@@ -797,10 +801,10 @@ class OrderAPIView(BaseOrderAPIView, generics.CreateAPIView):
     def get_object(self):
         obj = get_object(self.kwargs['pk'], models.Order)
         self.kwargs['waiter'] = self.get_waiter(obj)
-        self.kwargs['prep'] = self.request.query_params.get('is_preparator', False)
+        self.kwargs['prep'] = self.request.query_params.get('is_preparer', False)
         if self.kwargs['waiter'] != self.request.user and ((obj.person != self.request.user) if self.request.user.is_authenticated else (obj.session != self.request.session.session_key)):
             if self.kwargs['prep']:
-                self.kwargs['prep'] = obj.ordereditem_set.filter(preparator__person=self.request.user).exists()
+                self.kwargs['prep'] = obj.ordereditem_set.filter(preparer__person=self.request.user).exists()
             if not self.kwargs['prep']:
                 raise NotFound("Order not found.")
         return obj
@@ -863,13 +867,13 @@ class OrderAPIView(BaseOrderAPIView, generics.CreateAPIView):
         self.gen_notif(order, _("has placed an order on table <strong>%d</strong>.") % order.table.number)
         prs = [] # {}
         for ordered_item in order.ordereditem_set.all():
-            if ordered_item.preparator:
-                if ordered_item.preparator.person not in prs:
-                    prs.append(ordered_item.preparator.person) # prs[ordered_item.preparator.person.pk] = (ordered_item.preparator.person, [])
-                # prs[ordered_item.preparator.person.pk][1].append(ordered_item.pk)
+            if ordered_item.preparer:
+                if ordered_item.preparer.person not in prs:
+                    prs.append(ordered_item.preparer.person) # prs[ordered_item.preparer.person.pk] = (ordered_item.preparer.person, [])
+                # prs[ordered_item.preparer.person.pk][1].append(ordered_item.pk)
         for pr in prs: # .values()
             with lang_override(pr.language):
-                models.Notification.objects.create(user=pr, text=_("You have new ordered item(s) to prepare."), link='#/show=' + str(order.pk) + '&type=order&preparator')
+                models.Notification.objects.create(user=pr, text=_("You have new ordered item(s) to prepare."), link='#/show=' + str(order.pk) + '&type=order&preparer')
 
     def get_bulk_objs(self):
         return models.Order.objects.filter((Q(table__waiter__person__pk=self.request.user.pk) if self.request.user.is_authenticated else Q()) | Q(**serializers.get_person_or_session(self.request))).filter(pk__in=[int(pk) for pk in self.request.query_params['ids'].split(',') if pk.isdigit()]).annotate(table_number=F('table__number'))
@@ -890,22 +894,22 @@ class OrderedItemAPIView(BaseOrderAPIView):
     serializer_class = serializers.OrderedItemSerializer
     pagination_class = None
 
-    def get_preparator(self, obj):
-        if obj.preparator:
-            waiter = models.get_current_waiter(obj.item.business, models.Waiter.objects.filter(pk=obj.preparator.pk)).first()
+    def get_preparer(self, obj):
+        if obj.preparer:
+            waiter = models.get_current_waiter(obj.item.business, models.Waiter.objects.filter(pk=obj.preparer.pk)).first()
             return waiter.person if waiter else None
 
     def get_object(self):
         obj = get_object(self.kwargs['pk'], models.OrderedItem)
-        self.kwargs['preparator'] = self.get_preparator(obj)
-        if self.kwargs['preparator'] != self.request.user:
+        self.kwargs['preparer'] = self.get_preparer(obj)
+        if self.kwargs['preparer'] != self.request.user:
             raise NotFound("OrderedItem not found.")
         return obj
 
     def get_queryset(self):
         # if self.request.query_params.get('ids'):
         #     return models.OrderedItem.objects.filter(pk__in=[int(n) for n in self.request.query_params['ids'].split(',') if n.isdigit()])
-        qs = models.OrderedItem.objects.filter(preparator__person__pk=self.request.user.pk).order_by('order__created')
+        qs = models.OrderedItem.objects.filter(preparer__person__pk=self.request.user.pk).order_by('order__created')
         if 'after' in self.request.query_params:
             try:
                 t = datetime.fromtimestamp(float(self.request.query_params['after']), get_current_timezone())
@@ -924,10 +928,10 @@ class OrderedItemAPIView(BaseOrderAPIView):
         return context
 
     def get_bulk_objs(self):
-        return models.OrderedItem.objects.filter(Q(preparator__person__pk=self.request.user.pk)).filter(pk__in=[int(pk) for pk in self.request.query_params['ids'].split(',') if pk.isdigit()])
+        return models.OrderedItem.objects.filter(Q(preparer__person__pk=self.request.user.pk)).filter(pk__in=[int(pk) for pk in self.request.query_params['ids'].split(',') if pk.isdigit()])
 
     def check_context(self, instance, context):
-        if self.get_preparator(instance) != self.request.user:
+        if self.get_preparer(instance) != self.request.user:
             return False
 
 

@@ -237,26 +237,31 @@ app
         $scope.set_data = function (h){
             delete $scope.set_data;
             if ($scope.data.form !== undefined) {
-                for (var i = 0; i < h.length; i++) $scope.data.form[0][i] = moment(h[i], 'HH:mm').toDate();
-                for (; i < 6; i++) $scope.data.form[0][i] = new Date(0, 0, 0, i % 2 ? 0 : 8, 0);
+                for (var k in h) $scope.data.form[0][k] = h[k] ? moment(h[k], 'HH:mm').toDate() : new Date(0, 0, 0, k.substring(0, 6) === 'opened' ? 8 : 0, 0);
                 workh = ['value', 'form'];
-                for (i = 0; i < 2; i++) for (var j = 1; j < 5; j++) $scope.data[workh[i]][j] = arguments[j];
-                workh = $scope.data.value[0];
-            } else workh = $scope.data.value;
-            workh.push.apply(workh, h);
+                for (k = 0; k < 2; k++) for (var j = 1; j < 5; j++) $scope.data[workh[k]][arguments[j][0]] = arguments[j][1];
+                $scope.data.value[0] = h;
+            } else $scope.data.value = h;
+            workh = h;
+            $scope.data.wks = Object.keys(workh);
             $rootScope.$watch('currTime', $scope.ref_is_opened);
         };
         $scope.ref_is_opened = function (){
-            if (workh[0] != workh[1] || workh.length == 2 || workh[2] != workh[3] || workh.length == 4 || workh[4] != workh[5]) {
-                var now = moment().tz($scope.data.tz), day = now.isoWeekday(), d;
-                if (day == 6 && workh.length >= 4) d = workh[2]; else if (day == 7 && workh.length == 6) d = workh[4]; else if (day < 6) d = workh[0];
+            var d;
+            for (var i = 0; i < $scope.data.wks.length; i+=2) if (i >= 12 && !workh[$scope.data.wks[i]] || workh[$scope.data.wks[i]] !== workh[$scope.data.wks[i+1]]) {
+                d = true;
+                break;
+            }
+            if (d === true) {
+                var now = moment().tz($scope.data.tz), day = now.isoWeekday();
+                if (workh[$scope.data.wks[day*2]]) d = workh[$scope.data.wks[day*2]]; else if (day < 6) d = workh[0];
                 if (d === undefined) {
                     $scope.is_opened = false;
                     return;
                 }
-                d = [moment.tz(d, 'HH:mm', $scope.data.tz), moment.tz(day == 6 && workh.length >= 4 ? workh[3] : day == 7 && workh.length == 6 ? workh[5] : workh[1], 'HH:mm', $scope.data.tz)];
+                d = [moment.tz(d, 'HH:mm', $scope.data.tz), moment.tz(workh[$scope.data.wks[day*2+1]] || workh[1], 'HH:mm', $scope.data.tz)];
                 day = now.date();
-                for (var i = 0; i < 2; i++) if (day > d[i].date()) d[i].add(day - d[i].date(), 'days'); else if (d[i].date() > day) d[i].subtract(d[i].date() - day, 'days');
+                for (i = 0; i < 2; i++) if (day > d[i].date()) d[i].add(day - d[i].date(), 'days'); else if (d[i].date() > day) d[i].subtract(d[i].date() - day, 'days');
                 if (d[1].isBefore(d[0]) || d[1].isSame(d[0])) if (now.isBefore(d[0])) $scope.is_opened = now.isBefore(d[1]); else $scope.is_opened = true; else $scope.is_opened = now.isBefore(d[1]) && (d[0].isBefore(now) || d[0].isSame(now));
             } else $scope.is_opened = null;
         };

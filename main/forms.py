@@ -1,5 +1,5 @@
 from django import forms
-from .models import CATEGORY, Business, Loc
+from .models import CATEGORY, Business, Loc, DAYS, PERIOD
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 from geopy import GoogleV3
 from django.contrib.gis.geos import fromstr, Point
@@ -56,11 +56,6 @@ def business_clean_data(self, cleaned_data, upd=False):
         clean_loc(self, cleaned_data)
     if upd:
         return
-    if (cleaned_data.get('opened_sun', False) or cleaned_data.get('closed_sun', False)) and (not cleaned_data.get('opened_sat', False) or not cleaned_data.get('closed_sat', False)):
-        cleaned_data.pop('opened_sat')
-        cleaned_data.pop('closed_sat')
-        cleaned_data.pop('opened_sun')
-        cleaned_data.pop('closed_sun')
 
 class DummyCategory(forms.Form):
     cat = forms.ChoiceField(label='', choices=CATEGORY)
@@ -81,8 +76,8 @@ class BaseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         not_b = not isinstance(self, BusinessForm)
         if not_b:
-            self.fields['phone'].widget.attrs['ng-model'] = 'data.form[1]'
-            self.fields['supported_curr'].widget.attrs['ng-model'] = 'data.form[2]'
+            self.fields['phone'].widget.attrs['ng-model'] = 'data.form.phone'
+            self.fields['supported_curr'].widget.attrs['ng-model'] = 'data.form.supported_curr'
             for c in self.fields['supported_curr'].choices:
                 if c[0] == self.instance.currency:
                     self.fields['supported_curr'].widget.choices.remove(c)
@@ -97,27 +92,22 @@ class BaseForm(forms.ModelForm):
         for f in ('address', 'location'):
             self.fields[f].label = Loc._meta.get_field(f).verbose_name.capitalize()
         self.fields['location'].widget.attrs['geom_type'] = ''
-        self.fields['location'].widget.attrs['ng-model'] = 'data.form[4]' if not_b else 'location'
+        self.fields['location'].widget.attrs['ng-model'] = ('data.form.' if not_b else '')+'location'
         self.fields['location'].widget.attrs['readonly'] = True
         self.fields['location'].help_text = _("You have to adjust the exact location using the map with a marker below.")
-        for i, f in enumerate(tuple(('opened', 'closed', 'opened_sat', 'closed_sat', 'opened_sun', 'closed_sun'))):
+        for i, f in enumerate(tuple(p[0]+d for d in DAYS for p in PERIOD)):
             self.fields[f].widget.attrs['value'] = ''
-            self.fields[f].widget.attrs['ng-model'] = ('data.form[0]' if not_b else 'date')+'['+str(i)+']'
+            self.fields[f].widget.attrs['ng-model'] = ('data.form[0]' if not_b else 'date')+'.'+f
             if not_b:
                 self.fields[f].widget.attrs['ng-disabled'] = 'data.disabled'
             else:
-                self.fields[f].widget.attrs['ng-initial'] = i
+                self.fields[f].widget.attrs['ng-initial'] = f
             self.fields[f].widget.attrs['datetime'] = 'HH:mm'
             self.fields[f].widget.format = '%H:%M'
-            if i > 1:
-                if i % 2 == 0:
-                    self.fields[f].label = self.fields['opened'].label
-                else:
-                    self.fields[f].label = self.fields['closed'].label
 
 class BusinessForm(BaseForm):
     class Meta:
-        exclude = ('manager', 'is_published', 'tz', 'table_secret', 'loc_projected')
+        exclude = ('manager', 'is_published', 'tz', 'table_secret', 'table_qr_secret', 'table_new_secret', 'loc_projected')
         model = Business
         widgets = {'phone': PhoneNumberInternationalFallbackWidget, 'supported_curr': forms.SelectMultiple}
 

@@ -6,7 +6,7 @@
     <div class="ord-popup mpd" ng-if="order">
         <table class="table tb ord mb15 table-hover" ng-if="$parent.order.ordered_items.length > 0">
             <tbody>
-                <tr ng-repeat="i in $parent.order.ordered_items" ng-if="$parent.is_waiter || i.is_preparator">
+                <tr ng-repeat="i in $parent.order.ordered_items" ng-if="$parent.is_waiter || i.is_preparer">
                     <td><a ng-attr-href="#/show={{ i.item.id }}&type=item">
                         <img ng-src="/images/item/{{ i.item.id }}/avatar/32/"
                         ><div>{{ i.item.name }}</div>
@@ -15,7 +15,7 @@
                         <div>
                             <div ng-if="$parent.is_waiter && i.item.price > 0" class="pull-right">{{ i.item.converted || i.item.price|currency:curr }}</div>
                             <strong>{{ i.quantity }}x</strong> <strong ng-if="$parent.is_waiter && i.item.price > 0">({{ i.quantity * (i.item.converted || i.item.price)|currency:curr }})</strong>
-                            <a ng-if="!$parent.is_waiter && i.is_preparator && $parent.order.delivered == null && i.made == null" href="javascript:" class="pull-right" ng-click="doAction(i.id)"><i class="fa fa-check"></i></a>
+                            <a ng-if="!$parent.is_waiter && i.is_preparer && $parent.order.delivered == null && i.made == null" href="javascript:" class="pull-right" ng-click="doAction(i.id)"><i class="fa fa-check"></i></a>
                         </div>
                     </td>
                 </tr>

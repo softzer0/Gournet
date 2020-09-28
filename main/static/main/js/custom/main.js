@@ -10,7 +10,7 @@ app
         var name = (window.location.pathname != '/' ? 'main.' : '') + 'showObjs';
         if (window.location.pathname != '/') $stateProvider.state('main', {url: '/'}); else if (window.location.hash == '' || window.location.hash == '#') window.location.hash = '#/';
         $stateProvider.state(name, {
-            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:business|event|item|review|order)}{showcomments:(?:&showcomments)?}{preparator:(?:&preparator)?}', //important
+            url: (window.location.pathname == '/' ? '/' : '') + 'show={ids:[0-9]+(?:,[0-9]+)*}&type={type:(?:business|event|item|review|order)}{showcomments:(?:&showcomments)?}{preparer:(?:&preparer)?}', //important
             params: {ts: null},
             modal: true,
             templateUrl: BASE_MODAL,
@@ -33,7 +33,7 @@ app
                     }
                     $scope.file = '../events';
                 } else {
-                    $scope.params = [$stateParams.ids, $stateParams.preparator == '&preparator'];
+                    $scope.params = [$stateParams.ids, $stateParams.preparer == '&preparer'];
                     $scope.title = gettext("Order");
                     $scope.file = 'order';
                 }
@@ -438,7 +438,7 @@ app
                 var data = {made: true};
                 if (r === true) {
                     data.ids = '&ids=';
-                    for (var i = 0; i < $scope.order.ordered_items.length; i++) if ($scope.order.ordered_items[i].is_preparator && $scope.order.ordered_items[i].made == null) data.ids += $scope.order.ordered_items[i].id+',';
+                    for (var i = 0; i < $scope.order.ordered_items.length; i++) if ($scope.order.ordered_items[i].is_preparer && $scope.order.ordered_items[i].made == null) data.ids += $scope.order.ordered_items[i].id+',';
                     data.ids = data.ids.substring(0, data.ids.length - 1);
                 } else data.object_id = r;
                 orderedItemService.update(data).$promise.then(function (result) { upd(result) }, function (res) {
@@ -581,7 +581,7 @@ app
 
         return {
             get: function (id, prep){
-                return service.get({id: id, is_preparator: prep}).$promise;
+                return service.get({id: id, is_preparer: prep}).$promise;
             },
             send: function (id, r){
                 var o = {object_id: id};
