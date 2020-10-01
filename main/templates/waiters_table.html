@@ -1,15 +1,15 @@
-                        <table class="table table-hover table-condensed nmb">
+                        <table class="table table-hover table-condensed nmb" ng-if="{{ strs }}.loaded">
                             <tr>
                                 <th class="w1"><a href="javascript:" ng-click="addUsers({{ str }}s)"><i class="fa fa-user-plus"></i></a></th>
-                                <th>{{ '{' }}{ {{ strs }} && {{ strs }}.length ? '{% load i18n %}{% if str == 'waiter' %}{% trans "Waiters" %}' : '{% trans "No waiters yet" %}{% else %}{% trans "Preparers" %}' : '{% trans "No preparers yet" %}{% endif %}' {{ '}' }}}</th>
-                                {% for d in days_text %}{% load main_tags %}{% if forloop.counter < 7 or wt|index:forloop.counter0 %}<th ng-if="{{ strs }} && {{ strs }}.length">{% trans d %}</th>
+                                <th>{{ '{' }}{ {{ strs }}.list && {{ strs }}.list.length ? '{% load i18n %}{% if str == 'waiter' %}{% trans "Waiters" %}' : '{% trans "No waiters yet" %}{% else %}{% trans "Preparers" %}' : '{% trans "No preparers yet" %}{% endif %}' {{ '}' }}}</th>
+                                {% for d in days_text %}{% load main_tags %}{% if forloop.counter < 7 or wt|index:forloop.counter0 %}<th ng-if="{{ strs }}.list && {{ strs }}.list.length">{% trans d %}</th>
                                 {% endif %}{% endfor %}
                                 <th class="w1"></th>
                             </tr>
-                            <tr class="wt" ng-if="{{ strs }} && {{ strs }}.length" ng-repeat="{{ str }} in {{ strs }}" ng-class="{edt: {{ str }}.edit.state}">
+                            <tr class="wt" ng-if="{{ strs }}.list && {{ strs }}.list.length" ng-repeat="{{ str }} in {{ strs }}.list" ng-class="{edt: {{ str }}.edit.state}">
                                 <td>
-                                    <a href="javascript:" ng-show="{{ str }}.edit.state === false" ng-dialog-message="{% trans "Are you sure that you want to proceed?" %} {{ '{' }}{{ '{' }} {% if str == 'waiter' %}waiters.length > 1 ? '{% trans "All data related to the waiter would be lost." %}' : '{% trans "All data related to the whole table would be lost." %}'{% else %}'{% trans "All data related to the preparer would be lost." %}'{% endif %} {{ '}' }}}" ng-dialog-click="deleteWaiter({{ strs }}, $index)"><i class="fa fa-user-times"></i></a>
-                                    <a href="javascript:" ng-show="{{ str }}.edit.state" ng-click="cancelEdit({{ strs }}, $index)"><i class="fa fa-times"></i></a>
+                                    <a href="javascript:" ng-show="{{ str }}.edit.state === false" ng-dialog-message="{% trans "Are you sure that you want to proceed?" %} {{ '{' }}{{ '{' }} {% if str == 'waiter' %}waiters.length > 1 ? '{% trans "All data related to the waiter would be lost." %}' : '{% trans "All data related to the whole table would be lost." %}'{% else %}'{% trans "All data related to the preparer would be lost." %}'{% endif %} {{ '}' }}}" ng-dialog-click="deleteWaiter({{ strs }}.list, $index)"><i class="fa fa-user-times"></i></a>
+                                    <a href="javascript:" ng-show="{{ str }}.edit.state" ng-click="cancelEdit({{ strs }}.list, $index)"><i class="fa fa-times"></i></a>
                                 </td>
                                 <td class="name">{{ '{' }}{ {{ str }}.obj.person.first_name }{{ '}' }} {{ '{' }}{ {{ str }}.obj.person.last_name }{{ '}' }}</td>
                                 {% for d in days %}{% if forloop.counter < 7 or wt|index:forloop.counter0 %}<td class="worktime">
@@ -40,3 +40,4 @@
                                 </td>
                             </tr>
                         </table>
+                        <div class="loaded loa nmb loa-c" ng-if="{{ strs }}.loaded === false"><i class="fa fa-spinner"></i></div>

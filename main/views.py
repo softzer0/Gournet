@@ -254,7 +254,8 @@ def manage_waiters(request):
             wt[-1] += ']'
         elif s not in ('_sat', '_sun'):
             wt.append(False)
-    return render_with_recent(request, 'waiters.html', {'wt': wt, 'days': models.DAYS, 'days_text': models.DAYS_TEXT, 'form': forms.DummyCategoryMultiple()})
+    t = b.table_set.order_by('-number').first()
+    return render_with_recent(request, 'waiters.html', {'wt': wt, 'days': models.DAYS, 'days_text': models.DAYS_TEXT, 'form': forms.DummyCategoryMultiple(), 'categs_list': b.waiter_set.annotate(Count('categories')).values_list('categories', flat=True), 'last_num': t.number if t else 0})
 
 
 def create_business(request):
@@ -463,6 +464,8 @@ class BusinessAPIView(IsOwnerOrReadOnly, SearchAPIView, generics.CreateAPIView):
             return {}
         context = super().get_serializer_context()
         context['home'] = None
+        if 'single' in context and not self.kwargs['pk']:
+            context['manager'] = None
         return context
 
     def get_paginated_response(self, data):
@@ -737,20 +740,30 @@ class WaiterAPIView(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAP
     serializer_class = serializers.WaiterSerializer
     pagination_class = None
 
+    def paginate_queryset(self, queryset):
+        if 'tc' not in self.kwargs:
+            self.pagination_class = pagination.WaiterPagination
+        return super().paginate_queryset(queryset)
+
     def get_queryset(self):
         qs = models.Waiter.objects.filter(Q(table__business__manager__pk=self.request.user.pk) | Q(business__manager__pk=self.request.user.pk))
-        table = self.request.query_params.get('table', False)
-        if table and table.isdigit():
-            self.kwargs['table'] = None
-            qs = qs.filter(table__number=table)
+        tc = self.request.query_params.get('table', False)
+        if tc and tc.isdigit():
+            self.kwargs['tc'] = None
+            qs = qs.filter(table__number=tc)
         else:
-            qs = qs.order_by('table__number', 'pk')
+            tc = self.request.query_params.get('categories', False)
+            if tc:
+                self.kwargs['tc'] = None
+                qs = qs.filter(categories=tc.split(','))
+            else:
+                qs = qs.order_by('table__number', 'pk')
         return qs
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        if 'table' in self.kwargs:
-            context['table'] = None
+        if 'tc' in self.kwargs:
+            context['tc'] = None
         return context
 
     def delete(self, request, *args, **kwargs):

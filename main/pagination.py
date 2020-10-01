@@ -25,6 +25,9 @@ class NotificationPagination(PageNumberPagination):
 class FeedPagination(PageNumberPagination):
     page_size = settings.EVENT_PAGE_SIZE
 
+class WaiterPagination(PageNumberPagination):
+    page_size = settings.SEARCH_PAGE_SIZE
+
 
 class CursorPagination(pagination.CursorPagination):
     page_size = PageNumberPagination.page_size

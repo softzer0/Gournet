@@ -2,7 +2,7 @@
     width: 250px;
 }
 
-.sett :not(.alert) > p:not(.def), .loa, .mb4 {
+.sett :not(.alert) > p:not(.def), .loa:not(.nmb), .mb4 {
     margin-bottom: 4px;
 }
 

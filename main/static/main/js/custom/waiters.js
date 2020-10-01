@@ -3,26 +3,23 @@ app
     .factory('waiterService', function ($timeout, $filter, USER, APIService){
         var service = APIService.init(14), display_categs = {}, categs = {list: [], opened: false}, tables = [], has_satsun;
 
-        function add_categs(list) {
-            for (var i = 0; i < categs.list.length; i++) if (angular.equals(categs.list[i].types, list)) return categs.list[i].list;
+        function add_categs(list, n) {
+            for (var i = 0; i < categs.list.length; i++) if (angular.equals(categs.list[i].types, list)) return categs.list[i];
             var display = [];
             for (i = 0; i < list.length; i++) display.push(display_categs[list[i]]);
-            categs.list.push({types: list, display: display.join('; '), list: []});
-            return categs.list[categs.list.length-1].list;
+            categs.list.push({loaded: n || null, types: list, display: display.join('; '), list: []});
+            return categs.list[categs.list.length-1];
         }
 
-        function add(o) {
-            if (o.table != null) {
-                var t = o.table - 1;
-                if (tables[t] === undefined) tables[t] = [];
+        function add(o, t) {
+            if (typeof t === 'number') {
+                if (t === tables.length) tables.push({list: []});
                 t = tables[t];
-            } else t = add_categs(o.categories);
-            delete o.table;
-            delete o.categories;
+            } else t = add_categs(t);
+            t = t.list;
             var r = {obj: o, edit: {state: false}, dt: [[false, false], [false, false], [false, false], [false, false], [false, false], [false, false]]};
             t.push(r);
             for (var j = 0; j < 2; j++) if (has_satsun[j] === true) t[t.length-1].dt.push([false, false]); else for (var k = 0; k < 2; k++) delete o[oc[k]+has_satsun[j]];
-            tables.last++;
             return r;
         }
 
@@ -30,9 +27,18 @@ app
             load_display_categs: function (list) { angular.extend(display_categs, list) },
             add_categs: add_categs,
             add: add,
-            load: function (ss){
+            init: function (ss, c, l){
                 has_satsun = ss;
-                return service.query({}, function (result){ for (var i = 0; i < result.length; i++) add(result[i]) }).$promise;
+                for (var i = 0; i < l; i++) tables.push({loaded: null, list: []});
+                for (i = 0; i < c.length; i++) add_categs(c[i]);
+            },
+            load: function (t) {
+                var obj = typeof t === 'number' ? tables[t] : t;
+                obj.loaded = false;
+                return service.query(typeof t === 'number' ? {table: t+1} : {categories: t.types.join(',')}, function (result) {
+                    for (var i = 0; i < result.length; i++) add(result[i], typeof t === 'number' ? t : t.types);
+                    obj.loaded = true;
+                }).$promise;
             },
             del: function (id){ return service.delete({id: id}).$promise },
             save: function (waiter, id){ return (id ? service.partial_update(angular.extend({object_id: id}, waiter)) : service.save(waiter)).$promise },
@@ -44,22 +50,22 @@ app
     .controller('WaitersCtrl', function ($scope, $timeout, waiterService, dialogService, usersModalService){
         $scope.tables = waiterService.tables;
         $scope.categs = waiterService.categs;
-        $scope.addTable = function (){ $scope.tables.push([]) };
+        $scope.loadData = waiterService.load;
+        $scope.addTable = function (){ $scope.tables.push({loaded: true, list: []}) };
 
         $scope.loadCategs = waiterService.load_display_categs;
         $scope.addCategs = function (){
             $scope.categs.opened = false;
             var categs = $scope.categs.sel;
             $scope.categs.sel = [];
-            waiterService.add_categs(categs);
+            waiterService.add_categs(categs, true);
         };
 
         var wt, days;
-        $scope.loadWaiters = function (d, w){
-            $scope.loading = true;
+        $scope.init = function (d, w, c, l){
             days = d;
             wt = w;
-            waiterService.load([!!(w.length >= 7 && days[6]), !!(w.length >= 8 && days[7])]).then(function (){ delete $scope.loading });
+            waiterService.init([!!(w.length >= 7 && days[6]), !!(w.length >= 8 && days[7])], c, l);
         };
 
         function delWaiterObj (p, i){
@@ -104,7 +110,7 @@ app
                 return;
             } else if (!c1) return dialogService.show(gettext("You must set at least one working day."), false);
             target.edit.state = null;
-            if (!id) if (!p.list) obj.table = $scope.tables.indexOf(p)+1; else obj.categories = p.types;
+            if (!id) if (!p.types) obj.table = $scope.tables.indexOf(p)+1; else obj.categories = p.types;
             waiterService.save(obj, id).then(function (res){
                 angular.extend(target.obj, res, {person: target.obj.person});
                 if (!id) {
@@ -120,7 +126,7 @@ app
 
         $scope.addUsers = function (t){
             var u = [];
-            if (!t.list) for (var i = 0; i < t.length; i++) u.push(t[i].obj.person.id);
-            usersModalService.setAndOpen(null, 0, u.join(',')).result.then(function (res) { for (i = 0; i < res.length; i++) $scope.showEdit(waiterService.add(!t.list ? {table: $scope.tables.indexOf(t)+1, person: res[i]} : {categories: t.types, person: res[i]})) });
+            if (!t.types) for (var i = 0; i < t.length; i++) u.push(t[i].obj.person.id);
+            usersModalService.setAndOpen(null, 0, u.join(',')).result.then(function (res) { for (i = 0; i < res.length; i++) $scope.showEdit(waiterService.add({person: res[i]}, t.types || $scope.tables.indexOf(t))) });
         };
     });

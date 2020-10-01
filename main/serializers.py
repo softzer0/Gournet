@@ -437,6 +437,9 @@ class BusinessSerializer(serializers.ModelSerializer):
             self.fields['location'] = CoordinatesField(required=False)
             self.fields['tz'] = serializers.CharField(read_only=True)
             self.fields['rating'] = serializers.SerializerMethodField()
+            if 'manager' in self.context:
+                self.fields['last_table_num'] = serializers.SerializerMethodField()
+                self.fields['prep_categs_list'] = serializers.SerializerMethodField()
 
     def validate(self, attrs):
         business_clean_data(self, attrs, self.context['request'].method != 'POST')
@@ -476,6 +479,13 @@ class BusinessSerializer(serializers.ModelSerializer):
             o = -1
         qs = qs.aggregate(Count('stars'), Avg('stars'))
         return [qs['stars__avg'] or 0, qs['stars__count'] or 0, o.stars if o and o > -1 else o or 0]
+
+    def get_last_table_num(self, obj):
+        t = obj.table_set.order_by('-number').first()
+        return t.number if t else 0
+
+    def get_prep_categs_list(self, obj):
+        return obj.waiter_set.annotate(Count('categories')).values_list('categories', flat=True)
 
 
 class CurrentBusinessDefault(object):
@@ -688,8 +698,9 @@ class WaiterSerializer(serializers.ModelSerializer):
         kwargs.pop('fields', None)
         super().__init__(*args, **kwargs)
         self.fields['person'] = UserSerializer() if self.context['request'].method == 'GET' else UserFriendsField(required=True)
-        self.fields['table'] = serializers.IntegerField(min_value=1, source='table.number', required=False, **{'write_only': True} if 'table' in self.context else {})
-        self.fields['categories'] = serializers.ListField(child=serializers.CharField(), required=False)
+        self.fields['table'] = serializers.IntegerField(min_value=1, source='table.number', required=False, **{'write_only': True} if 'tc' in self.context else {})
+        if 'tc' not in self.context:
+            self.fields['categories'] = serializers.ListField(child=serializers.CharField(), required=False)
 
     def create_and_validate_table(self, validated_data, instance=None):
         is_preparer = 'table' not in validated_data and (not instance or not instance.table)
@@ -815,7 +826,7 @@ class TableSerializer(serializers.ModelSerializer):
     #     waiter = extarg(kwargs, 'waiter')
     #     kwargs.pop('fields', None)
     #     super().__init__(*args, **kwargs)
-    #     self.fields['business'] = BusinessSerializer(currency=True) if 'table' not in self.context else serializers.HiddenField(default=CurrentBusinessDefault())
+    #     self.fields['business'] = BusinessSerializer(currency=True) if 'tc' not in self.context else serializers.HiddenField(default=CurrentBusinessDefault())
 
 def get_person_or_session(request, user=False):
     return {'person' if not user else 'user': request.user} if request.user.is_authenticated else {'session': request.session.session_key}
