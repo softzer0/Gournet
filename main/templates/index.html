@@ -1,4 +1,5 @@
 {% extends 'base/main.html' %}
+{% load cache %}
 {% load static %}
 {% load i18n %}
 
@@ -26,18 +27,25 @@
                 <ul class="nav navbar-nav navbar-header pull-right"><li><a href="{% url 'account_signup' %}" class="text-right">{% trans "New here? Click to sign up!" %}</a></li></ul>
             </div>{% endblock %}
 
-{% block container %}
+{% block container %}{% get_current_language as lang %}{% cache None index lang %}
         <div class="row">
             <div class="col-sm-8">
                 <div class="jumbotron">
-                    <h2>{% trans "Welcome to Gournet!" %}</h2>
-                    <p>{% blocktrans %}Gournet is a place where you can find your favourite restaurants, cafes, pubs, and much more! Join our community to explore all the features this platform offers!{% endblocktrans %}</p>
+                    {% if not settings.DEMO %}<h2>{% trans "Welcome to Gournet!" %}</h2>
+                    <p>{% blocktrans %}Gournet is a place where you can find your favourite restaurants, cafes, pubs, and much more! Join our community to explore all the features this platform offers!{% endblocktrans %}</p>{% else %}{% load main_tags %}
+{% markdown %}{% blocktrans %}## This is the demo mode of Gournet
+
+Welcome, and thanks for your interest! As you probably got a pamphlet instructing you how to use the platform as a manager or a waiter, **note that you're only permitted to do changes regarding orders** so you can see how it works in real time.
+
+If you want a broader scope of privileges, please consider going to the main site ([https://gournet.co](https://gournet.co)), signing up and clicking create your business there so that afterwards you can start filling in its information, adding menu and setting up waiters altogether.
+
+Enjoy and have fun!{% endblocktrans %}{% endmarkdown %}{% endif %}
                 </div>
             </div>
             <div class="col-sm-4">
                 <div class="well bs-component">
                     <form class="form-vertical" action="{% url 'account_login' %}" role="form" method="post">
-                        {% csrf_token %}{% load bootstrap3 %}
+                        {% endcache %}{% csrf_token %}{% load bootstrap3 %}
                         {% if redirect_field_value %}
                         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                         {% endif %}
