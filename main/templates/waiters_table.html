@@ -16,7 +16,7 @@
                                     <span ng-show="{{ str }}.edit.state === false">{{ '{' }}{ {{ str }}.obj.opened{{ d }} }{{ '}' }}</span>
                                     <span class="dropup"><input type="hidden" datetime-picker="HH:mm" ng-model="edit_objs[{{ str }}.obj.id].opened{{ d }}" enable-date="false" is-open="edit_objs[{{ str }}.obj.id].dt[{{ forloop.counter0 }}][0]"></span>
                                     <input type="checkbox" ng-show="{{ str }}.edit.state" ng-model="{{ str }}.edit.e{{ d }}" ng-disabled="{{ str }}.edit.state === null">
-                                    <fieldset ng-disabled="!{{ str }}.edit.e{{ d }} || {{ str }}.edit.state === null">
+                                    <div class="ib" ng-disabled="!{{ str }}.edit.e{{ d }} || {{ str }}.edit.state === null">
                                         <span ng-show="{{ str }}.edit.state !== false" class="input-group input-group-sm">
                                             <input class="form-control" datetime="HH:mm" ng-model="edit_objs[{{ str }}.obj.id].opened{{ d }}">
                                             <span class="input-group-btn">
@@ -31,7 +31,7 @@
                                                 <button class="btn btn-default" type="button" ng-click="edit_objs[{{ str }}.obj.id].dt[{{ forloop.counter0 }}][1] = true"><i class="fa fa-clock-o"></i></button>
                                             </span>
                                         </span>
-                                    </fieldset>
+                                    </div>
                                     <span ng-show="{{ str }}.edit.state === false">{{ '{' }}{ {{ str }}.obj.closed{{ d }} }{{ '}' }}</span>
                                 </td>
                                 {% endif %}{% endfor %}<td>

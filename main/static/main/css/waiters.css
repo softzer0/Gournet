@@ -12,11 +12,7 @@
     margin: 9px 5px 5px 0;
 }
 
-.wt fieldset {
-    display: inline;
-}
-
-.wt > td, .ib {
+.wt > td, .wt .hdt {
     vertical-align: middle !important;
 }
 
