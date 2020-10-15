@@ -813,7 +813,7 @@ class OrderedItemSerializer(serializers.ModelSerializer):
         return bool(obj.preparer)
 
     def get_is_preparer(self, obj):
-        return obj.preparer.person == self.context['request'].user
+        return obj.preparer.person == self.context['request'].user if obj.preparer else False
 
 class TableSerializer(serializers.ModelSerializer):
     business = BusinessSerializer(currency=True)

@@ -24,5 +24,4 @@ django-disposable-email-checker==1.2.1
 pyotp==2.3.0
 cryptography==3.0
 qrcode==6.1
-uwsgi==2.0.19.1
 pycryptodome==3.9.4
