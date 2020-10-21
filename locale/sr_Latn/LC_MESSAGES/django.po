@@ -917,7 +917,7 @@ msgstr ""
 "Ako pak želite više dozvola, molimo da razmotrite da odete na glavni sajt "
 "([https://gournet.co](https://gournet.co)), registrujete se i kliknete da "
 "napravite Vaš ugostiteljski objekat tamo kako bi potom krenuli da popunjavate"
-" informacije, ubacujete meni i uređujete konobare ujedno.\n"
+" informacije, ubacujete meni i postavljate konobare ujedno.\n"
 "\n"
 "Uživajte i lep provod!"
 
