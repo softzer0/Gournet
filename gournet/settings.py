@@ -107,7 +107,7 @@ REST_FRAMEWORK = {
         'main.authentication.JWTAuthentication',
         'main.authentication.SessionAuthentication',
     ),
-    'TIME_FORMAT': "%H:%M"
+    'TIME_FORMAT': '%H:%M'
 }
 
 from dateutil.relativedelta import relativedelta
@@ -132,21 +132,21 @@ OLD_PASSWORD_FIELD_ENABLED = True
 ACCOUNT_EMAIL_REQUIRED = True
 #ACCOUNT_UNIQUE_EMAIL = True
 SOCIALACCOUNT_QUERY_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory" if not DEBUG else "none" #none #repl with mandatory
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory' if not DEBUG else 'none' #none #repl with mandatory
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 #EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 #ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
-ACCOUNT_ADAPTER = "main.adapters.AccountAdapter"
-SOCIALACCOUNT_ADAPTER = "main.adapters.SocialAccountAdapter"
+ACCOUNT_ADAPTER = 'main.adapters.AccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'main.adapters.SocialAccountAdapter'
 SOCIALACCOUNT_AUTO_SIGNUP = False
 ACCOUNT_PASSWORD_MIN_LENGTH = 8
 ACCOUNT_LOGOUT_ON_GET = True
 
-RECAPTCHA_PUBLIC_KEY = "***REMOVED***"
-RECAPTCHA_PRIVATE_KEY = "***REMOVED***"
+RECAPTCHA_PUBLIC_KEY = '***REMOVED***'
+RECAPTCHA_PRIVATE_KEY = '***REMOVED***'
 NOCAPTCHA = True
 
-PHONENUMBER_DEFAULT_REGION = "RS"
+PHONENUMBER_DEFAULT_REGION = 'RS'
 
 # Begin custom
 
@@ -156,8 +156,9 @@ COMMENT_PAGE_SIZE = 4
 SEARCH_PAGE_SIZE = 10
 DEFAULT_CURRENCY = 'RSD'
 
-GMAPS_API_KEY = "***REMOVED***"
-GMAPS_API_KEY_FRONTEND = "***REMOVED***"
+GMAPS_API_KEY = '***REMOVED***'
+GMAPS_API_KEY_FRONTEND = '***REMOVED***'
+BDEA_APIKEY = '***REMOVED***'
 
 # End custom
 
