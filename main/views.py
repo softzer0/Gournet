@@ -321,7 +321,7 @@ def show_business(request, shortname):
                 for card in table.card_set.all():
                     t['cards'].append({'number': card.number})
                 resp['tables'].append(t)
-            resp = HttpResponse(dumps(resp), content_type='application/json')
+            resp = HttpResponse(dumps(resp, sort_keys=True, indent=4), content_type='application/json')
             resp['Content-Disposition'] = 'attachment; filename=' + data['business'].shortname + '.json'
             return resp
     if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and not data['business'].is_currently_opened():
