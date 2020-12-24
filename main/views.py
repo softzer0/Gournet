@@ -316,7 +316,7 @@ def show_business(request, shortname):
             p = 0
             if parts and parts.isnumeric() and int(parts) > 1:
                 c = 0
-                n = models.Card.objects.filter(table__business=data['business']).count() // int(parts)
+                n = -(-models.Card.objects.filter(table__business=data['business']).count() // int(parts))
                 parts = int(parts) - 1 if n > 0 else 0
             resp = {'shortname': data['business'].shortname, 'secret': data['business'].table_new_secret.hex(), 'tables': []}
             with ZipFile(zip_buffer, 'a', ZIP_DEFLATED, False) as zip_file:
