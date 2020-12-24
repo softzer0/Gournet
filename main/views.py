@@ -300,19 +300,30 @@ def show_business(request, shortname):
         return redirect('/')
     if not data['business'].is_published and data['business'].manager != request.user and not request.user.is_staff:
         return redirect('/')
-    if request.user.is_staff and request.GET.get('gen_qr'):
-        zip_buffer = BytesIO()
-        with ZipFile(zip_buffer, 'a', ZIP_DEFLATED, False) as zip_file:
-            for card in models.Card.objects.filter(table__business=data['business']):
-                qr = QRCode(version=None)
-                qr.add_data('http://'+request.GET['gen_qr']+'/'+mask(str(card.pk)))
-                qr.make(fit=True)
-                imgByteArr = BytesIO()
-                qr.make_image(back_color='transparent').save(imgByteArr, format='PNG')
-                zip_file.writestr('Sto %s, kartica %s.png' % (card.table.number, card.number), imgByteArr.getvalue())
-        resp = HttpResponse(zip_buffer.getvalue(), content_type='application/x-zip-compressed')
-        resp['Content-Disposition'] = 'attachment; filename=' + data['business'].shortname + '.zip'
-        return resp
+    if request.user.is_staff and request.GET.get('gen'):
+        if request.GET['gen'] == 'qr':
+            zip_buffer = BytesIO()
+            with ZipFile(zip_buffer, 'a', ZIP_DEFLATED, False) as zip_file:
+                for card in models.Card.objects.filter(table__business=data['business']):
+                    qr = QRCode(version=None)
+                    qr.add_data('http://'+request.GET['gen_qr']+'/'+mask(str(card.pk)))
+                    qr.make(fit=True)
+                    imgByteArr = BytesIO()
+                    qr.make_image(back_color='transparent').save(imgByteArr, format='PNG')
+                    zip_file.writestr('Sto %s, kartica %s.png' % (card.table.number, card.number), imgByteArr.getvalue())
+            resp = HttpResponse(zip_buffer.getvalue(), content_type='application/x-zip-compressed')
+            resp['Content-Disposition'] = 'attachment; filename=' + data['business'].shortname + '.zip'
+            return resp
+        elif request.GET['gen'] == 'nfc':
+            resp = {'shortname': data['business'].shortname, 'secret': data['business'].table_new_secret.hex(), 'tables': []}
+            for table in data['business'].table_set.all():
+                t = {'number': table.number, 'cards': []}
+                for card in table.card_set.all():
+                    t['cards'].append({'number': card.number})
+                resp['tables'].append(t)
+            resp = HttpResponse(dumps(resp), content_type='application/json')
+            resp['Content-Disposition'] = 'attachment; filename=' + data['business'].shortname + '.json'
+            return resp
     if 'table' in request.session and request.user.is_authenticated and request.session['table']['shortname'] == data['business'].shortname and not data['business'].is_currently_opened():
         del request.session['table']
     data['fav_count'] = data['business'].likes.count()
