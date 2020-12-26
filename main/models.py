@@ -521,6 +521,7 @@ class Table(models.Model):
 
     class Meta:
         unique_together = (('business', 'number'),)
+        ordering = ['number']
 
     def __str__(self):
         return '%s: Table #%s' % (self.business, self.number)
@@ -538,6 +539,7 @@ class Card(models.Model):
 
     class Meta:
         unique_together = (('table', 'number'),)
+        ordering = ['number']
 
     def __str__(self):
         return '%s, card #%s [%s]' % (self.table, self.number, self.counter)

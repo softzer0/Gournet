@@ -321,7 +321,7 @@ def show_business(request, shortname):
             resp = {'shortname': data['business'].shortname, 'secret': data['business'].table_new_secret.hex(), 'tables': []}
             with ZipFile(zip_buffer, 'a', ZIP_DEFLATED, False) as zip_file:
                 def writetozip():
-                    zip_file.writestr(str(p + 1) + '.json', dumps(resp, sort_keys=True, indent=4))
+                    zip_file.writestr(str(p + 1) + '.json', dumps(resp, indent=4))
                 for table in data['business'].table_set.all():
                     t = {'number': table.number, 'cards': []}
                     l = table.card_set.values_list('number', flat=True)
