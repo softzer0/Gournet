@@ -60,7 +60,7 @@
   width: 246px;
 }
 
-@media (max-width: 460px) {
+@media (max-width: 470px) {
     #pac-input {
         width: 205px;
     }
@@ -70,7 +70,7 @@
     }
 }
 
-@media (max-width: 425px) {
+@media (max-width: 435px) {
     #pac-input {
         width: 175px;
     }
@@ -80,7 +80,7 @@
     }
 }
 
-@media (max-width: 391px) {
+@media (max-width: 401px) {
     #pac-input {
         width: 141px;
     }
@@ -90,13 +90,23 @@
     }
 }
 
-@media (max-width: 357px) {
+@media (max-width: 367px) {
     #pac-input {
         width: 121px;
     }
 
     #pac-input:focus {
         width: 122px;
+    }
+}
+
+@media (max-width: 346px) {
+    #pac-input {
+        width: 93px;
+    }
+
+    #pac-input:focus {
+        width: 94px;
     }
 }
 

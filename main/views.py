@@ -311,7 +311,7 @@ def show_business(request, shortname):
                     imgByteArr = BytesIO()
                     qr.make_image(back_color='transparent').save(imgByteArr, format='PNG')
                     zip_file.writestr('Sto %s, kartica %s.png' % (card.table.number, card.number), imgByteArr.getvalue())
-        elif request.GET['gen'] == 'nfc':
+        else: # nfc
             parts = request.GET.get('parts', 0)
             p = 0
             if parts and parts.isnumeric() and int(parts) > 1:

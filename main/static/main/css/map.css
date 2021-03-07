@@ -5,19 +5,23 @@
 .gm-bundled-control-on-bottom > div:first-child {
    top: 44px !important;
 }
-.gmnoprint > .gmnoprint > div {
-  height: 60px !important;
+.gm-svpc + .gmnoprint {
+  top: 50px !important;
   width: 30px !important;
 }
-.gmnoprint > .gmnoprint > div > div { /* seperator */
+.gm-svpc + .gmnoprint > div {
+  width: initial !important;
+  height: initial !important;
+}
+/*.gmnoprint > div > div {
   width: 22.5px !important;
   margin: 0 3.75px !important;
-}
-.gmnoprint > .gmnoprint button {
+}*/
+.gmnoprint > div > .gm-control-active {
   width: 30px !important;
   height: 30px !important;
 }
-.gmnoprint > .gmnoprint button img {
+.gmnoprint > div > .gm-control-active > img {
   height: 13.5px !important;
   width: 13.5px !important;
 }
@@ -37,15 +41,15 @@
 }
 
 /* MAP|Satellite buttons design*/
-.gm-style-mtc > div:nth-child(1) {
+.gm-style-mtc > button:nth-child(1) {
   padding: 0 9px !important;
   height: 30px !important;
   font-size: 15px !important;
 }
-.gm-style-mtc > div:nth-child(2) {
+.gm-style-mtc > button:nth-child(2) {
   top: 30px !important;
 }
-.gm-style-mtc > div:nth-child(2) > div {
+.gm-style-mtc > button:nth-child(2) > div {
   padding: 2px 4px 2px 2px !important;
   font-size: 14px !important;
 }
