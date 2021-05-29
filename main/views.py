@@ -257,7 +257,7 @@ def manage_waiters(request):
     t = b.table_set.order_by('-number').first()
     return render_with_recent(request, 'waiters.html', {'wt': wt, 'days': models.DAYS, 'days_text': models.DAYS_TEXT, 'form': forms.DummyCategoryMultiple(), 'categs_list': b.waiter_set.annotate(Count('categories')).values_list('categories', flat=True), 'last_num': t.number if t else 0})
 
-
+@request_passes_test(lambda request, *args, **kwargs: request.user.is_authenticated)
 def create_business(request):
     try:
         b = models.Business.objects.get(manager=request.user)
@@ -386,6 +386,7 @@ def show_business(request, shortname):
     data['table'] = 'table' in request.session and request.session['table']['shortname'] == data['business'].shortname
     return render_with_recent(request, 'view.html', data)
 
+@request_passes_test(lambda request, *args, **kwargs: request.user.is_authenticated)
 def show_profile(request, username):
     try:
         data = {'usr': User.objects.get_by_natural_key(username)}

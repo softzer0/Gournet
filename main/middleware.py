@@ -94,9 +94,9 @@ def calculate_sdmmac(sdm_file_read_key: bytes, picc_data: bytes):
 
     c2 = CMAC.new(sdm_file_read_key, ciphermod=AES)
     c2.update(sv2stream.getvalue())
-    sdmmac = CMAC.new(c2.digest(), ciphermod=AES)
+    sdmmac = CMAC.new(c2.digest(), ciphermod=AES).digest()
 
-    return bytes(bytearray([sdmmac.digest()[i] for i in range(16) if i % 2 == 1]))
+    return bytes(bytearray([sdmmac[i] for i in range(16) if i % 2 == 1]))
 
 def decrypt_sun_message(sdm_meta_read_key: bytes,
                         sdm_file_read_key: bytes,
