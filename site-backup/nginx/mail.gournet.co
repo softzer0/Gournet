@@ -1,0 +1,55 @@
+server {
+      server_name mail.gournet.co;
+
+      root /var/lib/roundcube/;
+      index index.php;
+
+      client_max_body_size 25M;
+
+      #location / {
+      #      try_files $uri $uri/ /index.php?q=$uri&$args;
+      #}
+
+      location ~ ^/(.+\.md|INSTALL|LICENSE|CHANGELOG|UPGRADING)$ {
+            deny all;
+      }
+
+      location ~ ^/(config|temp|logs)/ {
+            deny all;
+      }
+
+      location ~ /\. {
+            deny all;
+            access_log off;
+            log_not_found off;
+      }
+
+      location ~ \.php$ {
+         try_files $uri =404;
+         fastcgi_index index.php;
+         fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+         fastcgi_split_path_info ^((?U).+\.php)(/?.+)$;
+         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+         include fastcgi_params;
+     }
+
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/gournet.co/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/gournet.co/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+server {
+    if ($host = mail.gournet.co) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+      server_name mail.gournet.co;
+    listen 80;
+    return 404; # managed by Certbot
+
+
+}

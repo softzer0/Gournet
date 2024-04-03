@@ -1,0 +1,40 @@
+upstream django {
+    server unix:///srv/uwsgi/gournet.sock;
+}
+
+server {
+    charset     utf-8;
+    server_name gournet.co;
+    client_max_body_size 10M;
+
+    if ($host = 'www.gournet.co') {
+        return 301 https://gournet.co$request_uri;
+    }
+
+    location /media {
+        alias /srv/Gournet/media;
+    }
+
+    location /static {
+        alias /srv/Gournet/static;
+    }
+
+    location / {
+        uwsgi_pass django;
+        include    uwsgi_params;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/gournet.co/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/gournet.co/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+
+server {
+    listen      80;
+    server_name gournet.co;
+    return 301 https://gournet.co$request_uri;
+}
